@@ -1,0 +1,100 @@
+import { franc } from "franc";
+
+/** Drapeau Angleterre (séquence Unicode subdivision gbeng). */
+const FLAG_ENGLAND = "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}";
+
+/** ISO 639-3 (franc) → code pays 2 lettres pour drapeau (ou drapeau spécial pour eng). */
+const LANG_TO_COUNTRY: Record<string, string> = {
+  fra: "FR",
+  eng: "GB",
+  spa: "ES",
+  deu: "DE",
+  ita: "IT",
+  por: "PT",
+  nld: "NL",
+  pol: "PL",
+  rus: "RU",
+  jpn: "JP",
+  zho: "CN",
+  ara: "SA",
+  hin: "IN",
+  kor: "KR",
+  tur: "TR",
+  swe: "SE",
+  dan: "DK",
+  nor: "NO",
+  fin: "FI",
+  ell: "GR",
+  ces: "CZ",
+  ron: "RO",
+  hun: "HU",
+  ukr: "UA",
+  heb: "IL",
+  tha: "TH",
+  vie: "VN",
+  ind: "ID",
+  msa: "MY",
+};
+
+/**
+ * Retourne l’emoji drapeau pour un code langue (ISO 639-3) ou un code pays (2 lettres).
+ * Les regional indicators vont de U+1F1E6 (A) à U+1F1FF (Z).
+ */
+export function getFlagEmoji(langOrCountry: string): string {
+  if (langOrCountry === "eng") return FLAG_ENGLAND;
+  const code = langOrCountry.length === 3
+    ? (LANG_TO_COUNTRY[langOrCountry] ?? langOrCountry.slice(0, 2).toUpperCase())
+    : langOrCountry.slice(0, 2).toUpperCase();
+  if (code.length < 2) return "";
+  return [...code]
+    .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
+    .join("");
+}
+
+/**
+ * Détecte la langue d’un texte (franc retourne ISO 639-3, ou "und" si indéterminé).
+ */
+const NORWEGIAN_CODES = new Set(["nob", "nno", "nor"]);
+const NORWEGIAN_CHARS = /[æøåÆØÅ]/;
+const DANISH_CODES = new Set(["dan"]);
+const DANISH_CHARS = /[æøåÆØÅ]/;
+
+export function detectLanguage(text: string): string {
+  const t = (text ?? "").trim();
+  if (!t) return "und";
+  let lang = franc(t, { minLength: 5 });
+  if (lang === "und") return "";
+  if (NORWEGIAN_CODES.has(lang) && !NORWEGIAN_CHARS.test(t)) {
+    lang = "eng";
+  }
+  if (DANISH_CODES.has(lang) && !DANISH_CHARS.test(t)) {
+    lang = "eng";
+  }
+  return lang;
+}
+
+export type DetectedLanguages = {
+  termLang: string;
+  defLang: string;
+  termFlag: string;
+  defFlag: string;
+};
+
+/**
+ * À partir de listes de termes et de définitions, détecte les langues et retourne les drapeaux.
+ */
+export function detectListLanguages(
+  terms: string[],
+  definitions: string[]
+): DetectedLanguages {
+  const termSample = terms.slice(0, 25).join(" ").trim();
+  const defSample = definitions.slice(0, 25).join(" ").trim();
+  const termLang = detectLanguage(termSample);
+  const defLang = detectLanguage(defSample);
+  return {
+    termLang,
+    defLang,
+    termFlag: termLang ? getFlagEmoji(termLang) : "",
+    defFlag: defLang ? getFlagEmoji(defLang) : "",
+  };
+}
