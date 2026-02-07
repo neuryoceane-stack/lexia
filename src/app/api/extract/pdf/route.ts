@@ -29,7 +29,7 @@ export async function POST(request: Request) {
   try {
     const pdf = await getDocumentProxy(buffer);
     const result = await extractText(pdf, { mergePages: true });
-    const raw = result.text;
+    const raw = result.text as string | string[];
     text =
       typeof raw === "string"
         ? raw
