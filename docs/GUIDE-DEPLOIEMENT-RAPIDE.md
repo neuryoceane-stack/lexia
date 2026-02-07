@@ -90,6 +90,7 @@ Avant de lancer le déploiement, dans le projet Vercel :
 | `TURSO_AUTH_TOKEN` | Le token Turso |
 | `AUTH_SECRET` | Une clé secrète : dans le terminal lance `openssl rand -base64 32` et colle le résultat |
 | `NEXTAUTH_URL` | L’URL de ton site. Pour le 1er déploiement mets `https://ton-projet.vercel.app` (remplace par le nom réel de ton projet Vercel) |
+| `SEED_SECRET` | Un secret de ton choix (ex. une autre chaîne aléatoire). Servira à créer le compte test une fois après le déploiement. |
 
 3. Sauvegarde (Save).
 
@@ -104,10 +105,34 @@ Avant de lancer le déploiement, dans le projet Vercel :
 
 ---
 
+## Étape 5bis : Créer le compte test (optionnel)
+
+Pour te connecter avec le compte test **test@test.com** / **test1234** sur le site déployé :
+
+1. Avec **curl** (remplace `TON_URL` et `TON_SEED_SECRET`) :
+   ```bash
+   curl -X POST https://TON_URL/api/seed-test-user \
+     -H "Content-Type: application/json" \
+     -d '{"secret":"TON_SEED_SECRET"}'
+   ```
+2. Ou ouvre dans le navigateur une console (F12 → Console) sur ton site et exécute :
+   ```javascript
+   fetch("/api/seed-test-user", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({ secret: "TON_SEED_SECRET" })
+   }).then(r => r.json()).then(console.log);
+   ```
+   (remplace `TON_SEED_SECRET` par la valeur de la variable `SEED_SECRET` dans Vercel.)
+
+3. Si la réponse affiche `ok: true`, le compte test est créé. Tu peux ensuite te connecter avec **test@test.com** et le mot de passe **test1234**.
+
+---
+
 ## Étape 6 : Tester et partager
 
 1. Ouvre l’URL (ex. `https://lexia-xxx.vercel.app`).
-2. Clique sur **Se connecter** puis **Inscription** et crée un compte.
+2. Clique sur **Se connecter**. Tu peux soit **t’inscrire** (créer un nouveau compte), soit utiliser le compte test **test@test.com** / **test1234** si tu as fait l’étape 5bis.
 3. Une fois connecté, tu peux créer des familles, des listes, faire des révisions et voir la Synthèse.
 4. Envoie simplement le lien à tes amis pour qu’ils puissent s’inscrire et tester.
 
@@ -120,8 +145,9 @@ Avant de lancer le déploiement, dans le projet Vercel :
 | 1 | GitHub | Push du code |
 | 2 | Turso | Compte + `turso db create lexia` + URL + token + exécuter le SQL d’init |
 | 3 | Vercel | Nouveau projet lié au repo GitHub |
-| 4 | Vercel | 4 variables d’environnement (Turso + AUTH_SECRET + NEXTAUTH_URL) |
+| 4 | Vercel | 5 variables d’environnement (Turso + AUTH_SECRET + NEXTAUTH_URL + SEED_SECRET) |
 | 5 | Vercel | Deploy |
-| 6 | Navigateur | Inscription et partage du lien |
+| 5bis | Navigateur ou curl | Appel POST /api/seed-test-user avec le secret pour créer le compte test |
+| 6 | Navigateur | Connexion (test@test.com / test1234 ou inscription) et partage du lien |
 
 Si une étape bloque, reviens à ce guide ou à `DEPLOIEMENT-VERCEL.md` pour plus de détails.
