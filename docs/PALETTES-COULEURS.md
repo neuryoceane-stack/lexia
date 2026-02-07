@@ -1,4 +1,4 @@
-# Palettes de couleurs – Vocab Jardin
+# Palettes de couleurs – Lexia
 
 Référence des palettes utilisables dans le projet. La **Palette 1** est celle appliquée par défaut dans l’interface.
 

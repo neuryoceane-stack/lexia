@@ -83,7 +83,7 @@ export default async function AppDashboardPage() {
             Synthèse
           </h2>
           <p className="mt-1.5 text-sm font-normal text-slate-500 dark:text-slate-400">
-            Vue d’ensemble de ta progression et de ton jardin.
+            Vue d’ensemble de ta progression.
           </p>
         </Link>
       </div>

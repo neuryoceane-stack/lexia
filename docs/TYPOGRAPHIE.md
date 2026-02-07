@@ -1,4 +1,4 @@
-# Typographie – Vocab Jardin
+# Typographie – Lexia
 
 Police principale : **Inter** (Google Fonts).
 

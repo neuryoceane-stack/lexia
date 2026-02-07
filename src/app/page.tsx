@@ -4,10 +4,10 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-8 bg-slate-100 px-4 dark:bg-slate-900">
       <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-        Vocab Jardin
+        Lexia
       </h1>
       <p className="text-center text-slate-600 dark:text-slate-400">
-        Apprends du vocabulaire, révise et fais grandir ton jardin.
+        Apprends du vocabulaire et suis ta progression.
       </p>
       <div className="flex flex-col gap-4 sm:flex-row">
         <Link

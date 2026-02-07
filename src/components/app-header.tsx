@@ -102,10 +102,10 @@ export function AppHeader({ user }: { user: { name?: string | null; email?: stri
         <Link
           href="/app"
           className="flex items-center gap-2.5 text-vocab-gray no-underline outline-none transition hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-slate-100 dark:hover:text-primary-light"
-          aria-label="Vocab Jardin — Accueil"
+          aria-label="Lexia — Accueil"
         >
           <LogoIcon className="h-6 w-6 text-primary dark:text-primary-light" />
-          <span className="text-lg font-semibold">Vocab Jardin</span>
+          <span className="text-lg font-semibold">Lexia</span>
         </Link>
 
         {/* Desktop nav */}

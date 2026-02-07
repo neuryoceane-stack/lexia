@@ -1,4 +1,4 @@
-# Synthèse – Vocab Jardin
+# Synthèse – Lexia
 
 Vue d’ensemble de la progression et statistiques d’apprentissage.
 

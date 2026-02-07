@@ -10,8 +10,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Vocab Jardin — Apprendre du vocabulaire",
-  description: "Familles de mots, révisions et jardin de progression",
+  title: "Lexia — Apprendre du vocabulaire",
+  description: "Familles de mots, révisions et suivi de progression",
 };
 
 export default function RootLayout({
