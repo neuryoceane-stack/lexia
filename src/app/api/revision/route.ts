@@ -7,7 +7,7 @@ import {
   words,
   revisions,
 } from "@/lib/db/schema";
-import { eq, and, asc, desc } from "drizzle-orm";
+import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 /**
@@ -25,12 +25,18 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const listId = searchParams.get("listId")?.trim() || undefined;
+  const listIdsParam = searchParams.get("listIds")?.trim();
+  const listIds = listIdsParam
+    ? listIdsParam.split(",").map((s) => s.trim()).filter(Boolean)
+    : undefined;
   const familyId = searchParams.get("familyId")?.trim() || undefined;
 
   const now = new Date();
 
   let baseCondition = eq(wordFamilies.userId, userId);
-  if (listId) {
+  if (listIds && listIds.length > 0) {
+    baseCondition = and(baseCondition, inArray(lists.id, listIds)) as typeof baseCondition;
+  } else if (listId) {
     baseCondition = and(baseCondition, eq(lists.id, listId)) as typeof baseCondition;
   }
   if (familyId) {

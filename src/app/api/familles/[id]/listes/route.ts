@@ -57,7 +57,7 @@ export async function POST(
   if (!family) {
     return NextResponse.json({ error: "Famille introuvable" }, { status: 404 });
   }
-  let body: { name?: string; source?: "manual" | "ocr" | "pdf" };
+  let body: { name?: string; source?: "manual" | "ocr" | "pdf"; language?: string };
   try {
     body = await request.json();
   } catch {
@@ -74,12 +74,14 @@ export async function POST(
     );
   }
   const source = body.source === "ocr" || body.source === "pdf" ? body.source : "manual";
+  const language = body.language?.trim() || null;
   const id = nanoid();
   await db.insert(lists).values({
     id,
     familyId,
     name,
     source,
+    language,
   });
   const [created] = await db
     .select()

@@ -70,6 +70,13 @@ function AvatarDropdown({ name }: { name: string }) {
       {open && (
         <div className="absolute right-0 top-full mt-1.5 w-48 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
           <p className="truncate px-3 py-2 text-xs text-slate-500 dark:text-slate-400">{name}</p>
+          <Link
+            href="/app/parametres"
+            className="block w-full px-3 py-2 text-left text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+            onClick={() => setOpen(false)}
+          >
+            Paramètres
+          </Link>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
@@ -175,6 +182,13 @@ export function AppHeader({ user }: { user: { name?: string | null; email?: stri
             <Avatar name={displayName} />
             <span className="text-sm text-slate-600 dark:text-slate-400">{displayName}</span>
           </div>
+          <Link
+            href="/app/parametres"
+            onClick={() => setMobileOpen(false)}
+            className="mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            Paramètres
+          </Link>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}

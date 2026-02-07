@@ -88,7 +88,11 @@ export function RevueImport({
       const listRes = await fetch(`/api/familles/${familyId}/listes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, source }),
+        body: JSON.stringify({
+          name,
+          source,
+          language: termLang || undefined,
+        }),
       });
       const listData = await listRes.json().catch(() => ({}));
       if (!listRes.ok) {

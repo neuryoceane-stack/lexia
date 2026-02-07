@@ -34,6 +34,8 @@ export const lists = sqliteTable("lists", {
     .references(() => wordFamilies.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
   source: text("source", { enum: ["manual", "ocr", "pdf"] }).notNull().default("manual"),
+  /** Code langue ISO 639-3 (ex. eng, fra) pour filtrer la bibliothèque par langue. */
+  language: text("language"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -67,6 +69,28 @@ export const revisions = sqliteTable("revisions", {
     .$defaultFn(() => new Date()),
 });
 
+/** Statistiques d'une session d'apprentissage (alimente la Synthèse). */
+export const revisionSessions = sqliteTable("revision_sessions", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  mode: text("mode", { enum: ["flashcard", "dictee"] }).notNull(),
+  /** term_to_def = afficher term, répondre definition ; def_to_term = inverse */
+  direction: text("direction", { enum: ["term_to_def", "def_to_term"] }).notNull(),
+  /** Code langue ISO (ex. eng, fra) pour filtre Synthèse par langue. */
+  language: text("language"),
+  startedAt: integer("started_at", { mode: "timestamp" }).notNull(),
+  endedAt: integer("ended_at", { mode: "timestamp" }).notNull(),
+  durationSeconds: integer("duration_seconds").notNull(),
+  wordsSeen: integer("words_seen").notNull().default(0),
+  wordsRetained: integer("words_retained").notNull().default(0),
+  wordsWritten: integer("words_written").notNull().default(0),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export const gardenProgress = sqliteTable("garden_progress", {
   userId: text("user_id")
     .primaryKey()
@@ -80,9 +104,25 @@ export const gardenProgress = sqliteTable("garden_progress", {
     .$defaultFn(() => new Date()),
 });
 
+/** Préférences utilisateur (avatar Synthèse, etc.). */
+export const userPreferences = sqliteTable("user_preferences", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** Type d'avatar : arbre, phénix, koala. */
+  avatarType: text("avatar_type", { enum: ["arbre", "phenix", "koala"] })
+    .notNull()
+    .default("arbre"),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export type User = typeof users.$inferSelect;
 export type WordFamily = typeof wordFamilies.$inferSelect;
 export type List = typeof lists.$inferSelect;
 export type Word = typeof words.$inferSelect;
 export type Revision = typeof revisions.$inferSelect;
+export type RevisionSession = typeof revisionSessions.$inferSelect;
 export type GardenProgress = typeof gardenProgress.$inferSelect;
+export type UserPreferences = typeof userPreferences.$inferSelect;

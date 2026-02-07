@@ -36,9 +36,9 @@ export default async function FamilleDetailPage({
       <div className="mb-4 flex items-center gap-4">
         <Link
           href="/app/familles"
-          className="text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+          className="text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
         >
-          ← Familles
+          ← Retour à la bibliothèque
         </Link>
       </div>
       <div className="mb-6 flex items-center justify-between">
