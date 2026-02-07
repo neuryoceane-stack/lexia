@@ -29,7 +29,7 @@ export function RevueImport({
 
   const current = items[index];
 
-  const { termFlag, defFlag } = useMemo(
+  const { termLang, termFlag, defFlag } = useMemo(
     () =>
       detectListLanguages(
         items.map((i) => i.term),
