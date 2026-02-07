@@ -173,7 +173,7 @@ export function RevueImport({
           <button
             type="button"
             onClick={keepAllRest}
-            className="ml-auto rounded-lg border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-sm font-medium text-emerald-700 hover:bg-emerald-100 dark:border-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-300 dark:hover:bg-emerald-900/30"
+            className="ml-auto rounded-lg border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary-dark hover:bg-primary/20 dark:border-primary-light dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30"
             aria-label="Garder tout le reste"
           >
             Garder tout le reste ({restCount} fiche{restCount > 1 ? "s" : ""})
@@ -219,7 +219,7 @@ export function RevueImport({
               <button
                 type="button"
                 onClick={markKeep}
-                className="rounded-full bg-emerald-100 px-5 py-2.5 text-sm font-medium text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+                className="rounded-full bg-primary/20 px-5 py-2.5 text-sm font-medium text-primary-dark hover:bg-primary/30 dark:bg-primary/30 dark:text-primary-light dark:hover:bg-primary/40"
                 aria-label="Garder"
               >
                 Garder
@@ -270,7 +270,7 @@ export function RevueImport({
               type="button"
               onClick={handleSaveList}
               disabled={saving}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
             >
               {saving ? "Enregistrement…" : "Tout enregistrer"}
             </button>
@@ -333,7 +333,7 @@ function EditForm({
         <button
           type="button"
           onClick={() => onSave(t, d)}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+          className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
         >
           Enregistrer
         </button>

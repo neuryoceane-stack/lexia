@@ -40,7 +40,7 @@ export function FamillesClient() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+        className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-vocab-gray hover:bg-accent/90"
       >
         Créer une famille
       </button>
@@ -82,7 +82,7 @@ export function FamillesClient() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex-1 rounded-lg bg-emerald-600 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
+                  className="flex-1 rounded-lg bg-primary py-2 text-white hover:bg-primary-dark disabled:opacity-50"
                 >
                   {loading ? "Création…" : "Créer"}
                 </button>

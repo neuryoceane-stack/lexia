@@ -17,6 +17,16 @@ export default async function FamillesPage() {
 
   return (
     <div>
+      <div className="mb-4 flex items-center gap-4">
+        <Link
+          href="/app"
+          className="flex items-center gap-1.5 text-sm text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
+          aria-label="Retour au tableau de bord"
+        >
+          <span aria-hidden>←</span>
+          Retour
+        </Link>
+      </div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
           Familles de mots
@@ -38,7 +48,7 @@ export default async function FamillesPage() {
             <li key={f.id}>
               <Link
                 href={`/app/familles/${f.id}`}
-                className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600"
+                className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light"
               >
                 <span className="font-medium text-slate-800 dark:text-slate-100">
                   {f.name}

@@ -97,7 +97,7 @@ export function MotsClient({
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
           >
             + Ajouter un mot
           </button>
@@ -121,7 +121,7 @@ export function MotsClient({
               type="button"
               onClick={addWord}
               disabled={loading || !newTerm.trim()}
-              className="rounded-lg bg-emerald-600 px-3 py-2 text-sm text-white hover:bg-emerald-700 disabled:opacity-50"
+              className="rounded-lg bg-primary px-3 py-2 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
             >
               Ajouter
             </button>
@@ -160,7 +160,7 @@ export function MotsClient({
                   type="button"
                   onClick={() => updateWord(m.id, editTerm, editDef)}
                   disabled={loading}
-                  className="rounded bg-emerald-600 px-2 py-1 text-sm text-white hover:bg-emerald-700 disabled:opacity-50"
+                  className="rounded bg-primary px-2 py-1 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
                 >
                   OK
                 </button>

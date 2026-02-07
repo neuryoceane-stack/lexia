@@ -105,7 +105,7 @@ export default function NouvelleListePage() {
           <button
             type="button"
             onClick={() => setMethod("manual")}
-            className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600"
+            className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <span className="text-3xl" aria-hidden>✏️</span>
             <span className="font-medium text-slate-800 dark:text-slate-100">
@@ -115,7 +115,7 @@ export default function NouvelleListePage() {
               Saisir les mots un par un ou en bloc
             </span>
           </button>
-          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600">
+          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
             <input
               type="file"
               accept=".pdf,application/pdf"
@@ -131,7 +131,7 @@ export default function NouvelleListePage() {
               Extraire le texte d’un document PDF
             </span>
           </label>
-          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-emerald-300 hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600">
+          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
             <input
               type="file"
               accept="image/*"
@@ -284,7 +284,7 @@ function FormManuel({
           <button
             type="button"
             onClick={addRow}
-            className="text-sm text-emerald-600 hover:underline dark:text-emerald-400"
+            className="text-sm text-primary hover:underline dark:text-primary-light"
           >
             + Ajouter une ligne
           </button>
@@ -332,7 +332,7 @@ function FormManuel({
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:opacity-50"
+          className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
         >
           {loading ? "Enregistrement…" : "Enregistrer la liste"}
         </button>

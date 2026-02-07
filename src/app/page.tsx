@@ -12,7 +12,7 @@ export default function Home() {
       <div className="flex flex-col gap-4 sm:flex-row">
         <Link
           href="/login"
-          className="rounded-lg bg-emerald-600 px-6 py-3 text-center font-medium text-white hover:bg-emerald-700"
+          className="rounded-lg bg-primary px-6 py-3 text-center font-medium text-white hover:bg-primary-dark"
         >
           Se connecter
         </Link>

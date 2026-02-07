@@ -237,7 +237,7 @@ export function RevisionClient() {
                       onClick={() => loadLists(f.id)}
                       className={`rounded-lg border px-4 py-2 text-sm transition ${
                         selectedFamilyId === f.id
-                          ? "border-emerald-500 bg-emerald-50 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-200"
+                          ? "border-primary bg-primary/10 text-primary-dark dark:border-primary-light dark:bg-primary/20 dark:text-primary-light"
                           : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-slate-500"
                       }`}
                     >
@@ -262,7 +262,7 @@ export function RevisionClient() {
                           familyId: selectedFamilyId,
                         })
                       }
-                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:border-emerald-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-emerald-600"
+                      className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-primary-light"
                     >
                       Toute la famille
                     </button>
@@ -278,7 +278,7 @@ export function RevisionClient() {
                             familyId: selectedFamilyId,
                           })
                         }
-                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:border-emerald-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-emerald-600"
+                        className="rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm text-slate-700 hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-primary-light"
                       >
                         {l.name}
                       </button>
@@ -290,7 +290,7 @@ export function RevisionClient() {
             {families.length === 0 && !loading && (
               <p className="text-slate-500 dark:text-slate-400">
                 Aucune famille.{" "}
-                <Link href="/app/familles" className="text-emerald-600 dark:text-emerald-400">
+                <Link href="/app/familles" className="text-primary dark:text-primary-light">
                   Créer une famille
                 </Link>
               </p>
@@ -315,7 +315,7 @@ export function RevisionClient() {
           <button
             type="button"
             onClick={() => selectMode("flashcard")}
-            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-emerald-400 hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-emerald-500"
+            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <span className="text-2xl" aria-hidden>🃏</span>
             <h3 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
@@ -328,7 +328,7 @@ export function RevisionClient() {
           <button
             type="button"
             onClick={() => selectMode("write")}
-            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-emerald-400 hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-emerald-500"
+            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <span className="text-2xl" aria-hidden>✏️</span>
             <h3 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
@@ -401,7 +401,7 @@ export function RevisionClient() {
             <button
               type="button"
               onClick={backToScope}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700"
+              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
             >
               Choisir une autre famille ou liste
             </button>
@@ -429,7 +429,7 @@ export function RevisionClient() {
             <button
               type="button"
               onClick={() => setRevealed((r) => !r)}
-              className="w-full rounded-2xl border-2 border-slate-200 bg-white p-8 text-left shadow-lg transition hover:border-emerald-300 hover:shadow-xl dark:border-slate-600 dark:bg-slate-800 dark:hover:border-emerald-600"
+              className="w-full rounded-2xl border-2 border-slate-200 bg-white p-8 text-left shadow-lg transition hover:border-primary hover:shadow-xl dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
             >
               <p className="text-xs text-slate-400 dark:text-slate-500">
                 {words.length} mot{words.length > 1 ? "s" : ""} restant{words.length > 1 ? "s" : ""}
@@ -461,7 +461,7 @@ export function RevisionClient() {
                 type="button"
                 onClick={() => recordReview(true)}
                 disabled={sending || !revealed}
-                className="rounded-full bg-emerald-100 px-6 py-3 text-sm font-medium text-emerald-700 hover:bg-emerald-200 disabled:opacity-50 dark:bg-emerald-900/30 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+                className="rounded-full bg-primary/20 px-6 py-3 text-sm font-medium text-primary-dark hover:bg-primary/30 disabled:opacity-50 dark:bg-primary/30 dark:text-primary-light dark:hover:bg-primary/40"
               >
                 Je savais
               </button>
@@ -522,7 +522,7 @@ export function RevisionClient() {
               />
             </div>
             {writeResult === "correct" && (
-              <div className="mt-4 rounded-lg border border-emerald-300 bg-emerald-50 p-3 text-emerald-800 dark:border-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-200">
+              <div className="mt-4 rounded-lg border border-primary bg-primary/10 p-3 text-primary-dark dark:border-primary-light dark:bg-primary/20 dark:text-primary-light">
                 <p>Correct.</p>
               </div>
             )}
@@ -543,7 +543,7 @@ export function RevisionClient() {
                 type="button"
                 onClick={submitWriteAnswer}
                 disabled={sending || !writeAnswer.trim()}
-                className="rounded-full bg-emerald-600 px-8 py-3 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
+                className="rounded-full bg-primary px-8 py-3 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
               >
                 Valider
               </button>
@@ -553,7 +553,7 @@ export function RevisionClient() {
                 <button
                   type="button"
                   onClick={onWrongRetry}
-                  className="rounded-full bg-emerald-100 px-6 py-3 text-sm font-medium text-emerald-700 hover:bg-emerald-200 dark:bg-emerald-900/30 dark:text-emerald-200 dark:hover:bg-emerald-900/50"
+                  className="rounded-full bg-primary/20 px-6 py-3 text-sm font-medium text-primary-dark hover:bg-primary/30 dark:bg-primary/30 dark:text-primary-light dark:hover:bg-primary/40"
                 >
                   Réessayer
                 </button>

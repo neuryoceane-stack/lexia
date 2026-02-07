@@ -62,7 +62,7 @@ export default async function FamilleDetailPage({
             <li key={list.id}>
               <Link
                 href={`/app/familles/${familyId}/listes/${list.id}`}
-                className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-emerald-300 hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-emerald-600"
+                className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light"
               >
                 <span className="font-medium text-slate-800 dark:text-slate-100">
                   {list.name}
