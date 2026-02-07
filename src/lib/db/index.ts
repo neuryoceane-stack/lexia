@@ -23,11 +23,11 @@ function getDb(): DbInstance {
     const sqlite = new Database(dbPath);
     _db = drizzle(sqlite, { schema });
   }
-  return _db;
+  return _db as DbInstance;
 }
 
 export const db = new Proxy({} as DbInstance, {
   get(_, prop) {
-    return (getDb() as Record<string, unknown>)[prop as string];
+    return (getDb() as unknown as Record<string, unknown>)[prop as string];
   },
 });
