@@ -37,6 +37,24 @@ const LANG_TO_COUNTRY: Record<string, string> = {
 };
 
 /**
+ * Langues proposées pour la préférence utilisateur et le sélecteur de liste (drapeaux dans public/flags).
+ */
+export const PREFERRED_LANGUAGE_OPTIONS: { value: string; label: string }[] = [
+  { value: "fra", label: "Français" },
+  { value: "eng", label: "Anglais" },
+  { value: "spa", label: "Espagnol" },
+  { value: "deu", label: "Allemand" },
+  { value: "ita", label: "Italien" },
+  { value: "por", label: "Portugais" },
+  { value: "nld", label: "Néerlandais" },
+  { value: "pol", label: "Polonais" },
+  { value: "rus", label: "Russe" },
+  { value: "jpn", label: "Japonais" },
+  { value: "zho", label: "Chinois" },
+  { value: "ell", label: "Grec" },
+];
+
+/**
  * Retourne le code pays 2 lettres (ISO 3166-1 alpha-2) pour un code langue (ISO 639-3).
  * Utilisé pour les images drapeaux dans public/flags (ex. fra → fr, eng → gb).
  */

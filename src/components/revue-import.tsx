@@ -11,12 +11,15 @@ export function RevueImport({
   familyId,
   initialItems,
   source,
+  defaultLanguage,
   onSaved,
   onCancel,
 }: {
   familyId: string;
   initialItems: RevueItem[];
   source: "pdf" | "ocr";
+  /** Langue préférée utilisateur (onboarding) : utilisée si la détection ne donne rien. */
+  defaultLanguage?: string | null;
   onSaved: () => void;
   onCancel: () => void;
 }) {
@@ -92,7 +95,7 @@ export function RevueImport({
         body: JSON.stringify({
           name,
           source,
-          language: termLang || undefined,
+          language: termLang || defaultLanguage || undefined,
         }),
       });
       const listData = await listRes.json().catch(() => ({}));

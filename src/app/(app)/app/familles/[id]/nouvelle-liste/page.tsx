@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { RevueImport } from "@/components/revue-import";
+import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 
 type Method = "manual" | "pdf" | "image" | null;
 
@@ -17,6 +18,16 @@ export default function NouvelleListePage() {
   >([]);
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractError, setExtractError] = useState("");
+  const [preferredLanguage, setPreferredLanguage] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/user/preferences")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.preferredLanguage != null) setPreferredLanguage(data.preferredLanguage);
+      })
+      .catch(() => {});
+  }, []);
 
   const handleFile = useCallback(
     async (file: File, endpoint: "/api/extract/pdf" | "/api/extract/ocr") => {
@@ -76,6 +87,7 @@ export default function NouvelleListePage() {
           familyId={familyId}
           initialItems={extractedItems}
           source={method === "pdf" ? "pdf" : "ocr"}
+          defaultLanguage={preferredLanguage}
           onSaved={onSaved}
           onCancel={() => setExtractedItems([])}
         />
@@ -151,7 +163,11 @@ export default function NouvelleListePage() {
       )}
 
       {method !== null && method === "manual" && (
-        <FormManuel familyId={familyId} onBack={() => setMethod(null)} />
+        <FormManuel
+          familyId={familyId}
+          defaultLanguage={preferredLanguage}
+          onBack={() => setMethod(null)}
+        />
       )}
 
       {extractLoading && (
@@ -170,13 +186,21 @@ export default function NouvelleListePage() {
 
 function FormManuel({
   familyId,
+  defaultLanguage,
   onBack,
 }: {
   familyId: string;
+  defaultLanguage: string | null;
   onBack: () => void;
 }) {
   const router = useRouter();
   const [listName, setListName] = useState("");
+  const [listLanguage, setListLanguage] = useState(() => defaultLanguage ?? "");
+  useEffect(() => {
+    if (defaultLanguage != null && listLanguage === "" && defaultLanguage !== "") {
+      setListLanguage(defaultLanguage);
+    }
+  }, [defaultLanguage, listLanguage]);
   const [rows, setRows] = useState<Array<{ term: string; definition: string }>>([
     { term: "", definition: "" },
   ]);
@@ -223,7 +247,11 @@ function FormManuel({
       const listRes = await fetch(`/api/familles/${familyId}/listes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, source: "manual" }),
+        body: JSON.stringify({
+          name,
+          source: "manual",
+          language: listLanguage.trim() || undefined,
+        }),
       });
       const listData = await listRes.json().catch(() => ({}));
       if (!listRes.ok) {
@@ -275,6 +303,28 @@ function FormManuel({
           placeholder="ex. Parties du corps"
           className="w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
         />
+      </div>
+      <div>
+        <label
+          htmlFor="list-lang-manual"
+          className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
+        >
+          Langue de la liste
+        </label>
+        <select
+          id="list-lang-manual"
+          value={listLanguage}
+          onChange={(e) => setListLanguage(e.target.value)}
+          className="w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+          aria-label="Langue de la liste"
+        >
+          <option value="">Aucune</option>
+          {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
       <div>
         <div className="mb-2 flex items-center justify-between">

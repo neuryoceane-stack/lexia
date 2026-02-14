@@ -104,7 +104,7 @@ export const gardenProgress = sqliteTable("garden_progress", {
     .$defaultFn(() => new Date()),
 });
 
-/** Préférences utilisateur (avatar Synthèse, etc.). */
+/** Préférences utilisateur (avatar Synthèse, langue enrichie, etc.). */
 export const userPreferences = sqliteTable("user_preferences", {
   userId: text("user_id")
     .primaryKey()
@@ -113,6 +113,12 @@ export const userPreferences = sqliteTable("user_preferences", {
   avatarType: text("avatar_type", { enum: ["arbre", "phenix", "koala"] })
     .notNull()
     .default("arbre"),
+  /** Langue que l'utilisateur souhaite enrichir (ISO 639-3). Null = pas encore choisi (onboarding Bibliothèque). */
+  preferredLanguage: text("preferred_language"),
+  /** Deuxième langue à enrichir (optionnel). Conservé pour rétrocompat. */
+  preferredLanguage2: text("preferred_language_2"),
+  /** Liste des langues à enrichir (JSON array de codes ISO 639-3). Prioritaire si présent. */
+  preferredLanguages: text("preferred_languages"),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

@@ -73,5 +73,8 @@ ALTER TABLE revision_sessions ADD COLUMN language text;
 CREATE TABLE IF NOT EXISTS user_preferences (
   user_id text PRIMARY KEY NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   avatar_type text NOT NULL DEFAULT 'arbre',
+  preferred_language text,
+  preferred_language_2 text,
+  preferred_languages text,
   updated_at integer NOT NULL
 );
