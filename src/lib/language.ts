@@ -37,6 +37,25 @@ const LANG_TO_COUNTRY: Record<string, string> = {
 };
 
 /**
+ * Retourne le code pays 2 lettres (ISO 3166-1 alpha-2) pour un code langue (ISO 639-3).
+ * Utilisé pour les images drapeaux dans public/flags (ex. fra → fr, eng → gb).
+ */
+export function getFlagCountryCode(langOrCountry: string): string {
+  if (langOrCountry.length === 2) return langOrCountry.toUpperCase();
+  return (LANG_TO_COUNTRY[langOrCountry] ?? langOrCountry.slice(0, 2).toUpperCase()).toUpperCase();
+}
+
+/**
+ * Chemin vers l’image drapeau (public/flags/xx.png).
+ * Les fichiers doivent faire 32×32 px (ou 48×48 px), format PNG.
+ */
+export function getFlagImagePath(langOrCountry: string): string {
+  const code = getFlagCountryCode(langOrCountry).toLowerCase();
+  if (code.length < 2) return "";
+  return `/flags/${code}.png`;
+}
+
+/**
  * Retourne l’emoji drapeau pour un code langue (ISO 639-3) ou un code pays (2 lettres).
  * Les regional indicators vont de U+1F1E6 (A) à U+1F1FF (Z).
  */

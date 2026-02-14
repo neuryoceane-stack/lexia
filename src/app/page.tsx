@@ -12,13 +12,13 @@ export default function Home() {
       <div className="flex flex-col gap-4 sm:flex-row">
         <Link
           href="/login"
-          className="rounded-lg bg-primary px-6 py-3 text-center font-medium text-white hover:bg-primary-dark"
+          className="btn-relief rounded-lg bg-primary px-6 py-3 text-center font-medium text-white hover:bg-primary-dark"
         >
           Se connecter
         </Link>
         <Link
           href="/signup"
-          className="rounded-lg border border-slate-300 px-6 py-3 text-center font-medium text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
+          className="btn-relief rounded-lg border border-slate-300 px-6 py-3 text-center font-medium text-slate-700 hover:bg-slate-200 dark:border-slate-600 dark:text-slate-200 dark:hover:bg-slate-800"
         >
           S&apos;inscrire
         </Link>

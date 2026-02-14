@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { getFlagEmoji } from "@/lib/language";
+import { getFlagEmoji, getFlagImagePath } from "@/lib/language";
 
 type BibliothequeList = {
   id: string;
@@ -37,6 +37,7 @@ export function BibliothequeClient() {
   const [families, setFamilies] = useState<{ id: string; name: string }[]>([]);
   const [newFamilyName, setNewFamilyName] = useState("");
   const [creatingFamily, setCreatingFamily] = useState(false);
+  const [deletingFamilyId, setDeletingFamilyId] = useState<string | null>(null);
 
   const fetchLists = useCallback(async () => {
     setLoading(true);
@@ -79,6 +80,23 @@ export function BibliothequeClient() {
     }
   }, [menuOpenId]);
 
+  async function handleDeleteFamily(familyId: string, familyName: string) {
+    setMenuOpenId(null);
+    const ok = window.confirm(
+      `Supprimer la famille « ${familyName} » et toutes ses listes de mots ? Cette action est irréversible.`
+    );
+    if (!ok) return;
+    setDeletingFamilyId(familyId);
+    try {
+      const res = await fetch(`/api/familles/${familyId}`, { method: "DELETE" });
+      if (res.ok) {
+        fetchLists();
+      }
+    } finally {
+      setDeletingFamilyId(null);
+    }
+  }
+
   return (
     <div className="space-y-6">
       {/* Retour */}
@@ -104,7 +122,7 @@ export function BibliothequeClient() {
             <button
               type="button"
               onClick={() => setLang(null)}
-              className={`rounded-l-md px-2.5 py-2 text-xl transition ${
+              className={`btn-relief rounded-l-md px-2.5 py-2 text-xl transition ${
                 lang === null
                   ? "bg-primary/10 ring-1 ring-primary/30 dark:bg-primary/20"
                   : "hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -118,14 +136,36 @@ export function BibliothequeClient() {
                 key={l}
                 type="button"
                 onClick={() => setLang(l)}
-                className={`px-2.5 py-2 text-xl transition ${
+                className={`btn-relief flex items-center justify-center px-2.5 py-2 text-xl transition ${
                   lang === l
                     ? "bg-primary/10 ring-1 ring-primary/30 dark:bg-primary/20"
                     : "hover:bg-slate-100 dark:hover:bg-slate-700"
                 }`}
                 title={l}
               >
-                {getFlagEmoji(l)}
+                <span className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center overflow-hidden rounded-sm">
+                  {getFlagImagePath(l) ? (
+                    <>
+                      <img
+                        src={getFlagImagePath(l)}
+                        alt=""
+                        width={24}
+                        height={24}
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = "none";
+                          const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+                          if (fallback) fallback.style.display = "flex";
+                        }}
+                      />
+                      <span className="absolute inset-0 hidden items-center justify-center text-lg" aria-hidden>
+                        {getFlagEmoji(l)}
+                      </span>
+                    </>
+                  ) : (
+                    <span className="text-lg" aria-hidden>{getFlagEmoji(l)}</span>
+                  )}
+                </span>
               </button>
             ))}
           </div>
@@ -135,7 +175,7 @@ export function BibliothequeClient() {
             <button
               type="button"
               onClick={() => setAddModal("list")}
-              className="inline-flex items-center gap-2 rounded-lg bg-p2-primary px-4 py-2 text-sm font-medium text-white hover:bg-p2-primary/90"
+              className="btn-relief inline-flex items-center gap-2 rounded-lg bg-p2-primary px-4 py-2 text-sm font-medium text-white hover:bg-p2-primary/90"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -144,7 +184,7 @@ export function BibliothequeClient() {
             </button>
             <Link
               href="/app/familles/mots-sauvages"
-              className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="btn-relief inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
             >
               <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -180,7 +220,7 @@ export function BibliothequeClient() {
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className={`rounded-l-lg px-3 py-2 transition ${
+            className={`btn-relief rounded-l-lg px-3 py-2 transition ${
               viewMode === "grid"
                 ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
                 : "hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -194,7 +234,7 @@ export function BibliothequeClient() {
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`rounded-r-lg px-3 py-2 transition ${
+            className={`btn-relief rounded-r-lg px-3 py-2 transition ${
               viewMode === "list"
                 ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
                 : "hover:bg-slate-100 dark:hover:bg-slate-700"
@@ -254,7 +294,7 @@ export function BibliothequeClient() {
                     e.preventDefault();
                     setMenuOpenId(menuOpenId === list.id ? null : list.id);
                   }}
-                  className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                  className="btn-relief rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
                   aria-label="Menu"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -272,6 +312,14 @@ export function BibliothequeClient() {
                     >
                       Dupliquer dans une autre langue
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
+                      disabled={deletingFamilyId === list.familyId}
+                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
+                    >
+                      Supprimer la famille
+                    </button>
                   </div>
                 )}
               </div>
@@ -300,7 +348,7 @@ export function BibliothequeClient() {
                     e.preventDefault();
                     setMenuOpenId(menuOpenId === list.id ? null : list.id);
                   }}
-                  className="rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                  className="btn-relief rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
                   aria-label="Menu"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -318,6 +366,14 @@ export function BibliothequeClient() {
                     >
                       Dupliquer dans une autre langue
                     </Link>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
+                      disabled={deletingFamilyId === list.familyId}
+                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
+                    >
+                      Supprimer la famille
+                    </button>
                   </div>
                 )}
               </div>
@@ -373,7 +429,7 @@ export function BibliothequeClient() {
                   <button
                     type="submit"
                     disabled={creatingFamily || !newFamilyName.trim()}
-                    className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+                    className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
                   >
                     {creatingFamily ? "Création…" : "Créer"}
                   </button>
@@ -385,7 +441,7 @@ export function BibliothequeClient() {
                   <li key={f.id}>
                     <Link
                       href={`/app/familles/${f.id}/nouvelle-liste`}
-                      className="block rounded-lg border border-slate-200 px-4 py-3 font-medium text-slate-800 hover:border-primary hover:bg-primary/5 dark:border-slate-600 dark:text-slate-100 dark:hover:border-primary-light dark:hover:bg-primary/10"
+                      className="btn-relief block rounded-lg border border-slate-200 px-4 py-3 font-medium text-slate-800 hover:border-primary hover:bg-primary/5 dark:border-slate-600 dark:text-slate-100 dark:hover:border-primary-light dark:hover:bg-primary/10"
                       onClick={() => setAddModal(null)}
                     >
                       {f.name}
@@ -398,7 +454,7 @@ export function BibliothequeClient() {
               <button
                 type="button"
                 onClick={() => setAddModal(null)}
-                className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
+                className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
               >
                 Annuler
               </button>

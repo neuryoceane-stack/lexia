@@ -60,7 +60,7 @@ function AvatarDropdown({ name }: { name: string }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
-        className="rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="btn-relief rounded-full outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         aria-expanded={open}
         aria-haspopup="true"
         aria-label="Menu compte"
@@ -80,7 +80,7 @@ function AvatarDropdown({ name }: { name: string }) {
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="w-full px-3 py-2 text-left text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+            className="btn-relief w-full px-3 py-2 text-left text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
           >
             Déconnexion
           </button>
@@ -117,7 +117,7 @@ export function AppHeader({ user }: { user: { name?: string | null; email?: stri
             <Link
               key={href}
               href={href}
-              className={`rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
+              className={`btn-relief rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
                 pathname === href || pathname.startsWith(href + "/")
                   ? "text-primary dark:text-primary-light"
                   : "text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
@@ -137,7 +137,7 @@ export function AppHeader({ user }: { user: { name?: string | null; email?: stri
           <button
             type="button"
             onClick={() => setMobileOpen((o) => !o)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-vocab-gray hover:bg-slate-100 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:hidden dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-primary-light"
+            className="btn-relief flex h-9 w-9 items-center justify-center rounded-lg text-vocab-gray hover:bg-slate-100 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:hidden dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-primary-light"
             aria-expanded={mobileOpen}
             aria-controls="mobile-menu"
             aria-label="Ouvrir le menu"
@@ -169,7 +169,7 @@ export function AppHeader({ user }: { user: { name?: string | null; email?: stri
               key={href}
               href={href}
               onClick={() => setMobileOpen(false)}
-              className={`rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+              className={`btn-relief rounded-lg px-3 py-2.5 text-sm font-medium transition ${
                 pathname === href || pathname.startsWith(href + "/")
                   ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
                   : "text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
@@ -185,14 +185,14 @@ export function AppHeader({ user }: { user: { name?: string | null; email?: stri
           <Link
             href="/app/parametres"
             onClick={() => setMobileOpen(false)}
-            className="mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             Paramètres
           </Link>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
-            className="mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             Déconnexion
           </button>

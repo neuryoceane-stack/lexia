@@ -115,7 +115,7 @@ export function JardinClient() {
             key={p}
             type="button"
             onClick={() => setPeriod(p)}
-            className={`rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+            className={`btn-relief rounded-lg border px-3 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
               period === p
                 ? "border-p3-turquoise bg-p3-turquoise/15 text-p3-turquoise dark:bg-p3-turquoise/25 dark:text-p3-turquoise"
                 : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"

@@ -3,6 +3,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { detectListLanguages } from "@/lib/language";
+import { FlagDisplay } from "@/components/flag-display";
 
 export type RevueItem = { term: string; definition: string };
 
@@ -29,7 +30,7 @@ export function RevueImport({
 
   const current = items[index];
 
-  const { termLang, termFlag, defFlag } = useMemo(
+  const { termLang, defLang } = useMemo(
     () =>
       detectListLanguages(
         items.map((i) => i.term),
@@ -147,7 +148,7 @@ export function RevueImport({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+            className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
           >
             Retour
           </button>
@@ -164,20 +165,20 @@ export function RevueImport({
         <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
           Réviser les mots extraits
         </h2>
-        {(termFlag || defFlag) && (
-          <span className="text-xl" title="Langues détectées">
-            {termFlag}
-            {termFlag && defFlag && (
+        {(termLang || defLang) && (
+          <span className="flex items-center gap-1 text-xl" title="Langues détectées">
+            <FlagDisplay langCode={termLang} size={24} />
+            {termLang && defLang && (
               <span className="mx-1 text-slate-400" aria-hidden>→</span>
             )}
-            {defFlag}
+            <FlagDisplay langCode={defLang} size={24} />
           </span>
         )}
         {index < items.length && restCount > 0 && (
           <button
             type="button"
             onClick={keepAllRest}
-            className="ml-auto rounded-lg border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary-dark hover:bg-primary/20 dark:border-primary-light dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30"
+            className="btn-relief ml-auto rounded-lg border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary-dark hover:bg-primary/20 dark:border-primary-light dark:bg-primary/20 dark:text-primary-light dark:hover:bg-primary/30"
             aria-label="Garder tout le reste"
           >
             Garder tout le reste ({restCount} fiche{restCount > 1 ? "s" : ""})
@@ -207,7 +208,7 @@ export function RevueImport({
               <button
                 type="button"
                 onClick={markDiscard}
-                className="rounded-full bg-red-100 px-5 py-2.5 text-sm font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
+                className="btn-relief rounded-full bg-red-100 px-5 py-2.5 text-sm font-medium text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-300 dark:hover:bg-red-900/50"
                 aria-label="Supprimer"
               >
                 Supprimer
@@ -215,7 +216,7 @@ export function RevueImport({
               <button
                 type="button"
                 onClick={openEdit}
-                className="rounded-full bg-amber-100 px-5 py-2.5 text-sm font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:hover:bg-amber-900/50"
+                className="btn-relief rounded-full bg-amber-100 px-5 py-2.5 text-sm font-medium text-amber-800 hover:bg-amber-200 dark:bg-amber-900/30 dark:text-amber-200 dark:hover:bg-amber-900/50"
                 aria-label="Modifier"
               >
                 Modifier
@@ -223,7 +224,7 @@ export function RevueImport({
               <button
                 type="button"
                 onClick={markKeep}
-                className="rounded-full bg-primary/20 px-5 py-2.5 text-sm font-medium text-primary-dark hover:bg-primary/30 dark:bg-primary/30 dark:text-primary-light dark:hover:bg-primary/40"
+                className="btn-relief rounded-full bg-primary/20 px-5 py-2.5 text-sm font-medium text-primary-dark hover:bg-primary/30 dark:bg-primary/30 dark:text-primary-light dark:hover:bg-primary/40"
                 aria-label="Garder"
               >
                 Garder
@@ -266,7 +267,7 @@ export function RevueImport({
             <button
               type="button"
               onClick={onCancel}
-              className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+              className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
             >
               Annuler
             </button>
@@ -274,7 +275,7 @@ export function RevueImport({
               type="button"
               onClick={handleSaveList}
               disabled={saving}
-              className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
+              className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
             >
               {saving ? "Enregistrement…" : "Tout enregistrer"}
             </button>
@@ -330,14 +331,14 @@ function EditForm({
         <button
           type="button"
           onClick={onCancel}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+          className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
         >
           Annuler
         </button>
         <button
           type="button"
           onClick={() => onSave(t, d)}
-          className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
+          className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
         >
           Enregistrer
         </button>

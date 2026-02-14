@@ -105,7 +105,7 @@ export default function NouvelleListePage() {
           <button
             type="button"
             onClick={() => setMethod("manual")}
-            className="flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <span className="text-3xl" aria-hidden>✏️</span>
             <span className="font-medium text-slate-800 dark:text-slate-100">
@@ -115,7 +115,7 @@ export default function NouvelleListePage() {
               Saisir les mots un par un ou en bloc
             </span>
           </button>
-          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
+          <label className="btn-relief flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
             <input
               type="file"
               accept=".pdf,application/pdf"
@@ -131,7 +131,7 @@ export default function NouvelleListePage() {
               Extraire le texte d’un document PDF
             </span>
           </label>
-          <label className="flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
+          <label className="btn-relief flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
             <input
               type="file"
               accept="image/*"
@@ -255,7 +255,7 @@ function FormManuel({
       <button
         type="button"
         onClick={onBack}
-        className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+        className="btn-relief rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:text-slate-200"
       >
         ← Changer de méthode
       </button>
@@ -284,7 +284,7 @@ function FormManuel({
           <button
             type="button"
             onClick={addRow}
-            className="text-sm text-primary hover:underline dark:text-primary-light"
+            className="btn-relief rounded px-2 py-1 text-sm text-primary hover:bg-primary/10 dark:text-primary-light dark:hover:bg-primary/20"
           >
             + Ajouter une ligne
           </button>
@@ -309,7 +309,7 @@ function FormManuel({
               <button
                 type="button"
                 onClick={() => removeRow(i)}
-                className="rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-700 dark:hover:text-red-400"
+                className="btn-relief rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-700 dark:hover:text-red-400"
                 aria-label="Supprimer la ligne"
               >
                 ✕
@@ -325,14 +325,14 @@ function FormManuel({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+          className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
         >
           Annuler
         </button>
         <button
           type="submit"
           disabled={loading}
-          className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
+          className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
         >
           {loading ? "Enregistrement…" : "Enregistrer la liste"}
         </button>

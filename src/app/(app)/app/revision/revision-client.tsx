@@ -279,7 +279,7 @@ export function RevisionClient() {
               setMode("flashcard");
               setStep("lists");
             }}
-            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <span className="text-2xl" aria-hidden>🃏</span>
             <h3 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
@@ -295,7 +295,7 @@ export function RevisionClient() {
               setMode("dictee");
               setStep("lists");
             }}
-            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <span className="text-2xl" aria-hidden>✏️</span>
             <h3 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
@@ -322,7 +322,7 @@ export function RevisionClient() {
         <button
           type="button"
           onClick={() => setStep("mode")}
-          className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+          className="btn-relief rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:text-slate-200"
         >
           ← Changer de mode
         </button>
@@ -348,7 +348,7 @@ export function RevisionClient() {
               return (
                 <li key={list.id}>
                   <label
-                    className={`flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition ${
+                    className={`btn-relief flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition ${
                       selected
                         ? "border-primary bg-primary/5 dark:bg-primary/10"
                         : disabled
@@ -379,7 +379,7 @@ export function RevisionClient() {
           <button
             type="button"
             onClick={() => setStep("direction")}
-            className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
+            className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
           >
             Continuer
           </button>
@@ -400,7 +400,7 @@ export function RevisionClient() {
         <button
           type="button"
           onClick={() => setStep("lists")}
-          className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+          className="btn-relief rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:text-slate-200"
         >
           ← Changer de listes
         </button>
@@ -415,7 +415,7 @@ export function RevisionClient() {
               setStep("session");
               loadSessionWords();
             }}
-            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
               Langue étrangère → Langue maternelle
@@ -431,7 +431,7 @@ export function RevisionClient() {
               setStep("session");
               loadSessionWords();
             }}
-            className="rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
           >
             <p className="text-sm font-medium text-slate-600 dark:text-slate-400">
               Langue maternelle → Langue étrangère
@@ -471,7 +471,7 @@ export function RevisionClient() {
           <button
             type="button"
             onClick={() => setStep("direction")}
-            className="rounded-lg border border-slate-300 px-4 py-2 text-slate-700"
+            className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700"
           >
             Changer de listes ou sens
           </button>
@@ -519,7 +519,7 @@ export function RevisionClient() {
                   setWordsWritten(0);
                   setEndSessionDurationSeconds(0);
                 }}
-                className="mt-6 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
+                className="btn-relief mt-6 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
               >
                 Nouvelle session
               </button>
@@ -546,7 +546,7 @@ export function RevisionClient() {
               setSelectedListIds(new Set());
               setDirection(null);
             }}
-            className="rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
+            className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
           >
             Nouvelle session
           </button>
@@ -731,21 +731,21 @@ export function RevisionClient() {
                   <button
                     type="button"
                     onClick={onWrongRetry}
-                    className="rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-primary-dark dark:bg-primary/30 dark:text-primary-light"
+                    className="btn-relief rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-primary-dark dark:bg-primary/30 dark:text-primary-light"
                   >
                     Réessayer
                   </button>
                   <button
                     type="button"
                     onClick={onWrongReveal}
-                    className="rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:text-slate-300"
+                    className="btn-relief rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:text-slate-300"
                   >
                     Révéler
                   </button>
                   <button
                     type="button"
                     onClick={onWrongLater}
-                    className="rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
+                    className="btn-relief rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
                   >
                     Plus tard
                   </button>
@@ -753,7 +753,7 @@ export function RevisionClient() {
                     <button
                       type="button"
                       onClick={onWrongNext}
-                      className="rounded-lg bg-slate-700 px-3 py-2 text-sm text-white dark:bg-slate-600"
+                      className="btn-relief rounded-lg bg-slate-700 px-3 py-2 text-sm text-white dark:bg-slate-600"
                     >
                       Suivant
                     </button>
@@ -766,7 +766,7 @@ export function RevisionClient() {
                 type="button"
                 onClick={submitDictee}
                 disabled={sending || !writeAnswer.trim()}
-                className="mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+                className="btn-relief mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
               >
                 Valider
               </button>

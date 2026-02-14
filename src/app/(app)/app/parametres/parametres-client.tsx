@@ -69,7 +69,7 @@ export function ParametresClient() {
                 type="button"
                 onClick={() => saveAvatarType(value)}
                 disabled={saving}
-                className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
+                className={`btn-relief flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
                   avatarType === value
                     ? "border-p3-turquoise bg-p3-turquoise/10 dark:bg-p3-turquoise/20"
                     : "border-slate-200 bg-slate-50 hover:border-slate-300 dark:border-slate-600 dark:bg-slate-700/50 dark:hover:border-slate-500"

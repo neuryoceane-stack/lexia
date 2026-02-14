@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { detectListLanguages } from "@/lib/language";
+import { FlagDisplay } from "@/components/flag-display";
 import { MotsClient } from "./mots-client";
 
 export default async function ListeDetailPage({
@@ -40,7 +41,7 @@ export default async function ListeDetailPage({
     .where(eq(words.listId, listId))
     .orderBy(asc(words.rank), asc(words.createdAt));
 
-  const { termFlag, defFlag } = detectListLanguages(
+  const { termLang, defLang } = detectListLanguages(
     motsList.map((m) => m.term),
     motsList.map((m) => m.definition)
   );
@@ -66,13 +67,13 @@ export default async function ListeDetailPage({
         <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
           {list.name}
         </h1>
-        {(termFlag || defFlag) && (
-          <span className="text-2xl" title="Langues détectées">
-            {termFlag}
-            {termFlag && defFlag && (
+        {(termLang || defLang) && (
+          <span className="flex items-center gap-1 text-2xl" title="Langues détectées">
+            <FlagDisplay langCode={termLang} size={28} />
+            {termLang && defLang && (
               <span className="mx-1 text-slate-400" aria-hidden>→</span>
             )}
-            {defFlag}
+            <FlagDisplay langCode={defLang} size={28} />
           </span>
         )}
       </div>
