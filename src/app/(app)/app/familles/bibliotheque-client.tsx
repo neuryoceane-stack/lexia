@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
+import { BackLink } from "@/components/back-link";
 
 type BibliothequeList = {
   id: string;
@@ -270,17 +271,7 @@ export function BibliothequeClient() {
 
   return (
     <div className="space-y-6">
-      {/* Retour */}
-      <div>
-        <Link
-          href="/app"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-          aria-label="Retour au tableau de bord"
-        >
-          <span aria-hidden>←</span>
-          Retour
-        </Link>
-      </div>
+      <BackLink href="/app" ariaLabel="Retour au tableau de bord" />
 
       {!prefsLoaded && lists.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400">Chargement…</p>

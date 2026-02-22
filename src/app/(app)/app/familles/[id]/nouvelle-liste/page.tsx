@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 
@@ -86,14 +87,7 @@ export default function NouvelleListePage() {
   if (extractedItems.length > 0) {
     return (
       <div>
-        <div className="mb-4">
-          <Link
-            href={`/app/familles/${familyId}`}
-            className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
-          >
-            ← Retour
-          </Link>
-        </div>
+        <BackLink href={`/app/familles/${familyId}`} />
         <RevueImport
           familyId={familyId}
           initialItems={extractedItems}
@@ -109,14 +103,7 @@ export default function NouvelleListePage() {
 
   return (
     <div>
-      <div className="mb-6">
-        <Link
-          href={`/app/familles/${familyId}`}
-          className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
-        >
-          ← Retour
-        </Link>
-      </div>
+      <BackLink href={`/app/familles/${familyId}`} />
       <h1 className="mb-6 text-2xl font-semibold text-slate-800 dark:text-slate-100">
         Nouvelle liste de mots
       </h1>

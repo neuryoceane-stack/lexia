@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { BackLink } from "@/components/back-link";
 import { toIso6391 } from "@/lib/language";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 
@@ -179,13 +180,7 @@ export default function DupliquerPage() {
   if (!listId) {
     return (
       <div className="space-y-6">
-        <Link
-          href="/app/familles"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-        >
-          <span aria-hidden>←</span>
-          Retour à la bibliothèque
-        </Link>
+        <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800">
           <p className="text-slate-600 dark:text-slate-400">
             Aucune liste sélectionnée. Choisissez une liste depuis la bibliothèque, puis « Dupliquer dans une autre langue ».
@@ -216,13 +211,7 @@ export default function DupliquerPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/app/familles"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-      >
-        <span aria-hidden>←</span>
-        Retour à la bibliothèque
-      </Link>
+      <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
 
       <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
         <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">

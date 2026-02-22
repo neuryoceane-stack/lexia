@@ -4,6 +4,7 @@ import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { wordFamilies, lists } from "@/lib/db/schema";
 import { eq, and, asc } from "drizzle-orm";
+import { BackLink } from "@/components/back-link";
 import { ListesClient } from "./listes-client";
 
 export default async function FamilleDetailPage({
@@ -33,14 +34,7 @@ export default async function FamilleDetailPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-4">
-        <Link
-          href="/app/familles"
-          className="text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-        >
-          ← Retour à la bibliothèque
-        </Link>
-      </div>
+      <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
           {family.name}

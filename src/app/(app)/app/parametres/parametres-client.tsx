@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { SyntheseAvatar } from "@/components/synthese-avatar";
 
 type AvatarType = "arbre" | "phenix" | "koala";
@@ -43,12 +44,7 @@ export function ParametresClient() {
 
   return (
     <div className="mx-auto max-w-lg space-y-8">
-      <Link
-        href="/app"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-      >
-        ← Retour
-      </Link>
+      <BackLink href="/app" />
 
       <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
         Paramètres

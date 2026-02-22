@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 
 const LANG_OPTIONS: { value: string; label: string }[] = [
   { value: "en", label: "Anglais" },
@@ -199,13 +200,7 @@ export default function MotsSauvagesPage() {
 
   return (
     <div className="space-y-6">
-      <Link
-        href="/app/familles"
-        className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-      >
-        <span aria-hidden>←</span>
-        Retour à la bibliothèque
-      </Link>
+      <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
 
       {step === "source" && (
         <>

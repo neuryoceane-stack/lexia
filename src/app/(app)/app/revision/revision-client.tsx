@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
 import {
   PREFERRED_LANGUAGE_OPTIONS,
@@ -160,11 +161,11 @@ export function RevisionClient() {
       .then((r) => r.json())
       .then((words: { term: string; definition: string }[]) => {
         if (!Array.isArray(words) || words.length === 0) {
-          const listLang = firstList?.language ?? "eng";
+          const listLang = firstList?.language ?? "fra";
           const other =
             preferredLanguages.find((l) => l !== listLang) ??
             preferredLanguages[0] ??
-            (listLang === "fra" ? "eng" : "fra");
+            (listLang === "fra" ? "ita" : "fra");
           setDirectionLanguages({ termLang: listLang, defLang: other });
           return;
         }
@@ -172,29 +173,36 @@ export function RevisionClient() {
           words.map((w) => w.term),
           words.map((w) => w.definition)
         );
-        const listLang = firstList?.language ?? "eng";
+        const listLang = firstList?.language ?? "fra";
         const termLang =
           detected.termLang &&
           detected.termLang !== "und" &&
           KNOWN_LANGUAGE_CODES.has(detected.termLang)
             ? detected.termLang
             : listLang;
-        const defLang =
+        let defLang =
           detected.defLang &&
           detected.defLang !== "und" &&
           KNOWN_LANGUAGE_CODES.has(detected.defLang)
             ? detected.defLang
             : preferredLanguages.find((l) => l !== termLang) ??
               preferredLanguages[0] ??
-              (termLang === "fra" ? "eng" : "fra");
-        setDirectionLanguages({ termLang, defLang });
+              (termLang === "fra" ? "ita" : "fra");
+        let termLangFinal = termLang;
+        const prefsNoEng = preferredLanguages.filter((l) => l !== "eng");
+        const hasFraAndIta = prefsNoEng.includes("fra") && prefsNoEng.includes("ita");
+        if (hasFraAndIta) {
+          if (termLangFinal === "eng") termLangFinal = defLang === "ita" ? "fra" : "ita";
+          if (defLang === "eng") defLang = termLangFinal === "ita" ? "fra" : "ita";
+        }
+        setDirectionLanguages({ termLang: termLangFinal, defLang });
       })
       .catch(() => {
-        const listLang = firstList?.language ?? "eng";
+        const listLang = firstList?.language ?? "fra";
         const other =
           preferredLanguages.find((l) => l !== listLang) ??
           preferredLanguages[0] ??
-          (listLang === "fra" ? "eng" : "fra");
+          (listLang === "fra" ? "ita" : "fra");
         setDirectionLanguages({ termLang: listLang, defLang: other });
       });
   }, [step, selectedListIds, lists, preferredLanguages]);
@@ -412,12 +420,7 @@ export function RevisionClient() {
   if (step === "mode") {
     return (
       <div className="space-y-6">
-        <Link
-          href="/app"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-        >
-          ← Retour
-        </Link>
+        <BackLink href="/app" />
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Choisis un mode
         </h2>
@@ -462,13 +465,7 @@ export function RevisionClient() {
   if (step === "lists") {
     return (
       <div className="space-y-6">
-        <button
-          type="button"
-          onClick={() => setStep("mode")}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-        >
-          ← Retour
-        </button>
+        <BackLink href="/app" onClick={() => setStep("mode")} />
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Sélectionne une ou plusieurs listes (même langue)
         </h2>
@@ -533,24 +530,18 @@ export function RevisionClient() {
 
   if (step === "direction") {
     const langTerm =
-      directionLanguages?.termLang ?? selectedLang ?? "eng";
+      directionLanguages?.termLang ?? selectedLang ?? "fra";
     const langDef =
       directionLanguages?.defLang ??
       preferredLanguages.find((l) => l !== selectedLang) ??
       preferredLanguages[0] ??
-      (selectedLang === "fra" ? "eng" : "fra");
+      (selectedLang === "fra" ? "ita" : "fra");
     const labelTerm = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === langTerm)?.label ?? langTerm;
     const labelDef = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === langDef)?.label ?? langDef;
 
     return (
       <div className="space-y-6">
-        <button
-          type="button"
-          onClick={() => setStep("lists")}
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-        >
-          ← Retour
-        </button>
+        <BackLink href="/app" onClick={() => setStep("lists")} />
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Sens de la dictée
         </h2>
@@ -617,12 +608,7 @@ export function RevisionClient() {
     if (loading && words.length === 0) {
       return (
         <div className="space-y-4">
-          <Link
-            href="/app"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary"
-          >
-            ← Retour
-          </Link>
+          <BackLink href="/app" />
           <p className="text-slate-500 dark:text-slate-400">Chargement des mots…</p>
         </div>
       );
@@ -630,9 +616,7 @@ export function RevisionClient() {
     if (error && words.length === 0) {
       return (
         <div className="space-y-4">
-          <Link href="/app" className="text-sm font-medium text-primary">
-            ← Retour
-          </Link>
+          <BackLink href="/app" />
           <p className="rounded-lg bg-red-50 p-3 text-red-700 dark:bg-red-900/20 dark:text-red-300">
             {error}
           </p>
@@ -654,12 +638,7 @@ export function RevisionClient() {
           durationMin > 0 ? `${durationMin} min` : `${durationSec} s`;
         return (
           <div className="space-y-6">
-            <Link
-              href="/app"
-              className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-            >
-              ← Retour
-            </Link>
+            <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
             <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-600 dark:bg-slate-800">
               <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
                 Session terminée
@@ -697,12 +676,7 @@ export function RevisionClient() {
       }
       return (
         <div className="space-y-4">
-          <Link
-            href="/app"
-            className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-          >
-            ← Retour
-          </Link>
+          <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
           <p className="text-slate-600 dark:text-slate-400">
             Aucun mot à réviser pour les listes choisies. Reviens plus tard.
           </p>
@@ -760,13 +734,7 @@ export function RevisionClient() {
       return (
         <div className="flex min-h-[50vh] flex-col">
           <div className="mb-4 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={() => saveSessionAndGoBack()}
-              className="text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-            >
-              ← Retour
-            </button>
+            <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
             <span className="text-sm text-slate-500 dark:text-slate-400">
               {progressLabel}
             </span>
@@ -895,13 +863,7 @@ export function RevisionClient() {
     return (
       <div className="flex min-h-[50vh] flex-col">
         <div className="mb-4 flex items-center justify-between">
-          <button
-            type="button"
-            onClick={() => saveSessionAndGoBack()}
-            className="text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-          >
-            ← Retour
-          </button>
+          <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
           <span className="text-sm text-slate-500 dark:text-slate-400">
             {progressLabel}
           </span>
@@ -947,13 +909,15 @@ export function RevisionClient() {
                   >
                     Réessayer
                   </button>
-                  <button
-                    type="button"
-                    onClick={onWrongReveal}
-                    className="btn-relief rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:text-slate-300"
-                  >
-                    Révéler
-                  </button>
+                  {!writeRevealed && (
+                    <button
+                      type="button"
+                      onClick={onWrongReveal}
+                      className="btn-relief rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:text-slate-300"
+                    >
+                      Révéler
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={onWrongLater}

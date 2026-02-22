@@ -57,13 +57,8 @@ export default async function ListeDetailPage({
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-4">
-        <Link
-          href="/app/familles"
-          className="text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-        >
-          ← Retour à la bibliothèque
-        </Link>
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
         <span className="text-slate-400 dark:text-slate-500">·</span>
         <Link
           href={`/app/familles/${familyId}`}

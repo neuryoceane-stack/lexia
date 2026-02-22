@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { BackLink } from "@/components/back-link";
 import { SyntheseAvatar } from "@/components/synthese-avatar";
 
 type SynthesePeriod = "day" | "week" | "month" | "year" | "all";
@@ -95,14 +96,7 @@ export function JardinClient() {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <Link
-          href="/app"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
-        >
-          ← Retour
-        </Link>
-      </div>
+      <BackLink href="/app" />
 
       <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
         Synthèse
