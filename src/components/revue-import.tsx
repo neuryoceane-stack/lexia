@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { detectListLanguages } from "@/lib/language";
+import { detectListLanguages, KNOWN_LANGUAGE_CODES } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 
 export type RevueItem = { term: string; definition: string };
@@ -12,6 +12,7 @@ export function RevueImport({
   initialItems,
   source,
   defaultLanguage,
+  defaultListName,
   onSaved,
   onCancel,
 }: {
@@ -20,13 +21,15 @@ export function RevueImport({
   source: "pdf" | "ocr";
   /** Langue préférée utilisateur (onboarding) : utilisée si la détection ne donne rien. */
   defaultLanguage?: string | null;
+  /** Nom de la liste saisi dans la modale Bibliothèque (évite de redemander en bas). */
+  defaultListName?: string | null;
   onSaved: () => void;
   onCancel: () => void;
 }) {
   const router = useRouter();
   const [items, setItems] = useState<RevueItem[]>(initialItems);
   const [index, setIndex] = useState(0);
-  const [listName, setListName] = useState("");
+  const [listName, setListName] = useState(defaultListName ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [editing, setEditing] = useState<RevueItem | null>(null);
@@ -41,6 +44,12 @@ export function RevueImport({
       ),
     [items]
   );
+
+  /** Pour l’affichage des drapeaux : n’utiliser la détection que si le code a un drapeau connu (fra, eng, etc.), sinon la langue préférée (évite sco → Seychelles au lieu de eng → GB). */
+  const displayTermLang =
+    (termLang && termLang !== "und" && KNOWN_LANGUAGE_CODES.has(termLang) ? termLang : defaultLanguage) || termLang;
+  const displayDefLang =
+    (defLang && defLang !== "und" && KNOWN_LANGUAGE_CODES.has(defLang) ? defLang : defaultLanguage) || defLang;
 
   const markDiscard = useCallback(() => {
     setItems((prev) => prev.filter((_, i) => i !== index));
@@ -95,7 +104,8 @@ export function RevueImport({
         body: JSON.stringify({
           name,
           source,
-          language: termLang || defaultLanguage || undefined,
+          language:
+            (termLang && KNOWN_LANGUAGE_CODES.has(termLang) ? termLang : defaultLanguage) || undefined,
         }),
       });
       const listData = await listRes.json().catch(() => ({}));
@@ -168,13 +178,13 @@ export function RevueImport({
         <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
           Réviser les mots extraits
         </h2>
-        {(termLang || defLang) && (
+        {(displayTermLang || displayDefLang) && (
           <span className="flex items-center gap-1 text-xl" title="Langues détectées">
-            <FlagDisplay langCode={termLang} size={24} />
-            {termLang && defLang && (
+            <FlagDisplay langCode={displayTermLang} size={24} />
+            {displayTermLang && displayDefLang && (
               <span className="mx-1 text-slate-400" aria-hidden>→</span>
             )}
-            <FlagDisplay langCode={defLang} size={24} />
+            <FlagDisplay langCode={displayDefLang} size={24} />
           </span>
         )}
         {index < items.length && restCount > 0 && (

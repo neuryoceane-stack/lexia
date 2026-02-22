@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { getFlagEmoji, getFlagImagePath, PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
+import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 
 type BibliothequeList = {
@@ -23,8 +23,12 @@ const SORT_OPTIONS = [
   { value: "updated", label: "Date d’ajout" },
 ] as const;
 
+const KNOWN_LANGS = new Set(PREFERRED_LANGUAGE_OPTIONS.map((o) => o.value));
+
 export function BibliothequeClient() {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [lists, setLists] = useState<BibliothequeList[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +39,10 @@ export function BibliothequeClient() {
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const [addModal, setAddModal] = useState<"list" | "sauvages" | null>(null);
   const [families, setFamilies] = useState<{ id: string; name: string }[]>([]);
-  const [newFamilyName, setNewFamilyName] = useState("");
+  /** Langue choisie dans la modale « Liste de mots » pour la liste à créer. */
+  const [newListLanguage, setNewListLanguage] = useState<string>("");
+  /** Nom de la liste saisi dans la modale (prérempli en bas sur « Réviser les mots extraits »). */
+  const [newListName, setNewListName] = useState("");
   const [creatingFamily, setCreatingFamily] = useState(false);
   const [deletingFamilyId, setDeletingFamilyId] = useState<string | null>(null);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
@@ -51,6 +58,15 @@ export function BibliothequeClient() {
   const [removingLang, setRemovingLang] = useState(false);
   /** Langue dont on affiche les listes ; le drapeau du bouton et le filtre bibliothèque. */
   const [activeLanguage, setActiveLanguage] = useState<string | null>(null);
+  /** Liste sélectionnée pour « Dupliquer dans une autre langue » : ouvre la modale de choix de langue. */
+  const [duplicateModalList, setDuplicateModalList] = useState<BibliothequeList | null>(null);
+  const [duplicateToLang, setDuplicateToLang] = useState<string>("");
+  /** Masquer le bandeau « Liste sauvegardée » après redirection depuis la page Dupliquer. */
+  const [savedBannerDismissed, setSavedBannerDismissed] = useState(false);
+  /** Liste à renommer : ouvre la modale de renommage. */
+  const [renameModalList, setRenameModalList] = useState<BibliothequeList | null>(null);
+  const [renameInput, setRenameInput] = useState("");
+  const [renamingListId, setRenamingListId] = useState<string | null>(null);
 
   const fetchLists = useCallback(async () => {
     setLoading(true);
@@ -58,7 +74,7 @@ export function BibliothequeClient() {
     if (activeLanguage) params.set("lang", activeLanguage);
     if (searchDebounced) params.set("search", searchDebounced);
     params.set("sort", sort);
-    const res = await fetch(`/api/bibliotheque?${params}`);
+    const res = await fetch(`/api/bibliotheque?${params}`, { cache: "no-store" });
     const data = await res.json().catch(() => ({}));
     if (res.ok) {
       setLists(data.lists ?? []);
@@ -70,6 +86,11 @@ export function BibliothequeClient() {
   useEffect(() => {
     fetchLists();
   }, [fetchLists]);
+
+  /** Recharger les listes à chaque affichage de la Bibliothèque (données à jour après modification d’une liste). */
+  useEffect(() => {
+    if (pathname === "/app/familles") fetchLists();
+  }, [pathname, fetchLists]);
 
   useEffect(() => {
     fetch("/api/user/preferences")
@@ -87,13 +108,21 @@ export function BibliothequeClient() {
       .catch(() => setPrefsLoaded(true));
   }, []);
 
+  /** Appliquer le filtre langue depuis l’URL (?lang=eng) au chargement (ex. après création d’une liste). */
+  const langFromUrl = searchParams.get("lang")?.trim().toLowerCase() || null;
+  const langToApply = langFromUrl === "en" ? "eng" : langFromUrl;
   useEffect(() => {
-    if (!prefsLoaded || preferredLanguages.length === 0) return;
+    if (!prefsLoaded) return;
+    if (langToApply && KNOWN_LANGS.has(langToApply)) {
+      setActiveLanguage(langToApply);
+      return;
+    }
+    if (preferredLanguages.length === 0) return;
     setActiveLanguage((current) => {
       if (current && preferredLanguages.includes(current)) return current;
       return preferredLanguages[0] ?? null;
     });
-  }, [prefsLoaded, preferredLanguages]);
+  }, [prefsLoaded, preferredLanguages, langToApply]);
 
   useEffect(() => {
     const t = setTimeout(() => setSearchDebounced(search), 300);
@@ -102,12 +131,13 @@ export function BibliothequeClient() {
 
   useEffect(() => {
     if (addModal === "list") {
+      setNewListLanguage((prev) => prev || activeLanguage || preferredLanguages[0] || "");
       fetch("/api/familles")
         .then((r) => r.json())
         .then((arr) => setFamilies(Array.isArray(arr) ? arr : []))
         .catch(() => setFamilies([]));
     }
-  }, [addModal]);
+  }, [addModal, activeLanguage, preferredLanguages]);
 
   useEffect(() => {
     const close = () => setMenuOpenId(null);
@@ -124,6 +154,35 @@ export function BibliothequeClient() {
       return () => document.removeEventListener("click", close);
     }
   }, [flagMenuOpen]);
+
+  async function handleRenameList(list: BibliothequeList) {
+    setMenuOpenId(null);
+    setRenameModalList(list);
+    setRenameInput(list.name);
+  }
+
+  async function handleSubmitRename() {
+    if (!renameModalList || !renameInput.trim()) return;
+    const newName = renameInput.trim();
+    if (newName === renameModalList.name) {
+      setRenameModalList(null);
+      return;
+    }
+    setRenamingListId(renameModalList.id);
+    try {
+      const res = await fetch(`/api/listes/${renameModalList.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newName }),
+      });
+      if (res.ok) {
+        setRenameModalList(null);
+        fetchLists();
+      }
+    } finally {
+      setRenamingListId(null);
+    }
+  }
 
   async function handleDeleteFamily(familyId: string, familyName: string) {
     setMenuOpenId(null);
@@ -207,6 +266,7 @@ export function BibliothequeClient() {
   }
 
   const showOnboardingBubble = prefsLoaded && preferredLanguages.length === 0;
+  const showDashboard = (lists.length > 0 || prefsLoaded) && !showOnboardingBubble;
 
   return (
     <div className="space-y-6">
@@ -222,7 +282,7 @@ export function BibliothequeClient() {
         </Link>
       </div>
 
-      {!prefsLoaded && (
+      {!prefsLoaded && lists.length === 0 && (
         <p className="text-sm text-slate-500 dark:text-slate-400">Chargement…</p>
       )}
 
@@ -270,9 +330,35 @@ export function BibliothequeClient() {
         </div>
       )}
 
-      {/* Tableau de bord : affiché seulement après choix de la langue (ou si déjà choisie) */}
-      {prefsLoaded && !showOnboardingBubble && (
-      <>
+      {/* Tableau de bord : affiché dès que les listes sont chargées (ou préférences prêtes), sauf si onboarding */}
+      <section className={showDashboard ? "contents" : "hidden"}>
+        <div className="space-y-6">
+      {searchParams.get("saved") === "1" && !savedBannerDismissed && (
+        <div
+          className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/30"
+          role="status"
+        >
+          <p className="text-sm font-medium text-green-800 dark:text-green-200">
+            Liste sauvegardée avec succès.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSavedBannerDismissed(true);
+              const p = new URLSearchParams(searchParams.toString());
+              p.delete("saved");
+              const q = p.toString();
+              router.replace(q ? `${pathname}?${q}` : pathname);
+            }}
+            className="rounded p-1.5 text-green-700 hover:bg-green-200 dark:text-green-300 dark:hover:bg-green-800/50"
+            aria-label="Fermer"
+          >
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
       {/* Barre supérieure: titre + langue + boutons d’ajout */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
@@ -305,29 +391,11 @@ export function BibliothequeClient() {
                 }`}
                 title={l}
               >
-                <span className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center overflow-hidden rounded-sm">
-                  {getFlagImagePath(l) ? (
-                    <>
-                      <img
-                        src={getFlagImagePath(l)}
-                        alt=""
-                        width={24}
-                        height={24}
-                        className="h-full w-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.style.display = "none";
-                          const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
-                          if (fallback) fallback.style.display = "flex";
-                        }}
-                      />
-                      <span className="absolute inset-0 hidden items-center justify-center text-lg" aria-hidden>
-                        {getFlagEmoji(l)}
-                      </span>
-                    </>
-                  ) : (
-                    <span className="text-lg" aria-hidden>{getFlagEmoji(l)}</span>
-                  )}
-                </span>
+                <FlagDisplay
+                  langCode={l}
+                  size={24}
+                  className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center overflow-hidden rounded-sm"
+                />
               </button>
             ))}
           </div>
@@ -344,17 +412,36 @@ export function BibliothequeClient() {
                     setFlagMenuOpen((o) => !o);
                   }}
                   className="btn-relief inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                  title={activeLanguage ? (PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === activeLanguage)?.label ?? activeLanguage) : "Langues à enrichir"}
+                  title={activeLanguage == null ? "Toutes les langues" : (PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === activeLanguage)?.label ?? activeLanguage)}
                   aria-expanded={flagMenuOpen}
                   aria-haspopup="true"
                 >
-                  <FlagDisplay langCode={activeLanguage ?? preferredLanguages[0]} size={24} />
+                  {activeLanguage == null ? (
+                    <span className="flex h-6 w-6 items-center justify-center text-base" aria-hidden>🌐</span>
+                  ) : (
+                    <FlagDisplay langCode={activeLanguage} size={24} />
+                  )}
                 </button>
                 {flagMenuOpen && (
                   <div
                     className="absolute left-0 top-full z-20 mt-1 flex flex-col gap-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-600 dark:bg-slate-800"
                     onClick={(e) => e.stopPropagation()}
                   >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveLanguage(null);
+                        setFlagMenuOpen(false);
+                      }}
+                      className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm ${
+                        activeLanguage === null
+                          ? "bg-primary/10 font-medium text-primary dark:bg-primary-light/20 dark:text-primary-light"
+                          : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      }`}
+                      title="Afficher toutes les listes, toutes langues"
+                    >
+                      Toutes les langues
+                    </button>
                     <div className="flex flex-wrap items-center gap-1">
                       {preferredLanguages.map((code) => (
                         <button
@@ -526,13 +613,29 @@ export function BibliothequeClient() {
                 </button>
                 {menuOpenId === list.id && (
                   <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
-                    <Link
-                      href={`/app/familles/dupliquer?listId=${list.id}`}
-                      className="block px-3 py-2 text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
-                      onClick={() => setMenuOpenId(null)}
+                    <button
+                      type="button"
+                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      onClick={() => {
+                        setMenuOpenId(null);
+                        setDuplicateModalList(list);
+                        const from = list.language || "eng";
+                        setDuplicateToLang(
+                          PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value !== from)?.value ??
+                            PREFERRED_LANGUAGE_OPTIONS[0]?.value ??
+                            ""
+                        );
+                      }}
                     >
                       Dupliquer dans une autre langue
-                    </Link>
+                    </button>
+                    <button
+                      type="button"
+                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      onClick={() => handleRenameList(list)}
+                    >
+                      Renommer la liste
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
@@ -580,13 +683,29 @@ export function BibliothequeClient() {
                 </button>
                 {menuOpenId === list.id && (
                   <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
-                    <Link
-                      href={`/app/familles/dupliquer?listId=${list.id}`}
-                      className="block px-3 py-2 text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
-                      onClick={() => setMenuOpenId(null)}
+                    <button
+                      type="button"
+                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      onClick={() => {
+                        setMenuOpenId(null);
+                        setDuplicateModalList(list);
+                        const from = list.language || "eng";
+                        setDuplicateToLang(
+                          PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value !== from)?.value ??
+                            PREFERRED_LANGUAGE_OPTIONS[0]?.value ??
+                            ""
+                        );
+                      }}
                     >
                       Dupliquer dans une autre langue
-                    </Link>
+                    </button>
+                    <button
+                      type="button"
+                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      onClick={() => handleRenameList(list)}
+                    >
+                      Renommer la liste
+                    </button>
                     <button
                       type="button"
                       onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
@@ -601,6 +720,130 @@ export function BibliothequeClient() {
             </li>
           ))}
         </ul>
+      )}
+
+      {/* Modale Renommer la liste */}
+      {renameModalList && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => !renamingListId && setRenameModalList(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="rename-modal-title"
+        >
+          <div
+            className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="rename-modal-title" className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+              Renommer la liste
+            </h2>
+            <label htmlFor="rename-list-input" className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-400">
+              Nom de la liste
+            </label>
+            <input
+              id="rename-list-input"
+              type="text"
+              value={renameInput}
+              onChange={(e) => setRenameInput(e.target.value)}
+              placeholder="ex. Mots extraits du PDF"
+              className="mb-6 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              disabled={!!renamingListId}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => !renamingListId && setRenameModalList(null)}
+                disabled={!!renamingListId}
+                className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300 disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={handleSubmitRename}
+                disabled={renamingListId !== null || !renameInput.trim()}
+                className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+              >
+                {renamingListId === renameModalList?.id ? "Enregistrement…" : "Enregistrer"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modale Dupliquer dans une autre langue */}
+      {duplicateModalList && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => setDuplicateModalList(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="duplicate-modal-title"
+        >
+          <div
+            className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 id="duplicate-modal-title" className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+              Dupliquer « {duplicateModalList.name} »
+            </h2>
+            <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+              De (langue de la liste)
+            </p>
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-600 dark:bg-slate-700/50">
+              <FlagDisplay langCode={duplicateModalList.language || "eng"} size={24} />
+              <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === (duplicateModalList.language || "eng"))?.label ?? duplicateModalList.language ?? "Anglais"}
+              </span>
+            </div>
+            <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+              Vers (langue de la nouvelle liste)
+            </p>
+            <div className="mb-6 flex flex-wrap gap-2">
+              {PREFERRED_LANGUAGE_OPTIONS.filter((o) => o.value !== (duplicateModalList.language || "eng")).map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setDuplicateToLang(opt.value)}
+                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                    duplicateToLang === opt.value
+                      ? "border-primary bg-primary/10 text-primary dark:bg-primary/20"
+                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                  }`}
+                >
+                  <FlagDisplay langCode={opt.value} size={20} />
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setDuplicateModalList(null)}
+                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const from = duplicateModalList.language || "eng";
+                  if (duplicateToLang && duplicateToLang !== from) {
+                    router.push(
+                      `/app/familles/dupliquer?listId=${duplicateModalList.id}&from=${encodeURIComponent(from)}&to=${encodeURIComponent(duplicateToLang)}`
+                    );
+                    setDuplicateModalList(null);
+                  }
+                }}
+                disabled={!duplicateToLang || duplicateToLang === (duplicateModalList.language || "eng")}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+              >
+                Voir l’aperçu
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Modal langues à enrichir (drapeau → +) */}
@@ -728,75 +971,53 @@ export function BibliothequeClient() {
         </div>
       )}
 
-      {/* Modal Liste de mots : choisir une famille */}
+      {/* Modal Liste de mots : langue + nom, puis Créer ma liste ou Annuler */}
       {addModal === "list" && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800">
             <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
               Liste de mots
             </h2>
-            <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-              Choisis une famille, puis crée une liste (manuel, PDF ou photo).
-            </p>
-            {families.length === 0 ? (
-              <div className="space-y-3">
-                <p className="text-sm text-slate-500 dark:text-slate-400">
-                  Aucune famille. Crée une famille pour y ajouter des listes.
-                </p>
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    const name = newFamilyName.trim();
-                    if (!name || creatingFamily) return;
-                    setCreatingFamily(true);
-                    const res = await fetch("/api/familles", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ name }),
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    setCreatingFamily(false);
-                    if (res.ok && data.id) {
-                      setNewFamilyName("");
-                      setFamilies((prev) => [...prev, { id: data.id, name: data.name }]);
-                      router.push(`/app/familles/${data.id}/nouvelle-liste`);
-                      setAddModal(null);
-                    }
-                  }}
-                  className="flex gap-2"
-                >
-                  <input
-                    type="text"
-                    value={newFamilyName}
-                    onChange={(e) => setNewFamilyName(e.target.value)}
-                    placeholder="Nom de la famille"
-                    className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                  />
+            <div className="mb-4">
+              <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+                Langue de la liste
+              </p>
+              <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                La liste apparaîtra dans la Bibliothèque sous « Toutes les langues » et sous ce drapeau.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
                   <button
-                    type="submit"
-                    disabled={creatingFamily || !newFamilyName.trim()}
-                    className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+                    key={opt.value}
+                    type="button"
+                    onClick={() => setNewListLanguage(opt.value)}
+                    className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-sm transition ${
+                      newListLanguage === opt.value
+                        ? "border-primary bg-primary/10 ring-1 ring-primary/30 dark:border-primary-light dark:bg-primary/20 dark:ring-primary-light/30"
+                        : "border-slate-200 hover:border-slate-300 dark:border-slate-600 dark:hover:border-slate-500"
+                    }`}
+                    title={opt.label}
                   >
-                    {creatingFamily ? "Création…" : "Créer"}
+                    <FlagDisplay langCode={opt.value} size={20} />
+                    <span>{opt.label}</span>
                   </button>
-                </form>
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {families.map((f) => (
-                  <li key={f.id}>
-                    <Link
-                      href={`/app/familles/${f.id}/nouvelle-liste`}
-                      className="btn-relief block rounded-lg border border-slate-200 px-4 py-3 font-medium text-slate-800 hover:border-primary hover:bg-primary/5 dark:border-slate-600 dark:text-slate-100 dark:hover:border-primary-light dark:hover:bg-primary/10"
-                      onClick={() => setAddModal(null)}
-                    >
-                      {f.name}
-                    </Link>
-                  </li>
                 ))}
-              </ul>
-            )}
-            <div className="mt-4 flex justify-end">
+              </div>
+            </div>
+            <div className="mb-6">
+              <label htmlFor="modal-list-name" className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+                Nom de la liste
+              </label>
+              <input
+                id="modal-list-name"
+                type="text"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                placeholder="ex. Mots extraits du PDF"
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setAddModal(null)}
@@ -804,12 +1025,42 @@ export function BibliothequeClient() {
               >
                 Annuler
               </button>
+              <button
+                type="button"
+                disabled={creatingFamily || !newListName.trim() || !newListLanguage.trim()}
+                onClick={async () => {
+                  if (creatingFamily || !newListName.trim()) return;
+                  setCreatingFamily(true);
+                  const familyName = newListName.trim();
+                  const res = await fetch("/api/familles", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: familyName }),
+                  });
+                  const data = await res.json().catch(() => ({}));
+                  setCreatingFamily(false);
+                  if (res.ok && data.id) {
+                    const params = new URLSearchParams();
+                    if (newListLanguage?.trim()) params.set("lang", newListLanguage.trim());
+                    params.set("name", newListName.trim());
+                    const qs = params.toString() ? `?${params.toString()}` : "";
+                    router.push(`/app/familles/${data.id}/nouvelle-liste${qs}`);
+                    setAddModal(null);
+                  }
+                }}
+                className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+              >
+                {creatingFamily ? "Création…" : "Créer ma liste"}
+              </button>
+              {!newListLanguage.trim() && (
+                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                  Choisis une langue ci-dessus pour activer le bouton.
+                </p>
+              )}
             </div>
           </div>
         </div>
       )}
-      </>
-      )}
-    </div>
+        </div></section></div>
   );
 }

@@ -54,7 +54,7 @@ export async function PATCH(
   if (!list) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
-  let body: { name?: string };
+  let body: { name?: string; language?: string | null };
   try {
     body = await request.json();
   } catch {
@@ -64,10 +64,16 @@ export async function PATCH(
     );
   }
   const name = body.name?.trim();
-  if (name === undefined || name === "") {
+  const language = body.language !== undefined
+    ? (body.language === null || body.language === "" ? null : String(body.language).trim())
+    : undefined;
+  const updates: { name?: string; language?: string | null } = {};
+  if (name !== undefined && name !== "") updates.name = name;
+  if (language !== undefined) updates.language = language;
+  if (Object.keys(updates).length === 0) {
     return NextResponse.json(list);
   }
-  await db.update(lists).set({ name }).where(eq(lists.id, listId));
+  await db.update(lists).set(updates).where(eq(lists.id, listId));
   const [updated] = await db
     .select()
     .from(lists)

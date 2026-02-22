@@ -16,7 +16,7 @@ Un fichier par **code pays ISO 3166-1 alpha-2** en **minuscules** :
 | Fichier   | Langue / pays |
 |-----------|----------------|
 | `fr.png`  | Français (France) |
-| `gb.png`  | Anglais (Royaume-Uni) |
+| `gb.png`  | Anglais (Royaume-Uni). Si absent, l’app charge `gb.svg` (fourni). |
 | `es.png`  | Espagnol |
 | `de.png`  | Allemand |
 | `it.png`  | Italien |

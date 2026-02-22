@@ -13,8 +13,9 @@ import { nanoid } from "nanoid";
 /**
  * GET /api/revision
  * Retourne les mots à réviser pour l'utilisateur connecté.
- * Query: listId (une liste) ou familyId (toute la famille). Sans param = tous les mots de l'utilisateur.
- * Filtre: jamais révisés ou nextReviewAt <= now.
+ * Query: listId (une liste) ou listIds (plusieurs) ou familyId (toute la famille). Sans param = tous les mots.
+ * Filtre par défaut: jamais révisés ou nextReviewAt <= now.
+ * Query all=1: retourne tous les mots des listes (pas de filtre par date), pour une session de révision complète.
  */
 export async function GET(request: Request) {
   const session = await auth();
@@ -30,6 +31,7 @@ export async function GET(request: Request) {
     ? listIdsParam.split(",").map((s) => s.trim()).filter(Boolean)
     : undefined;
   const familyId = searchParams.get("familyId")?.trim() || undefined;
+  const includeAll = searchParams.get("all") === "1";
 
   const now = new Date();
 
@@ -58,6 +60,10 @@ export async function GET(request: Request) {
 
   if (userWords.length === 0) {
     return NextResponse.json({ words: [] });
+  }
+
+  if (includeAll) {
+    return NextResponse.json({ words: userWords });
   }
 
   const allRevisions = await db

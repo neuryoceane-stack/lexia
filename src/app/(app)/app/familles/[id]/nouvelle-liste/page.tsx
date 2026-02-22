@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { RevueImport } from "@/components/revue-import";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 
@@ -11,7 +11,12 @@ type Method = "manual" | "pdf" | "image" | null;
 export default function NouvelleListePage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const familyId = params.id as string;
+  /** Langue passée depuis la modale Bibliothèque (?lang=xxx) ou préférence utilisateur. */
+  const langFromUrl = searchParams.get("lang")?.trim() || null;
+  /** Nom de la liste passé depuis la modale (?name=xxx), prérempli en bas sur « Réviser les mots extraits ». */
+  const listNameFromUrl = searchParams.get("name")?.trim() || null;
   const [method, setMethod] = useState<Method>(null);
   const [extractedItems, setExtractedItems] = useState<
     Array<{ term: string; definition: string }>
@@ -19,6 +24,7 @@ export default function NouvelleListePage() {
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractError, setExtractError] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState<string | null>(null);
+  const defaultListLanguage = langFromUrl || preferredLanguage;
 
   useEffect(() => {
     fetch("/api/user/preferences")
@@ -70,7 +76,12 @@ export default function NouvelleListePage() {
     e.target.value = "";
   };
 
-  const onSaved = () => router.push(`/app/familles/${familyId}`);
+  const onSaved = () => {
+    const qs = defaultListLanguage
+      ? `?lang=${encodeURIComponent(defaultListLanguage)}`
+      : "";
+    router.push(`/app/familles${qs}`);
+  };
 
   if (extractedItems.length > 0) {
     return (
@@ -87,7 +98,8 @@ export default function NouvelleListePage() {
           familyId={familyId}
           initialItems={extractedItems}
           source={method === "pdf" ? "pdf" : "ocr"}
-          defaultLanguage={preferredLanguage}
+          defaultLanguage={defaultListLanguage}
+          defaultListName={listNameFromUrl}
           onSaved={onSaved}
           onCancel={() => setExtractedItems([])}
         />
@@ -165,7 +177,7 @@ export default function NouvelleListePage() {
       {method !== null && method === "manual" && (
         <FormManuel
           familyId={familyId}
-          defaultLanguage={preferredLanguage}
+          defaultLanguage={defaultListLanguage}
           onBack={() => setMethod(null)}
         />
       )}
@@ -270,7 +282,10 @@ function FormManuel({
         setLoading(false);
         return;
       }
-      router.push(`/app/familles/${familyId}/listes/${listId}`);
+      const qs = listLanguage.trim()
+        ? `?lang=${encodeURIComponent(listLanguage.trim())}`
+        : "";
+      router.push(`/app/familles${qs}`);
       router.refresh();
     } catch {
       setError("Erreur réseau");

@@ -50,10 +50,22 @@ export async function GET(request: Request) {
     .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
     .where(eq(wordFamilies.userId, userId));
 
+  /** Compare filtre langue avec langue de la liste (eng/en, fra/fr, etc., insensible à la casse). */
+  function languageMatches(filterLang: string, listLang: string | null | undefined): boolean {
+    const raw = listLang != null ? String(listLang).trim() : "";
+    if (raw === "") return true;
+    const n = (s: string) => s.toLowerCase().trim();
+    const f = n(filterLang);
+    const L = n(raw);
+    if (f === "eng" || f === "en") return L === "eng" || L === "en";
+    if (f === "fra" || f === "fr") return L === "fra" || L === "fr";
+    return f === L;
+  }
+
   let filtered = userLists;
 
   if (lang) {
-    filtered = filtered.filter((l) => l.language === lang);
+    filtered = filtered.filter((l) => languageMatches(lang, l.language));
   }
 
   if (search) {

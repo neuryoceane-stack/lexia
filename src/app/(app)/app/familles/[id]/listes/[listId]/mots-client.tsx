@@ -140,7 +140,7 @@ export function MotsClient({
         {mots.map((m) => (
           <li
             key={m.id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
+            className="grid grid-cols-[1fr_1fr_auto] gap-x-4 gap-y-2 items-center rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
           >
             {editingId === m.id ? (
               <>
@@ -148,40 +148,40 @@ export function MotsClient({
                   type="text"
                   value={editTerm}
                   onChange={(e) => setEditTerm(e.target.value)}
-                  className="flex-1 min-w-[100px] rounded border border-slate-300 bg-white px-2 py-1 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                  className="min-w-0 rounded border border-slate-300 bg-white px-2 py-1 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 />
                 <input
                   type="text"
                   value={editDef}
                   onChange={(e) => setEditDef(e.target.value)}
-                  className="flex-1 min-w-[100px] rounded border border-slate-300 bg-white px-2 py-1 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                  className="min-w-0 rounded border border-slate-300 bg-white px-2 py-1 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 />
-                <button
-                  type="button"
-                  onClick={() => updateWord(m.id, editTerm, editDef)}
-                  disabled={loading}
-                  className="btn-relief rounded bg-primary px-2 py-1 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
-                >
-                  OK
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setEditingId(null)}
-                  className="btn-relief rounded border border-slate-300 px-2 py-1 text-sm text-slate-600 dark:border-slate-600 dark:text-slate-400"
-                >
-                  Annuler
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => updateWord(m.id, editTerm, editDef)}
+                    disabled={loading}
+                    className="btn-relief rounded bg-primary px-2 py-1 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
+                  >
+                    OK
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingId(null)}
+                    className="btn-relief rounded border border-slate-300 px-2 py-1 text-sm text-slate-600 dark:border-slate-600 dark:text-slate-400"
+                  >
+                    Annuler
+                  </button>
+                </div>
               </>
             ) : (
               <>
-                <span className="font-medium text-slate-800 dark:text-slate-100">
+                <span className="min-w-0 font-medium text-slate-800 dark:text-slate-100">
                   {m.term}
                 </span>
-                {m.definition && (
-                  <span className="text-slate-600 dark:text-slate-400">
-                    {m.definition}
-                  </span>
-                )}
+                <span className="min-w-0 text-slate-600 dark:text-slate-400">
+                  {m.definition || "\u00A0"}
+                </span>
                 <div className="flex gap-2">
                   <button
                     type="button"

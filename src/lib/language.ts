@@ -1,7 +1,7 @@
 import { franc } from "franc";
 
-/** Drapeau Angleterre (séquence Unicode subdivision gbeng). */
-const FLAG_ENGLAND = "\u{1F3F4}\u{E0067}\u{E0062}\u{E0065}\u{E006E}\u{E0067}\u{E007F}";
+/** Union Jack (GB) pour la langue anglaise — aligné sur public/flags/gb.png. */
+const FLAG_GB_EMOJI = "\u{1F1EC}\u{1F1E7}";
 
 /** ISO 639-3 (franc) → code pays 2 lettres pour drapeau (ou drapeau spécial pour eng). */
 const LANG_TO_COUNTRY: Record<string, string> = {
@@ -54,6 +54,52 @@ export const PREFERRED_LANGUAGE_OPTIONS: { value: string; label: string }[] = [
   { value: "ell", label: "Grec" },
 ];
 
+/** Codes des langues qui ont un drapeau dans public/flags (évite d’afficher un mauvais drapeau pour des codes comme sco → SC). */
+export const KNOWN_LANGUAGE_CODES = new Set(
+  PREFERRED_LANGUAGE_OPTIONS.map((o) => o.value)
+);
+
+/**
+ * Mapping ISO 639-3 (app) → ISO 639-1 (API MyMemory / translate).
+ */
+export const LANG_6393_TO_6391: Record<string, string> = {
+  eng: "en",
+  fra: "fr",
+  spa: "es",
+  deu: "de",
+  ita: "it",
+  por: "pt",
+  nld: "nl",
+  pol: "pl",
+  rus: "ru",
+  jpn: "ja",
+  zho: "zh",
+  ell: "el",
+  ara: "ar",
+  hin: "hi",
+  kor: "ko",
+  tur: "tr",
+  swe: "sv",
+  dan: "da",
+  nor: "no",
+  fin: "fi",
+  ces: "cs",
+  ron: "ro",
+  hun: "hu",
+  ukr: "uk",
+  heb: "he",
+  tha: "th",
+  vie: "vi",
+  ind: "id",
+  msa: "ms",
+};
+
+export function toIso6391(code: string): string {
+  const c = (code ?? "").trim().toLowerCase();
+  if (c.length === 2) return c;
+  return LANG_6393_TO_6391[c] ?? c.slice(0, 2);
+}
+
 /**
  * Retourne le code pays 2 lettres (ISO 3166-1 alpha-2) pour un code langue (ISO 639-3).
  * Utilisé pour les images drapeaux dans public/flags (ex. fra → fr, eng → gb).
@@ -68,6 +114,9 @@ export function getFlagCountryCode(langOrCountry: string): string {
  * Les fichiers doivent faire 32×32 px (ou 48×48 px), format PNG.
  */
 export function getFlagImagePath(langOrCountry: string): string {
+  if (!langOrCountry) return "";
+  const norm = langOrCountry.toLowerCase().trim();
+  if (norm === "eng" || norm === "en") return "/flags/gb.png";
   const code = getFlagCountryCode(langOrCountry).toLowerCase();
   if (code.length < 2) return "";
   return `/flags/${code}.png`;
@@ -78,7 +127,8 @@ export function getFlagImagePath(langOrCountry: string): string {
  * Les regional indicators vont de U+1F1E6 (A) à U+1F1FF (Z).
  */
 export function getFlagEmoji(langOrCountry: string): string {
-  if (langOrCountry === "eng") return FLAG_ENGLAND;
+  const norm = langOrCountry?.toLowerCase().trim();
+  if (norm === "eng" || norm === "en") return FLAG_GB_EMOJI;
   const code = langOrCountry.length === 3
     ? (LANG_TO_COUNTRY[langOrCountry] ?? langOrCountry.slice(0, 2).toUpperCase())
     : langOrCountry.slice(0, 2).toUpperCase();

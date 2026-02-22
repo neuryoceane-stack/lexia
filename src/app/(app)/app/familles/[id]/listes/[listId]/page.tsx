@@ -4,9 +4,10 @@ import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { eq, and, asc } from "drizzle-orm";
-import { detectListLanguages } from "@/lib/language";
+import { detectListLanguages, KNOWN_LANGUAGE_CODES } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 import { MotsClient } from "./mots-client";
+import { ListLanguageEditor } from "./list-language-editor";
 
 export default async function ListeDetailPage({
   params,
@@ -46,6 +47,14 @@ export default async function ListeDetailPage({
     motsList.map((m) => m.definition)
   );
 
+  /** 1er drapeau = langue des termes (public/flags, ex. fr.png) ; 2e = définitions (ex. gb.png). */
+  const displayTermLang = termLang && KNOWN_LANGUAGE_CODES.has(termLang)
+    ? termLang
+    : (list.language && KNOWN_LANGUAGE_CODES.has(list.language) ? list.language : "fra");
+  const displayDefLang = defLang && KNOWN_LANGUAGE_CODES.has(defLang)
+    ? defLang
+    : "eng";
+
   return (
     <div>
       <div className="mb-4 flex items-center gap-4">
@@ -67,23 +76,24 @@ export default async function ListeDetailPage({
         <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
           {list.name}
         </h1>
-        {(termLang || defLang) && (
-          <span className="flex items-center gap-1 text-2xl" title="Langues détectées">
-            <FlagDisplay langCode={termLang} size={28} />
-            {termLang && defLang && (
+        {(displayTermLang || displayDefLang) && (
+          <span className="flex items-center gap-1 text-2xl" title="Langues de la liste">
+            <FlagDisplay langCode={displayTermLang} size={28} />
+            {displayTermLang && displayDefLang && (
               <span className="mx-1 text-slate-400" aria-hidden>→</span>
             )}
-            <FlagDisplay langCode={defLang} size={28} />
+            <FlagDisplay langCode={displayDefLang} size={28} />
           </span>
         )}
       </div>
-      <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
+      <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
         {list.source === "manual"
           ? "Liste créée manuellement"
           : list.source === "pdf"
             ? "Liste extraite d’un PDF"
             : "Liste extraite d’une image (OCR)"}
       </p>
+      <ListLanguageEditor listId={listId} currentLanguage={list.language} />
       <MotsClient
         familyId={familyId}
         listId={listId}

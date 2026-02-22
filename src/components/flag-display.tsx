@@ -26,6 +26,10 @@ export function FlagDisplay({
     );
   }
 
+  // Pour l'anglais : priorité à gb.png (public/flags), secours gb.svg si le PNG est absent
+  const isEnglishFlag = path === "/flags/gb.png";
+  const fallbackPath = isEnglishFlag ? "/flags/gb.svg" : null;
+
   return (
     <span
       className={`relative flex flex-shrink-0 items-center justify-center overflow-hidden rounded-sm ${className}`}
@@ -38,8 +42,13 @@ export function FlagDisplay({
         height={size}
         className="h-full w-full object-cover"
         onError={(e) => {
-          e.currentTarget.style.display = "none";
-          const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+          const img = e.currentTarget;
+          if (fallbackPath && !img.src.includes("/gb.svg")) {
+            img.src = fallbackPath;
+            return;
+          }
+          img.style.display = "none";
+          const fallback = img.nextElementSibling as HTMLElement | null;
           if (fallback) fallback.style.display = "flex";
         }}
       />
