@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { BackLink } from "@/components/back-link";
 import { SyntheseAvatar } from "@/components/synthese-avatar";
+import { useTheme } from "@/components/theme-provider";
 
 type AvatarType = "arbre" | "phenix" | "koala";
 
@@ -14,8 +14,10 @@ const AVATAR_OPTIONS: { value: AvatarType; label: string }[] = [
 ];
 
 export function ParametresClient() {
+  const { theme, setTheme } = useTheme();
   const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [saving, setSaving] = useState(false);
+  const [themeSaving, setThemeSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -25,10 +27,13 @@ export function ParametresClient() {
         if (d.avatarType && AVATAR_OPTIONS.some((o) => o.value === d.avatarType)) {
           setAvatarType(d.avatarType);
         }
+        if (d.themePreference === "light" || d.themePreference === "dark") {
+          setTheme(d.themePreference);
+        }
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
-  }, []);
+  }, [setTheme]);
 
   const saveAvatarType = (value: AvatarType) => {
     setAvatarType(value);
@@ -42,6 +47,19 @@ export function ParametresClient() {
       .finally(() => setSaving(false));
   };
 
+  const toggleDarkMode = () => {
+    const next = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    setThemeSaving(true);
+    fetch("/api/user/preferences", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ themePreference: next }),
+    })
+      .then(() => {})
+      .finally(() => setThemeSaving(false));
+  };
+
   return (
     <div className="mx-auto max-w-lg space-y-8">
       <BackLink href="/app" />
@@ -49,6 +67,53 @@ export function ParametresClient() {
       <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
         Paramètres
       </h1>
+
+      <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-600 dark:bg-slate-800">
+        <h2 className="text-lg font-medium text-slate-800 dark:text-slate-100">
+          Apparence
+        </h2>
+        {loaded && (
+          <div className="mt-4 flex items-center justify-center gap-3">
+            <span
+              className={`text-sm font-medium transition-colors ${
+                theme === "light"
+                  ? "text-primary dark:text-primary-light"
+                  : "text-slate-500 dark:text-slate-400"
+              }`}
+            >
+              Clair
+            </span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={theme === "dark"}
+              aria-label={theme === "dark" ? "Sombre" : "Clair"}
+              onClick={toggleDarkMode}
+              disabled={themeSaving}
+              className={`relative inline-flex h-8 w-14 flex-shrink-0 cursor-pointer rounded-full border-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-50 ${
+                theme === "dark"
+                  ? "border-primary bg-primary"
+                  : "border-slate-300 bg-slate-200 dark:border-slate-600 dark:bg-slate-600"
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-7 w-7 transform rounded-full bg-white shadow-sm transition-transform ${
+                  theme === "dark" ? "translate-x-6" : "translate-x-0.5"
+                }`}
+              />
+            </button>
+            <span
+              className={`text-sm font-medium transition-colors ${
+                theme === "dark"
+                  ? "text-primary dark:text-primary-light"
+                  : "text-slate-500 dark:text-slate-400"
+              }`}
+            >
+              Sombre
+            </span>
+          </div>
+        )}
+      </section>
 
       <section className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-600 dark:bg-slate-800">
         <h2 className="text-lg font-medium text-slate-800 dark:text-slate-100">

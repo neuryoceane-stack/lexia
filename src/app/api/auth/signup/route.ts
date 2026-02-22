@@ -6,7 +6,7 @@ import { users, gardenProgress } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
-  let body: { email?: string; password?: string; name?: string };
+  let body: { email?: string; password?: string; name?: string; firstName?: string; lastName?: string };
   try {
     body = await request.json();
   } catch {
@@ -17,7 +17,12 @@ export async function POST(request: Request) {
   }
   const email = body.email?.trim()?.toLowerCase();
   const password = body.password;
-  const name = body.name?.trim();
+  const firstName = body.firstName?.trim();
+  const lastName = body.lastName?.trim();
+  const name =
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    body.name?.trim() ||
+    null;
 
   if (!email || !password) {
     return NextResponse.json(
@@ -56,5 +61,5 @@ export async function POST(request: Request) {
     userId: id,
   });
 
-  return NextResponse.json({ ok: true, userId: id });
+  return NextResponse.json({ ok: true, userId: id, firstName, lastName });
 }

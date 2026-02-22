@@ -104,6 +104,25 @@ export const gardenProgress = sqliteTable("garden_progress", {
     .$defaultFn(() => new Date()),
 });
 
+/** Profil utilisateur (informations personnelles). */
+export const userProfiles = sqliteTable("user_profiles", {
+  userId: text("user_id")
+    .primaryKey()
+    .references(() => users.id, { onDelete: "cascade" }),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
+  dateOfBirth: text("date_of_birth"),
+  city: text("city"),
+  phone: text("phone"),
+  status: text("status", {
+    enum: ["etudiant", "salarie", "independant", "en_formation"],
+  }),
+  institutionName: text("institution_name"),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 /** Préférences utilisateur (avatar Synthèse, langue enrichie, etc.). */
 export const userPreferences = sqliteTable("user_preferences", {
   userId: text("user_id")
@@ -119,12 +138,15 @@ export const userPreferences = sqliteTable("user_preferences", {
   preferredLanguage2: text("preferred_language_2"),
   /** Liste des langues à enrichir (JSON array de codes ISO 639-3). Prioritaire si présent. */
   preferredLanguages: text("preferred_languages"),
+  /** Thème d'affichage : light (défaut) ou dark. */
+  themePreference: text("theme_preference", { enum: ["light", "dark"] }),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
 });
 
 export type User = typeof users.$inferSelect;
+export type UserProfile = typeof userProfiles.$inferSelect;
 export type WordFamily = typeof wordFamilies.$inferSelect;
 export type List = typeof lists.$inferSelect;
 export type Word = typeof words.$inferSelect;

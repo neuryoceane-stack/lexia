@@ -77,6 +77,13 @@ function AvatarDropdown({ name }: { name: string }) {
           >
             Paramètres
           </Link>
+          <Link
+            href="/app/parametres/information-personnelle"
+            className="block w-full px-3 py-2 text-left text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+            onClick={() => setOpen(false)}
+          >
+            Information personnelle
+          </Link>
           <button
             type="button"
             onClick={() => signOut({ callbackUrl: "/login" })}
@@ -188,6 +195,13 @@ export function AppHeader({ user }: { user: { name?: string | null; email?: stri
             className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             Paramètres
+          </Link>
+          <Link
+            href="/app/parametres/information-personnelle"
+            onClick={() => setMobileOpen(false)}
+            className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+          >
+            Information personnelle
           </Link>
           <button
             type="button"

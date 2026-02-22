@@ -22,11 +22,12 @@ export async function GET() {
   }
   const userId = session.user.id;
 
-  // Migrations automatiques (colonnes langues)
+  // Migrations automatiques (colonnes langues, thème)
   for (const col of [
     "ALTER TABLE user_preferences ADD COLUMN preferred_language text;",
     "ALTER TABLE user_preferences ADD COLUMN preferred_language_2 text;",
     "ALTER TABLE user_preferences ADD COLUMN preferred_languages text;",
+    "ALTER TABLE user_preferences ADD COLUMN theme_preference text;",
   ]) {
     try {
       await runRawSql(col);
@@ -60,7 +61,17 @@ export async function GET() {
   }
   const preferredLanguage = preferredLanguages[0] ?? null;
   const preferredLanguage2 = preferredLanguages[1] ?? null;
-  return NextResponse.json({ avatarType, preferredLanguage, preferredLanguage2, preferredLanguages });
+  const themePreference =
+    prefs?.themePreference === "light" || prefs?.themePreference === "dark"
+      ? prefs.themePreference
+      : "light";
+  return NextResponse.json({
+    avatarType,
+    preferredLanguage,
+    preferredLanguage2,
+    preferredLanguages,
+    themePreference,
+  });
 }
 
 /**
@@ -79,6 +90,7 @@ export async function PATCH(request: Request) {
     preferredLanguage?: string | null;
     preferredLanguage2?: string | null;
     preferredLanguages?: string[] | null;
+    themePreference?: string | null;
   };
   try {
     body = await request.json();
@@ -136,11 +148,17 @@ export async function PATCH(request: Request) {
   const preferredLanguage = preferredLanguages[0] ?? null;
   const preferredLanguage2 = preferredLanguages[1] ?? null;
   const preferredLanguagesJson = JSON.stringify(preferredLanguages);
+  const THEME_VALUES = ["light", "dark"] as const;
+  const rawTheme = body.themePreference;
+  const themePreference = THEME_VALUES.includes(rawTheme as (typeof THEME_VALUES)[number])
+    ? (rawTheme as (typeof THEME_VALUES)[number])
+    : (existing?.themePreference === "dark" ? "dark" : "light");
 
   for (const col of [
     "ALTER TABLE user_preferences ADD COLUMN preferred_language text;",
     "ALTER TABLE user_preferences ADD COLUMN preferred_language_2 text;",
     "ALTER TABLE user_preferences ADD COLUMN preferred_languages text;",
+    "ALTER TABLE user_preferences ADD COLUMN theme_preference text;",
   ]) {
     try {
       await runRawSql(col);
@@ -158,6 +176,7 @@ export async function PATCH(request: Request) {
         preferredLanguage,
         preferredLanguage2,
         preferredLanguages: preferredLanguagesJson,
+        themePreference,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -167,6 +186,7 @@ export async function PATCH(request: Request) {
           preferredLanguage,
           preferredLanguage2,
           preferredLanguages: preferredLanguagesJson,
+          themePreference,
           updatedAt: new Date(),
         },
       });
@@ -182,5 +202,11 @@ export async function PATCH(request: Request) {
     );
   }
 
-  return NextResponse.json({ avatarType, preferredLanguage, preferredLanguage2, preferredLanguages });
+  return NextResponse.json({
+    avatarType,
+    preferredLanguage,
+    preferredLanguage2,
+    preferredLanguages,
+    themePreference,
+  });
 }

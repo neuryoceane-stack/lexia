@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Mode sombre piloté par la classe .dark sur <html> (choix utilisateur en paramètres) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 /* ========== Palettes (variables brutes pour référence / thèmes alternatifs) ========== */
 :root {
   /* Palette 1 – Bleu pédagogique + jaune (recommandée) */
@@ -36,11 +39,10 @@
   --foreground: var(--p1-gray);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0f172a;
-    --foreground: #e2e8f0;
-  }
+/* Appliqué quand l'utilisateur choisit "Sombre" ou "Système" avec préférence sombre */
+html.dark {
+  --background: #0f172a;
+  --foreground: #e2e8f0;
 }
 
 /* ========== Thème Tailwind – Palette 1 par défaut ========== */
