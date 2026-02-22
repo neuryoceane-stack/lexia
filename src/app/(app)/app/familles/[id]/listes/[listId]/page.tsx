@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { eq, and, asc } from "drizzle-orm";
 import { detectListLanguages, KNOWN_LANGUAGE_CODES } from "@/lib/language";
+import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
 import { MotsClient } from "./mots-client";
 import { ListLanguageEditor } from "./list-language-editor";
