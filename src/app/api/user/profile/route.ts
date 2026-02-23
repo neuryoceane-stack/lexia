@@ -17,20 +17,9 @@ export type UserProfilePayload = {
   institutionName?: string | null;
 };
 
-async function ensureTable() {
-  await runRawSql(`
-    CREATE TABLE IF NOT EXISTS user_profiles (
-      user_id TEXT PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-      first_name TEXT,
-      last_name TEXT,
-      date_of_birth TEXT,
-      city TEXT,
-      phone TEXT,
-      status TEXT,
-      institution_name TEXT,
-      updated_at INTEGER NOT NULL
-    )
-  `);
+async function ensureTables() {
+  const { ensureClassTables } = await import("@/lib/db/migrations");
+  await ensureClassTables();
 }
 
 /**
@@ -43,7 +32,7 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const userId = session.user.id;
-  await ensureTable();
+  await ensureTables();
 
   const [profile] = await db
     .select()
@@ -73,7 +62,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const userId = session.user.id;
-  await ensureTable();
+  await ensureTables();
 
   let body: UserProfilePayload;
   try {

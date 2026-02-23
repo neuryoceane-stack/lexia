@@ -14,7 +14,7 @@ function getDb(): DbInstance {
   const tursoToken = process.env.TURSO_AUTH_TOKEN;
 
   if (tursoUrl && tursoToken) {
-    const { createClient } = require("@libsql/client/web");
+    const { createClient } = require("@libsql/client");
     const { drizzle } = require("drizzle-orm/libsql");
     const client = createClient({ url: tursoUrl, authToken: tursoToken });
     _rawClient = client;

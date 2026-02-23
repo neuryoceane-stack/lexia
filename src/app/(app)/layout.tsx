@@ -1,5 +1,6 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { AppHeader } from "@/components/app-header";
 
 export default async function AppLayout({
@@ -8,9 +9,19 @@ export default async function AppLayout({
   const session = await auth();
   if (!session?.user) redirect("/login");
 
+  const role = (session.user as { role?: string }).role;
+  const headersList = await headers();
+  const pathname = headersList.get("x-pathname") ?? headersList.get("x-invoke-path") ?? "";
+  const isProfesseurRoute = pathname.startsWith("/app/professeur");
+  const isSharedRoute = pathname.startsWith("/app/familles")
+    || pathname.startsWith("/app/parametres");
+  if (role === "professeur" && !isProfesseurRoute && !isSharedRoute) redirect("/app/professeur");
+
+  const showProfesseurHeader = role === "professeur";
+
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-slate-900">
-      <AppHeader user={session.user} />
+      <AppHeader user={session.user} isProfesseur={showProfesseurHeader} />
       <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
     </div>
   );

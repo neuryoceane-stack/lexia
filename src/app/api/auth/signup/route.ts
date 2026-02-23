@@ -2,11 +2,19 @@ import { NextResponse } from "next/server";
 import { hash } from "bcryptjs";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
-import { users, gardenProgress } from "@/lib/db/schema";
+import { ensureClassTables } from "@/lib/db/migrations";
+import { users, gardenProgress, userProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 export async function POST(request: Request) {
-  let body: { email?: string; password?: string; name?: string; firstName?: string; lastName?: string };
+  let body: {
+    email?: string;
+    password?: string;
+    name?: string;
+    firstName?: string;
+    lastName?: string;
+    role?: "etudiant" | "professeur";
+  };
   try {
     body = await request.json();
   } catch {
@@ -23,6 +31,8 @@ export async function POST(request: Request) {
     [firstName, lastName].filter(Boolean).join(" ") ||
     body.name?.trim() ||
     null;
+  const role =
+    body.role === "professeur" ? "professeur" : "etudiant";
 
   if (!email || !password) {
     return NextResponse.json(
@@ -36,6 +46,8 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+
+  await ensureClassTables();
 
   const [existing] = await db
     .select({ id: users.id })
@@ -61,5 +73,19 @@ export async function POST(request: Request) {
     userId: id,
   });
 
-  return NextResponse.json({ ok: true, userId: id, firstName, lastName });
+  await db
+    .insert(userProfiles)
+    .values({
+      userId: id,
+      firstName: firstName ?? null,
+      lastName: lastName ?? null,
+      role,
+      updatedAt: new Date(),
+    })
+    .onConflictDoUpdate({
+      target: userProfiles.userId,
+      set: { role, updatedAt: new Date() },
+    });
+
+  return NextResponse.json({ ok: true, userId: id, firstName, lastName, role });
 }

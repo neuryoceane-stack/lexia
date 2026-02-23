@@ -118,7 +118,61 @@ export const userProfiles = sqliteTable("user_profiles", {
     enum: ["etudiant", "salarie", "independant", "en_formation"],
   }),
   institutionName: text("institution_name"),
+  /** Rôle : étudiant (par défaut) ou professeur. */
+  role: text("role", { enum: ["etudiant", "professeur"] }),
   updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+/** Classes créées par les professeurs. */
+export const classes = sqliteTable("classes", {
+  id: text("id").primaryKey(),
+  teacherId: text("teacher_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  /** Identifiant court unique pour rejoindre la classe (ex. ABC123). */
+  identifier: text("identifier").notNull().unique(),
+  title: text("title").notNull(),
+  /** Code langue ISO 639-3 (ex. fra, eng). */
+  language: text("language"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+/** Élèves dans une classe (salle d'attente : pending, acceptés : accepted). */
+export const classMembers = sqliteTable("class_members", {
+  id: text("id").primaryKey(),
+  classId: text("class_id")
+    .notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  status: text("status", {
+    enum: ["pending", "accepted", "rejected"],
+  })
+    .notNull()
+    .default("pending"),
+  joinedAt: integer("joined_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+/** Listes de mots assignées à une classe (mode fantôme = non visibles pour les élèves). */
+export const classLists = sqliteTable("class_lists", {
+  id: text("id").primaryKey(),
+  classId: text("class_id")
+    .notNull()
+    .references(() => classes.id, { onDelete: "cascade" }),
+  listId: text("list_id")
+    .notNull()
+    .references(() => lists.id, { onDelete: "cascade" }),
+  /** false = fantôme (invisible pour élèves), true = visible. */
+  isVisible: integer("is_visible", { mode: "boolean" }).notNull().default(false),
+  orderIndex: integer("order_index").notNull().default(0),
+  addedAt: integer("added_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
 });
@@ -147,6 +201,9 @@ export const userPreferences = sqliteTable("user_preferences", {
 
 export type User = typeof users.$inferSelect;
 export type UserProfile = typeof userProfiles.$inferSelect;
+export type Class = typeof classes.$inferSelect;
+export type ClassMember = typeof classMembers.$inferSelect;
+export type ClassList = typeof classLists.$inferSelect;
 export type WordFamily = typeof wordFamilies.$inferSelect;
 export type List = typeof lists.$inferSelect;
 export type Word = typeof words.$inferSelect;

@@ -26,10 +26,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!user?.passwordHash) return null;
         const ok = await compare(String(credentials.password), user.passwordHash);
         if (!ok) return null;
+        const { userProfiles } = await import("@/lib/db/schema");
+        const [profile] = await db
+          .select({ role: userProfiles.role })
+          .from(userProfiles)
+          .where(eq(userProfiles.userId, user.id))
+          .limit(1);
+        const role = profile?.role === "professeur" ? "professeur" : "etudiant";
         return {
           id: user.id,
           email: user.email,
           name: user.name ?? undefined,
+          role,
         };
       },
     }),

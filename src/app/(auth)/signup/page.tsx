@@ -15,10 +15,12 @@ const STATUS_OPTIONS: { value: ProfileStatus; label: string }[] = [
   { value: "en_formation", label: "En formation" },
 ];
 
-type Step = 1 | 2 | 3;
+type UserRole = "etudiant" | "professeur";
+type Step = 0 | 1 | 2 | 3;
 
 export default function SignupPage() {
-  const [step, setStep] = useState<Step>(1);
+  const [step, setStep] = useState<Step>(0);
+  const [role, setRole] = useState<UserRole | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -44,6 +46,7 @@ export default function SignupPage() {
           password,
           firstName: firstName.trim() || undefined,
           lastName: lastName.trim() || undefined,
+          role: role ?? "etudiant",
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -112,7 +115,7 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
-      window.location.href = "/app";
+      window.location.href = role === "professeur" ? "/app/professeur" : "/app";
       return;
     } catch {
       setError("Une erreur est survenue.");
@@ -123,8 +126,64 @@ export default function SignupPage() {
 
   return (
     <>
+      {/* Étape 0 : Choix Étudiant / Professeur */}
+      {step === 0 && (
+        <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
+          <h1 className="mb-6 text-center text-xl font-semibold text-slate-800 dark:text-slate-100">
+            Inscription
+          </h1>
+          <p className="mb-6 text-center text-sm text-slate-500 dark:text-slate-400">
+            Tu es étudiant ou professeur ?
+          </p>
+          <div className="flex flex-col gap-4 sm:flex-row sm:justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                setRole("etudiant");
+                setStep(1);
+              }}
+              className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            >
+              <span className="text-2xl" aria-hidden>📚</span>
+              <h2 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
+                Étudiant
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Apprendre du vocabulaire, réviser, suivre ma progression.
+              </p>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setRole("professeur");
+                setStep(1);
+              }}
+              className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            >
+              <span className="text-2xl" aria-hidden>👩‍🏫</span>
+              <h2 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
+                Professeur
+              </h2>
+              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                Créer des classes, déposer des listes, suivre mes élèves.
+              </p>
+            </button>
+          </div>
+          <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+            Déjà un compte ?{" "}
+            <Link
+              href="/login"
+              className="font-medium text-primary hover:underline dark:text-primary-light"
+            >
+              Se connecter
+            </Link>
+          </p>
+        </div>
+      )}
+
       {step === 1 && (
       <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
+        <BackLink href="#" onClick={() => setStep(0)} ariaLabel="Retour au choix" />
         <h1 className="mb-6 text-center text-xl font-semibold text-slate-800 dark:text-slate-100">
           Inscription
         </h1>
