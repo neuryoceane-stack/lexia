@@ -12,9 +12,8 @@ import {
   revisionSessions,
 } from "@/lib/db/schema";
 import { eq, and, inArray, sql, asc } from "drizzle-orm";
-import { SalleAttente } from "./salle-attente";
-import { ListesClasse } from "./listes-classe";
-import { StatsEleves } from "./stats-eleves";
+import { OngletsClasse, type TabId } from "./onglets-classe";
+import { ClasseHeader } from "./classe-header";
 
 function BackIcon({ className }: { className?: string }) {
   return (
@@ -34,15 +33,25 @@ function BackIcon({ className }: { className?: string }) {
   );
 }
 
+const TAB_IDS: TabId[] = ["tableau-de-bord", "eleves", "listes"];
+function parseTab(tab: string | null): TabId {
+  if (tab && TAB_IDS.includes(tab as TabId)) return tab as TabId;
+  return "tableau-de-bord";
+}
+
 export default async function ClasseDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
 }) {
   const session = await auth();
   if (!session?.user?.id) return null;
 
   const { id } = await params;
+  const { tab: tabParam } = await searchParams;
+  const activeTab = parseTab(tabParam ?? null);
 
   const [cls] = await db
     .select()
@@ -122,41 +131,26 @@ export default async function ClasseDetailPage({
   return (
     <div className="mx-auto max-w-[900px]">
       <Link
-        href="/app/professeur"
+        href="/app/professeur/classes"
         className="btn-relief mb-6 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
       >
         <BackIcon className="h-4 w-4" />
         Retour
       </Link>
 
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-vocab-gray dark:text-slate-100">
-          {cls.title}
-        </h1>
-        {cls.language && (
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Langue : {cls.language}
-          </p>
-        )}
-        <div className="mt-3 flex items-center gap-2">
-          <span className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 font-mono text-base font-semibold text-slate-700 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200">
-            {cls.identifier}
-          </span>
-          <span className="text-sm text-slate-500 dark:text-slate-400">
-            Identifiant à partager avec vos élèves
-          </span>
-        </div>
-      </div>
-
-      <SalleAttente
+      <ClasseHeader
         classId={id}
-        members={membersWithStats}
-        className="mb-10"
+        initialTitle={cls.title}
+        language={cls.language}
       />
 
-      <ListesClasse
+      <OngletsClasse
         classId={id}
-        classLanguage={cls.language}
+        activeTab={activeTab}
+        identifier={cls.identifier}
+        nbEleves={membersWithStats.filter((m) => m.status === "accepted").length}
+        nbListes={classListsData.length}
+        members={membersWithStats}
         lists={classListsData.map((l) => ({
           id: l.id,
           listId: l.listId,
@@ -164,10 +158,8 @@ export default async function ClasseDetailPage({
           name: l.listName ?? "Liste",
           familyName: l.familyName ?? "",
         }))}
-        className="mb-10"
+        classLanguage={cls.language}
       />
-
-      <StatsEleves members={membersWithStats} />
     </div>
   );
 }

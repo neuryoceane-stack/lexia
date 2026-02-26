@@ -18,6 +18,14 @@ type BibliothequeList = {
   createdAt: string;
 };
 
+/** Classe avec ses listes visibles (professeur), pour « Mes classes ». */
+type ClassWithLists = {
+  id: string;
+  title: string;
+  language: string | null;
+  lists: BibliothequeList[];
+};
+
 const SORT_OPTIONS = [
   { value: "alpha", label: "Alphabétique" },
   { value: "created", label: "Date de création" },
@@ -68,6 +76,10 @@ export function BibliothequeClient() {
   const [renameModalList, setRenameModalList] = useState<BibliothequeList | null>(null);
   const [renameInput, setRenameInput] = useState("");
   const [renamingListId, setRenamingListId] = useState<string | null>(null);
+  /** Classes avec listes visibles (élève), pour la section « Mes classes ». */
+  const [classesWithLists, setClassesWithLists] = useState<ClassWithLists[]>([]);
+  /** Classe dépliée pour afficher ses listes (id ou null). */
+  const [expandedClassId, setExpandedClassId] = useState<string | null>(null);
 
   const fetchLists = useCallback(async () => {
     setLoading(true);
@@ -107,6 +119,28 @@ export function BibliothequeClient() {
         setPrefsLoaded(true);
       })
       .catch(() => setPrefsLoaded(true));
+  }, []);
+
+  /** Charger les classes avec leurs listes visibles (élève) pour la section « Mes classes ». */
+  useEffect(() => {
+    fetch("/api/eleve/classes-avec-listes", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.classes)) {
+          setClassesWithLists(data.classes);
+          const classLangs = (data.classes as ClassWithLists[])
+            .map((c) => c.language)
+            .filter((x: string | null): x is string => !!x);
+          if (classLangs.length > 0) {
+            setLanguages((prev) =>
+              Array.from(new Set([...prev, ...classLangs])).sort()
+            );
+          }
+        }
+      })
+      .catch(() => {
+        setClassesWithLists([]);
+      });
   }, []);
 
   /** Appliquer le filtre langue depuis l’URL (?lang=eng) au chargement (ex. après création d’une liste). */
@@ -155,6 +189,14 @@ export function BibliothequeClient() {
       return () => document.removeEventListener("click", close);
     }
   }, [flagMenuOpen]);
+
+  const visibleStudentClasses = classesWithLists.filter((cls) => {
+    if (!activeLanguage || !cls.language) return true;
+    return cls.language.toLowerCase().trim() === activeLanguage.toLowerCase().trim();
+  });
+
+  /** Paramètre URL à conserver pour le retour bibliothèque depuis une liste. */
+  const listDetailQuery = activeLanguage ? `?lang=${encodeURIComponent(activeLanguage)}` : "";
 
   async function handleRenameList(list: BibliothequeList) {
     setMenuOpenId(null);
@@ -550,18 +592,140 @@ export function BibliothequeClient() {
       {/* Contenu */}
       {loading ? (
         <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
-      ) : lists.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center dark:border-slate-600 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">
-            Aucune liste pour cette langue. Crée une liste de mots ou importe un PDF / une photo.
-          </p>
-        </div>
-      ) : viewMode === "grid" ? (
+      ) : (
+        <>
+          {classesWithLists.length > 0 && (
+            <section className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/60">
+              <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-100">
+                Mes classes
+              </h2>
+              {visibleStudentClasses.length === 0 ? (
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Aucune classe pour cette langue. Choisis « Toutes les langues » pour les voir.
+                </p>
+              ) : (
+                <ul className="space-y-2">
+                  {visibleStudentClasses.map((cls) => {
+                    const isExpanded = expandedClassId === cls.id;
+                    return (
+                      <li
+                        key={cls.id}
+                        className="rounded-lg border border-slate-200 bg-slate-50/80 dark:border-slate-600 dark:bg-slate-800/80"
+                      >
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setExpandedClassId((id) => (id === cls.id ? null : cls.id))
+                          }
+                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                          aria-expanded={isExpanded}
+                        >
+                          {cls.language && (
+                            <FlagDisplay
+                              langCode={cls.language}
+                              size={18}
+                              className="flex-shrink-0"
+                            />
+                          )}
+                          <span
+                            className="min-w-0 flex-1 truncate font-medium text-slate-700 dark:text-slate-200"
+                            title={cls.title}
+                          >
+                            {cls.title}
+                          </span>
+                          <span
+                            className="text-slate-400 dark:text-slate-500"
+                            aria-hidden
+                          >
+                            {cls.lists.length} liste{cls.lists.length !== 1 ? "s" : ""}
+                          </span>
+                          <svg
+                            className={`h-5 w-5 flex-shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${
+                              isExpanded ? "rotate-180" : ""
+                            }`}
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                        </button>
+                        {isExpanded && (
+                          <div className="border-t border-slate-200 px-3 py-2 dark:border-slate-600">
+                            {cls.lists.length === 0 ? (
+                              <p className="py-2 text-xs text-slate-500 dark:text-slate-400">
+                                Aucune liste partagée par le professeur pour l’instant.
+                              </p>
+                            ) : (
+                              <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                                {cls.lists.map((list) => (
+                                  <li key={list.id}>
+                                    <Link
+                                      href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
+                                      className="block rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800"
+                                    >
+                                      <div className="flex items-start justify-between gap-2">
+                                        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                          {list.name}
+                                        </h3>
+                                        {/* Langue = filtre bibliothèque uniquement, non cliquable pour les listes du professeur */}
+                                        {activeLanguage && (
+                                          <span
+                                            className="flex-shrink-0 select-none"
+                                            title="Langue de la liste (filtre Bibliothèque)"
+                                            aria-hidden
+                                          >
+                                            <FlagDisplay langCode={activeLanguage} size={18} />
+                                          </span>
+                                        )}
+                                      </div>
+                                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                        {list.familyName} · {list.wordCount} mot
+                                        {list.wordCount !== 1 ? "s" : ""}
+                                      </p>
+                                      <div className="mt-2 flex items-center gap-2">
+                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-600">
+                                          <div
+                                            className="h-full rounded-full bg-p2-primary transition-all duration-200"
+                                            style={{ width: `${list.progressPercent}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                          {list.progressPercent} %
+                                        </span>
+                                      </div>
+                                    </Link>
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+          )}
+
+          {lists.length === 0 ? (
+            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center dark:border-slate-600 dark:bg-slate-800/50">
+              <p className="text-slate-600 dark:text-slate-400">
+                Aucune liste pour cette langue. Crée une liste de mots ou importe un PDF / une photo.
+              </p>
+            </div>
+          ) : viewMode === "grid" ? (
         <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {lists.map((list) => (
             <li key={list.id} className="relative">
               <Link
-                href={`/app/familles/${list.familyId}/listes/${list.id}`}
+                href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
                 className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800"
               >
                 <div className="flex items-start justify-between gap-2">
@@ -641,12 +805,12 @@ export function BibliothequeClient() {
             </li>
           ))}
         </ul>
-      ) : (
+          ) : (
         <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
           {lists.map((list) => (
             <li key={list.id} className="relative flex items-center gap-4 px-4 py-3">
               <Link
-                href={`/app/familles/${list.familyId}/listes/${list.id}`}
+                href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
                 className="min-w-0 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
                 <span className="block truncate font-semibold text-slate-800 dark:text-slate-100">
@@ -711,6 +875,8 @@ export function BibliothequeClient() {
             </li>
           ))}
         </ul>
+          )}
+        </>
       )}
 
       {/* Modale Renommer la liste */}

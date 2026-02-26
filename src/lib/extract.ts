@@ -1,10 +1,13 @@
+/** Paire extraite : terme (langue 1) et traduction/définition (langue 2). */
 export type ExtractedItem = { term: string; definition: string };
 
 const SEPARATORS = [
   /\t/,
   /\s+[–—]\s+/,  // tiret long avec espaces (ex. "la tête — head")
   / [–—] /,
-  / - /,
+  /\s+-\s+/,     // tiret court avec espaces (mot - traduction)
+  /\s+=\s+/,     // égal (mot = traduction)
+  /\s+\|\s+/,    // barre verticale (mot | traduction)
   / : /,
   / :/,
   /:/,

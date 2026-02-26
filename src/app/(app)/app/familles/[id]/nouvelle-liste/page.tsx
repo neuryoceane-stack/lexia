@@ -1,11 +1,66 @@
 "use client";
 
 import { useState, useCallback, useEffect } from "react";
-import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
+import { parseLinesToItems } from "@/lib/extract";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
+
+const OCR_LANGS = new Set(["fra", "eng", "spa", "deu", "ita", "por", "nld", "pol", "rus"]);
+function getOcrLang(lang: string | null): string {
+  const raw = lang?.trim()?.toLowerCase();
+  if (raw && OCR_LANGS.has(raw)) return raw;
+  return "fra+eng";
+}
+
+/** Redimensionne l'image (côté client) pour accélérer envoi et traitement. */
+function resizeImage(file: File, maxSize: number): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width <= maxSize && height <= maxSize) {
+        resolve(file);
+        return;
+      }
+      if (width > height) {
+        height = Math.round((height * maxSize) / width);
+        width = maxSize;
+      } else {
+        width = Math.round((width * maxSize) / height);
+        height = maxSize;
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(file);
+        return;
+      }
+      ctx.drawImage(img, 0, 0, width, height);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) {
+            resolve(file);
+            return;
+          }
+          resolve(new File([blob], file.name, { type: file.type }));
+        },
+        file.type,
+        0.9
+      );
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+}
 
 type Method = "manual" | "pdf" | "image" | null;
 
@@ -23,7 +78,10 @@ export default function NouvelleListePage() {
     Array<{ term: string; definition: string }>
   >([]);
   const [extractLoading, setExtractLoading] = useState(false);
+  const [extractPhase, setExtractPhase] = useState<"vision" | "ocr" | null>(null);
   const [extractError, setExtractError] = useState("");
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string | null>(null);
+  const [ocrProgress, setOcrProgress] = useState("");
   const [preferredLanguage, setPreferredLanguage] = useState<string | null>(null);
   const defaultListLanguage = langFromUrl || preferredLanguage;
 
@@ -36,13 +94,28 @@ export default function NouvelleListePage() {
       .catch(() => {});
   }, []);
 
+  useEffect(() => {
+    return () => {
+      if (imagePreviewUrl) URL.revokeObjectURL(imagePreviewUrl);
+    };
+  }, [imagePreviewUrl]);
+
   const handleFile = useCallback(
     async (file: File, endpoint: "/api/extract/pdf" | "/api/extract/ocr") => {
+      const lang = defaultListLanguage;
       setExtractError("");
       setExtractLoading(true);
+      setExtractPhase(endpoint === "/api/extract/ocr" ? "ocr" : null);
       try {
+        let fileToSend = file;
+        if (endpoint === "/api/extract/ocr" && file.type.startsWith("image/")) {
+          fileToSend = await resizeImage(file, 640);
+        }
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fileToSend);
+        if (endpoint === "/api/extract/ocr" && lang) {
+          formData.append("ocrLang", lang);
+        }
         const res = await fetch(endpoint, {
           method: "POST",
           body: formData,
@@ -51,16 +124,99 @@ export default function NouvelleListePage() {
         if (!res.ok) {
           setExtractError(data.error ?? "Erreur lors de l’extraction");
           setExtractLoading(false);
+          setExtractPhase(null);
           return;
         }
         setExtractedItems(data.items ?? []);
         setExtractLoading(false);
+        setExtractPhase(null);
       } catch {
         setExtractError("Erreur réseau");
         setExtractLoading(false);
+        setExtractPhase(null);
       }
     },
-    []
+    [defaultListLanguage]
+  );
+
+  /** Image : essaie d’abord l’extraction par IA (rapide), puis OCR en secours si pas de clé ou erreur. */
+  const handleImageChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      e.target.value = "";
+      if (!file) return;
+      setMethod("image");
+      setExtractError("");
+      setExtractLoading(true);
+      setExtractPhase("vision");
+      setImagePreviewUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(file);
+      });
+
+      const lang = defaultListLanguage;
+      (async () => {
+        let fileToSend: File = file;
+        if (file.type.startsWith("image/")) {
+          fileToSend = await resizeImage(file, 640);
+        }
+        const formData = new FormData();
+        formData.append("file", fileToSend);
+        if (lang) formData.append("ocrLang", lang);
+
+        try {
+        const ac = new AbortController();
+        const timeoutId = setTimeout(() => ac.abort(), 90_000);
+        const visionRes = await fetch("/api/extract/vision", {
+          method: "POST",
+          body: formData,
+          signal: ac.signal,
+        });
+        clearTimeout(timeoutId);
+        const visionData = await visionRes.json().catch(() => ({}));
+
+        if (visionRes.ok && Array.isArray(visionData?.items) && (visionData.items as unknown[]).length > 0) {
+          setExtractedItems(visionData.items as Array<{ term: string; definition: string }>);
+          setExtractLoading(false);
+          setExtractPhase(null);
+          setOcrProgress("");
+          setImagePreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return null; });
+          return;
+        }
+
+        setExtractPhase("ocr");
+        setOcrProgress("Chargement du moteur OCR…");
+        const Tesseract = (await import("tesseract.js")).default;
+        const ocrLang = getOcrLang(lang);
+        const { data } = await Tesseract.recognize(fileToSend, ocrLang, {
+          logger: (m) => setOcrProgress(m.status || ""),
+        });
+        const ocrData = { items: parseLinesToItems(data.text) };
+        setExtractLoading(false);
+        setExtractPhase(null);
+        setOcrProgress("");
+        setImagePreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return null; });
+        const items = ocrData.items ?? [];
+        if (items.length > 0) {
+          setExtractedItems(items);
+        } else {
+          setExtractError(
+            "Aucune paire mot/traduction trouvée. Utilisez une photo avec une liste claire (ex. une ligne par paire : mot - traduction ou mot : traduction)."
+          );
+        }
+        } catch (err) {
+          setExtractLoading(false);
+          setExtractPhase(null);
+          setOcrProgress("");
+          setImagePreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return null; });
+          const msg = err instanceof Error
+            ? (err.name === "AbortError" ? "Délai dépassé. Réessayez avec une photo plus petite." : err.message)
+            : "Erreur réseau ou extraction.";
+          setExtractError(msg);
+        }
+      })();
+    },
+    [defaultListLanguage]
   );
 
   const handlePdfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,18 +226,11 @@ export default function NouvelleListePage() {
     e.target.value = "";
   };
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setMethod("image");
-    const file = e.target.files?.[0];
-    if (file) handleFile(file, "/api/extract/ocr");
-    e.target.value = "";
-  };
 
   const onSaved = () => {
-    const qs = defaultListLanguage
-      ? `?lang=${encodeURIComponent(defaultListLanguage)}`
-      : "";
-    router.push(`/app/familles${qs}`);
+    // Redirection sans filtre langue pour que la liste importée reste visible
+    // (la langue enregistrée peut différer du filtre choisi en amont)
+    router.push("/app/familles");
   };
 
   if (extractedItems.length > 0) {
@@ -155,7 +304,10 @@ export default function NouvelleListePage() {
               Image
             </span>
             <span className="text-center text-sm text-slate-500 dark:text-slate-400">
-              Reconnaissance de texte (OCR) sur une photo
+              Photo ou capture : extraction par IA (rapide) si configurée, sinon OCR. Une ligne par paire accélère.
+            </span>
+            <span className="text-center text-xs text-slate-400 dark:text-slate-500">
+              Idéal : une ligne par paire, avec un séparateur (ex. « mot - traduction » ou « mot : traduction »).
             </span>
           </label>
         </div>
@@ -170,9 +322,37 @@ export default function NouvelleListePage() {
       )}
 
       {extractLoading && (
-        <p className="mt-6 text-slate-600 dark:text-slate-400">
-          Extraction en cours…
-        </p>
+        <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/50">
+          <div className="flex items-start gap-4">
+            {method === "image" && imagePreviewUrl && (
+              <div className="flex-shrink-0 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-600">
+                <img
+                  src={imagePreviewUrl}
+                  alt=""
+                  className="h-24 w-auto max-w-[160px] object-contain"
+                />
+              </div>
+            )}
+            <span
+              className="inline-block h-8 w-8 flex-shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent dark:border-primary-light dark:border-t-transparent"
+              aria-hidden
+            />
+            <div className="min-w-0">
+              <p className="font-medium text-slate-800 dark:text-slate-100">
+                {method === "image"
+                  ? extractPhase === "vision"
+                    ? "Extraction par IA en cours…"
+                    : "Reconnaissance du texte (OCR) en cours…"
+                  : "Extraction en cours…"}
+              </p>
+              {method === "image" && extractPhase === "ocr" && (
+                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                  {ocrProgress || "Reconnaissance du texte dans le navigateur…"}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
       )}
       {extractError && (
         <p className="mt-4 text-sm text-red-600 dark:text-red-400">

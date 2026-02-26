@@ -105,7 +105,11 @@ export function RevueImport({
           name,
           source,
           language:
-            (termLang && KNOWN_LANGUAGE_CODES.has(termLang) ? termLang : defaultLanguage) || undefined,
+            (defaultLanguage && KNOWN_LANGUAGE_CODES.has(defaultLanguage)
+              ? defaultLanguage
+              : termLang && KNOWN_LANGUAGE_CODES.has(termLang)
+                ? termLang
+                : defaultLanguage) || undefined,
         }),
       });
       const listData = await listRes.json().catch(() => ({}));

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { auth } from "@/lib/auth";
+import { StreakWidget } from "@/components/streak-widget";
 
 function IconLibrary({ className }: { className?: string }) {
   return (
@@ -33,8 +35,17 @@ const cardBase =
   "group relative flex flex-col rounded-xl border border-slate-200/90 bg-white p-8 shadow-sm transition-all duration-[200ms] ease-out hover:-translate-y-1 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700/80 dark:bg-slate-800/80 dark:hover:border-slate-600";
 
 export default async function AppDashboardPage() {
+  const session = await auth();
+  const role = (session?.user as { role?: string } | undefined)?.role;
+  const isStudent = role === "etudiant";
+
   return (
-    <div className="mx-auto max-w-[1100px]">
+    <div className="mx-auto max-w-[1100px] space-y-8">
+      {isStudent && (
+        <section aria-label="Série de révision">
+          <StreakWidget />
+        </section>
+      )}
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
         {/* Carte 1 — Bibliothèque */}
         <Link
@@ -90,3 +101,4 @@ export default async function AppDashboardPage() {
     </div>
   );
 }
+

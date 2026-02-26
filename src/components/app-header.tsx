@@ -12,8 +12,9 @@ const navItemsStudent = [
 ] as const;
 
 const navItemsProfesseur = [
-  { href: "/app/professeur", label: "Mes classes" },
-  { href: "/app/familles", label: "Bibliothèque" },
+  { href: "/app/professeur", label: "Accueil" },
+  { href: "/app/professeur/classes", label: "Mes classes" },
+  { href: "/app/familles", label: "Ma bibliothèque" },
 ] as const;
 
 function LogoIcon({ className }: { className?: string }) {

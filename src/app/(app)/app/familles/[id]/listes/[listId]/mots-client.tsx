@@ -9,10 +9,12 @@ export function MotsClient({
   familyId,
   listId,
   initialMots,
+  canEdit,
 }: {
   familyId: string;
   listId: string;
   initialMots: Mot[];
+  canEdit: boolean;
 }) {
   const router = useRouter();
   const [mots, setMots] = useState<Mot[]>(initialMots);
@@ -93,47 +95,48 @@ export function MotsClient({
         <h2 className="font-medium text-slate-800 dark:text-slate-100">
           Mots ({mots.length})
         </h2>
-        {!adding ? (
-          <button
-            type="button"
-            onClick={() => setAdding(true)}
-            className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
-          >
-            + Ajouter un mot
-          </button>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2">
-            <input
-              type="text"
-              value={newTerm}
-              onChange={(e) => setNewTerm(e.target.value)}
-              placeholder="Mot"
-              className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-            />
-            <input
-              type="text"
-              value={newDef}
-              onChange={(e) => setNewDef(e.target.value)}
-              placeholder="Définition"
-              className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-            />
+        {canEdit &&
+          (!adding ? (
             <button
               type="button"
-              onClick={addWord}
-              disabled={loading || !newTerm.trim()}
-              className="btn-relief rounded-lg bg-primary px-3 py-2 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
+              onClick={() => setAdding(true)}
+              className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
             >
-              Ajouter
+              + Ajouter un mot
             </button>
-            <button
-              type="button"
-              onClick={() => setAdding(false)}
-              className="btn-relief rounded border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
-            >
-              Annuler
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                value={newTerm}
+                onChange={(e) => setNewTerm(e.target.value)}
+                placeholder="Mot"
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              />
+              <input
+                type="text"
+                value={newDef}
+                onChange={(e) => setNewDef(e.target.value)}
+                placeholder="Définition"
+                className="rounded border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              />
+              <button
+                type="button"
+                onClick={addWord}
+                disabled={loading || !newTerm.trim()}
+                className="btn-relief rounded-lg bg-primary px-3 py-2 text-sm text-white hover:bg-primary-dark disabled:opacity-50"
+              >
+                Ajouter
+              </button>
+              <button
+                type="button"
+                onClick={() => setAdding(false)}
+                className="btn-relief rounded border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
+              >
+                Annuler
+              </button>
+            </div>
+          ))}
       </div>
 
       <ul className="space-y-2">
@@ -142,7 +145,7 @@ export function MotsClient({
             key={m.id}
             className="grid grid-cols-[1fr_1fr_auto] gap-x-4 gap-y-2 items-center rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-800"
           >
-            {editingId === m.id ? (
+            {editingId === m.id && canEdit ? (
               <>
                 <input
                   type="text"
@@ -182,23 +185,25 @@ export function MotsClient({
                 <span className="min-w-0 text-slate-600 dark:text-slate-400">
                   {m.definition || "\u00A0"}
                 </span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => startEdit(m)}
-                    className="btn-relief rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-300"
-                  >
-                    Modifier
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteWord(m.id)}
-                    disabled={loading}
-                    className="btn-relief rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
-                  >
-                    Supprimer
-                  </button>
-                </div>
+                {canEdit && (
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => startEdit(m)}
+                      className="btn-relief rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                    >
+                      Modifier
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteWord(m.id)}
+                      disabled={loading}
+                      className="btn-relief rounded px-2 py-1 text-sm text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
+                    >
+                      Supprimer
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </li>

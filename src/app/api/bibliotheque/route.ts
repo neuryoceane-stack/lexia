@@ -37,7 +37,7 @@ export async function GET(request: Request) {
   const search = searchParams.get("search")?.trim() || undefined;
   const sort = searchParams.get("sort") || "alpha"; // alpha | created | updated
 
-  const userLists = await db
+  const userListsOwned = await db
     .select({
       id: lists.id,
       familyId: lists.familyId,
@@ -62,7 +62,10 @@ export async function GET(request: Request) {
     return f === L;
   }
 
-  let filtered = userLists;
+  // Pour les élèves, la bibliothèque ne contient que les listes personnelles.
+  // Les listes des professeurs sont affichées uniquement dans « Mes classes » (voir GET /api/eleve/classes-avec-listes).
+  const allLists = userListsOwned;
+  let filtered = allLists;
 
   if (lang) {
     filtered = filtered.filter((l) => languageMatches(lang, l.language));
@@ -76,11 +79,9 @@ export async function GET(request: Request) {
     const wordsInSearch = await db
       .select({ listId: words.listId })
       .from(words)
-      .innerJoin(lists, eq(words.listId, lists.id))
-      .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
       .where(
         and(
-          eq(wordFamilies.userId, userId),
+          inArray(words.listId, filtered.map((l) => l.id)),
           or(
             like(words.term, `%${search}%`),
             like(words.definition, `%${search}%`)
@@ -96,7 +97,7 @@ export async function GET(request: Request) {
 
   const languages = Array.from(
     new Set(
-      userLists
+      allLists
         .map((l) => l.language)
         .filter((x): x is string => x != null && x !== "")
     )

@@ -3,6 +3,15 @@ import { auth } from "@/lib/auth";
 import Tesseract from "tesseract.js";
 import { parseLinesToItems } from "@/lib/extract";
 
+/** Langue OCR : une seule langue accélère. Liste bilingue = fra+eng par défaut. */
+const TESSERACT_LANGS = new Set(["fra", "eng", "spa", "deu", "ita", "por", "nld", "pol", "rus"]);
+
+function getOcrLang(formData: FormData): string {
+  const raw = (formData.get("ocrLang") ?? formData.get("lang"))?.toString()?.trim()?.toLowerCase();
+  if (raw && TESSERACT_LANGS.has(raw)) return raw;
+  return "fra+eng";
+}
+
 export async function POST(request: Request) {
   const session = await auth();
   if (!session?.user?.id) {
@@ -25,9 +34,10 @@ export async function POST(request: Request) {
     );
   }
   const buffer = Buffer.from(await file.arrayBuffer());
+  const ocrLang = getOcrLang(formData);
   let text: string;
   try {
-    const { data } = await Tesseract.recognize(buffer, "fra+eng", {
+    const { data } = await Tesseract.recognize(buffer, ocrLang, {
       logger: () => {},
     });
     text = data.text;

@@ -101,16 +101,26 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
             {accepted.map((m) => (
               <li
                 key={m.id}
-                className="flex items-center justify-between rounded-lg border border-slate-100 px-3 py-2 dark:border-slate-700"
+                className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2 dark:border-slate-700"
               >
-                <span className="font-medium text-vocab-gray dark:text-slate-200">
-                  {m.name}
-                </span>
-                {m.email && (
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    {m.email}
+                <div className="min-w-0 flex-1">
+                  <span className="font-medium text-vocab-gray dark:text-slate-200">
+                    {m.name}
                   </span>
-                )}
+                  {m.email && (
+                    <span className="ml-2 text-sm text-slate-500 dark:text-slate-400">
+                      {m.email}
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleStatus(m.userId!, "rejected")}
+                  disabled={loading === m.userId}
+                  className="btn-relief rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
+                >
+                  {loading === m.userId ? "…" : "Supprimer de la classe"}
+                </button>
               </li>
             ))}
           </ul>

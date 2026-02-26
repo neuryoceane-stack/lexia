@@ -24,7 +24,7 @@ export default function NouvelleClassePage() {
   return (
     <div className="mx-auto max-w-[560px]">
       <Link
-        href="/app/professeur"
+        href="/app/professeur/classes"
         className="btn-relief mb-6 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
       >
         <BackIcon className="h-4 w-4" />
