@@ -148,7 +148,7 @@ export default function NouvelleListePage() {
       setMethod("image");
       setExtractError("");
       setExtractLoading(true);
-      setExtractPhase("vision");
+      setExtractPhase("ocr");
       setImagePreviewUrl((prev) => {
         if (prev) URL.revokeObjectURL(prev);
         return URL.createObjectURL(file);
@@ -160,55 +160,37 @@ export default function NouvelleListePage() {
         if (file.type.startsWith("image/")) {
           fileToSend = await resizeImage(file, 640);
         }
-        const formData = new FormData();
-        formData.append("file", fileToSend);
-        if (lang) formData.append("ocrLang", lang);
-
         try {
-        const ac = new AbortController();
-        const timeoutId = setTimeout(() => ac.abort(), 90_000);
-        const visionRes = await fetch("/api/extract/vision", {
-          method: "POST",
-          body: formData,
-          signal: ac.signal,
-        });
-        clearTimeout(timeoutId);
-        const visionData = await visionRes.json().catch(() => ({}));
-
-        if (visionRes.ok && Array.isArray(visionData?.items) && (visionData.items as unknown[]).length > 0) {
-          setExtractedItems(visionData.items as Array<{ term: string; definition: string }>);
+          setOcrProgress("Chargement du moteur OCR…");
+          const Tesseract = (await import("tesseract.js")).default;
+          const ocrLang = getOcrLang(lang);
+          const { data } = await Tesseract.recognize(fileToSend, ocrLang, {
+            logger: (m) => setOcrProgress(m.status || ""),
+          });
+          const ocrData = { items: parseLinesToItems(data.text) };
           setExtractLoading(false);
           setExtractPhase(null);
           setOcrProgress("");
-          setImagePreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return null; });
-          return;
-        }
-
-        setExtractPhase("ocr");
-        setOcrProgress("Chargement du moteur OCR…");
-        const Tesseract = (await import("tesseract.js")).default;
-        const ocrLang = getOcrLang(lang);
-        const { data } = await Tesseract.recognize(fileToSend, ocrLang, {
-          logger: (m) => setOcrProgress(m.status || ""),
-        });
-        const ocrData = { items: parseLinesToItems(data.text) };
-        setExtractLoading(false);
-        setExtractPhase(null);
-        setOcrProgress("");
-        setImagePreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return null; });
-        const items = ocrData.items ?? [];
-        if (items.length > 0) {
-          setExtractedItems(items);
-        } else {
-          setExtractError(
-            "Aucune paire mot/traduction trouvée. Utilisez une photo avec une liste claire (ex. une ligne par paire : mot - traduction ou mot : traduction)."
-          );
-        }
+          setImagePreviewUrl((u) => {
+            if (u) URL.revokeObjectURL(u);
+            return null;
+          });
+          const items = ocrData.items ?? [];
+          if (items.length > 0) {
+            setExtractedItems(items);
+          } else {
+            setExtractError(
+              "Aucune paire mot/traduction trouvée. Utilisez une photo avec une liste claire (ex. une ligne par paire : mot - traduction ou mot : traduction)."
+            );
+          }
         } catch (err) {
           setExtractLoading(false);
           setExtractPhase(null);
           setOcrProgress("");
-          setImagePreviewUrl((u) => { if (u) URL.revokeObjectURL(u); return null; });
+          setImagePreviewUrl((u) => {
+            if (u) URL.revokeObjectURL(u);
+            return null;
+          });
           const msg = err instanceof Error
             ? (err.name === "AbortError" ? "Délai dépassé. Réessayez avec une photo plus petite." : err.message)
             : "Erreur réseau ou extraction.";

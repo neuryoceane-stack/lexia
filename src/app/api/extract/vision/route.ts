@@ -3,17 +3,20 @@ import { auth } from "@/lib/auth";
 import OpenAI from "openai";
 import type { ExtractedItem } from "@/lib/extract";
 
-const VISION_SYSTEM_PROMPT = `Tu es un assistant qui extrait des listes de vocabulaire à partir d'images.
-L'image peut contenir du texte sous forme de listes bilingues : mot ou expression dans une langue (langue 1) et sa traduction ou définition dans une autre langue (langue 2).
+const VISION_OCR_PROMPT = `Tu es un assistant OCR spécialisé pour des listes de vocabulaire.
+L'image contient du texte sous forme de listes bilingues : mot ou expression dans une langue (langue 1) et sa traduction ou définition dans une autre langue (langue 2).
 
-Extrais TOUTES les paires mot/traduction visibles. Pour chaque paire :
-- term : le mot ou l'expression dans la langue source (langue 1)
-- definition : la traduction ou la définition dans la langue cible (langue 2)
+Ta mission est UNIQUEMENT de TRANSCRIRE le texte lisible, sans traduire et sans le restructurer.
 
-Réponds UNIQUEMENT avec un objet JSON valide, sans markdown ni texte autour, de la forme :
-{"items":[{"term":"...","definition":"..."},{"term":"...","definition":"..."},...]}
+Consignes très importantes :
+- Garde les séparateurs visibles tels quels :
+  - Les deux-points ":" entre le mot et sa traduction (très important).
+  - Les tirets "-", "–", "—" s'ils sont utilisés comme séparateurs.
+- Ne réécris PAS le texte, ne le simplifies pas, ne le traduis pas.
+- Ne change pas l'ordre des lignes : garde les lignes dans le même ordre que sur l'image.
+- Ne produis PAS de JSON, pas de liste clé/valeur, pas de commentaires.
 
-Si tu ne vois aucune liste de vocabulaire, renvoie : {"items":[]}`;
+Tu dois répondre UNIQUEMENT avec le texte brut, tel que tu le lis, en conservant les retours à la ligne.`;
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -59,13 +62,16 @@ export async function POST(request: Request) {
       model: "gpt-4o-mini",
       max_tokens: 4096,
       messages: [
-        { role: "system", content: VISION_SYSTEM_PROMPT },
+        { role: "system", content: VISION_OCR_PROMPT },
         {
           role: "user",
           content: [
             {
               type: "text",
-              text: "Extrais toutes les paires vocabulaire (terme / traduction) de cette image. Réponds uniquement en JSON : {\"items\":[{\"term\":\"...\",\"definition\":\"...\"}, ...]}",
+              text:
+                "Transcris fidèlement tout le texte lisible de cette image. " +
+                "Garde les caractères de séparation (deux-points ':' , tirets, etc.) et les retours à la ligne. " +
+                "Réponds uniquement avec le texte brut, sans traduction et sans commentaires.",
             },
             {
               type: "image_url",
@@ -76,41 +82,66 @@ export async function POST(request: Request) {
       ],
     });
 
-    const raw = completion.choices[0]?.message?.content?.trim();
-    if (!raw) {
+    const rawText = completion.choices[0]?.message?.content?.trim() ?? "";
+    if (!rawText) {
       return NextResponse.json(
         { error: "Réponse vide du modèle" },
         { status: 502 }
       );
     }
 
-    const parsed = JSON.parse(raw) as { items?: unknown };
-    const items: ExtractedItem[] = Array.isArray(parsed?.items)
-      ? (parsed.items as Array<{ term?: string; definition?: string }>)
-          .filter(
-            (x) =>
-              x &&
-              typeof x.term === "string" &&
-              typeof x.definition === "string"
-          )
-          .map((x) => ({
-            term: String(x.term).trim(),
-            definition: String(x.definition).trim(),
-          }))
-          .filter((x) => x.term.length > 0)
-      : [];
-
+    const items = extractPairsFromRawText(rawText);
     return NextResponse.json({ items });
   } catch (err) {
-    if (err instanceof SyntaxError) {
-      return NextResponse.json(
-        { error: "Réponse du modèle invalide (JSON attendu)" },
-        { status: 502 }
-      );
-    }
     const message =
       err instanceof Error ? err.message : "Erreur lors de l'extraction par IA";
     console.error("Vision extract error:", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+function stripListPrefix(line: string): string {
+  return line
+    .replace(/^\s*[•·*]\s*/, "")
+    .replace(/^\s*[-–—]\s*/, "")
+    .replace(/^\s*\d+[.)]\s*/, "")
+    .trim();
+}
+
+function isTitleLike(s: string): boolean {
+  const trimmed = s.trim();
+  if (!trimmed) return true;
+  if (trimmed.length > 120) return true;
+  const words = trimmed.split(/\s+/);
+  if (words.length > 10) return true;
+  const upper = trimmed === trimmed.toUpperCase();
+  if (upper && words.length <= 6) return true;
+  if (/^(unit|lesson|chapitre|chapter|vocabulaire|vocabulary|english|french|anglais|français)$/i.test(trimmed)) {
+    return true;
+  }
+  return false;
+}
+
+function extractPairsFromRawText(rawText: string): ExtractedItem[] {
+  const normalized = rawText.replace(/\r\n/g, "\n").replace(/\r/g, "\n");
+  const lines = normalized.split("\n");
+  const items: ExtractedItem[] = [];
+
+  for (const line of lines) {
+    const raw = line.trim();
+    if (!raw) continue;
+    if (!raw.includes(":")) continue;
+
+    const [left, right] = raw.split(":", 2);
+    let term = stripListPrefix(left || "");
+    let definition = stripListPrefix(right || "");
+
+    if (!term || !definition) continue;
+    if (isTitleLike(term) || isTitleLike(definition)) continue;
+    if (term.length > 80 || definition.length > 200) continue;
+
+    items.push({ term, definition });
+  }
+
+  return items;
 }

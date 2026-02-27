@@ -1142,23 +1142,26 @@ export function BibliothequeClient() {
               <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
                 La liste apparaîtra dans la Bibliothèque sous « Toutes les langues » et sous ce drapeau.
               </p>
-              <div className="flex flex-wrap gap-2">
-                {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => setNewListLanguage(opt.value)}
-                    className={`flex items-center gap-1.5 rounded-lg border px-2 py-1.5 text-sm transition ${
-                      newListLanguage === opt.value
-                        ? "border-primary bg-primary/10 ring-1 ring-primary/30 dark:border-primary-light dark:bg-primary/20 dark:ring-primary-light/30"
-                        : "border-slate-200 hover:border-slate-300 dark:border-slate-600 dark:hover:border-slate-500"
-                    }`}
-                    title={opt.label}
-                  >
-                    <FlagDisplay langCode={opt.value} size={20} />
-                    <span>{opt.label}</span>
-                  </button>
-                ))}
+              <div className="flex items-center gap-3">
+                {newListLanguage ? (
+                  <FlagDisplay langCode={newListLanguage} size={24} />
+                ) : (
+                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-slate-300 text-xs text-slate-400 dark:border-slate-600 dark:text-slate-500">
+                    ?
+                  </span>
+                )}
+                <select
+                  value={newListLanguage}
+                  onChange={(e) => setNewListLanguage(e.target.value)}
+                  className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                >
+                  <option value="">Choisir une langue…</option>
+                  {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
               </div>
             </div>
             <div className="mb-6">

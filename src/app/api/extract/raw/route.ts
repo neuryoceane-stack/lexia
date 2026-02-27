@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import OpenAI from "openai";
 
 /**
  * POST /api/extract/raw
@@ -56,6 +57,63 @@ export async function POST(request: Request) {
   }
 
   // type === "image" (OCR)
+  const apiKey = process.env.OPENAI_API_KEY?.trim();
+
+  // 1) Si possible, utiliser OpenAI Vision pour une transcription plus propre du texte.
+  if (apiKey) {
+    try {
+      const openai = new OpenAI({ apiKey });
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const base64 = buffer.toString("base64");
+      const mime = file.type || "image/jpeg";
+      const dataUrl = `data:${mime};base64,${base64}`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        max_tokens: 4096,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Tu es un assistant OCR. Tu dois uniquement retranscrire le texte de l'image, ligne par ligne, sans le traduire et sans ajouter de commentaires.",
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text:
+                  "Transcris fidèlement tout le texte lisible de cette image. " +
+                  "Garde la ponctuation et les retours à la ligne pour que le texte soit confortable à lire.",
+              },
+              {
+                type: "image_url",
+                image_url: { url: dataUrl },
+              },
+            ],
+          },
+        ],
+      });
+
+      const raw = completion.choices[0]?.message?.content?.trim() ?? "";
+      if (!raw) {
+        return NextResponse.json(
+          { error: "Réponse vide du service OCR IA" },
+          { status: 502 }
+        );
+      }
+      return NextResponse.json({ text: raw });
+    } catch (err) {
+      console.error("Extract raw Vision OCR error:", err);
+      // Pas de fallback silencieux : on renvoie une erreur explicite.
+      return NextResponse.json(
+        { error: "Erreur du service OCR IA" },
+        { status: 502 }
+      );
+    }
+  }
+
+  // 2) Fallback sans clé : Tesseract classique.
   try {
     const Tesseract = (await import("tesseract.js")).default;
     const buffer = Buffer.from(await file.arrayBuffer());
