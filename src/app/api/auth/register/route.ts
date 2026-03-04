@@ -5,6 +5,9 @@ import { db } from "@/lib/db";
 import { ensureClassTables } from "@/lib/db/migrations";
 import { users, gardenProgress, userProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { validateEmail, validatePassword } from "@/lib/validation";
+
+const BCRYPT_ROUNDS = 12;
 
 export async function POST(request: Request) {
   let body: {
@@ -23,6 +26,7 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+
   const email = body.email?.trim()?.toLowerCase();
   const password = body.password;
   const firstName = body.firstName?.trim();
@@ -31,8 +35,7 @@ export async function POST(request: Request) {
     [firstName, lastName].filter(Boolean).join(" ") ||
     body.name?.trim() ||
     null;
-  const role =
-    body.role === "professeur" ? "professeur" : "etudiant";
+  const role = body.role === "professeur" ? "professeur" : "etudiant";
 
   if (!email || !password) {
     return NextResponse.json(
@@ -40,11 +43,15 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
-  if (password.length < 8) {
-    return NextResponse.json(
-      { error: "Le mot de passe doit faire au moins 8 caractères" },
-      { status: 400 }
-    );
+
+  const emailCheck = validateEmail(email);
+  if (!emailCheck.valid) {
+    return NextResponse.json({ error: emailCheck.error }, { status: 400 });
+  }
+
+  const passwordCheck = validatePassword(password);
+  if (!passwordCheck.valid) {
+    return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
   }
 
   await ensureClassTables();
@@ -54,6 +61,7 @@ export async function POST(request: Request) {
     .from(users)
     .where(eq(users.email, email))
     .limit(1);
+
   if (existing) {
     return NextResponse.json(
       { error: "Un compte existe déjà avec cet email" },
@@ -62,17 +70,15 @@ export async function POST(request: Request) {
   }
 
   const id = nanoid();
-  const passwordHash = await hash(password, 12);
+  const passwordHash = await hash(password, BCRYPT_ROUNDS);
+
   await db.insert(users).values({
     id,
     email,
     passwordHash,
     name: name ?? null,
   });
-  await db.insert(gardenProgress).values({
-    userId: id,
-  });
-
+  await db.insert(gardenProgress).values({ userId: id });
   await db
     .insert(userProfiles)
     .values({
@@ -87,5 +93,11 @@ export async function POST(request: Request) {
       set: { role, updatedAt: new Date() },
     });
 
-  return NextResponse.json({ ok: true, userId: id, firstName, lastName, role });
+  return NextResponse.json({
+    ok: true,
+    userId: id,
+    firstName,
+    lastName,
+    role,
+  });
 }

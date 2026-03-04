@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -35,12 +35,12 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ wordId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { wordId } = await params;
-  const word = await ensureWordAccess(wordId, session.user.id);
+  const word = await ensureWordAccess(wordId, user.id);
   if (!word) {
     return NextResponse.json({ error: "Mot introuvable" }, { status: 404 });
   }
@@ -73,12 +73,12 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ wordId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { wordId } = await params;
-  const word = await ensureWordAccess(wordId, session.user.id);
+  const word = await ensureWordAccess(wordId, user.id);
   if (!word) {
     return NextResponse.json({ error: "Mot introuvable" }, { status: 404 });
   }

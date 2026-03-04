@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
 
@@ -15,13 +14,17 @@ export default function LoginPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        redirect: false,
+      const res = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
       });
-      if (res?.error) {
-        setError("Email ou mot de passe incorrect.");
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Email ou mot de passe incorrect.");
         setLoading(false);
         return;
       }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import {
@@ -24,15 +24,15 @@ export default async function ListeDetailPage({
   params: Promise<{ id: string; listId: string }>;
   searchParams?: Promise<{ lang?: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
+  const user = await getUser();
+  if (!user?.id) redirect("/login");
   const { id: familyId, listId } = await params;
   const resolvedSearchParams = await searchParams;
   const langFromUrl = resolvedSearchParams?.lang?.trim() || undefined;
   const backHref = langFromUrl
     ? `/app/familles?lang=${encodeURIComponent(langFromUrl)}`
     : "/app/familles";
-  const role = (session.user as { role?: string }).role;
+  const role = user.role;
 
   let family;
   let isOwner = false;
@@ -43,7 +43,7 @@ export default async function ListeDetailPage({
       .where(
         and(
           eq(wordFamilies.id, familyId),
-          eq(wordFamilies.userId, session.user.id)
+          eq(wordFamilies.userId, user.id)
         )
       )
       .limit(1);
@@ -58,7 +58,7 @@ export default async function ListeDetailPage({
       .limit(1);
     if (!family) notFound();
 
-    isOwner = family.userId === session.user.id;
+    isOwner = family.userId === user.id;
     if (!isOwner) {
       const viaClass = await db
         .select({ id: classLists.id })
@@ -74,7 +74,7 @@ export default async function ListeDetailPage({
         )
         .where(
           and(
-            eq(classMembers.userId, session.user.id),
+            eq(classMembers.userId, user.id),
             eq(classMembers.status, "accepted")
           )
         )

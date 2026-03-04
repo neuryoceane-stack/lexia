@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import OpenAI from "openai";
 import type { ExtractedItem } from "@/lib/extract";
 
@@ -19,8 +19,8 @@ Consignes très importantes :
 Tu dois répondre UNIQUEMENT avec le texte brut, tel que tu le lis, en conservant les retours à la ligne.`;
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 

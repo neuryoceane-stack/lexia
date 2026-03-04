@@ -1,16 +1,16 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import OpenAI from "openai";
 
 /**
  * POST /api/extract/raw
- * Body: FormData { file: File, type: "pdf" | "image", ocrLang?: string }
+ * Body: FormData { file: File, type: "pdf" | "image" }
  * Returns { text: string } — texte brut pour Mots sauvages (pas de paires term/définition).
- * Tesseract et unpdf sont importés dynamiquement pour éviter de bloquer le démarrage du serveur.
+ * PDF : unpdf. Image : OpenAI Vision ou Claude (ANTHROPIC_API_KEY).
  */
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   let formData: FormData;
@@ -24,7 +24,6 @@ export async function POST(request: Request) {
   }
   const file = formData.get("file") as File | null;
   const type = (formData.get("type") as string) || "image"; // "pdf" | "image"
-  const ocrLang = (formData.get("ocrLang") as string)?.trim() || "fra+eng";
 
   if (!file || !(file instanceof File)) {
     return NextResponse.json(
@@ -56,18 +55,19 @@ export async function POST(request: Request) {
     }
   }
 
-  // type === "image" (OCR)
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
+  // type === "image" (OCR) — OpenAI Vision ou Claude
+  const openaiKey = process.env.OPENAI_API_KEY?.trim();
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
 
-  // 1) Si possible, utiliser OpenAI Vision pour une transcription plus propre du texte.
-  if (apiKey) {
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const base64 = buffer.toString("base64");
+  const mime = (file.type || "image/jpeg").toLowerCase();
+  const mediaType = mime === "image/png" ? "image/png" : "image/jpeg";
+
+  if (openaiKey) {
     try {
-      const openai = new OpenAI({ apiKey });
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const base64 = buffer.toString("base64");
-      const mime = file.type || "image/jpeg";
+      const openai = new OpenAI({ apiKey: openaiKey });
       const dataUrl = `data:${mime};base64,${base64}`;
-
       const completion = await openai.chat.completions.create({
         model: "gpt-4o-mini",
         max_tokens: 4096,
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
           {
             role: "system",
             content:
-              "Tu es un assistant OCR. Tu dois uniquement retranscrire le texte de l'image, ligne par ligne, sans le traduire et sans ajouter de commentaires.",
+              "Tu es un assistant OCR. Retranscris uniquement le texte de l'image, ligne par ligne, sans traduction ni commentaires.",
           },
           {
             role: "user",
@@ -83,8 +83,7 @@ export async function POST(request: Request) {
               {
                 type: "text",
                 text:
-                  "Transcris fidèlement tout le texte lisible de cette image. " +
-                  "Garde la ponctuation et les retours à la ligne pour que le texte soit confortable à lire.",
+                  "Transcris fidèlement tout le texte lisible de cette image. Garde la ponctuation et les retours à la ligne.",
               },
               {
                 type: "image_url",
@@ -94,7 +93,6 @@ export async function POST(request: Request) {
           },
         ],
       });
-
       const raw = completion.choices[0]?.message?.content?.trim() ?? "";
       if (!raw) {
         return NextResponse.json(
@@ -105,7 +103,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: raw });
     } catch (err) {
       console.error("Extract raw Vision OCR error:", err);
-      // Pas de fallback silencieux : on renvoie une erreur explicite.
       return NextResponse.json(
         { error: "Erreur du service OCR IA" },
         { status: 502 }
@@ -113,18 +110,54 @@ export async function POST(request: Request) {
     }
   }
 
-  // 2) Fallback sans clé : Tesseract classique.
-  try {
-    const Tesseract = (await import("tesseract.js")).default;
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const { data } = await Tesseract.recognize(buffer, ocrLang, {
-      logger: () => {},
-    });
-    return NextResponse.json({ text: (data.text || "").trim() });
-  } catch (err) {
-    const message =
-      err instanceof Error ? err.message : "Erreur reconnaissance de texte";
-    console.error("Extract raw OCR error:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+  if (anthropicKey) {
+    try {
+      const Anthropic = (await import("@anthropic-ai/sdk")).default;
+      const anthropic = new Anthropic({ apiKey: anthropicKey });
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 4096,
+        system: "Tu es un assistant OCR. Retranscris uniquement le texte de l'image, ligne par ligne, sans traduction ni commentaires.",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "image",
+                source: {
+                  type: "base64",
+                  media_type: mediaType,
+                  data: base64,
+                },
+              },
+              {
+                type: "text",
+                text: "Transcris fidèlement tout le texte lisible de cette image. Garde la ponctuation et les retours à la ligne.",
+              },
+            ],
+          },
+        ],
+      });
+      const textContent = response.content.find((c) => c.type === "text");
+      const raw = textContent?.type === "text" ? textContent.text.trim() : "";
+      if (!raw) {
+        return NextResponse.json(
+          { error: "Réponse vide du service OCR" },
+          { status: 502 }
+        );
+      }
+      return NextResponse.json({ text: raw });
+    } catch (err) {
+      console.error("Extract raw Claude OCR error:", err);
+      return NextResponse.json(
+        { error: "Erreur du service OCR Claude" },
+        { status: 502 }
+      );
+    }
   }
+
+  return NextResponse.json(
+    { error: "OPENAI_API_KEY ou ANTHROPIC_API_KEY requis pour l'OCR" },
+    { status: 503 }
+  );
 }

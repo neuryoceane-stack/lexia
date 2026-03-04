@@ -1,45 +1,31 @@
-import NextAuth from "next-auth";
-import Credentials from "next-auth/providers/credentials";
-import { compare } from "bcryptjs";
-import { authConfig } from "@/lib/auth.config";
+import { cookies } from "next/headers";
+import { verifyToken } from "./jwt";
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
-  ...authConfig,
-  providers: [
-    Credentials({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const email = String(credentials.email).trim().toLowerCase();
-        const { db } = await import("@/lib/db");
-        const { users } = await import("@/lib/db/schema");
-        const { eq } = await import("drizzle-orm");
-        const [user] = await db
-          .select()
-          .from(users)
-          .where(eq(users.email, email))
-          .limit(1);
-        if (!user?.passwordHash) return null;
-        const ok = await compare(String(credentials.password), user.passwordHash);
-        if (!ok) return null;
-        const { userProfiles } = await import("@/lib/db/schema");
-        const [profile] = await db
-          .select({ role: userProfiles.role })
-          .from(userProfiles)
-          .where(eq(userProfiles.userId, user.id))
-          .limit(1);
-        const role = profile?.role === "professeur" ? "professeur" : "etudiant";
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name ?? undefined,
-          role,
-        };
-      },
-    }),
-  ],
-});
+export const AUTH_COOKIE_NAME = "auth-token";
+
+export type User = {
+  id: string;
+  email: string;
+  name?: string | null;
+  role: "etudiant" | "professeur";
+};
+
+/**
+ * Lit le JWT depuis le cookie httpOnly et retourne l'utilisateur courant.
+ * Utilisable dans les Server Components et les API routes.
+ */
+export async function getUser(): Promise<User | null> {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
+  if (!token) return null;
+
+  const payload = await verifyToken(token);
+  if (!payload) return null;
+
+  return {
+    id: payload.sub,
+    email: payload.email,
+    name: undefined,
+    role: payload.role === "professeur" ? "professeur" : "etudiant",
+  };
+}

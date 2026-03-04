@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revisionSessions } from "@/lib/db/schema";
 import { and, eq, gte } from "drizzle-orm";
@@ -11,11 +11,11 @@ import { and, eq, gte } from "drizzle-orm";
  * - longestStreak : plus longue série sur les 365 derniers jours (optionnel).
  */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
 
   const oneYearAgo = new Date();
   oneYearAgo.setDate(oneYearAgo.getDate() - 365);

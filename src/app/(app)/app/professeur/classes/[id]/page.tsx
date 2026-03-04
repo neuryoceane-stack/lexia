@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   classes,
@@ -46,8 +46,8 @@ export default async function ClasseDetailPage({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ tab?: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const user = await getUser();
+  if (!user?.id) return null;
 
   const { id } = await params;
   const { tab: tabParam } = await searchParams;
@@ -56,7 +56,7 @@ export default async function ClasseDetailPage({
   const [cls] = await db
     .select()
     .from(classes)
-    .where(and(eq(classes.id, id), eq(classes.teacherId, session.user.id)))
+    .where(and(eq(classes.id, id), eq(classes.teacherId, user.id)))
     .limit(1);
 
   if (!cls) notFound();

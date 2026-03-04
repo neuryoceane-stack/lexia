@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { classes, classMembers } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -10,8 +10,8 @@ import { nanoid } from "nanoid";
  * Un élève rejoint une classe par son identifiant. Body: { identifier: string }
  */
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     .where(
       and(
         eq(classMembers.classId, cls.id),
-        eq(classMembers.userId, session.user.id)
+        eq(classMembers.userId, user.id)
       )
     )
     .limit(1);
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
   await db.insert(classMembers).values({
     id: memberId,
     classId: cls.id,
-    userId: session.user.id,
+    userId: user.id,
     status: "pending",
     joinedAt: new Date(),
   });

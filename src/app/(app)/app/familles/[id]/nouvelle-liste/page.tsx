@@ -4,15 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
-import { parseLinesToItems } from "@/lib/extract";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
-
-const OCR_LANGS = new Set(["fra", "eng", "spa", "deu", "ita", "por", "nld", "pol", "rus"]);
-function getOcrLang(lang: string | null): string {
-  const raw = lang?.trim()?.toLowerCase();
-  if (raw && OCR_LANGS.has(raw)) return raw;
-  return "fra+eng";
-}
 
 /** Redimensionne l'image (côté client) pour accélérer envoi et traitement. */
 function resizeImage(file: File, maxSize: number): Promise<File> {
@@ -154,20 +146,19 @@ export default function NouvelleListePage() {
         return URL.createObjectURL(file);
       });
 
-      const lang = defaultListLanguage;
       (async () => {
         let fileToSend: File = file;
         if (file.type.startsWith("image/")) {
           fileToSend = await resizeImage(file, 640);
         }
         try {
-          setOcrProgress("Chargement du moteur OCR…");
-          const Tesseract = (await import("tesseract.js")).default;
-          const ocrLang = getOcrLang(lang);
-          const { data } = await Tesseract.recognize(fileToSend, ocrLang, {
-            logger: (m) => setOcrProgress(m.status || ""),
-          });
-          const ocrData = { items: parseLinesToItems(data.text) };
+          setOcrProgress("Extraction par IA en cours…");
+          const formData = new FormData();
+          formData.append("file", fileToSend);
+          if (defaultListLanguage) formData.append("ocrLang", defaultListLanguage);
+          const res = await fetch("/api/extract/ocr", { method: "POST", body: formData });
+          const ocrData = await res.json().catch(() => ({}));
+          if (!res.ok) throw new Error(ocrData.error ?? "Erreur lors de l'extraction");
           setExtractLoading(false);
           setExtractPhase(null);
           setOcrProgress("");

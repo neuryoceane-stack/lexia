@@ -18,21 +18,6 @@ const LANG_OPTIONS: { value: string; label: string }[] = [
   { value: "zh", label: "Chinois" },
 ];
 
-/** Tesseract utilise des codes 3 lettres pour certaines langues */
-const OCR_LANG_MAP: Record<string, string> = {
-  en: "eng",
-  fr: "fra",
-  es: "spa",
-  de: "deu",
-  it: "ita",
-  pt: "por",
-  nl: "nld",
-  pl: "pol",
-  ru: "rus",
-  ja: "jpn",
-  zh: "chi_sim",
-};
-
 type Step = "source" | "langs" | "reading";
 
 type Family = { id: string; name: string };
@@ -71,10 +56,6 @@ export default function MotsSauvagesPage() {
         const formData = new FormData();
         formData.append("file", file);
         formData.append("type", isPdf(file) ? "pdf" : "image");
-        if (!isPdf(file)) {
-          const ocrLang = OCR_LANG_MAP[sourceLang] || sourceLang || "fra+eng";
-          formData.append("ocrLang", ocrLang);
-        }
         const res = await fetch("/api/extract/raw", {
           method: "POST",
           body: formData,

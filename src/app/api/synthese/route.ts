@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { revisionSessions } from "@/lib/db/schema";
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
@@ -59,11 +59,11 @@ function avatarState(
  * Retourne: totalDurationSeconds, wordsRetained, wordsWritten, languagesAvailable, sessionsByDay, avatarState
  */
 export async function GET(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
 
   const { searchParams } = new URL(request.url);
   const period = (searchParams.get("period") ?? "week") as SynthesePeriod;

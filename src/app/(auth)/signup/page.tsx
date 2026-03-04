@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { useState } from "react";
 import Link from "next/link";
 import type { ProfileStatus } from "@/app/api/user/profile/route";
@@ -38,7 +37,7 @@ export default function SignupPage() {
     setError("");
     setLoading(true);
     try {
-      const res = await fetch("/api/auth/signup", {
+      const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -55,11 +54,19 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
-      await signIn("credentials", {
-        email: email.trim().toLowerCase(),
-        password,
-        redirect: false,
+      const loginRes = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          password,
+        }),
       });
+      if (!loginRes.ok) {
+        setError("Compte créé mais erreur de connexion. Réessayez de vous connecter.");
+        setLoading(false);
+        return;
+      }
       setStep(2);
     } catch {
       setError("Une erreur est survenue.");
@@ -244,7 +251,7 @@ export default function SignupPage() {
                 htmlFor="password"
                 className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
               >
-                Mot de passe (8 caractères min.)
+                Mot de passe (8 caractères min., 1 majuscule, 1 chiffre)
               </label>
               <input
                 id="password"

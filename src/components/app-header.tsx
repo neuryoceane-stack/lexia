@@ -3,7 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { signOut } from "next-auth/react";
+
+async function handleLogout() {
+  await fetch("/api/auth/logout", { method: "POST" });
+  window.location.href = "/login";
+}
 
 const navItemsStudent = [
   { href: "/app/familles", label: "Bibliothèque" },
@@ -333,7 +337,7 @@ function AvatarDropdown({
         <div className="border-t border-slate-100 px-2 py-2 dark:border-slate-700/80">
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={handleLogout}
             className={`${dropdownItemClass} w-full text-slate-600 hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400`}
           >
             <IconLogout />
@@ -367,11 +371,11 @@ export function AppHeader({
         <Link
           href={homeHref}
           className="relative inline-flex pb-1 text-vocab-gray no-underline outline-none transition hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-slate-100 dark:hover:text-primary-light"
-          aria-label="Lexia — Accueil"
+          aria-label="LEXIVA — Accueil"
         >
           <span className="flex items-center gap-2.5">
             <LogoIcon className="h-6 w-6 text-primary dark:text-primary-light" />
-            <span className="text-lg font-semibold">Lexia</span>
+            <span className="text-lg font-semibold">LEXIVA</span>
           </span>
           <span className="absolute bottom-0 right-0 text-[10px] italic leading-none text-slate-400 dark:text-slate-500">
             {isProfesseur ? "teacher" : "student"}
@@ -484,7 +488,7 @@ export function AppHeader({
           </Link>
           <button
             type="button"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={handleLogout}
             className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
           >
             Déconnexion

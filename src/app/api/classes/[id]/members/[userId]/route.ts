@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { classes, classMembers } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -13,11 +13,11 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string; userId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const role = (session.user as { role?: string }).role;
+  const role = user.role;
   if (role !== "professeur") {
     return NextResponse.json({ error: "Réservé aux professeurs" }, { status: 403 });
   }
@@ -27,7 +27,7 @@ export async function PATCH(
   const [cls] = await db
     .select()
     .from(classes)
-    .where(and(eq(classes.id, classId), eq(classes.teacherId, session.user.id)))
+    .where(and(eq(classes.id, classId), eq(classes.teacherId, user.id)))
     .limit(1);
 
   if (!cls) {

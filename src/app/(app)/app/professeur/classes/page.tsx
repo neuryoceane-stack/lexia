@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { classes } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
@@ -43,13 +43,13 @@ function IconPlus({ className }: { className?: string }) {
 }
 
 export default async function MesClassesPage() {
-  const session = await auth();
-  if (!session?.user?.id) return null;
+  const user = await getUser();
+  if (!user?.id) return null;
 
   const teacherClasses = await db
     .select()
     .from(classes)
-    .where(eq(classes.teacherId, session.user.id))
+    .where(eq(classes.teacherId, user.id))
     .orderBy(desc(classes.createdAt));
 
   return (

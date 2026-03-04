@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { wordFamilies, lists } from "@/lib/db/schema";
 import { nanoid } from "nanoid";
@@ -9,8 +9,8 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { id: familyId } = await params;
@@ -20,7 +20,7 @@ export async function GET(
     .where(
       and(
         eq(wordFamilies.id, familyId),
-        eq(wordFamilies.userId, session.user.id)
+        eq(wordFamilies.userId, user.id)
       )
     )
     .limit(1);
@@ -39,8 +39,8 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { id: familyId } = await params;
@@ -50,7 +50,7 @@ export async function POST(
     .where(
       and(
         eq(wordFamilies.id, familyId),
-        eq(wordFamilies.userId, session.user.id)
+        eq(wordFamilies.userId, user.id)
       )
     )
     .limit(1);

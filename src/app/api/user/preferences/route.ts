@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db, runRawSql } from "@/lib/db";
 import { userPreferences } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -16,11 +16,11 @@ const PREFERRED_LANGUAGE_CODES = [
  * Retourne les préférences utilisateur (avatarType pour la Synthèse).
  */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
 
   // Migrations automatiques (colonnes langues, thème)
   for (const col of [
@@ -79,11 +79,11 @@ export async function GET() {
  * Body: { avatarType?: "arbre" | "phenix" | "koala", preferredLanguage?: string }
  */
 export async function PATCH(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
 
   let body: {
     avatarType?: string;

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
 import { wordFamilies, lists } from "@/lib/db/schema";
@@ -12,8 +12,8 @@ export default async function FamilleDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user?.id) redirect("/login");
+  const user = await getUser();
+  if (!user?.id) redirect("/login");
   const { id: familyId } = await params;
   const [family] = await db
     .select()
@@ -21,7 +21,7 @@ export default async function FamilleDetailPage({
     .where(
       and(
         eq(wordFamilies.id, familyId),
-        eq(wordFamilies.userId, session.user.id)
+        eq(wordFamilies.userId, user.id)
       )
     )
     .limit(1);

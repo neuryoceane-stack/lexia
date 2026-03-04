@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { wordFamilies } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
@@ -8,8 +8,8 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { id } = await params;
@@ -19,7 +19,7 @@ export async function GET(
     .where(
       and(
         eq(wordFamilies.id, id),
-        eq(wordFamilies.userId, session.user.id)
+        eq(wordFamilies.userId, user.id)
       )
     )
     .limit(1);
@@ -33,8 +33,8 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { id } = await params;
@@ -53,7 +53,7 @@ export async function PATCH(
     .where(
       and(
         eq(wordFamilies.id, id),
-        eq(wordFamilies.userId, session.user.id)
+        eq(wordFamilies.userId, user.id)
       )
     )
     .limit(1);
@@ -82,8 +82,8 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { id } = await params;
@@ -93,7 +93,7 @@ export async function DELETE(
     .where(
       and(
         eq(wordFamilies.id, id),
-        eq(wordFamilies.userId, session.user.id)
+        eq(wordFamilies.userId, user.id)
       )
     )
     .limit(1);

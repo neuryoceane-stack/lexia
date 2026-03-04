@@ -10,10 +10,11 @@ let _rawClient: { execute?: (sql: string) => Promise<unknown>; exec?: (sql: stri
 function getDb(): DbInstance {
   if (_db) return _db;
 
-  const tursoUrl = process.env.TURSO_DATABASE_URL;
-  const tursoToken = process.env.TURSO_AUTH_TOKEN;
+  const isProd = process.env.NODE_ENV === "production";
+  const tursoUrl = process.env.TURSO_DATABASE_URL?.trim();
+  const tursoToken = process.env.TURSO_AUTH_TOKEN?.trim();
 
-  if (tursoUrl && tursoToken) {
+  if (isProd && tursoUrl && tursoToken) {
     const { createClient } = require("@libsql/client");
     const { drizzle } = require("drizzle-orm/libsql");
     const client = createClient({ url: tursoUrl, authToken: tursoToken });

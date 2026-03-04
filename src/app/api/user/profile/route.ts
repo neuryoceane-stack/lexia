@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db, runRawSql } from "@/lib/db";
 import { userProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -27,11 +27,11 @@ async function ensureTables() {
  * Retourne le profil utilisateur (informations personnelles).
  */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
   await ensureTables();
 
   const [profile] = await db
@@ -48,7 +48,7 @@ export async function GET() {
     phone: profile?.phone ?? null,
     status: profile?.status ?? null,
     institutionName: profile?.institutionName ?? null,
-    email: session.user.email ?? null,
+    email: user.email ?? null,
   });
 }
 
@@ -57,11 +57,11 @@ export async function GET() {
  * Body: UserProfilePayload
  */
 export async function PATCH(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const userId = session.user.id;
+  const userId = user.id;
   await ensureTables();
 
   let body: UserProfilePayload;

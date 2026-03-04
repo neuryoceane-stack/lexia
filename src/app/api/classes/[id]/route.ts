@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   classes,
@@ -13,11 +13,11 @@ import {
 import { eq, and, sql, inArray } from "drizzle-orm";
 
 async function requireProfesseurForClass(classId: string) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return { error: NextResponse.json({ error: "Non autorisé" }, { status: 401 }) };
   }
-  const role = (session.user as { role?: string }).role;
+  const role = user.role;
   if (role !== "professeur") {
     return { error: NextResponse.json({ error: "Réservé aux professeurs" }, { status: 403 }) };
   }
@@ -25,14 +25,14 @@ async function requireProfesseurForClass(classId: string) {
   const [cls] = await db
     .select()
     .from(classes)
-    .where(and(eq(classes.id, classId), eq(classes.teacherId, session.user.id)))
+    .where(and(eq(classes.id, classId), eq(classes.teacherId, user.id)))
     .limit(1);
 
   if (!cls) {
     return { error: NextResponse.json({ error: "Classe introuvable" }, { status: 404 }) };
   }
 
-  return { session, cls };
+  return { cls };
 }
 
 /**

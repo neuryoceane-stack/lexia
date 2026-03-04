@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { classes, classMembers } from "@/lib/db/schema";
 import { eq, and, asc } from "drizzle-orm";
@@ -10,12 +10,12 @@ import { eq, and, asc } from "drizzle-orm";
  * Utilisé côté élève pour afficher les classes dans la Bibliothèque.
  */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const userId = session.user.id;
+  const userId = user.id;
 
   const rows = await db
     .select({

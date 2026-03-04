@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { classes } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -20,11 +20,11 @@ function generateIdentifier(): string {
  * Liste les classes du professeur connecté.
  */
 export async function GET() {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const role = (session.user as { role?: string }).role;
+  const role = user.role;
   if (role !== "professeur") {
     return NextResponse.json({ error: "Réservé aux professeurs" }, { status: 403 });
   }
@@ -32,7 +32,7 @@ export async function GET() {
   const list = await db
     .select()
     .from(classes)
-    .where(eq(classes.teacherId, session.user.id))
+    .where(eq(classes.teacherId, user.id))
     .orderBy(classes.createdAt);
 
   return NextResponse.json({ classes: list });
@@ -43,11 +43,11 @@ export async function GET() {
  * Crée une classe. Body: { title: string, language?: string }
  */
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
-  const role = (session.user as { role?: string }).role;
+  const role = user.role;
   if (role !== "professeur") {
     return NextResponse.json({ error: "Réservé aux professeurs" }, { status: 403 });
   }
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   const id = nanoid();
   await db.insert(classes).values({
     id,
-    teacherId: session.user.id,
+    teacherId: user.id,
     identifier,
     title,
     language: body.language?.trim() || null,

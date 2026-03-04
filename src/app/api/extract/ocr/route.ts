@@ -1,22 +1,28 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
-import Tesseract from "tesseract.js";
+import { getUser } from "@/lib/auth";
+import Anthropic from "@anthropic-ai/sdk";
 import { parseLinesToItems } from "@/lib/extract";
 
-/** Langue OCR : une seule langue accélère. Liste bilingue = fra+eng par défaut. */
-const TESSERACT_LANGS = new Set(["fra", "eng", "spa", "deu", "ita", "por", "nld", "pol", "rus"]);
+const CLAUDE_SYSTEM_PROMPT = `Tu es un assistant OCR pour des listes de vocabulaire bilingues.
+L'image contient du texte sous forme de listes : mot ou expression dans une langue et sa traduction ou définition dans une autre.
 
-function getOcrLang(formData: FormData): string {
-  const raw = (formData.get("ocrLang") ?? formData.get("lang"))?.toString()?.trim()?.toLowerCase();
-  if (raw && TESSERACT_LANGS.has(raw)) return raw;
-  return "fra+eng";
-}
+Transcris fidèlement tout le texte lisible. Garde les séparateurs (deux-points, tirets, etc.) et les retours à la ligne.
+Réponds uniquement avec le texte brut, sans JSON, sans traduction supplémentaire.`;
 
 export async function POST(request: Request) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
+
+  const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (!apiKey) {
+    return NextResponse.json(
+      { error: "ANTHROPIC_API_KEY manquante (extraction par Claude)" },
+      { status: 503 }
+    );
+  }
+
   let formData: FormData;
   try {
     formData = await request.formData();
@@ -26,6 +32,7 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+
   const file = formData.get("file") ?? formData.get("image");
   if (!file || !(file instanceof File)) {
     return NextResponse.json(
@@ -33,22 +40,58 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+
   const buffer = Buffer.from(await file.arrayBuffer());
-  const ocrLang = getOcrLang(formData);
-  let text: string;
+  const base64 = buffer.toString("base64");
+  const mime = (file.type || "image/jpeg").toLowerCase();
+  const mediaType =
+    mime === "image/png" ? "image/png" : "image/jpeg";
+
   try {
-    const { data } = await Tesseract.recognize(buffer, ocrLang, {
-      logger: () => {},
+    const anthropic = new Anthropic({ apiKey });
+    const response = await anthropic.messages.create({
+      model: "claude-sonnet-4-20250514",
+      max_tokens: 4096,
+      system: CLAUDE_SYSTEM_PROMPT,
+      messages: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "image",
+              source: {
+                type: "base64",
+                media_type: mediaType,
+                data: base64,
+              },
+            },
+            {
+              type: "text",
+              text: "Transcris fidèlement tout le texte lisible de cette image. Garde les séparateurs et les retours à la ligne.",
+            },
+          ],
+        },
+      ],
     });
-    text = data.text;
+
+    const textContent = response.content.find((c) => c.type === "text");
+    const rawText =
+      textContent?.type === "text" ? textContent.text.trim() : "";
+    if (!rawText) {
+      return NextResponse.json(
+        { error: "Aucun texte extrait de l'image" },
+        { status: 422 }
+      );
+    }
+
+    const items = parseLinesToItems(rawText);
+    return NextResponse.json({ items });
   } catch (err) {
     const message =
       err instanceof Error
         ? err.message
-        : "Erreur lors de la reconnaissance du texte";
+        : "Erreur lors de l'extraction par Claude";
     console.error("OCR extract error:", err);
     return NextResponse.json({ error: message }, { status: 500 });
   }
-  const items = parseLinesToItems(text);
-  return NextResponse.json({ items });
 }

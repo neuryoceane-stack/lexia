@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
+import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { nanoid } from "nanoid";
@@ -30,12 +30,12 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ listId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { listId } = await params;
-  const list = await ensureListAccess(listId, session.user.id);
+  const list = await ensureListAccess(listId, user.id);
   if (!list) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
@@ -51,12 +51,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ listId: string }> }
 ) {
-  const session = await auth();
-  if (!session?.user?.id) {
+  const user = await getUser();
+  if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
   const { listId } = await params;
-  const list = await ensureListAccess(listId, session.user.id);
+  const list = await ensureListAccess(listId, user.id);
   if (!list) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
