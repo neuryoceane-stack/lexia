@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import Link from "next/link";
-import { BackLink } from "@/components/back-link";
+import { useRouter } from "next/navigation";
 
 const LANG_OPTIONS: { value: string; label: string }[] = [
   { value: "en", label: "Anglais" },
@@ -18,12 +17,13 @@ const LANG_OPTIONS: { value: string; label: string }[] = [
   { value: "zh", label: "Chinois" },
 ];
 
-type Step = "source" | "langs" | "reading";
+type Step = "source" | "langs" | "select" | "reading";
 
 type Family = { id: string; name: string };
 type List = { id: string; familyId: string; name: string };
 
 export default function MotsSauvagesPage() {
+  const router = useRouter();
   const [step, setStep] = useState<Step>("source");
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractError, setExtractError] = useState("");
@@ -33,15 +33,20 @@ export default function MotsSauvagesPage() {
   const [bubble, setBubble] = useState<{
     word: string;
     translation: string;
+    example: string;
     x: number;
     y: number;
   } | null>(null);
+  const [selectedWords, setSelectedWords] = useState<
+    Array<{ word: string; translation: string; example: string }>
+  >([]);
   const [translateLoading, setTranslateLoading] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [families, setFamilies] = useState<Family[]>([]);
   const [listsByFamily, setListsByFamily] = useState<Record<string, List[]>>({});
   const [addLoading, setAddLoading] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
+  const [addSuccessCount, setAddSuccessCount] = useState(0);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -101,18 +106,20 @@ export default function MotsSauvagesPage() {
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
-          setBubble({ word: w, translation: "(erreur)", x: 0, y: 0 });
+          setBubble({ word: w, translation: "(erreur)", example: "", x: 0, y: 0 });
           return;
         }
         const translation = (data.translation as string) || "(—)";
+        const example = (data.example as string) ?? "";
         setBubble({
           word: w,
           translation,
+          example: typeof example === "string" ? example.trim() : "",
           x: 0,
           y: 0,
         });
       } catch {
-        setBubble({ word: w, translation: "(erreur)", x: 0, y: 0 });
+        setBubble({ word: w, translation: "(erreur)", example: "", x: 0, y: 0 });
       } finally {
         setTranslateLoading(false);
       }
@@ -120,8 +127,11 @@ export default function MotsSauvagesPage() {
     [sourceLang, targetLang]
   );
 
-  const openAddModal = useCallback(async () => {
+  const openAddModal = useCallback(async (fromBulk?: boolean) => {
     setAddSuccess(false);
+    if (fromBulk) {
+      setBubble(null);
+    }
     setAddModalOpen(true);
     try {
       const famRes = await fetch("/api/familles");
@@ -143,19 +153,31 @@ export default function MotsSauvagesPage() {
 
   const addToList = useCallback(
     async (listId: string) => {
-      if (!bubble) return;
+      const wordsToAdd =
+        selectedWords.length > 0
+          ? selectedWords
+          : bubble
+            ? [{ word: bubble.word, translation: bubble.translation, example: bubble.example }]
+            : [];
+      if (wordsToAdd.length === 0) return;
       setAddLoading(true);
       try {
-        const res = await fetch(`/api/listes/${listId}/mots`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            term: bubble.word,
-            definition: bubble.translation,
-          }),
-        });
-        if (res.ok) {
+        let successCount = 0;
+        for (const w of wordsToAdd) {
+          const res = await fetch(`/api/listes/${listId}/mots`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              term: w.word,
+              definition: w.translation,
+            }),
+          });
+          if (res.ok) successCount += 1;
+        }
+        if (successCount > 0) {
+          setAddSuccessCount(successCount);
           setAddSuccess(true);
+          setSelectedWords([]);
           setTimeout(() => {
             setAddModalOpen(false);
             setBubble(null);
@@ -165,7 +187,7 @@ export default function MotsSauvagesPage() {
         setAddLoading(false);
       }
     },
-    [bubble]
+    [bubble, selectedWords]
   );
 
   // Découper le texte en mots (lettres + apostrophe) et non-mots (espaces, ponctuation)
@@ -181,8 +203,15 @@ export default function MotsSauvagesPage() {
 
   return (
     <div className="space-y-6">
-      <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
-
+      {step === "source" && (
+      <button
+        type="button"
+        onClick={() => router.back()}
+        className="btn-relief text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
+      >
+        ← Retour
+      </button>
+      )}
       {step === "source" && (
         <>
           <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
@@ -337,7 +366,7 @@ export default function MotsSauvagesPage() {
             </button>
             <button
               type="button"
-              onClick={() => setStep("reading")}
+              onClick={() => setStep("select")}
               className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
             >
               Afficher le texte
@@ -346,18 +375,66 @@ export default function MotsSauvagesPage() {
         </>
       )}
 
+      {step === "select" && (
+        <>
+          <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+            Sélectionne la partie à traduire
+          </h1>
+          <p className="text-slate-600 dark:text-slate-400">
+            Surligne le texte que tu veux garder, ou garde tout
+          </p>
+          <textarea
+            readOnly
+            value={rawText}
+            className="mb-4 block min-h-[50vh] max-h-[70vh] w-full resize-none overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 font-mono text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setStep("langs")}
+              className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+            >
+              ← Retour
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep("reading")}
+              className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+            >
+              Tout garder →
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const selection = typeof window !== "undefined" ? window.getSelection()?.toString().trim() ?? "" : "";
+                if (selection) {
+                  setRawText(selection);
+                  setStep("reading");
+                } else {
+                  alert("Surligne d'abord une partie du texte");
+                }
+              }}
+              className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
+            >
+              Utiliser ma sélection →
+            </button>
+          </div>
+        </>
+      )}
+
       {step === "reading" && (
         <>
+          <div className={selectedWords.length > 0 ? "pb-24" : ""}>
           <div className="flex flex-wrap items-center justify-between gap-4">
             <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
               Touche un mot pour voir sa traduction
             </h1>
             <button
               type="button"
-              onClick={() => setStep("langs")}
+              onClick={() => setStep("select")}
               className="btn-relief rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
             >
-              Changer les langues
+              ← Retour
             </button>
           </div>
 
@@ -371,13 +448,20 @@ export default function MotsSauvagesPage() {
               <p className="leading-relaxed text-slate-800 dark:text-slate-100">
                 {tokens.map((token, i) => {
                   const isWord = /^\p{L}/u.test(token);
+                  const isSelected = isWord && selectedWords.some(
+                    (sw) => sw.word.toLowerCase() === token.toLowerCase()
+                  );
                   if (isWord) {
                     return (
                       <button
                         key={i}
                         type="button"
                         onClick={() => onWordClick(token)}
-                        className="rounded px-0.5 py-0.5 font-medium text-primary underline decoration-dotted hover:bg-primary/10 dark:text-primary-light dark:hover:bg-primary/20"
+                        className={`rounded px-0.5 py-0.5 font-medium underline decoration-dotted hover:bg-primary/10 dark:hover:bg-primary/20 ${
+                          isSelected
+                            ? "bg-green-200 text-green-900 dark:bg-green-900/40 dark:text-green-200"
+                            : "text-primary dark:text-primary-light"
+                        }`}
                       >
                         {token}
                       </button>
@@ -396,17 +480,52 @@ export default function MotsSauvagesPage() {
                   </strong>{" "}
                   → {bubble.translation}
                 </p>
-                <button
-                  type="button"
-                  onClick={openAddModal}
-                  className="btn-relief mt-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-dark"
-                >
-                  Ajouter à une liste
-                </button>
+                {bubble.example && (
+                  <p className="mt-1 text-sm italic text-slate-500 dark:text-slate-500">
+                    {bubble.example}
+                  </p>
+                )}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedWords((prev) => [
+                        ...prev,
+                        { word: bubble.word, translation: bubble.translation, example: bubble.example },
+                      ]);
+                      setBubble(null);
+                    }}
+                    className="btn-relief rounded-lg border border-primary px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 dark:border-primary-light dark:text-primary-light dark:hover:bg-primary/20"
+                  >
+                    ＋ Sélectionner
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openAddModal()}
+                    className="btn-relief rounded-lg bg-primary px-3 py-2 text-sm font-medium text-white hover:bg-primary-dark"
+                  >
+                    Ajouter à une liste
+                  </button>
+                </div>
               </div>
             )}
           </div>
 
+          {selectedWords.length > 0 && (
+            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+              <button
+                type="button"
+                onClick={() => openAddModal(true)}
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white hover:bg-primary-dark dark:bg-primary-light dark:text-slate-900 dark:hover:bg-primary/90"
+              >
+                <span>{selectedWords.length} mot{selectedWords.length > 1 ? "s" : ""} sélectionné{selectedWords.length > 1 ? "s" : ""}</span>
+                <span>—</span>
+                <span>Ajouter tout à une liste →</span>
+              </button>
+            </div>
+          )}
+
+          </div>
           {addModalOpen && (
             <div
               className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
@@ -421,16 +540,19 @@ export default function MotsSauvagesPage() {
                 </h2>
                 {addSuccess ? (
                   <p className="text-primary dark:text-primary-light">
-                    ✓ Mot ajouté à la liste.
+                    ✓ {addSuccessCount > 1 ? `${addSuccessCount} mots ajoutés` : "Mot ajouté à la liste"}.
                   </p>
-                ) : families.length === 0 ? (
-                  <p className="text-sm text-slate-500 dark:text-slate-400">
-                    Aucune famille. Crée une famille et une liste dans la
-                    Bibliothèque d’abord.
-                  </p>
-                ) : (
-                  <ul className="space-y-2">
-                    {families.map((f) => {
+                ) : (() => {
+                  const familiesWithLists = families.filter(
+                    (f) => (listsByFamily[f.id] ?? []).length > 0
+                  );
+                  return familiesWithLists.length === 0 ? (
+                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                      Crée d'abord une liste dans ta Bibliothèque
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {familiesWithLists.map((f) => {
                       const listes = listsByFamily[f.id] ?? [];
                       return (
                         <li key={f.id}>
@@ -438,12 +560,7 @@ export default function MotsSauvagesPage() {
                             {f.name}
                           </span>
                           <ul className="ml-3 mt-1 space-y-1">
-                            {listes.length === 0 ? (
-                              <li className="text-sm text-slate-500 dark:text-slate-400">
-                                Aucune liste
-                              </li>
-                            ) : (
-                              listes.map((list) => (
+                            {listes.map((list) => (
                                 <li key={list.id}>
                                   <button
                                     type="button"
@@ -454,15 +571,25 @@ export default function MotsSauvagesPage() {
                                     {list.name}
                                   </button>
                                 </li>
-                              ))
-                            )}
+                            ))}
                           </ul>
                         </li>
                       );
                     })}
                   </ul>
-                )}
-                <div className="mt-4 flex justify-end">
+                  );
+                })()}
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setAddModalOpen(false);
+                      router.push("/app/familles");
+                    }}
+                    className="btn-relief rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 dark:border-primary-light dark:text-primary-light dark:hover:bg-primary/20"
+                  >
+                    ＋ Créer une nouvelle liste
+                  </button>
                   <button
                     type="button"
                     onClick={() => setAddModalOpen(false)}
