@@ -1,13 +1,12 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
-import OpenAI from "openai";
 
 /**
  * POST /api/translate
  * Body: { text: string, sourceLang: string, targetLang: string }
  * Lang: ISO 639-1 (en, fr, es, de, it, ...).
- * Utilise OpenAI (si OPENAI_API_KEY défini), sinon MyMemory.
- * Returns { translation: string }
+ * MyMemory en priorité, Claude en fallback.
+ * Returns { translation: string, example: string }
  */
 export async function POST(request: Request) {
   const user = await getUser();
@@ -36,46 +35,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const apiKey = process.env.OPENAI_API_KEY?.trim();
-
-  // 1) Traduction « intelligente » via OpenAI si configuré
-  if (apiKey) {
-    try {
-      const openai = new OpenAI({ apiKey });
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        max_tokens: 200,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Tu es un traducteur spécialisé en vocabulaire. Traduis uniquement le texte donné, sans ajouter d'explications ni de guillemets.",
-          },
-          {
-            role: "user",
-            content: `Traduis ce texte du ${sourceLang} vers le ${targetLang}.\nTexte: ${text}`,
-          },
-        ],
-      });
-      const raw = completion.choices[0]?.message?.content?.trim() ?? "";
-      if (!raw) {
-        return NextResponse.json(
-          { error: "Réponse vide du service de traduction IA" },
-          { status: 502 }
-        );
-      }
-      return NextResponse.json({ translation: raw });
-    } catch (err) {
-      console.error("OpenAI translate error:", err);
-      // On ne masque pas l'erreur : si l'IA tombe, on retourne une erreur explicite.
-      return NextResponse.json(
-        { error: "Erreur du service de traduction IA" },
-        { status: 502 }
-      );
-    }
-  }
-
-  // 2) Fallback sans clé : MyMemory (qualité variable mais gratuite)
+  // TODO: remettre Claude en priorité
+  // 1) MyMemory en priorité (pas de clé requise)
   const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
     text
   )}&langpair=${sourceLang}|${targetLang}`;
@@ -85,19 +46,58 @@ export async function POST(request: Request) {
       responseData?: { translatedText?: string };
       responseStatus?: number;
     };
-    if (!res.ok) {
-      return NextResponse.json(
-        { error: "Erreur service de traduction" },
-        { status: 502 }
-      );
+    if (res.ok) {
+      const translation = data.responseData?.translatedText?.trim() ?? "";
+      return NextResponse.json({ translation, example: "" });
     }
-    const translation = data.responseData?.translatedText?.trim() ?? "";
-    return NextResponse.json({ translation });
   } catch (err) {
-    console.error("Translate API error:", err);
-    return NextResponse.json(
-      { error: "Impossible de traduire pour le moment" },
-      { status: 502 }
-    );
+    console.error("MyMemory translate error:", err);
   }
+
+  // 2) Fallback Claude si MyMemory a échoué
+  const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
+  if (anthropicKey) {
+    try {
+      const Anthropic = (await import("@anthropic-ai/sdk")).default;
+      const anthropic = new Anthropic({ apiKey: anthropicKey });
+      const response = await anthropic.messages.create({
+        model: "claude-sonnet-4-20250514",
+        max_tokens: 200,
+        system:
+          'Tu es un traducteur expert. Réponds UNIQUEMENT en JSON valide, sans markdown ni backticks : {"translation": "...", "example": "phrase courte max 10 mots"}',
+        messages: [
+          {
+            role: "user",
+            content: `Traduis ce texte du ${sourceLang} vers le ${targetLang}.\nTexte: ${text}`,
+          },
+        ],
+      });
+      const textContent = response.content.find((c) => c.type === "text");
+      const raw = textContent?.type === "text" ? textContent.text.trim() : "";
+      if (!raw) {
+        return NextResponse.json(
+          { error: "Réponse vide du service de traduction IA" },
+          { status: 502 }
+        );
+      }
+      try {
+        const parsed = JSON.parse(raw) as {
+          translation?: string;
+          example?: string;
+        };
+        const translation = (parsed.translation ?? raw).trim();
+        const example = (parsed.example ?? "").trim();
+        return NextResponse.json({ translation, example });
+      } catch {
+        return NextResponse.json({ translation: raw, example: "" });
+      }
+    } catch (err) {
+      console.error("Claude translate error:", err);
+    }
+  }
+
+  return NextResponse.json(
+    { error: "Impossible de traduire pour le moment" },
+    { status: 502 }
+  );
 }

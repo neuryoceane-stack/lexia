@@ -6,7 +6,7 @@ import OpenAI from "openai";
  * POST /api/extract/raw
  * Body: FormData { file: File, type: "pdf" | "image" }
  * Returns { text: string } — texte brut pour Mots sauvages (pas de paires term/définition).
- * PDF : unpdf. Image : OpenAI Vision ou Claude (ANTHROPIC_API_KEY).
+ * PDF : unpdf. Image : Claude en priorité, OpenAI gpt-4o en fallback.
  */
 export async function POST(request: Request) {
   const user = await getUser();
@@ -64,52 +64,6 @@ export async function POST(request: Request) {
   const mime = (file.type || "image/jpeg").toLowerCase();
   const mediaType = mime === "image/png" ? "image/png" : "image/jpeg";
 
-  if (openaiKey) {
-    try {
-      const openai = new OpenAI({ apiKey: openaiKey });
-      const dataUrl = `data:${mime};base64,${base64}`;
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        max_tokens: 4096,
-        messages: [
-          {
-            role: "system",
-            content:
-              "Tu es un assistant OCR. Retranscris uniquement le texte de l'image, ligne par ligne, sans traduction ni commentaires.",
-          },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text:
-                  "Transcris fidèlement tout le texte lisible de cette image. Garde la ponctuation et les retours à la ligne.",
-              },
-              {
-                type: "image_url",
-                image_url: { url: dataUrl },
-              },
-            ],
-          },
-        ],
-      });
-      const raw = completion.choices[0]?.message?.content?.trim() ?? "";
-      if (!raw) {
-        return NextResponse.json(
-          { error: "Réponse vide du service OCR IA" },
-          { status: 502 }
-        );
-      }
-      return NextResponse.json({ text: raw });
-    } catch (err) {
-      console.error("Extract raw Vision OCR error:", err);
-      return NextResponse.json(
-        { error: "Erreur du service OCR IA" },
-        { status: 502 }
-      );
-    }
-  }
-
   if (anthropicKey) {
     try {
       const Anthropic = (await import("@anthropic-ai/sdk")).default;
@@ -151,6 +105,52 @@ export async function POST(request: Request) {
       console.error("Extract raw Claude OCR error:", err);
       return NextResponse.json(
         { error: "Erreur du service OCR Claude" },
+        { status: 502 }
+      );
+    }
+  }
+
+  if (openaiKey) {
+    try {
+      const openai = new OpenAI({ apiKey: openaiKey });
+      const dataUrl = `data:${mime};base64,${base64}`;
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o",
+        max_tokens: 4096,
+        messages: [
+          {
+            role: "system",
+            content:
+              "Tu es un assistant OCR. Retranscris uniquement le texte de l'image, ligne par ligne, sans traduction ni commentaires.",
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text:
+                  "Transcris fidèlement tout le texte lisible de cette image. Garde la ponctuation et les retours à la ligne.",
+              },
+              {
+                type: "image_url",
+                image_url: { url: dataUrl },
+              },
+            ],
+          },
+        ],
+      });
+      const raw = completion.choices[0]?.message?.content?.trim() ?? "";
+      if (!raw) {
+        return NextResponse.json(
+          { error: "Réponse vide du service OCR IA" },
+          { status: 502 }
+        );
+      }
+      return NextResponse.json({ text: raw });
+    } catch (err) {
+      console.error("Extract raw Vision OCR error:", err);
+      return NextResponse.json(
+        { error: "Erreur du service OCR IA" },
         { status: 502 }
       );
     }
