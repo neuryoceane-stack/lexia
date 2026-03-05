@@ -47,6 +47,10 @@ export default function MotsSauvagesPage() {
   const [addLoading, setAddLoading] = useState(false);
   const [addSuccess, setAddSuccess] = useState(false);
   const [addSuccessCount, setAddSuccessCount] = useState(0);
+  const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createListFamilyId, setCreateListFamilyId] = useState("");
+  const [createListName, setCreateListName] = useState("");
+  const [createListLoading, setCreateListLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
@@ -129,6 +133,7 @@ export default function MotsSauvagesPage() {
 
   const openAddModal = useCallback(async (fromBulk?: boolean) => {
     setAddSuccess(false);
+    setShowCreateForm(false);
     if (fromBulk) {
       setBubble(null);
     }
@@ -189,6 +194,35 @@ export default function MotsSauvagesPage() {
     },
     [bubble, selectedWords]
   );
+
+  const handleCreateListAndAdd = useCallback(async () => {
+    const familyId = createListFamilyId || families[0]?.id;
+    const name = createListName.trim();
+    if (!familyId || !name) return;
+    setCreateListLoading(true);
+    try {
+      const res = await fetch(`/api/familles/${familyId}/listes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        console.error("Create list error:", data);
+        return;
+      }
+      const newList = data as List;
+      setListsByFamily((prev) => ({
+        ...prev,
+        [familyId]: [...(prev[familyId] ?? []), newList],
+      }));
+      setShowCreateForm(false);
+      setCreateListName("");
+      await addToList(newList.id);
+    } finally {
+      setCreateListLoading(false);
+    }
+  }, [createListFamilyId, createListName, families, addToList]);
 
   // Découper le texte en mots (lettres + apostrophe) et non-mots (espaces, ponctuation)
   const tokens = (() => {
@@ -542,6 +576,57 @@ export default function MotsSauvagesPage() {
                   <p className="text-primary dark:text-primary-light">
                     ✓ {addSuccessCount > 1 ? `${addSuccessCount} mots ajoutés` : "Mot ajouté à la liste"}.
                   </p>
+                ) : showCreateForm ? (
+                  <div className="space-y-4">
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+                        Famille
+                      </label>
+                      <select
+                        value={createListFamilyId || families[0]?.id ?? ""}
+                        onChange={(e) => setCreateListFamilyId(e.target.value)}
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                      >
+                        {families.map((f) => (
+                          <option key={f.id} value={f.id}>
+                            {f.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+                        Nom de la liste
+                      </label>
+                      <input
+                        type="text"
+                        value={createListName}
+                        onChange={(e) => setCreateListName(e.target.value)}
+                        placeholder="Ex: Verbes irréguliers"
+                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowCreateForm(false);
+                          setCreateListName("");
+                        }}
+                        className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+                      >
+                        Annuler
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCreateListAndAdd}
+                        disabled={createListLoading || !createListName.trim()}
+                        className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
+                      >
+                        {createListLoading ? "Création…" : "Créer et ajouter"}
+                      </button>
+                    </div>
+                  </div>
                 ) : (() => {
                   const familiesWithLists = families.filter(
                     (f) => (listsByFamily[f.id] ?? []).length > 0
@@ -583,8 +668,9 @@ export default function MotsSauvagesPage() {
                   <button
                     type="button"
                     onClick={() => {
-                      setAddModalOpen(false);
-                      router.push("/app/familles");
+                      setCreateListFamilyId(families[0]?.id ?? "");
+                      setCreateListName("");
+                      setShowCreateForm(true);
                     }}
                     className="btn-relief rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 dark:border-primary-light dark:text-primary-light dark:hover:bg-primary/20"
                   >
