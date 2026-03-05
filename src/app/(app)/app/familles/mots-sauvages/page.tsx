@@ -583,7 +583,7 @@ export default function MotsSauvagesPage() {
                         Famille
                       </label>
                       <select
-                        value={createListFamilyId || families[0]?.id ?? ""}
+                        value={createListFamilyId || (families[0]?.id ?? "")}
                         onChange={(e) => setCreateListFamilyId(e.target.value)}
                         className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                       >
