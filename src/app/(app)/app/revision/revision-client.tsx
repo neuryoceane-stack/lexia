@@ -303,7 +303,7 @@ export function RevisionClient() {
     }
   }, [selectedListIds, applySessionWords]);
 
-  /** En flashcard, success = mot retenu (sort de la pile), !success = mot raté (reviendra en fin de liste). */
+  /** En dictée : envoie { wordId, success }. Utilisé uniquement en mode dictée. */
   async function recordReview(success: boolean) {
     if (!current || sending) return;
     const isFlashcard = mode === "flashcard";
@@ -324,6 +324,41 @@ export function RevisionClient() {
       setWordsSeen((n) => n + 1);
       if (success) setWordsRetained((n) => n + 1);
       if (isFlashcard && !success) {
+        setWords((prev) => {
+          const rest = prev.filter((w) => w.id !== current.id);
+          return [...rest, current];
+        });
+      } else {
+        setWords((prev) => prev.filter((w) => w.id !== current.id));
+      }
+      setRevealed(false);
+      setIndex(0);
+    } finally {
+      setSending(false);
+    }
+  }
+
+  /** En flashcard : envoie { wordId, rating } (SM-2). 0=oublié, 1=difficile, 2=bien, 3=parfait. */
+  async function recordReviewRating(rating: 0 | 1 | 2 | 3) {
+    if (!current || sending) return;
+    const success = rating >= 2;
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/revision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wordId: current.id, rating }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Erreur enregistrement");
+        setSending(false);
+        return;
+      }
+      setWordsSeen((n) => n + 1);
+      if (success) setWordsRetained((n) => n + 1);
+      if (!success) {
         setWords((prev) => {
           const rest = prev.filter((w) => w.id !== current.id);
           return [...rest, current];
@@ -703,7 +738,7 @@ export function RevisionClient() {
       const handleSwipe = (success: boolean) => {
         if (!current || sending) return;
         didSwipeRef.current = true;
-        recordReview(success);
+        recordReviewRating(success ? 2 : 0);
       };
 
       const onTouchStart = (e: React.TouchEvent) => {
@@ -785,34 +820,79 @@ export function RevisionClient() {
               </div>
             )}
 
-            {/* En bas à droite : swipe droite = réussi, gauche = raté (style Tinder) */}
+            {/* En bas : 4 boutons SM-2 quand révélé, sinon swipe hint ; swipe droite=2, gauche=0 */}
             {current && (
-              <div className="mt-6 flex flex-wrap items-center justify-end gap-3">
+              <div className="mt-6 flex flex-wrap items-center gap-3">
                 <span className="text-xs text-slate-400 dark:text-slate-500 sm:mr-auto">
-                  Swipe droite = mot appris · gauche = raté (reviendra en fin de liste)
+                  {revealed
+                    ? "Comment s'est passée la révision ?"
+                    : "Swipe droite = bien · gauche = oublié"}
                 </span>
-                <button
-                  type="button"
-                  onClick={() => handleSwipe(false)}
-                  disabled={sending}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-red-200 bg-white text-red-500 shadow hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:bg-slate-800 dark:hover:bg-red-900/20"
-                  aria-label="Raté, le mot reviendra en fin de liste"
-                >
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleSwipe(true)}
-                  disabled={sending}
-                  className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-green-200 bg-white text-green-600 shadow hover:bg-green-50 disabled:opacity-50 dark:border-green-800 dark:bg-slate-800 dark:hover:bg-green-900/20"
-                  aria-label="Réussi, mot appris"
-                >
-                  <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                </button>
+                {revealed ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => recordReviewRating(0)}
+                      disabled={sending}
+                      className="flex items-center gap-2 rounded-lg border-2 border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
+                      aria-label="Oublié"
+                    >
+                      <span aria-hidden>😰</span> Oublié
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => recordReviewRating(1)}
+                      disabled={sending}
+                      className="flex items-center gap-2 rounded-lg border-2 border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200 dark:hover:bg-amber-900/30"
+                      aria-label="Difficile"
+                    >
+                      <span aria-hidden>😓</span> Difficile
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => recordReviewRating(2)}
+                      disabled={sending}
+                      className="flex items-center gap-2 rounded-lg border-2 border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
+                      aria-label="Bien"
+                    >
+                      <span aria-hidden>🙂</span> Bien
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => recordReviewRating(3)}
+                      disabled={sending}
+                      className="flex items-center gap-2 rounded-lg border-2 border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-100 disabled:opacity-50 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/30"
+                      aria-label="Parfait"
+                    >
+                      <span aria-hidden>😎</span> Parfait
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleSwipe(false)}
+                      disabled={sending}
+                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-red-200 bg-white text-red-500 shadow hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:bg-slate-800 dark:hover:bg-red-900/20"
+                      aria-label="Oublié"
+                    >
+                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleSwipe(true)}
+                      disabled={sending}
+                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-green-200 bg-white text-green-600 shadow hover:bg-green-50 disabled:opacity-50 dark:border-green-800 dark:bg-slate-800 dark:hover:bg-green-900/20"
+                      aria-label="Bien"
+                    >
+                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </div>
