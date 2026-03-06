@@ -9,6 +9,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { computeSM2 } from "@/lib/sm2";
 
 /**
  * GET /api/revision
@@ -94,9 +95,10 @@ export async function GET(request: Request) {
 
 /**
  * POST /api/revision
- * Enregistre une révision pour un mot (succès ou échec) et calcule la prochaine date.
- * Body: { wordId: string, success: boolean }
- * Règles simples : succès → revoir dans 1 jour, échec → revoir dans 10 min (même jour).
+ * Enregistre une révision pour un mot (SM-2) et calcule la prochaine date.
+ * Body: { wordId: string, rating?: 0|1|2|3, success?: boolean }
+ * rating: 0=oublié, 1=difficile, 2=bien, 3=parfait
+ * Compatibilité : success=true → rating=2, success=false → rating=0
  */
 export async function POST(request: Request) {
   const user = await getUser();
@@ -105,7 +107,7 @@ export async function POST(request: Request) {
   }
   const userId = user.id;
 
-  let body: { wordId?: string; success?: boolean };
+  let body: { wordId?: string; rating?: number; success?: boolean };
   try {
     body = await request.json();
   } catch {
@@ -116,7 +118,19 @@ export async function POST(request: Request) {
   }
 
   const wordId = body.wordId?.trim();
-  const success = body.success === true;
+  let rating: number;
+  if (typeof body.rating === "number" && body.rating >= 0 && body.rating <= 3) {
+    rating = Math.round(body.rating);
+  } else if (body.success === true) {
+    rating = 2;
+  } else if (body.success === false) {
+    rating = 0;
+  } else {
+    return NextResponse.json(
+      { error: "rating (0-3) ou success requis" },
+      { status: 400 }
+    );
+  }
 
   if (!wordId) {
     return NextResponse.json(
@@ -145,30 +159,48 @@ export async function POST(request: Request) {
     );
   }
 
-  const now = new Date();
-  let nextReviewAt: Date;
-  if (success) {
-    nextReviewAt = new Date(now);
-    nextReviewAt.setDate(nextReviewAt.getDate() + 1);
-  } else {
-    nextReviewAt = new Date(now);
-    nextReviewAt.setMinutes(nextReviewAt.getMinutes() + 10);
-  }
+  const [lastRevision] = await db
+    .select({
+      easeFactor: revisions.easeFactor,
+      interval: revisions.interval,
+      repetitions: revisions.repetitions,
+    })
+    .from(revisions)
+    .where(
+      and(eq(revisions.wordId, wordId), eq(revisions.userId, userId))
+    )
+    .orderBy(desc(revisions.createdAt))
+    .limit(1);
 
+  const easeFactor = lastRevision?.easeFactor ?? 2.5;
+  const interval = lastRevision?.interval ?? 1;
+  const repetitions = lastRevision?.repetitions ?? 0;
+
+  const result = computeSM2({
+    easeFactor: typeof easeFactor === "number" ? easeFactor : 2.5,
+    interval: typeof interval === "number" ? interval : 1,
+    repetitions: typeof repetitions === "number" ? repetitions : 0,
+    rating,
+  });
+
+  const success = rating >= 2;
   const id = nanoid();
   await db.insert(revisions).values({
     id,
     wordId,
     userId,
     success,
-    nextReviewAt,
+    nextReviewAt: result.nextReviewAt,
+    easeFactor: result.easeFactor,
+    interval: result.interval,
+    repetitions: result.repetitions,
+    rating,
   });
 
-  const [created] = await db
-    .select()
-    .from(revisions)
-    .where(eq(revisions.id, id))
-    .limit(1);
-
-  return NextResponse.json(created);
+  return NextResponse.json({
+    nextReviewAt: result.nextReviewAt,
+    interval: result.interval,
+    easeFactor: result.easeFactor,
+    repetitions: result.repetitions,
+  });
 }

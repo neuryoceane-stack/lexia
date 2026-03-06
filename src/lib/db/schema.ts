@@ -2,6 +2,7 @@ import {
   sqliteTable,
   text,
   integer,
+  real,
   primaryKey,
 } from "drizzle-orm/sqlite-core";
 
@@ -64,6 +65,14 @@ export const revisions = sqliteTable("revisions", {
     .references(() => users.id, { onDelete: "cascade" }),
   success: integer("success", { mode: "boolean" }).notNull(),
   nextReviewAt: integer("next_review_at", { mode: "timestamp" }).notNull(),
+  /** SM-2 : facteur de facilité (défaut 2.5) */
+  easeFactor: real("ease_factor").default(2.5),
+  /** SM-2 : intervalle en jours (défaut 1) */
+  interval: integer("interval").default(1),
+  /** SM-2 : nombre de répétitions réussies consécutives (défaut 0) */
+  repetitions: integer("repetitions").default(0),
+  /** SM-2 : qualité 0=oublié, 1=difficile, 2=bien, 3=parfait (nullable) */
+  rating: integer("rating"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
