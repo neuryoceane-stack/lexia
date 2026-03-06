@@ -35,6 +35,22 @@ function normalizeForCompare(s: string): string {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+/** ISO 639-3 (fra, eng) → BCP 47 pour Web Speech API (fr, en) */
+function toSpeechLang(code: string): string {
+  const c = code?.trim().toLowerCase() || "en";
+  if (c.length >= 2) return c.slice(0, 2);
+  return "en";
+}
+
+function speakWord(text: string, lang: string) {
+  if (typeof window === "undefined" || !window.speechSynthesis) return;
+  if (!text?.trim()) return;
+  window.speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text.trim());
+  u.lang = toSpeechLang(lang);
+  window.speechSynthesis.speak(u);
+}
+
 export function RevisionClient() {
   const [step, setStep] = useState<Step>("mode");
   const [mode, setMode] = useState<Mode | null>(null);
@@ -734,6 +750,42 @@ export function RevisionClient() {
     const doneCount = sessionTotalWords - words.length;
     const progressLabel = `${Math.min(doneCount + 1, sessionTotalWords)} / ${sessionTotalWords}`;
 
+    const sessionLangTerm =
+      directionLanguages?.termLang ?? selectedLang ?? preferredLanguages[0] ?? "en";
+    const sessionLangDef =
+      directionLanguages?.defLang ??
+      preferredLanguages.find((l) => l !== sessionLangTerm) ??
+      preferredLanguages[0] ??
+      "en";
+    const displayLang =
+      direction === "term_to_def" ? sessionLangTerm : sessionLangDef;
+    const answerLang =
+      direction === "term_to_def" ? sessionLangDef : sessionLangTerm;
+
+    const SpeakButton = ({
+      text,
+      lang,
+      className = "",
+      stopPropagation = false,
+    }: {
+      text: string;
+      lang: string;
+      className?: string;
+      stopPropagation?: boolean;
+    }) => (
+      <button
+        type="button"
+        onClick={(e) => {
+          if (stopPropagation) e.stopPropagation();
+          speakWord(text, lang);
+        }}
+        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 ${className}`}
+        aria-label="Écouter la prononciation"
+      >
+        <span aria-hidden>🔊</span>
+      </button>
+    );
+
     if (mode === "flashcard") {
       const handleSwipe = (success: boolean) => {
         if (!current || sending) return;
@@ -798,14 +850,25 @@ export function RevisionClient() {
                   onClick={onCardClick}
                   className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
                 >
-                  <p className="text-center text-2xl font-semibold text-slate-800 dark:text-slate-100">
-                    {displayText}
-                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <p className="text-center text-2xl font-semibold text-slate-800 dark:text-slate-100">
+                      {displayText}
+                    </p>
+                    <SpeakButton
+                      text={displayText}
+                      lang={displayLang}
+                      className="self-center"
+                      stopPropagation
+                    />
+                  </div>
                 </button>
                 {revealed ? (
-                  <p className="mt-6 border-t border-slate-200 pt-6 text-center text-lg text-slate-600 dark:border-slate-600 dark:text-slate-400">
-                    {answerText || "—"}
-                  </p>
+                  <div className="mt-6 flex items-center justify-center gap-2 border-t border-slate-200 pt-6 dark:border-slate-600">
+                    <p className="text-center text-lg text-slate-600 dark:text-slate-400">
+                      {answerText || "—"}
+                    </p>
+                    <SpeakButton text={answerText || ""} lang={answerLang} />
+                  </div>
                 ) : (
                   <div className="mt-6 flex justify-center">
                     <button
@@ -950,9 +1013,12 @@ export function RevisionClient() {
         </div>
         {current && (
           <div className="rounded-2xl border-2 border-slate-200 bg-white p-6 dark:border-slate-600 dark:bg-slate-800">
-            <p className="text-xl font-semibold text-slate-800 dark:text-slate-100">
-              {displayText}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+                {displayText}
+              </p>
+              <SpeakButton text={displayText} lang={displayLang} />
+            </div>
             <div className="mt-4">
               <input
                 ref={dicteeInputRef}
