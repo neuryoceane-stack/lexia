@@ -37,6 +37,7 @@ const WEEKLY_GOAL_OPTIONS = [
   { value: "10", label: "10 mots" },
   { value: "20", label: "20 mots" },
   { value: "50", label: "50 mots" },
+  { value: "100", label: "100 mots" },
 ];
 
 type Step = 0 | 1 | 2 | 3;
@@ -176,7 +177,7 @@ export default function SignupPage() {
                   htmlFor="password"
                   className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
                 >
-                  Mot de passe (8 car. min., 1 majuscule, 1 chiffre)
+                  Mot de passe
                 </label>
                 <input
                   id="password"
@@ -188,6 +189,9 @@ export default function SignupPage() {
                   autoComplete="new-password"
                   className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
                 />
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  8 caractères min. · 1 majuscule · 1 chiffre
+                </p>
               </div>
               {error && (
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
