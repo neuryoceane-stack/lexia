@@ -208,6 +208,21 @@ export const userPreferences = sqliteTable("user_preferences", {
     .$defaultFn(() => new Date()),
 });
 
+/** Retours utilisateur (bugs, idées, questions). */
+export const feedbacks = sqliteTable("feedbacks", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type", { enum: ["bug", "idee", "question"] }).notNull().default("question"),
+  description: text("description").notNull(),
+  page: text("page"),
+  status: text("status", { enum: ["pending", "done"] }).notNull().default("pending"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export type User = typeof users.$inferSelect;
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type Class = typeof classes.$inferSelect;
@@ -220,3 +235,4 @@ export type Revision = typeof revisions.$inferSelect;
 export type RevisionSession = typeof revisionSessions.$inferSelect;
 export type GardenProgress = typeof gardenProgress.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
+export type Feedback = typeof feedbacks.$inferSelect;

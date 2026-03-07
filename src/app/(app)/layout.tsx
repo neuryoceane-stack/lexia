@@ -2,6 +2,7 @@ import { getUser } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { AppHeader } from "@/components/app-header";
+import { FeedbackWidget } from "@/components/feedback-widget";
 
 export default async function AppLayout({
   children,
@@ -23,6 +24,7 @@ export default async function AppLayout({
     <div className="min-h-screen bg-slate-50/80 dark:bg-slate-900">
       <AppHeader user={user} isProfesseur={showProfesseurHeader} />
       <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
+      <FeedbackWidget />
     </div>
   );
 }
