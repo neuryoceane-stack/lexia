@@ -12,6 +12,7 @@ export type FeedbackWithUser = {
   description: string;
   page: string | null;
   status: "pending" | "in_progress" | "done";
+  satisfaction: "up" | "down" | null;
   createdAt: string;
   firstName: string | null;
   email: string;
@@ -41,6 +42,7 @@ export async function GET() {
       description: feedbacks.description,
       page: feedbacks.page,
       status: feedbacks.status,
+      satisfaction: feedbacks.satisfaction,
       createdAt: feedbacks.createdAt,
       firstName: userProfiles.firstName,
       email: users.email,
@@ -57,6 +59,7 @@ export async function GET() {
     description: r.description,
     page: r.page,
     status: (r.status ?? "pending") as "pending" | "in_progress" | "done",
+    satisfaction: (r.satisfaction === "up" || r.satisfaction === "down" ? r.satisfaction : null) as "up" | "down" | null,
     createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
     firstName: r.firstName,
     email: r.email,

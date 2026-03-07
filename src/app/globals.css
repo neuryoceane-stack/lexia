@@ -53,6 +53,10 @@ h1, h2, h3 {
   font-family: var(--font-heading);
 }
 
+.font-heading {
+  font-family: var(--font-heading);
+}
+
 /* Boutons en relief (effet 3D marqué) */
 .btn-relief {
   box-shadow:
@@ -82,4 +86,99 @@ h1, h2, h3 {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* ========== Landing page animations ========== */
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.4;
+  }
+  25% {
+    transform: translate(30px, -20px) scale(1.05);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translate(-20px, 30px) scale(0.95);
+    opacity: 0.45;
+  }
+  75% {
+    transform: translate(-30px, -10px) scale(1.02);
+    opacity: 0.5;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes typing-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  85% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 15s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(245, 166, 35, 0.4) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+.badge-border-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(245, 166, 35, 0.3),
+    rgba(245, 166, 35, 0.8),
+    rgba(245, 166, 35, 0.3)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+.animate-typing-card {
+  animation: typing-fade 8s ease-in-out infinite;
+}
+
+.animate-typing-card:nth-child(2) {
+  animation-delay: 2.67s;
+}
+
+.animate-typing-card:nth-child(3) {
+  animation-delay: 5.33s;
+}
+
+.animate-gradient-text {
+  background: linear-gradient(90deg, #6C3FC8, #F5A623);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer 3s ease-in-out infinite;
 }

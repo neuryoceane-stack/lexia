@@ -58,6 +58,5 @@ export const config = {
     "/library/:path*",
     "/review/:path*",
     "/import/:path*",
-    "/",
   ],
 };
