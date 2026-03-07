@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 
@@ -78,22 +79,33 @@ export function LandingPage() {
     <div className="min-h-screen overflow-x-hidden">
       {/* SECTION 1 — HERO */}
       <section className="relative min-h-screen overflow-hidden bg-[#0A0612] px-4 pt-16 pb-20">
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Orbe 1 : grand cercle violet foncé */}
           <div
-            className="animate-float absolute left-[10%] top-[20%] h-64 w-64 rounded-full bg-[#6C3FC8]/30 blur-3xl"
-            style={{ animationDelay: "0s" }}
+            className="animate-float-8s absolute left-10 top-20 h-64 w-64 rounded-full bg-[#4A2C7A] opacity-30 blur-3xl"
+            aria-hidden
           />
+          {/* Orbe 2 : cercle violet moyen */}
           <div
-            className="animate-float absolute right-[15%] top-[40%] h-80 w-80 rounded-full bg-[#6C3FC8]/25 blur-3xl"
-            style={{ animationDelay: "-5s" }}
+            className="animate-float-12s absolute right-20 top-40 h-48 w-48 rounded-full bg-[#6C3FC8] opacity-20 blur-2xl"
+            aria-hidden
           />
+          {/* Orbe 3 : petit cercle doré */}
           <div
-            className="animate-float absolute bottom-[30%] left-[30%] h-48 w-48 rounded-full bg-[#6C3FC8]/20 blur-3xl"
-            style={{ animationDelay: "-10s" }}
+            className="animate-float-10s absolute bottom-20 left-1/3 h-32 w-32 rounded-full bg-[#F5A623] opacity-15 blur-2xl"
+            aria-hidden
           />
         </div>
 
         <div className="relative mx-auto max-w-4xl text-center">
+          <Image
+            src="/logo.png"
+            alt=""
+            width={80}
+            height={80}
+            style={{ objectFit: "contain" }}
+            className="mx-auto mb-6"
+          />
           <div className="badge-border-shimmer mb-6 inline-flex rounded-full p-[1px] backdrop-blur-sm">
             <span className="rounded-full bg-[#0A0612]/95 px-4 py-2 text-xs font-medium text-[#F5A623]">
               ✨ Propulsé par Claude AI
@@ -125,6 +137,9 @@ export function LandingPage() {
               Se connecter
             </Link>
           </div>
+          <p className="mt-4 text-center text-sm text-white/50">
+            🎓 Rejoins les premiers étudiants sur Lexiva
+          </p>
 
           <div className="relative mx-auto mt-16 h-32 w-full max-w-md">
             {DEMO_CARDS.map((card, i) => (
@@ -228,7 +243,10 @@ export function LandingPage() {
           <h2 className="font-heading text-center text-2xl font-bold text-white sm:text-3xl">
             Tes textes deviennent tes cours
           </h2>
-          <div className="relative mt-12 rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
+          <p className="mb-4 mt-12 text-center text-sm italic text-white/50">
+            👆 Passe ta souris sur les mots surlignés
+          </p>
+          <div className="relative rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-sm">
             <p className="select-none text-lg leading-relaxed text-white/90">
               {SAMPLE_TEXT.split(/\s+/).map((w, i) => {
                 const match = SAMPLE_WORDS.find(
@@ -242,7 +260,7 @@ export function LandingPage() {
                     key={i}
                     className={`relative inline ${
                       def
-                        ? "cursor-pointer rounded px-0.5 hover:bg-[#6C3FC8]/40"
+                        ? "cursor-pointer rounded px-0.5 underline decoration-[#F5A623] decoration-dotted underline-offset-2 hover:bg-[#6C3FC8]/40"
                         : ""
                     }`}
                     onMouseEnter={() => def && setHoverWord(cleanWord)}
@@ -326,13 +344,16 @@ export function LandingPage() {
       <footer className="bg-[#0A0612] px-4 py-12">
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col items-center justify-between gap-6 border-b border-white/10 pb-8 sm:flex-row">
-            <div>
-              <p className="font-heading text-lg font-semibold text-white">
-                Lexiva
-              </p>
-              <p className="mt-1 text-sm text-white/50">
-                Apprends le vocabulaire autrement
-              </p>
+            <div className="flex items-center gap-3">
+              <Image src="/logo.png" alt="" width={32} height={32} style={{ objectFit: "contain" }} className="flex-shrink-0" />
+              <div>
+                <p className="font-heading text-lg font-semibold text-white">
+                  Lexiva
+                </p>
+                <p className="mt-1 text-sm text-white/50">
+                  Apprends le vocabulaire autrement
+                </p>
+              </div>
             </div>
             <div className="flex gap-6">
               <Link

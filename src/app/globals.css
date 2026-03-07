@@ -140,6 +140,18 @@ h1, h2, h3 {
   animation: float 15s ease-in-out infinite;
 }
 
+.animate-float-8s {
+  animation: float 8s ease-in-out infinite;
+}
+
+.animate-float-10s {
+  animation: float 10s ease-in-out infinite;
+}
+
+.animate-float-12s {
+  animation: float 12s ease-in-out infinite reverse;
+}
+
 .animate-shimmer {
   background: linear-gradient(
     90deg,

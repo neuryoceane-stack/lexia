@@ -12,6 +12,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "LEXIVA — Apprendre du vocabulaire",
   description: "Familles de mots, révisions et suivi de progression",
+  icons: { icon: "/logo.png" },
 };
 
 export default function RootLayout({

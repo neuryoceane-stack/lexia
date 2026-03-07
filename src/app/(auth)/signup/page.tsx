@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
@@ -123,6 +124,15 @@ export default function SignupPage() {
 
   return (
     <div className="mx-auto w-full max-w-md">
+      <div className="mb-6 flex flex-col items-center">
+        <Image src="/logo.png" alt="" width={64} height={64} style={{ objectFit: "contain" }} />
+        <span className="mt-2 text-2xl font-semibold text-primary dark:text-primary-light">
+          LEXIVA
+        </span>
+        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+          Apprends le vocabulaire autrement
+        </p>
+      </div>
       {step >= 1 && (
         <div className="mb-6 flex items-center justify-between">
           <div className="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">

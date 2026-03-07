@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
@@ -22,25 +23,6 @@ const navItemsProfesseur = [
   { href: "/app/familles", label: "Ma bibliothèque" },
 ] as const;
 
-function LogoIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
-      <path d="M8 7h8" />
-      <path d="M8 11h6" />
-    </svg>
-  );
-}
 
 function Avatar({ name, className }: { name: string; className?: string }) {
   const initials = name
@@ -372,25 +354,33 @@ export function AppHeader({
   return (
     <>
     <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)]">
-      <div className="mx-auto flex h-14 max-w-[1200px] items-center justify-between px-4 sm:px-6">
-        {/* Logo + nom */}
-        <Link
-          href={homeHref}
-          className="relative inline-flex pb-1 text-vocab-gray no-underline outline-none transition hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-slate-100 dark:hover:text-primary-light"
-          aria-label="LEXIVA — Accueil"
-        >
-          <span className="flex items-center gap-2.5">
-            <LogoIcon className="h-6 w-6 text-primary dark:text-primary-light" />
+      <div className="mx-auto flex h-14 max-w-[1200px] flex-row items-center justify-between px-4 sm:px-6">
+        {/* Logo + nom — gauche */}
+        <div className="flex flex-shrink-0 flex-row items-center">
+          <Link
+            href={homeHref}
+            className="relative inline-flex flex-row items-center gap-2.5 pb-1 text-vocab-gray no-underline outline-none transition hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-slate-100 dark:hover:text-primary-light"
+            aria-label="LEXIVA — Accueil"
+          >
+            <span className="flex-shrink-0">
+              <Image
+                src="/logo.png"
+                alt="Lexiva"
+                width={40}
+                height={40}
+                style={{ objectFit: "contain", minWidth: "40px" }}
+              />
+            </span>
             <span className="text-lg font-semibold">LEXIVA</span>
-          </span>
-          <span className="absolute bottom-0 right-0 text-[10px] italic leading-none text-slate-400 dark:text-slate-500">
-            {isProfesseur ? "teacher" : "student"}
-          </span>
-        </Link>
+            <span className="absolute bottom-0 right-0 text-[10px] italic leading-none text-slate-400 dark:text-slate-500">
+              {isProfesseur ? "teacher" : "student"}
+            </span>
+          </Link>
+        </div>
 
-        {/* Desktop nav */}
+        {/* Desktop nav — centre */}
         <nav
-          className="hidden items-center gap-1 md:flex"
+          className="hidden flex-1 flex-row items-center justify-center gap-1 md:flex"
           aria-label="Navigation principale"
         >
           {navItems.map(({ href, label }) => (
@@ -409,7 +399,7 @@ export function AppHeader({
         </nav>
 
         {/* Right: notifications + avatar + burger */}
-        <div className="flex items-center gap-3">
+        <div className="flex flex-shrink-0 flex-row items-center gap-3">
           <div className="hidden md:block">
             <NotificationsBell />
           </div>
