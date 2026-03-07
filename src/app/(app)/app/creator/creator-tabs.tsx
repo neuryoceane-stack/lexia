@@ -35,12 +35,44 @@ const STATUS_OPTIONS: { value: FeedbackStatus; label: string }[] = [
 
 type StatusFilter = "all" | FeedbackStatus;
 
+type AnalyticsData = {
+  totalUsers: number;
+  newUsersThisWeek: number;
+  usersByRole: Record<string, number>;
+  totalWords: number;
+  wordsThisWeek: number;
+  totalSessions: number;
+  sessionsThisWeek: number;
+  pendingFeedbacks: number;
+};
+
+const ROLE_LABELS: Record<string, { label: string; color: string }> = {
+  student: { label: "Étudiant", color: "bg-primary" },
+  teacher: { label: "Professeur", color: "bg-blue-500" },
+  creator: { label: "Créateur", color: "bg-amber-500" },
+};
+
 export function CreatorTabs() {
   const [tab, setTab] = useState<"analytics" | "feedbacks">("analytics");
   const [feedbacks, setFeedbacks] = useState<FeedbackWithUser[]>([]);
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(false);
+  const [analyticsLoading, setAnalyticsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+
+  const fetchAnalytics = useCallback(async () => {
+    setAnalyticsLoading(true);
+    try {
+      const res = await fetch("/api/creator/analytics");
+      if (res.ok) {
+        const data = await res.json();
+        setAnalytics(data);
+      }
+    } finally {
+      setAnalyticsLoading(false);
+    }
+  }, []);
 
   const fetchFeedbacks = useCallback(async () => {
     setLoading(true);
@@ -56,8 +88,9 @@ export function CreatorTabs() {
   }, []);
 
   useEffect(() => {
+    if (tab === "analytics") fetchAnalytics();
     if (tab === "feedbacks") fetchFeedbacks();
-  }, [tab, fetchFeedbacks]);
+  }, [tab, fetchAnalytics, fetchFeedbacks]);
 
   async function handleStatusChange(id: string, status: FeedbackStatus) {
     setUpdatingId(id);
@@ -110,7 +143,111 @@ export function CreatorTabs() {
       </div>
 
       {tab === "analytics" && (
-        <p className="text-slate-500 dark:text-slate-400">Analytics — à venir.</p>
+        <div className="space-y-6">
+          {analyticsLoading ? (
+            <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+          ) : analytics ? (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    👥 Utilisateurs
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                    {analytics.totalUsers}
+                  </p>
+                  {analytics.newUsersThisWeek > 0 && (
+                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                      +{analytics.newUsersThisWeek} cette semaine
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    📚 Mots ajoutés
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                    {analytics.totalWords}
+                  </p>
+                  {analytics.wordsThisWeek > 0 && (
+                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                      +{analytics.wordsThisWeek} cette semaine
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    🔄 Sessions
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                    {analytics.totalSessions}
+                  </p>
+                  {analytics.sessionsThisWeek > 0 && (
+                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                      +{analytics.sessionsThisWeek} cette semaine
+                    </p>
+                  )}
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    💬 Feedbacks en attente
+                  </p>
+                  <p
+                    className={`mt-1 text-2xl font-bold ${
+                      analytics.pendingFeedbacks > 0
+                        ? "text-amber-600 dark:text-amber-400"
+                        : "text-slate-800 dark:text-slate-100"
+                    }`}
+                  >
+                    {analytics.pendingFeedbacks}
+                  </p>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Répartition par rôle
+                </h3>
+                <div className="flex flex-wrap gap-2">
+                  {(["student", "teacher", "creator"] as const).map((role) => {
+                    const count = analytics.usersByRole[role] ?? 0;
+                    const total = analytics.totalUsers || 1;
+                    const pct = Math.round((count / total) * 100);
+                    const { label, color } = ROLE_LABELS[role] ?? {
+                      label: role,
+                      color: "bg-slate-400",
+                    };
+                    return (
+                      <div
+                        key={role}
+                        className="flex flex-1 min-w-[120px] flex-col gap-1 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50"
+                      >
+                        <div className="flex justify-between text-sm">
+                          <span className="font-medium text-slate-700 dark:text-slate-300">
+                            {label}
+                          </span>
+                          <span className="text-slate-500 dark:text-slate-400">
+                            {count}
+                          </span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                          <div
+                            className={`h-full ${color} transition-all`}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </>
+          ) : (
+            <p className="text-slate-500 dark:text-slate-400">
+              Impossible de charger les analytics.
+            </p>
+          )}
+        </div>
       )}
 
       {tab === "feedbacks" && (
