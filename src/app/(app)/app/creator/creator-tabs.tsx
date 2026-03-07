@@ -173,7 +173,7 @@ export function CreatorTabs() {
                     {[fb.firstName, fb.email].filter(Boolean).join(" — ")}
                   </p>
                   <p className="mb-4 text-xs text-slate-400 dark:text-slate-500">
-                    {new Date(fb.createdAt).toLocaleDateString("fr-FR", {
+                    {new Date(fb.createdAt).toLocaleString("fr-FR", {
                       dateStyle: "medium",
                       timeStyle: "short",
                     })}
