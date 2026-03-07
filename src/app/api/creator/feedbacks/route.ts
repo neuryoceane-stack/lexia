@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { feedbacks, users, userProfiles } from "@/lib/db/schema";
+import { feedbacks, notifications, users, userProfiles } from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 export type FeedbackWithUser = {
   id: string;
@@ -96,14 +97,40 @@ export async function PATCH(request: Request) {
   }
 
   try {
-    const updated = await db
-      .update(feedbacks)
-      .set({ status })
+    const [existing] = await db
+      .select({ userId: feedbacks.userId })
+      .from(feedbacks)
       .where(eq(feedbacks.id, id))
-      .returning({ id: feedbacks.id });
-    if (!updated.length) {
+      .limit(1);
+    if (!existing) {
       return NextResponse.json({ error: "Feedback introuvable" }, { status: 404 });
     }
+
+    await db
+      .update(feedbacks)
+      .set({ status })
+      .where(eq(feedbacks.id, id));
+
+    if (status === "done") {
+      const [targetUser] = await db
+        .select({ role: users.role })
+        .from(users)
+        .where(eq(users.id, existing.userId))
+        .limit(1);
+      const link =
+        targetUser?.role === "creator" ? "/app/creator" : "/app";
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: existing.userId,
+        type: "feedback_resolved",
+        message: "✅ Ton retour a été traité ! Es-tu satisfait ?",
+        read: false,
+        link,
+        feedbackId: id,
+        createdAt: new Date(),
+      });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

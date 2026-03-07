@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { NotificationsBell } from "@/components/notifications-bell";
 
 async function handleLogout() {
   await fetch("/api/auth/logout", { method: "POST" });
@@ -407,8 +408,11 @@ export function AppHeader({
           ))}
         </nav>
 
-        {/* Right: avatar + burger */}
+        {/* Right: notifications + avatar + burger */}
         <div className="flex items-center gap-3">
+          <div className="hidden md:block">
+            <NotificationsBell />
+          </div>
           <div className="relative hidden md:block">
             <AvatarDropdown
               name={displayName}
@@ -417,6 +421,9 @@ export function AppHeader({
             />
           </div>
 
+          <div className="md:hidden">
+            <NotificationsBell />
+          </div>
           <button
             type="button"
             onClick={() => setMobileOpen((o) => !o)}

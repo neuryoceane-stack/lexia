@@ -212,6 +212,23 @@ export const userPreferences = sqliteTable("user_preferences", {
     .$defaultFn(() => new Date()),
 });
 
+/** Notifications utilisateur. */
+export const notifications = sqliteTable("notifications", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  type: text("type").notNull(),
+  message: text("message").notNull(),
+  read: integer("read", { mode: "boolean" }).notNull().default(false),
+  link: text("link"),
+  /** ID du feedback lié (ex. pour feedback_resolved) */
+  feedbackId: text("feedback_id"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 /** Retours utilisateur (bugs, idées, questions). */
 export const feedbacks = sqliteTable("feedbacks", {
   id: text("id").primaryKey(),
@@ -224,6 +241,8 @@ export const feedbacks = sqliteTable("feedbacks", {
   status: text("status", { enum: ["pending", "in_progress", "done"] })
     .notNull()
     .default("pending"),
+  /** Satisfaction utilisateur après traitement (feedback_resolved). */
+  satisfaction: text("satisfaction", { enum: ["up", "down"] }),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -242,3 +261,4 @@ export type RevisionSession = typeof revisionSessions.$inferSelect;
 export type GardenProgress = typeof gardenProgress.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type Feedback = typeof feedbacks.$inferSelect;
+export type Notification = typeof notifications.$inferSelect;
