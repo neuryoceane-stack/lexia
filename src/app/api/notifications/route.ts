@@ -32,6 +32,8 @@ export async function GET() {
     .where(and(eq(notifications.userId, user.id), eq(notifications.read, false)))
     .orderBy(desc(notifications.createdAt));
 
+  console.log("[GET /api/notifications] notifs trouvées:", rows.length);
+
   const result: NotificationItem[] = rows.map((r) => ({
     id: r.id,
     type: r.type,

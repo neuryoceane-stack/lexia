@@ -98,7 +98,7 @@ export async function PATCH(request: Request) {
 
   try {
     const [existing] = await db
-      .select({ userId: feedbacks.userId })
+      .select({ userId: feedbacks.userId, description: feedbacks.description })
       .from(feedbacks)
       .where(eq(feedbacks.id, id))
       .limit(1);
@@ -119,11 +119,14 @@ export async function PATCH(request: Request) {
         .limit(1);
       const link =
         targetUser?.role === "creator" ? "/app/creator" : "/app";
+      const descSnippet = (existing.description ?? "").slice(0, 80);
+      const descSuffix = (existing.description ?? "").length > 80 ? "..." : "";
+      const message = `✅ Ton retour a été traité ! Es-tu satisfait ?\n"${descSnippet}${descSuffix}"`;
       await db.insert(notifications).values({
         id: nanoid(),
         userId: existing.userId,
         type: "feedback_resolved",
-        message: "✅ Ton retour a été traité ! Es-tu satisfait ?",
+        message,
         read: false,
         link,
         feedbackId: id,

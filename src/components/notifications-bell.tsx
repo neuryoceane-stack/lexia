@@ -174,9 +174,21 @@ export function NotificationsBell() {
                   <li key={item.id}>
                     {item.type === "feedback_resolved" ? (
                       <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-700/50">
-                        <p className="text-sm text-slate-800 dark:text-slate-100">
-                          {item.message}
-                        </p>
+                        {(() => {
+                          const [line1, line2] = (item.message ?? "").split("\n");
+                          return (
+                            <>
+                              <p className="text-sm text-slate-800 dark:text-slate-100">
+                                {line1}
+                              </p>
+                              {line2 && (
+                                <p className="mt-0.5 line-clamp-2 text-xs italic text-slate-400 dark:text-slate-500">
+                                  {line2}
+                                </p>
+                              )}
+                            </>
+                          );
+                        })()}
                         <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                           {new Date(item.createdAt).toLocaleString("fr-FR", {
                             dateStyle: "short",

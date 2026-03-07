@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { feedbacks } from "@/lib/db/schema";
+import { feedbacks, notifications, userProfiles, users } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 /**
@@ -40,8 +41,9 @@ export async function POST(request: Request) {
   const page = (body.page ?? "").trim().slice(0, 500) || null;
 
   try {
+    const feedbackId = nanoid();
     await db.insert(feedbacks).values({
-      id: nanoid(),
+      id: feedbackId,
       userId: user.id,
       type,
       description,
@@ -49,6 +51,32 @@ export async function POST(request: Request) {
       status: "pending",
       createdAt: new Date(),
     });
+
+    const [profile] = await db
+      .select({ firstName: userProfiles.firstName })
+      .from(userProfiles)
+      .where(eq(userProfiles.userId, user.id))
+      .limit(1);
+    const [creator] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, "oci@lexiva.app"))
+      .limit(1);
+    if (creator) {
+      const displayName = profile?.firstName?.trim() || "Un utilisateur";
+      const descSnippet = description.slice(0, 60);
+      const descSuffix = description.length > 60 ? "..." : "";
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: creator.id,
+        type: "new_feedback",
+        message: `💬 Nouveau feedback de ${displayName} : ${descSnippet}${descSuffix}`,
+        read: false,
+        link: "/app/creator",
+        createdAt: new Date(),
+      });
+    }
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);

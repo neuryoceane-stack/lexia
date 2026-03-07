@@ -3,9 +3,11 @@ import { hash } from "bcryptjs";
 import { nanoid } from "nanoid";
 import { db } from "@/lib/db";
 import { ensureClassTables } from "@/lib/db/migrations";
-import { users, gardenProgress, userProfiles } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
+import { gardenProgress, notifications, userProfiles, users } from "@/lib/db/schema";
+import { eq, sql } from "drizzle-orm";
 import { validateEmail, validatePassword } from "@/lib/validation";
+
+const MILESTONES = [50, 100, 500, 1000] as const;
 
 const BCRYPT_ROUNDS = 12;
 
@@ -94,6 +96,28 @@ export async function POST(request: Request) {
       target: userProfiles.userId,
       set: { role, updatedAt: new Date() },
     });
+
+  const [{ count: totalUsers }] = await db
+    .select({ count: sql<number>`count(*)`.mapWith(Number) })
+    .from(users);
+  if ((MILESTONES as readonly number[]).includes(totalUsers)) {
+    const [creator] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.email, "oci@lexiva.app"))
+      .limit(1);
+    if (creator) {
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: creator.id,
+        type: "milestone",
+        message: `🎉 Lexiva a atteint ${totalUsers} inscrits !`,
+        read: false,
+        link: "/app/creator",
+        createdAt: new Date(),
+      });
+    }
+  }
 
   return NextResponse.json({
     ok: true,
