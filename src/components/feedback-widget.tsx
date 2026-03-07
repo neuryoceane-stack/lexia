@@ -60,12 +60,17 @@ export function FeedbackWidget() {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div
-            className="w-full max-w-md rounded-xl bg-white p-6 shadow-xl dark:bg-slate-800"
-            role="dialog"
-            aria-labelledby="feedback-title"
-          >
+        <div
+          className="fixed bottom-20 right-6 z-50 w-80 animate-[feedback-slide-up_0.2s_ease-out]"
+          role="dialog"
+          aria-labelledby="feedback-title"
+        >
+          <div className="relative rounded-xl rounded-br-sm bg-white p-6 shadow-2xl dark:bg-slate-800">
+            {/* Flèche pointant vers le bouton */}
+            <div
+              className="absolute -bottom-2 right-6 h-0 w-0 border-l-8 border-r-8 border-t-[10px] border-l-transparent border-r-transparent border-t-white dark:border-t-slate-800"
+              aria-hidden
+            />
             <h2 id="feedback-title" className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
               Un problème ou une idée ?
             </h2>

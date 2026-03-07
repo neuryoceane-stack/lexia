@@ -72,3 +72,14 @@ h1, h2, h3 {
 .btn-relief:disabled {
   box-shadow: none;
 }
+
+@keyframes feedback-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
