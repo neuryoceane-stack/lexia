@@ -221,7 +221,9 @@ export const feedbacks = sqliteTable("feedbacks", {
   type: text("type", { enum: ["bug", "idee", "question"] }).notNull().default("question"),
   description: text("description").notNull(),
   page: text("page"),
-  status: text("status", { enum: ["pending", "done"] }).notNull().default("pending"),
+  status: text("status", { enum: ["pending", "in_progress", "done"] })
+    .notNull()
+    .default("pending"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
