@@ -124,7 +124,10 @@ export default function SignupPage() {
 
   return (
     <div className="mx-auto w-full max-w-md">
-      <div className="mb-6 flex flex-col items-center">
+      <Link
+        href="/"
+        className="mb-6 flex flex-col items-center no-underline hover:opacity-90 transition-opacity"
+      >
         <Image src="/logo.png" alt="" width={64} height={64} style={{ objectFit: "contain" }} />
         <span className="mt-2 text-2xl font-semibold text-primary dark:text-primary-light">
           LEXIVA
@@ -132,7 +135,7 @@ export default function SignupPage() {
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Apprends le vocabulaire autrement
         </p>
-      </div>
+      </Link>
       {step >= 1 && (
         <div className="mb-6 flex items-center justify-between">
           <div className="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">

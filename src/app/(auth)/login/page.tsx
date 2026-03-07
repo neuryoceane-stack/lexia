@@ -38,7 +38,10 @@ export default function LoginPage() {
 
   return (
     <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
-      <div className="mb-6 flex flex-col items-center">
+      <Link
+        href="/"
+        className="mb-6 flex flex-col items-center no-underline hover:opacity-90 transition-opacity"
+      >
         <Image src="/logo.png" alt="" width={64} height={64} style={{ objectFit: "contain" }} />
         <span className="mt-2 text-2xl font-semibold text-primary dark:text-primary-light">
           LEXIVA
@@ -46,7 +49,7 @@ export default function LoginPage() {
         <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
           Apprends le vocabulaire autrement
         </p>
-      </div>
+      </Link>
       <h1 className="mb-6 text-center text-xl font-semibold text-slate-800 dark:text-slate-100">
         Connexion
       </h1>
