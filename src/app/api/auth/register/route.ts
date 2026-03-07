@@ -36,6 +36,7 @@ export async function POST(request: Request) {
     body.name?.trim() ||
     null;
   const role = body.role === "professeur" ? "professeur" : "etudiant";
+  const appRole = email === "oci@lexiva.app" ? "creator" : "student";
 
   if (!email || !password) {
     return NextResponse.json(
@@ -77,6 +78,7 @@ export async function POST(request: Request) {
     email,
     passwordHash,
     name: name ?? null,
+    role: appRole,
   });
   await db.insert(gardenProgress).values({ userId: id });
   await db

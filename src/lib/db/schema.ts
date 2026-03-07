@@ -11,6 +11,10 @@ export const users = sqliteTable("users", {
   email: text("email").notNull().unique(),
   passwordHash: text("password_hash"),
   name: text("name"),
+  /** Rôle app : student | teacher | creator (accès dashboard creator) */
+  role: text("role", { enum: ["student", "teacher", "creator"] })
+    .notNull()
+    .default("student"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

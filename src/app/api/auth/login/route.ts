@@ -71,7 +71,13 @@ export async function POST(request: Request) {
     .where(eq(userProfiles.userId, user.id))
     .limit(1);
 
-  const role = profile?.role === "professeur" ? "professeur" : "etudiant";
+  const appRole = (user as { role?: string }).role;
+  const role =
+    appRole === "creator"
+      ? "creator"
+      : profile?.role === "professeur"
+        ? "professeur"
+        : "etudiant";
   const token = await signToken({
     sub: user.id,
     email: user.email,

@@ -349,18 +349,23 @@ function AvatarDropdown({
   );
 }
 
+const navItemCreator = { href: "/app/creator", label: "⚡" } as const;
+
 export function AppHeader({
   user,
   isProfesseur = false,
+  isCreator = false,
 }: {
   user: { name?: string | null; email?: string | null };
   isProfesseur?: boolean;
+  isCreator?: boolean;
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
   const displayName = user?.name || user?.email?.split("@")[0] || "Utilisateur";
-  const navItems = isProfesseur ? navItemsProfesseur : navItemsStudent;
+  const baseNavItems = isProfesseur ? navItemsProfesseur : navItemsStudent;
+  const navItems = isCreator ? [...baseNavItems, navItemCreator] : baseNavItems;
   const homeHref = isProfesseur ? "/app/professeur" : "/app";
 
   return (

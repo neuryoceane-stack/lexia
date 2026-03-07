@@ -7,7 +7,7 @@ export type User = {
   id: string;
   email: string;
   name?: string | null;
-  role: "etudiant" | "professeur";
+  role: "etudiant" | "professeur" | "creator";
 };
 
 /**
@@ -22,10 +22,16 @@ export async function getUser(): Promise<User | null> {
   const payload = await verifyToken(token);
   if (!payload) return null;
 
+  const role =
+    payload.role === "creator"
+      ? "creator"
+      : payload.role === "professeur"
+        ? "professeur"
+        : "etudiant";
   return {
     id: payload.sub,
     email: payload.email,
     name: undefined,
-    role: payload.role === "professeur" ? "professeur" : "etudiant",
+    role,
   };
 }
