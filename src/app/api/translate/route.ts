@@ -5,7 +5,7 @@ import { getUser } from "@/lib/auth";
  * POST /api/translate
  * Body: { text: string, sourceLang: string, targetLang: string }
  * Lang: ISO 639-1 (en, fr, es, de, it, ...).
- * MyMemory en priorité, Claude en fallback.
+ * Claude en priorité, MyMemory en fallback.
  * Returns { translation: string, example: string }
  */
 export async function POST(request: Request) {
@@ -35,26 +35,14 @@ export async function POST(request: Request) {
     );
   }
 
-  // TODO: remettre Claude en priorité
-  // 1) MyMemory en priorité (pas de clé requise)
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
-    text
-  )}&langpair=${sourceLang}|${targetLang}`;
-  try {
-    const res = await fetch(url, { next: { revalidate: 0 } });
-    const data = (await res.json()) as {
-      responseData?: { translatedText?: string };
-      responseStatus?: number;
-    };
-    if (res.ok) {
-      const translation = data.responseData?.translatedText?.trim() ?? "";
-      return NextResponse.json({ translation, example: "" });
-    }
-  } catch (err) {
-    console.error("MyMemory translate error:", err);
-  }
+  const CLAUDE_SYSTEM = `Tu es un expert en linguistique. Pour le mot donné :
+- Verbe conjugué → donne l'infinitif + traduction
+- Nom au pluriel → donne le singulier + traduction
+- Adjectif accordé → donne la forme de base + traduction
+- Mot invariable → traduis directement
+Réponds UNIQUEMENT en JSON valide sans markdown :
+{"translation": "forme canonique : traduction", "example": "phrase courte max 10 mots en langue source"}`;
 
-  // 2) Fallback Claude si MyMemory a échoué
   const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (anthropicKey) {
     try {
@@ -63,12 +51,11 @@ export async function POST(request: Request) {
       const response = await anthropic.messages.create({
         model: "claude-sonnet-4-20250514",
         max_tokens: 200,
-        system:
-          'Tu es un traducteur expert. Réponds UNIQUEMENT en JSON valide, sans markdown ni backticks : {"translation": "...", "example": "phrase courte max 10 mots"}',
+        system: CLAUDE_SYSTEM,
         messages: [
           {
             role: "user",
-            content: `Traduis ce texte du ${sourceLang} vers le ${targetLang}.\nTexte: ${text}`,
+            content: `Traduis ce mot du ${sourceLang} vers le ${targetLang}.\nMot: ${text}`,
           },
         ],
       });
@@ -94,6 +81,23 @@ export async function POST(request: Request) {
     } catch (err) {
       console.error("Claude translate error:", err);
     }
+  }
+
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(
+    text
+  )}&langpair=${sourceLang}|${targetLang}`;
+  try {
+    const res = await fetch(url, { next: { revalidate: 0 } });
+    const data = (await res.json()) as {
+      responseData?: { translatedText?: string };
+      responseStatus?: number;
+    };
+    if (res.ok) {
+      const translation = data.responseData?.translatedText?.trim() ?? "";
+      return NextResponse.json({ translation, example: "" });
+    }
+  } catch (err) {
+    console.error("MyMemory translate error:", err);
   }
 
   return NextResponse.json(
