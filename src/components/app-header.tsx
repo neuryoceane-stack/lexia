@@ -210,16 +210,7 @@ function AvatarDropdown({
   onJoinClass?: () => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const mql = window.matchMedia("(max-width: 767px)");
-    const handler = () => setIsMobile(mql.matches);
-    handler();
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -249,7 +240,7 @@ function AvatarDropdown({
     : "?";
 
   return (
-    <div ref={containerRef} className="relative">
+    <div ref={containerRef} className="relative z-[9999]">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -272,8 +263,8 @@ function AvatarDropdown({
       )}
       {open && (
         <div
-          className="fixed right-2 top-[56px] z-[9999] w-[calc(100vw-16px)] max-w-[280px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-[#0F0E1A] md:absolute md:right-0 md:top-full md:mt-2 md:w-56 md:max-w-none md:max-h-none"
-          style={{ backgroundColor: "white", ...(isMobile ? { position: "fixed" as const } : {}) }}
+          className="fixed right-2 top-[56px] w-[calc(100vw-16px)] max-w-[280px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-[#0F0E1A] md:right-4 md:w-56"
+          style={{ backgroundColor: "white", position: "fixed", zIndex: 99999 }}
         >
         {/* Carte de profil */}
         <div className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10" style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}>
@@ -414,7 +405,7 @@ export function AppHeader({
 
   return (
     <>
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)]">
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)]" style={{ zIndex: 9999 }}>
       <div className="mx-auto flex h-14 max-w-[1200px] flex-row items-center justify-between px-4 sm:px-6">
         {/* Logo + nom — gauche */}
         <div className="flex flex-shrink-0 flex-row items-center">
