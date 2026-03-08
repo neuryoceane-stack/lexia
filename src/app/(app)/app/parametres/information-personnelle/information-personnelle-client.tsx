@@ -4,13 +4,9 @@ import { useState, useEffect } from "react";
 import { BackLink } from "@/components/back-link";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { PhoneInput } from "@/components/phone-input";
-import type { ProfileStatus } from "@/app/api/user/profile/route";
-
-const STATUS_OPTIONS: { value: ProfileStatus; label: string }[] = [
-  { value: "etudiant", label: "Étudiant" },
-  { value: "salarie", label: "Salarié" },
-  { value: "independant", label: "Indépendant" },
-  { value: "en_formation", label: "En formation" },
+const ROLE_OPTIONS: { value: "etudiant" | "professeur"; label: string }[] = [
+  { value: "etudiant", label: "Élève" },
+  { value: "professeur", label: "Professeur" },
 ];
 
 type ProfileForm = {
@@ -19,26 +15,42 @@ type ProfileForm = {
   dateOfBirth: string;
   city: string;
   phone: string;
-  status: ProfileStatus | "";
+  role: "etudiant" | "professeur" | "";
   institutionName: string;
 };
 
-export function InformationPersonnelleClient() {
+export type InitialProfileData = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  role: "etudiant" | "professeur" | null;
+  institutionName: string;
+  city: string;
+  dateOfBirth: string;
+  phone: string;
+};
+
+export function InformationPersonnelleClient({
+  initialData,
+}: {
+  initialData?: InitialProfileData;
+}) {
   const [form, setForm] = useState<ProfileForm>({
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
-    city: "",
-    phone: "",
-    status: "",
-    institutionName: "",
+    firstName: initialData?.firstName ?? "",
+    lastName: initialData?.lastName ?? "",
+    dateOfBirth: initialData?.dateOfBirth ?? "",
+    city: initialData?.city ?? "",
+    phone: initialData?.phone ?? "",
+    role: initialData?.role ?? "",
+    institutionName: initialData?.institutionName ?? "",
   });
-  const [email, setEmail] = useState<string | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const [email, setEmail] = useState<string | null>(initialData?.email ?? null);
+  const [loaded, setLoaded] = useState(!!initialData);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<"saved" | "error" | null>(null);
 
   useEffect(() => {
+    if (initialData) return;
     fetch("/api/user/profile")
       .then((r) => r.json())
       .then((d) => {
@@ -49,14 +61,14 @@ export function InformationPersonnelleClient() {
           dateOfBirth: d.dateOfBirth ?? "",
           city: d.city ?? "",
           phone: d.phone ?? "",
-          status: d.status ?? "",
+          role: d.role ?? "",
           institutionName: d.institutionName ?? "",
         });
         setEmail(d.email ?? null);
         setLoaded(true);
       })
       .catch(() => setLoaded(true));
-  }, []);
+  }, [initialData]);
 
   const update = (updates: Partial<ProfileForm>) => {
     setForm((prev) => ({ ...prev, ...updates }));
@@ -73,7 +85,7 @@ export function InformationPersonnelleClient() {
       dateOfBirth: form.dateOfBirth.trim() || null,
       city: form.city.trim() || null,
       phone: form.phone.trim() || null,
-      status: form.status || null,
+      role: form.role || null,
       institutionName: form.institutionName.trim() || null,
     };
     fetch("/api/user/profile", {
@@ -191,12 +203,14 @@ export function InformationPersonnelleClient() {
               Statut
             </span>
             <select
-              value={form.status}
-              onChange={(e) => update({ status: (e.target.value || "") as ProfileForm["status"] })}
+              value={form.role}
+              onChange={(e) =>
+                update({ role: (e.target.value || "") as ProfileForm["role"] })
+              }
               className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
             >
               <option value="">— Choisir —</option>
-              {STATUS_OPTIONS.map(({ value, label }) => (
+              {ROLE_OPTIONS.map(({ value, label }) => (
                 <option key={value} value={value}>
                   {label}
                 </option>
@@ -220,7 +234,7 @@ export function InformationPersonnelleClient() {
 
           {message === "saved" && (
             <p className="rounded-lg bg-green-50 p-2 text-sm text-green-800 dark:bg-green-900/30 dark:text-green-200">
-              Modifications enregistrées.
+              ✅ Informations mises à jour !
             </p>
           )}
           {message === "error" && (

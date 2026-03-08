@@ -1,11 +1,13 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
-import { db, runRawSql } from "@/lib/db";
-import { userProfiles } from "@/lib/db/schema";
+import { db } from "@/lib/db";
+import { userProfiles, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 
 const STATUS_VALUES = ["etudiant", "salarie", "independant", "en_formation"] as const;
 export type ProfileStatus = (typeof STATUS_VALUES)[number];
+
+const ROLE_VALUES = ["etudiant", "professeur"] as const;
 
 export type UserProfilePayload = {
   firstName?: string | null;
@@ -14,6 +16,7 @@ export type UserProfilePayload = {
   city?: string | null;
   phone?: string | null;
   status?: ProfileStatus | null;
+  role?: "etudiant" | "professeur" | null;
   institutionName?: string | null;
 };
 
@@ -47,6 +50,7 @@ export async function GET() {
     city: profile?.city ?? null,
     phone: profile?.phone ?? null,
     status: profile?.status ?? null,
+    role: profile?.role ?? null,
     institutionName: profile?.institutionName ?? null,
     email: user.email ?? null,
   });
@@ -117,6 +121,13 @@ export async function PATCH(request: Request) {
         ? body.institutionName.trim().slice(0, 300)
         : undefined;
 
+  const role =
+    body.role !== undefined && body.role !== null
+      ? ROLE_VALUES.includes(body.role)
+        ? body.role
+        : undefined
+      : undefined;
+
   const [existing] = await db
     .select()
     .from(userProfiles)
@@ -131,11 +142,18 @@ export async function PATCH(request: Request) {
     city: city ?? existing?.city ?? null,
     phone: phone ?? existing?.phone ?? null,
     status: status !== undefined ? status : existing?.status ?? null,
+    role: role !== undefined ? role : existing?.role ?? null,
     institutionName: institutionName ?? existing?.institutionName ?? null,
     updatedAt: new Date(),
   };
 
   try {
+    const displayName = [next.firstName, next.lastName]
+      .filter(Boolean)
+      .join(" ")
+      .trim() || null;
+    await db.update(users).set({ name: displayName }).where(eq(users.id, userId));
+
     await db
       .insert(userProfiles)
       .values(next)
@@ -148,6 +166,7 @@ export async function PATCH(request: Request) {
           city: next.city,
           phone: next.phone,
           status: next.status,
+          role: next.role,
           institutionName: next.institutionName,
           updatedAt: next.updatedAt,
         },
@@ -171,6 +190,7 @@ export async function PATCH(request: Request) {
     city: next.city,
     phone: next.phone,
     status: next.status,
+    role: next.role,
     institutionName: next.institutionName,
   });
 }

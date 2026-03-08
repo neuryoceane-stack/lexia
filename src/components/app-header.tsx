@@ -164,26 +164,26 @@ function JoinClassModal({
 const iconClass =
   "h-4 w-4 flex-shrink-0 text-slate-400 transition-colors group-hover:text-primary dark:text-slate-500 dark:group-hover:text-primary-light";
 
-function IconSettings() {
+function IconSettings({ className }: { className?: string } = {}) {
   return (
-    <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+    <svg className={className ?? iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
     </svg>
   );
 }
 
-function IconUser() {
+function IconUser({ className }: { className?: string } = {}) {
   return (
-    <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+    <svg className={className ?? iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
     </svg>
   );
 }
 
-function IconUsers() {
+function IconUsers({ className }: { className?: string } = {}) {
   return (
-    <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+    <svg className={className ?? iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
     </svg>
   );
@@ -254,76 +254,66 @@ function AvatarDropdown({
         <Avatar name={name} />
       </button>
       <div
-        className={`absolute right-0 top-full z-50 mt-2 w-60 origin-top-right rounded-xl border border-slate-200/90 bg-white shadow-xl transition-all duration-200 ease-out dark:border-slate-700/80 dark:bg-slate-800 ${
+        className={`absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200 ease-out dark:border-slate-700 dark:bg-slate-800 ${
           open
             ? "scale-100 opacity-100"
             : "pointer-events-none scale-95 opacity-0"
         }`}
       >
-        {/* En-tête */}
-        <div className="rounded-t-xl bg-slate-50/80 px-4 py-3 dark:bg-slate-800/50">
+        {/* Carte de profil */}
+        <div className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10">
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/5 text-base font-semibold text-primary dark:from-primary/30 dark:to-primary/10 dark:text-primary-light">
+            <span
+              className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full bg-[#6C3FC8] text-base font-semibold text-white"
+              aria-hidden
+            >
               {initials}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate font-semibold text-vocab-gray dark:text-slate-100">{name}</p>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+              <p className="truncate text-base font-bold text-vocab-gray dark:text-slate-100">
+                {name}
+              </p>
+              <p className="text-xs text-slate-400">
                 {isProfesseur ? "Professeur" : "Élève"}
               </p>
             </div>
           </div>
         </div>
 
-        {/* Actions */}
-        <div className="py-2">
-          {!isProfesseur && onJoinClass && (
-            <div className="px-2">
-              <button
-                type="button"
-                onClick={() => {
-                  setOpen(false);
-                  onJoinClass();
-                }}
-                className={dropdownItemClass}
-              >
-                <IconUsers />
-                <div className="min-w-0 flex-1 text-left">
-                  <span className="block">Rejoindre une classe</span>
-                  <span className="block text-xs font-normal text-slate-500 dark:text-slate-400">
-                    Code fourni par le professeur
-                  </span>
-                </div>
-              </button>
-            </div>
-          )}
-          <div className="mt-1 space-y-2 px-2">
-            <p className="mb-1 px-3 py-1 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500">
-              Mon compte
-            </p>
-            <Link href="/app/parametres" onClick={() => setOpen(false)} className={dropdownItemClass}>
-              <IconSettings />
-              <span>Paramètres</span>
-            </Link>
-            <Link
-              href="/app/parametres/information-personnelle"
-              onClick={() => setOpen(false)}
-              className={dropdownItemClass}
-            >
-              <IconUser />
-              <span>Profil</span>
-            </Link>
-          </div>
+        {/* Séparateur */}
+        <div className="h-px bg-slate-200 dark:bg-slate-700" />
+
+        {/* Paramètres et Profil */}
+        <div className="space-y-0.5 px-2 py-2">
+          <Link
+            href="/app/parametres/information-personnelle"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+          >
+            <span className="text-base" aria-hidden>👤</span>
+            <span>Informations personnelles</span>
+          </Link>
+          <Link
+            href="/app/parametres"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+          >
+            <span className="text-base" aria-hidden>⚙️</span>
+            <span>Paramètres</span>
+          </Link>
         </div>
 
+        {/* Séparateur */}
+        <div className="h-px bg-slate-200 dark:bg-slate-700" />
+
         {/* Déconnexion */}
-        <div className="border-t border-slate-100 px-2 py-2 dark:border-slate-700/80">
+        <div className="p-2">
           <button
             type="button"
             onClick={handleLogout}
-            className={`${dropdownItemClass} w-full text-slate-600 hover:bg-red-50 hover:text-red-600 dark:text-slate-400 dark:hover:bg-red-900/20 dark:hover:text-red-400`}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10"
           >
-            <IconLogout />
+            <IconLogout className="h-4 w-4 flex-shrink-0 text-current" />
             <span>Déconnexion</span>
           </button>
         </div>

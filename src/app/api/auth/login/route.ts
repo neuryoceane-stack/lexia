@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import { signToken } from "@/lib/jwt";
 import { AUTH_COOKIE_NAME } from "@/lib/auth";
 import { JWT_EXPIRY_SECONDS } from "@/lib/jwt";
-import { checkLoginRateLimit } from "@/lib/rate-limit";
+import { checkRateLimit, resetRateLimit } from "@/lib/rate-limit";
 
 function getClientIp(request: Request): string {
   const forwarded = request.headers.get("x-forwarded-for");
@@ -16,10 +16,11 @@ function getClientIp(request: Request): string {
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
-  const { allowed } = checkLoginRateLimit(ip);
-  if (!allowed) {
+  const result = checkRateLimit(ip);
+  if (result.blocked) {
+    const minutes = Math.max(1, Math.ceil(result.retryAfter / 60));
     return NextResponse.json(
-      { error: "Trop de tentatives. Réessayez dans une heure." },
+      { error: `Trop de tentatives. Réessaie dans ${minutes} minute${minutes > 1 ? "s" : ""}.` },
       { status: 429 }
     );
   }
@@ -87,6 +88,8 @@ export async function POST(request: Request) {
   const cookie = `${AUTH_COOKIE_NAME}=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${JWT_EXPIRY_SECONDS}${
     process.env.NODE_ENV === "production" ? "; Secure" : ""
   }`;
+
+  resetRateLimit(ip);
 
   const res = NextResponse.json({ ok: true, userId: user.id });
   res.headers.set("Set-Cookie", cookie);

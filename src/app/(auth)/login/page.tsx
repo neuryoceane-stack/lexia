@@ -8,11 +8,13 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isRateLimited, setIsRateLimited] = useState(false);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    setIsRateLimited(false);
     setLoading(true);
     try {
       const res = await fetch("/api/auth/login", {
@@ -26,6 +28,7 @@ export default function LoginPage() {
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         setError(data.error ?? "Email ou mot de passe incorrect.");
+        setIsRateLimited(res.status === 429);
         setLoading(false);
         return;
       }
@@ -89,7 +92,16 @@ export default function LoginPage() {
           />
         </div>
         {error && (
-          <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p
+            className={`flex items-center gap-2 text-sm ${
+              isRateLimited
+                ? "text-amber-600 dark:text-amber-400"
+                : "text-red-600 dark:text-red-400"
+            }`}
+          >
+            {isRateLimited && <span aria-hidden>⏱️</span>}
+            {error}
+          </p>
         )}
         <button
           type="submit"
