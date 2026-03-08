@@ -255,16 +255,16 @@ function AvatarDropdown({
       </button>
       {/* Overlay mobile — visible uniquement quand dropdown ouvert sur mobile */}
       <div
-        className={`fixed inset-0 z-[9998] bg-black/50 transition-opacity duration-200 md:hidden ${
+        className={`fixed inset-0 z-[9998] bg-black/40 transition-opacity duration-200 md:hidden ${
           open ? "opacity-100" : "pointer-events-none opacity-0"
         }`}
         onClick={() => setOpen(false)}
         aria-hidden
       />
       <div
-        className={`origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200 ease-out dark:border-slate-700 dark:bg-slate-800 ${
+        className={`origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl transition-all duration-200 ease-out dark:border-slate-700 dark:bg-[#0F0E1A] ${
           open
-            ? "fixed right-2 top-[60px] z-[9999] max-h-[calc(100vh-80px)] w-[calc(100vw-16px)] max-w-[280px] scale-100 overflow-y-auto opacity-100 md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-56 md:max-w-none md:overflow-visible"
+            ? "fixed right-2 top-[56px] z-[9999] max-h-[calc(100vh-80px)] w-[calc(100vw-16px)] max-w-[280px] scale-100 overflow-y-auto opacity-100 md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-56 md:max-w-none md:overflow-visible"
             : "absolute right-0 top-full z-50 mt-2 w-56 scale-95 opacity-0 pointer-events-none"
         }`}
       >
