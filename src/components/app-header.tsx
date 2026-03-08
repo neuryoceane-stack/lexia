@@ -253,11 +253,19 @@ function AvatarDropdown({
       >
         <Avatar name={name} />
       </button>
+      {/* Overlay mobile — visible uniquement quand dropdown ouvert sur mobile */}
       <div
-        className={`absolute right-0 top-full z-50 mt-2 w-56 origin-top-right rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200 ease-out dark:border-slate-700 dark:bg-slate-800 ${
+        className={`fixed inset-0 z-[9998] bg-black/50 transition-opacity duration-200 md:hidden ${
+          open ? "opacity-100" : "pointer-events-none opacity-0"
+        }`}
+        onClick={() => setOpen(false)}
+        aria-hidden
+      />
+      <div
+        className={`origin-top-right overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xl transition-all duration-200 ease-out dark:border-slate-700 dark:bg-slate-800 ${
           open
-            ? "scale-100 opacity-100"
-            : "pointer-events-none scale-95 opacity-0"
+            ? "fixed right-2 top-[60px] z-[9999] max-h-[calc(100vh-80px)] w-[calc(100vw-16px)] max-w-[280px] scale-100 overflow-y-auto opacity-100 md:absolute md:right-0 md:top-full md:mt-2 md:max-h-none md:w-56 md:max-w-none md:overflow-visible"
+            : "absolute right-0 top-full z-50 mt-2 w-56 scale-95 opacity-0 pointer-events-none"
         }`}
       >
         {/* Carte de profil */}
@@ -448,7 +456,7 @@ export function AppHeader({
           <div className="hidden md:block">
             <NotificationsBell />
           </div>
-          <div className="relative hidden md:block">
+          <div className="relative">
             <AvatarDropdown
               name={displayName}
               isProfesseur={isProfesseur}
@@ -502,30 +510,19 @@ export function AppHeader({
             mobileOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          {/* Header : logo + LEXIVA + rôle */}
-          <div className="flex flex-shrink-0 items-center gap-3 border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80">
+          {/* Header : LEXIVA + rôle (pas de logo pour éviter le doublon) */}
+          <div className="flex flex-shrink-0 items-center border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80">
             <Link
               href={homeHref}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-2.5 no-underline"
+              className="no-underline"
             >
-              <span className="flex-shrink-0">
-                <Image
-                  src="/logo.png"
-                  alt="Lexiva"
-                  width={36}
-                  height={36}
-                  style={{ objectFit: "contain" }}
-                />
+              <span className="text-lg font-semibold text-vocab-gray dark:text-slate-100">
+                LEXIVA
               </span>
-              <div>
-                <span className="text-lg font-semibold text-vocab-gray dark:text-slate-100">
-                  LEXIVA
-                </span>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  {isCreator ? "creator" : isProfesseur ? "teacher" : "student"}
-                </p>
-              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {isCreator ? "creator" : isProfesseur ? "teacher" : "student"}
+              </p>
             </Link>
           </div>
           {/* Avatar + nom */}
