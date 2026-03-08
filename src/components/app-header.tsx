@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -210,7 +211,10 @@ function AvatarDropdown({
   onJoinClass?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -240,7 +244,7 @@ function AvatarDropdown({
     : "?";
 
   return (
-    <div ref={containerRef} className="relative z-[9999]">
+    <div ref={containerRef} className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -253,19 +257,32 @@ function AvatarDropdown({
       >
         <Avatar name={name} />
       </button>
-      {/* Overlay mobile — visible uniquement quand dropdown ouvert sur mobile */}
-      {open && (
-        <div
-          className="fixed inset-0 z-[9998] bg-black/40 md:hidden"
-          onClick={() => setOpen(false)}
-          aria-hidden
-        />
-      )}
-      {open && (
-        <div
-          className="fixed right-2 top-[56px] w-[calc(100vw-16px)] max-w-[280px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-[#0F0E1A] md:right-4 md:w-56"
-          style={{ backgroundColor: "white", position: "fixed", zIndex: 99999 }}
-        >
+      {mounted && open && createPortal(
+        <>
+          <div
+            onClick={() => setOpen(false)}
+            style={{
+              position: "fixed",
+              inset: 0,
+              zIndex: 99998,
+              backgroundColor: "rgba(0,0,0,0.4)",
+            }}
+            aria-hidden
+          />
+          <div
+            style={{
+              position: "fixed",
+              top: "56px",
+              right: "8px",
+              zIndex: 99999,
+              width: "min(calc(100vw - 16px), 280px)",
+              backgroundColor: "white",
+              borderRadius: "16px",
+              boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
+              border: "1px solid #e2e8f0",
+              overflow: "hidden",
+            }}
+          >
         {/* Carte de profil */}
         <div className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10" style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}>
           <div className="flex items-center gap-3">
@@ -323,7 +340,9 @@ function AvatarDropdown({
             <span>Déconnexion</span>
           </button>
         </div>
-      </div>
+          </div>
+        </>,
+        document.body
       )}
     </div>
   );
@@ -405,7 +424,7 @@ export function AppHeader({
 
   return (
     <>
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)]" style={{ zIndex: 9999 }}>
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)]">
       <div className="mx-auto flex h-14 max-w-[1200px] flex-row items-center justify-between px-4 sm:px-6">
         {/* Logo + nom — gauche */}
         <div className="flex flex-shrink-0 flex-row items-center">
