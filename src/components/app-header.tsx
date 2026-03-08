@@ -12,15 +12,15 @@ async function handleLogout() {
 }
 
 const navItemsStudent = [
-  { href: "/app/familles", label: "Bibliothèque" },
-  { href: "/app/revision", label: "Évaluation" },
-  { href: "/app/jardin", label: "Synthèse" },
+  { href: "/app/familles", label: "Bibliothèque", icon: "book" as const },
+  { href: "/app/revision", label: "Évaluation", icon: "clipboard" as const },
+  { href: "/app/jardin", label: "Synthèse", icon: "sparkles" as const },
 ] as const;
 
 const navItemsProfesseur = [
-  { href: "/app/professeur", label: "Accueil" },
-  { href: "/app/professeur/classes", label: "Mes classes" },
-  { href: "/app/familles", label: "Ma bibliothèque" },
+  { href: "/app/professeur", label: "Accueil", icon: "home" as const },
+  { href: "/app/professeur/classes", label: "Mes classes", icon: "users" as const },
+  { href: "/app/familles", label: "Ma bibliothèque", icon: "book" as const },
 ] as const;
 
 
@@ -189,9 +189,9 @@ function IconUsers() {
   );
 }
 
-function IconLogout() {
+function IconLogout({ className }: { className?: string } = {}) {
   return (
-    <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+    <svg className={className ?? iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
     </svg>
   );
@@ -332,7 +332,51 @@ function AvatarDropdown({
   );
 }
 
-const navItemCreator = { href: "/app/creator", label: "⚡" } as const;
+const navItemCreator = { href: "/app/creator", label: "Créateur", icon: "bolt" as const } as const;
+
+function NavIcon({ type }: { type: string }) {
+  const iconClass = "h-5 w-5 flex-shrink-0";
+  switch (type) {
+    case "book":
+      return (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+        </svg>
+      );
+    case "clipboard":
+      return (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      );
+    case "sparkles":
+      return (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+        </svg>
+      );
+    case "home":
+      return (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+        </svg>
+      );
+    case "users":
+      return (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      );
+    case "bolt":
+      return (
+        <svg className={iconClass} fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      );
+    default:
+      return null;
+  }
+}
 
 export function AppHeader({
   user,
@@ -346,6 +390,17 @@ export function AppHeader({
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [joinModalOpen, setJoinModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [mobileOpen]);
   const displayName = user?.name || user?.email?.split("@")[0] || "Utilisateur";
   const baseNavItems = isProfesseur ? navItemsProfesseur : navItemsStudent;
   const navItems = isCreator ? [...baseNavItems, navItemCreator] : baseNavItems;
@@ -435,67 +490,112 @@ export function AppHeader({
         </div>
       </div>
 
-      {/* Mobile menu */}
+      {/* Mobile drawer */}
       <div
         id="mobile-menu"
-        className={`overflow-hidden border-t border-slate-200/80 transition-all duration-200 md:hidden dark:border-slate-700/80 ${
-          mobileOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+        className={`fixed inset-0 z-50 md:hidden ${
+          mobileOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
         aria-hidden={!mobileOpen}
       >
-        <nav className="flex flex-col gap-0.5 px-4 py-3" aria-label="Navigation mobile">
-          {navItems.map(({ href, label }) => (
+        {/* Backdrop */}
+        <div
+          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
+            mobileOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={() => setMobileOpen(false)}
+          aria-hidden
+        />
+        {/* Drawer panel — slide-in from right */}
+        <div
+          className={`absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-white shadow-xl transition-transform duration-300 ease-out dark:bg-[#0F0E1A] ${
+            mobileOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          {/* Header : logo + LEXIVA + rôle */}
+          <div className="flex flex-shrink-0 items-center gap-3 border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80">
             <Link
-              key={href}
-              href={href}
+              href={homeHref}
               onClick={() => setMobileOpen(false)}
-              className={`btn-relief rounded-lg px-3 py-2.5 text-sm font-medium transition ${
-                pathname === href || pathname.startsWith(href + "/")
-                  ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
-                  : "text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-              }`}
+              className="flex items-center gap-2.5 no-underline"
             >
-              {label}
+              <span className="flex-shrink-0">
+                <Image
+                  src="/logo.png"
+                  alt="Lexiva"
+                  width={36}
+                  height={36}
+                  style={{ objectFit: "contain" }}
+                />
+              </span>
+              <div>
+                <span className="text-lg font-semibold text-vocab-gray dark:text-slate-100">
+                  LEXIVA
+                </span>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {isCreator ? "creator" : isProfesseur ? "teacher" : "student"}
+                </p>
+              </div>
             </Link>
-          ))}
-          <div className="mt-2 flex items-center gap-3 border-t border-slate-200/80 pt-3 dark:border-slate-700/80">
-            <Avatar name={displayName} />
-            <span className="text-sm text-slate-600 dark:text-slate-400">{displayName}</span>
           </div>
+          {/* Avatar + nom */}
+          <div className="flex items-center gap-3 px-4 py-4">
+            <Avatar name={displayName} className="h-11 w-11 text-base" />
+            <span className="truncate font-medium text-vocab-gray dark:text-slate-100">
+              {displayName}
+            </span>
+          </div>
+          <div className="h-px flex-shrink-0 bg-slate-200 dark:bg-slate-700" />
+          {/* Navigation */}
+          <nav className="flex flex-col gap-0.5 overflow-y-auto px-2 py-3" aria-label="Navigation mobile">
+            {navItems.map(({ href, label, icon }) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition ${
+                  pathname === href || pathname.startsWith(href + "/")
+                    ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
+                    : "text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                }`}
+              >
+                <NavIcon type={icon} />
+                {label}
+              </Link>
+            ))}
+          </nav>
           {!isProfesseur && (
+            <>
+              <div className="h-px flex-shrink-0 bg-slate-200 dark:bg-slate-700" />
+              <div className="px-2 py-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setJoinModalOpen(true);
+                  }}
+                  className="btn-relief flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  <IconUsers />
+                  Rejoindre une classe
+                </button>
+              </div>
+            </>
+          )}
+          <div className="flex-1" />
+          <div className="h-px flex-shrink-0 bg-slate-200 dark:bg-slate-700" />
+          {/* Déconnexion — rouge en bas */}
+          <div className="flex flex-shrink-0 p-2">
             <button
               type="button"
-              onClick={() => {
-                setMobileOpen(false);
-                setJoinModalOpen(true);
-              }}
-              className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+              onClick={handleLogout}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium text-red-600 transition hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20"
             >
-              Rejoindre une classe
+              <IconLogout className="h-4 w-4 flex-shrink-0 text-current" />
+              Se déconnecter
             </button>
-          )}
-          <Link
-            href="/app/parametres"
-            onClick={() => setMobileOpen(false)}
-            className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-          >
-            Paramètres
-          </Link>
-          <Link
-            href="/app/parametres/information-personnelle"
-            onClick={() => setMobileOpen(false)}
-            className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-          >
-            Profil
-          </Link>
-          <button
-            type="button"
-            onClick={handleLogout}
-            className="btn-relief mt-1 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
-          >
-            Déconnexion
-          </button>
-        </nav>
+          </div>
+        </div>
       </div>
     </header>
     <JoinClassModal open={joinModalOpen} onClose={() => setJoinModalOpen(false)} />
