@@ -210,7 +210,16 @@ function AvatarDropdown({
   onJoinClass?: () => void;
 }) {
   const [open, setOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 767px)");
+    const handler = () => setIsMobile(mql.matches);
+    handler();
+    mql.addEventListener("change", handler);
+    return () => mql.removeEventListener("change", handler);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -262,9 +271,12 @@ function AvatarDropdown({
         />
       )}
       {open && (
-        <div className="fixed right-2 top-[56px] z-[9999] w-[calc(100vw-16px)] max-w-[280px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-[#0F0E1A] md:absolute md:right-0 md:top-full md:mt-2 md:w-56 md:max-w-none md:max-h-none">
+        <div
+          className="fixed right-2 top-[56px] z-[9999] w-[calc(100vw-16px)] max-w-[280px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-[#0F0E1A] md:absolute md:right-0 md:top-full md:mt-2 md:w-56 md:max-w-none md:max-h-none"
+          style={{ backgroundColor: "white", ...(isMobile ? { position: "fixed" as const } : {}) }}
+        >
         {/* Carte de profil */}
-        <div className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10">
+        <div className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10" style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}>
           <div className="flex items-center gap-3">
             <span
               className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full bg-[#6C3FC8] text-base font-semibold text-white"
