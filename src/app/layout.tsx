@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { Providers } from "@/components/providers";
+import { PwaRegister } from "@/components/pwa-register";
 import "./globals.css";
 
 const inter = Inter({
@@ -12,7 +13,17 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "LEXIVA — Apprendre du vocabulaire",
   description: "Familles de mots, révisions et suivi de progression",
-  icons: { icon: "/logo.png" },
+  manifest: "/manifest.json",
+  icons: { icon: "/logo.png", apple: "/logo.png" },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Lexiva",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6C3FC8",
 };
 
 export default function RootLayout({
@@ -22,10 +33,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fr">
-      <body
-        className={`${inter.variable} font-sans antialiased`}
-      >
-        <Providers>{children}</Providers>
+      <body className={`${inter.variable} font-sans antialiased`}>
+        <Providers>
+          <PwaRegister />
+          {children}
+        </Providers>
       </body>
     </html>
   );

@@ -1,0 +1,14 @@
+{
+  "name": "Lexiva",
+  "short_name": "Lexiva",
+  "description": "Le vocabulaire vivant, depuis tes vraies lectures",
+  "start_url": "/app",
+  "display": "standalone",
+  "background_color": "#0A0612",
+  "theme_color": "#6C3FC8",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "/logo.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/logo.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
