@@ -344,30 +344,35 @@ export function AppHeader({
             </button>
           </div>
           {/* Navigation */}
-          <nav className="flex flex-col gap-0.5 overflow-y-auto px-2 py-4" aria-label="Navigation mobile">
-            {navItems.map(({ href, label, icon }) => {
-              const isActive = pathname === href || pathname.startsWith(href + "/");
+          <nav style={{ padding: "16px 0" }} aria-label="Navigation mobile">
+            {[
+              { href: "/app/familles", label: "Bibliothèque", icon: "📚" },
+              { href: "/app/revision", label: "Évaluation", icon: "⚡" },
+              { href: "/app/jardin", label: "Synthèse", icon: "📊" },
+              ...(isCreator ? [{ href: "/app/creator", label: "Créateur", icon: "⚡" }] : []),
+            ].map((item) => {
+              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
               return (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition ${
-                    isActive
-                      ? "bg-[#6C3FC8] text-white"
-                      : "text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  <span className="text-base" aria-hidden>
-                    {icon === "book" && "📚"}
-                    {icon === "clipboard" && "⚡"}
-                    {icon === "sparkles" && "📊"}
-                    {icon === "bolt" && "⚡"}
-                    {icon === "home" && "🏠"}
-                    {icon === "users" && "👥"}
-                  </span>
-                  {label}
-                </Link>
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  padding: "14px 24px",
+                  fontSize: "16px",
+                  fontWeight: "500",
+                  color: isActive ? "white" : undefined,
+                  background: isActive ? "#6C3FC8" : "transparent",
+                  textDecoration: "none",
+                }}
+                className={!isActive ? "text-slate-800 dark:text-slate-200" : ""}
+              >
+                <span>{item.icon}</span>
+                <span>{item.label}</span>
+              </Link>
               );
             })}
           </nav>
