@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { MotsSauvagesSource } from "./mots-sauvages-source";
 
 const LANG_OPTIONS: { value: string; label: string }[] = [
   { value: "en", label: "Anglais" },
@@ -23,7 +23,6 @@ type Family = { id: string; name: string };
 type List = { id: string; familyId: string; name: string };
 
 export default function MotsSauvagesPage() {
-  const router = useRouter();
   const [step, setStep] = useState<Step>("source");
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractError, setExtractError] = useState("");
@@ -51,8 +50,13 @@ export default function MotsSauvagesPage() {
   const [createListFamilyId, setCreateListFamilyId] = useState("");
   const [createListName, setCreateListName] = useState("");
   const [createListLoading, setCreateListLoading] = useState(false);
+  const [urlInput, setUrlInput] = useState("");
+  const [songInput, setSongInput] = useState("");
+  const [urlLoading, setUrlLoading] = useState(false);
+  const [songLoading, setSongLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const isPdf = (file: File) =>
     file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf");
@@ -235,118 +239,78 @@ export default function MotsSauvagesPage() {
     }
   })();
 
+  const handleUrlAnalyze = useCallback(async () => {
+    const url = urlInput.trim();
+    if (!url) return;
+    setUrlLoading(true);
+    setExtractError("");
+    try {
+      const res = await fetch("/api/extract/url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setExtractError(data.error ?? "Erreur analyse URL");
+        return;
+      }
+      setRawText(typeof data.text === "string" ? data.text : "");
+      setStep("langs");
+    } catch {
+      setExtractError("Erreur réseau");
+    } finally {
+      setUrlLoading(false);
+    }
+  }, [urlInput]);
+
+  const handleSongSearch = useCallback(async () => {
+    const query = songInput.trim();
+    if (!query) return;
+    setSongLoading(true);
+    setExtractError("");
+    try {
+      const res = await fetch("/api/extract/song", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setExtractError(data.error ?? "Erreur recherche chanson");
+        return;
+      }
+      setRawText(typeof data.text === "string" ? data.text : "");
+      setStep("langs");
+    } catch {
+      setExtractError("Erreur réseau");
+    } finally {
+      setSongLoading(false);
+    }
+  }, [songInput]);
+
   return (
     <div className="space-y-6">
       {step === "source" && (
-      <button
-        type="button"
-        onClick={() => router.back()}
-        className="btn-relief text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-100"
-      >
-        ← Retour
-      </button>
+        <MotsSauvagesSource
+          extractLoading={extractLoading}
+          extractError={extractError}
+          urlInput={urlInput}
+          setUrlInput={setUrlInput}
+          songInput={songInput}
+          setSongInput={setSongInput}
+          urlLoading={urlLoading}
+          songLoading={songLoading}
+          onFileSelect={handleFile}
+          onUrlAnalyze={handleUrlAnalyze}
+          onSongSearch={handleSongSearch}
+          fileInputRef={fileInputRef}
+          cameraInputRef={cameraInputRef}
+          imageInputRef={imageInputRef}
+        />
       )}
-      {step === "source" && (
-        <>
-          <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-            Mots sauvages
-          </h1>
-          <p className="text-slate-600 dark:text-slate-400">
-            Envoie un PDF ou une photo du texte. Chaque mot sera cliquable pour
-            afficher sa traduction et l’ajouter à une liste.
-          </p>
 
-          <div className="grid gap-4 sm:grid-cols-3">
-            <label className="btn-relief flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
-              <span className="text-3xl" aria-hidden>📄</span>
-              <span className="font-medium text-slate-800 dark:text-slate-100">
-                PDF
-              </span>
-              <span className="text-center text-sm text-slate-500 dark:text-slate-400">
-                Importer un fichier PDF
-              </span>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept=".pdf,application/pdf"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-                  if (file) handleFile(file);
-                  e.target.value = "";
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => fileInputRef.current?.click()}
-                className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
-              >
-                Choisir un PDF
-              </button>
-            </label>
 
-            <label className="btn-relief flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
-              <span className="text-3xl" aria-hidden>🖼️</span>
-              <span className="font-medium text-slate-800 dark:text-slate-100">
-                Importer une photo
-              </span>
-              <span className="text-center text-sm text-slate-500 dark:text-slate-400">
-                Depuis la galerie
-              </span>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={onFileChange}
-              />
-              <span className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 dark:border-slate-600 dark:text-slate-300">
-                Choisir une image
-              </span>
-            </label>
-
-            <label className="btn-relief flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
-              <span className="text-3xl" aria-hidden>📷</span>
-              <span className="font-medium text-slate-800 dark:text-slate-100">
-                Prendre une photo
-              </span>
-              <span className="text-center text-sm text-slate-500 dark:text-slate-400">
-                Ouvrir l’appareil photo
-              </span>
-              <input
-                ref={cameraInputRef}
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={onFileChange}
-              />
-              <button
-                type="button"
-                onClick={() => cameraInputRef.current?.click()}
-                className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
-              >
-                Prendre une photo
-              </button>
-            </label>
-          </div>
-
-          {extractLoading && (
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 dark:border-slate-600 dark:bg-slate-800/50">
-              <p className="font-medium text-slate-700 dark:text-slate-300">
-                Reconnaissance du texte en cours…
-              </p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
-                Compte 30 secondes à 1–2 minutes (surtout la première fois : chargement du moteur OCR). Une photo plus petite ou bien cadrée sera plus rapide.
-              </p>
-            </div>
-          )}
-          {extractError && (
-            <p className="text-sm text-red-600 dark:text-red-400">
-              {extractError}
-            </p>
-          )}
-        </>
-      )}
 
       {step === "langs" && (
         <>
