@@ -51,9 +51,17 @@ function speakWord(text: string, lang: string) {
   window.speechSynthesis.speak(u);
 }
 
-export function RevisionClient() {
-  const [step, setStep] = useState<Step>("mode");
-  const [mode, setMode] = useState<Mode | null>(null);
+export function RevisionClient({
+  initialMode = null,
+  initialStep = "mode",
+  backHref = "/app",
+}: {
+  initialMode?: Mode | null;
+  initialStep?: Step;
+  backHref?: string;
+} = {}) {
+  const [step, setStep] = useState<Step>(initialStep);
+  const [mode, setMode] = useState<Mode | null>(initialMode);
   const [lists, setLists] = useState<BibliothequeList[]>([]);
   const [selectedListIds, setSelectedListIds] = useState<Set<string>>(new Set());
   const [direction, setDirection] = useState<Direction | null>(null);
@@ -516,7 +524,7 @@ export function RevisionClient() {
   if (step === "lists") {
     return (
       <div className="space-y-6">
-        <BackLink href="/app" onClick={() => setStep("mode")} />
+        <BackLink href={backHref} onClick={initialMode ? undefined : () => setStep("mode")} />
         <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
           Sélectionne une ou plusieurs listes (même langue)
         </h2>
