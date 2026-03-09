@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -52,7 +53,12 @@ function AvatarDropdown({
   isProfesseur?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -95,98 +101,118 @@ function AvatarDropdown({
       >
         <Avatar name={name} />
       </button>
-      {open && (
-        <>
-          <div
-            onClick={() => setOpen(false)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              zIndex: 9998,
-              backgroundColor: "rgba(0,0,0,0.4)",
-            }}
-            aria-hidden
-          />
-          <div
-            style={{
-              position: "fixed",
-              top: "60px",
-              right: "8px",
-              zIndex: 9999,
-              width: "280px",
-              backgroundColor: "white",
-              borderRadius: "16px",
-              boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
-              border: "1px solid #e2e8f0",
-              overflow: "hidden",
-            }}
-          >
-        {/* Carte de profil */}
-        <div className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10" style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}>
-          <div className="flex items-center gap-3">
-            <span
-              className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full bg-[#6C3FC8] text-base font-semibold text-white"
+
+      {mounted &&
+        open &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <>
+            <div
+              style={{
+                position: "fixed",
+                inset: 0,
+                zIndex: 9998,
+                background: "rgba(0,0,0,0.4)",
+              }}
+              onClick={() => setOpen(false)}
               aria-hidden
+            />
+            <div
+              style={{
+                position: "fixed",
+                top: "60px",
+                right: "8px",
+                zIndex: 9999,
+                width: "280px",
+                background: "white",
+                borderRadius: "16px",
+                boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
+                border: "1px solid #e2e8f0",
+                overflow: "hidden",
+              }}
             >
-              {initials}
-            </span>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-base font-bold text-vocab-gray dark:text-slate-100">
-                {name}
-              </p>
-              <p className="text-xs text-slate-400">
-                {isProfesseur ? "Professeur" : "Élève"}
-              </p>
+              {/* Carte de profil */}
+              <div
+                className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10"
+                style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}
+              >
+                <div className="flex items-center gap-3">
+                  <span
+                    className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full bg-[#6C3FC8] text-base font-semibold text-white"
+                    aria-hidden
+                  >
+                    {initials}
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-base font-bold text-vocab-gray dark:text-slate-100">
+                      {name}
+                    </p>
+                    <p className="text-xs text-slate-400">
+                      {isProfesseur ? "Professeur" : "Élève"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Séparateur */}
+              <div className="h-px bg-slate-200 dark:bg-slate-700" />
+
+              {/* Paramètres et Profil */}
+              <div className="space-y-0.5 px-2 py-2">
+                <a
+                  href="/app/parametres/information-personnelle"
+                  onClick={() => setOpen(false)}
+                  style={{
+                    cursor: "pointer",
+                    WebkitTapHighlightColor: "transparent",
+                    touchAction: "manipulation",
+                  }}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+                >
+                  <span className="text-base" aria-hidden>👤</span>
+                  <span>Informations personnelles</span>
+                </a>
+                <a
+                  href="/app/parametres"
+                  onClick={() => setOpen(false)}
+                  style={{
+                    cursor: "pointer",
+                    WebkitTapHighlightColor: "transparent",
+                    touchAction: "manipulation",
+                  }}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+                >
+                  <span className="text-base" aria-hidden>⚙️</span>
+                  <span>Paramètres</span>
+                </a>
+              </div>
+
+              {/* Séparateur */}
+              <div className="h-px bg-slate-200 dark:bg-slate-700" />
+
+              {/* Déconnexion */}
+              <div className="p-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setOpen(false);
+                    void handleLogout();
+                  }}
+                  style={{
+                    cursor: "pointer",
+                    WebkitTapHighlightColor: "transparent",
+                    touchAction: "manipulation",
+                  }}
+                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10"
+                >
+                  <span className="text-base" aria-hidden>🔴</span>
+                  <span>Déconnexion</span>
+                </button>
+              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Séparateur */}
-        <div className="h-px bg-slate-200 dark:bg-slate-700" />
-
-        {/* Paramètres et Profil */}
-        <div className="space-y-0.5 px-2 py-2">
-          <a
-            href="/app/parametres/information-personnelle"
-            onClick={() => setOpen(false)}
-            style={{ cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
-          >
-            <span className="text-base" aria-hidden>👤</span>
-            <span>Informations personnelles</span>
-          </a>
-          <a
-            href="/app/parametres"
-            onClick={() => setOpen(false)}
-            style={{ cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
-            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
-          >
-            <span className="text-base" aria-hidden>⚙️</span>
-            <span>Paramètres</span>
-          </a>
-        </div>
-
-        {/* Séparateur */}
-        <div className="h-px bg-slate-200 dark:bg-slate-700" />
-
-        {/* Déconnexion */}
-        <div className="p-2">
-          <button
-            type="button"
-            onClick={() => {
-              setOpen(false);
-              void handleLogout();
-            }}
-            style={{ cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
-            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10"
-          >
-            <span className="text-base" aria-hidden>🔴</span>
-            <span>Déconnexion</span>
-          </button>
-        </div>
-          </div>
-        </>
-      )}
+          </>,
+          document.body
+        )}
     </div>
   );
 }
@@ -203,10 +229,15 @@ export function AppHeader({
   isCreator?: boolean;
 }) {
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [burgerMounted, setBurgerMounted] = useState(false);
+  const [burgerOpen, setBurgerOpen] = useState(false);
 
   useEffect(() => {
-    if (mobileOpen) {
+    setBurgerMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (burgerOpen) {
       document.body.style.overflow = "hidden";
     } else {
       document.body.style.overflow = "";
@@ -214,7 +245,7 @@ export function AppHeader({
     return () => {
       document.body.style.overflow = "";
     };
-  }, [mobileOpen]);
+  }, [burgerOpen]);
   const displayName = user?.name || user?.email?.split("@")[0] || "Utilisateur";
   const baseNavItems = isProfesseur ? navItemsProfesseur : navItemsStudent;
   const navItems = isCreator ? [...baseNavItems, navItemCreator] : baseNavItems;
@@ -280,13 +311,13 @@ export function AppHeader({
           </div>
           <button
             type="button"
-            onClick={() => setMobileOpen((o) => !o)}
+            onClick={() => setBurgerOpen((o) => !o)}
             className="btn-relief flex h-9 w-9 items-center justify-center rounded-lg text-vocab-gray hover:bg-slate-100 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:hidden dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-primary-light"
-            aria-expanded={mobileOpen}
+            aria-expanded={burgerOpen}
             aria-controls="mobile-menu"
             aria-label="Ouvrir le menu"
           >
-            {mobileOpen ? (
+            {burgerOpen ? (
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
@@ -303,41 +334,41 @@ export function AppHeader({
       <div
         id="mobile-menu"
         className={`fixed inset-0 z-[9997] md:hidden ${
-          mobileOpen ? "pointer-events-auto" : "pointer-events-none"
+          burgerOpen ? "pointer-events-auto" : "pointer-events-none"
         }`}
-        aria-hidden={!mobileOpen}
+        aria-hidden={!burgerOpen}
       >
-        {/* Overlay sombre — ferme au clic */}
-        <div
-          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${
-            mobileOpen ? "opacity-100" : "opacity-0"
-          }`}
-          onClick={() => setMobileOpen(false)}
-          aria-hidden
-        />
-        {/* Drawer slide-in depuis la droite (300ms) */}
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            right: 0,
-            height: "100vh",
-            width: "280px",
-            backgroundColor: "white",
-            zIndex: 9998,
-            boxShadow: "-4px 0 24px rgba(0,0,0,0.15)",
-            transform: mobileOpen ? "translateX(0)" : "translateX(100%)",
-            transition: "transform 300ms ease",
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-          }}
-        >
+        {burgerMounted && burgerOpen && (
+          <>
+            {/* Overlay sombre — ferme au clic */}
+            <div
+              className="absolute inset-0 bg-black/50 opacity-100 transition-opacity duration-300"
+              onClick={() => setBurgerOpen(false)}
+              aria-hidden
+            />
+            {/* Drawer slide-in depuis la droite (300ms) */}
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                right: 0,
+                height: "100vh",
+                width: "280px",
+                backgroundColor: "white",
+                zIndex: 9998,
+                boxShadow: "-4px 0 24px rgba(0,0,0,0.15)",
+                transform: "translateX(0)",
+                transition: "transform 300ms ease",
+                overflowY: "auto",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
           {/* Header : logo Lexiva + LEXIVA + croix fermeture */}
           <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80">
             <Link
               href={homeHref}
-              onClick={() => setMobileOpen(false)}
+              onClick={() => setBurgerOpen(false)}
               className="flex items-center gap-2.5 no-underline"
             >
               <Image src="/logo.png" alt="" width={32} height={32} />
@@ -347,7 +378,7 @@ export function AppHeader({
             </Link>
             <button
               type="button"
-              onClick={() => setMobileOpen(false)}
+              onClick={() => setBurgerOpen(false)}
               className="btn-relief rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
               aria-label="Fermer le menu"
             >
@@ -369,7 +400,7 @@ export function AppHeader({
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => setBurgerOpen(false)}
                 style={{
                   display: "flex",
                   alignItems: "center",
@@ -390,6 +421,8 @@ export function AppHeader({
             })}
           </nav>
         </div>
+          </>
+        )}
       </div>
     </header>
   );
