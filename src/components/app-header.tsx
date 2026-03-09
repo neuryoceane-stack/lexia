@@ -108,6 +108,9 @@ function AvatarDropdown({
               inset: 0,
               zIndex: 99998,
               backgroundColor: "rgba(0,0,0,0.4)",
+              cursor: "pointer",
+              WebkitTapHighlightColor: "transparent",
+              touchAction: "manipulation",
             }}
             aria-hidden
           />
@@ -150,22 +153,24 @@ function AvatarDropdown({
 
         {/* Paramètres et Profil */}
         <div className="space-y-0.5 px-2 py-2">
-          <Link
+          <a
             href="/app/parametres/information-personnelle"
             onClick={() => setOpen(false)}
+            style={{ cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
           >
             <span className="text-base" aria-hidden>👤</span>
             <span>Informations personnelles</span>
-          </Link>
-          <Link
+          </a>
+          <a
             href="/app/parametres"
             onClick={() => setOpen(false)}
+            style={{ cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
           >
             <span className="text-base" aria-hidden>⚙️</span>
             <span>Paramètres</span>
-          </Link>
+          </a>
         </div>
 
         {/* Séparateur */}
@@ -175,7 +180,11 @@ function AvatarDropdown({
         <div className="p-2">
           <button
             type="button"
-            onClick={handleLogout}
+            onClick={() => {
+              setOpen(false);
+              void handleLogout();
+            }}
+            style={{ cursor: "pointer", WebkitTapHighlightColor: "transparent", touchAction: "manipulation" }}
             className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10"
           >
             <span className="text-base" aria-hidden>🔴</span>
