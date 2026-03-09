@@ -316,9 +316,21 @@ export function AppHeader({
         />
         {/* Drawer slide-in depuis la droite (300ms) */}
         <div
-          className={`absolute right-0 top-0 flex h-full w-80 max-w-[85vw] flex-col bg-white shadow-xl transition-transform duration-300 ease-out dark:bg-[#0F0E1A] ${
-            mobileOpen ? "translate-x-0" : "translate-x-full"
-          }`}
+          style={{
+            position: "fixed",
+            top: 0,
+            right: 0,
+            height: "100vh",
+            width: "280px",
+            backgroundColor: "white",
+            zIndex: 9998,
+            boxShadow: "-4px 0 24px rgba(0,0,0,0.15)",
+            transform: mobileOpen ? "translateX(0)" : "translateX(100%)",
+            transition: "transform 300ms ease",
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+          }}
         >
           {/* Header : logo Lexiva + LEXIVA + croix fermeture */}
           <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80">
