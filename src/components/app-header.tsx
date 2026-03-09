@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -53,10 +52,7 @@ function AvatarDropdown({
   isProfesseur?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => setMounted(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -99,28 +95,25 @@ function AvatarDropdown({
       >
         <Avatar name={name} />
       </button>
-      {mounted && open && createPortal(
+      {open && (
         <>
           <div
             onClick={() => setOpen(false)}
             style={{
               position: "fixed",
               inset: 0,
-              zIndex: 99998,
+              zIndex: 9998,
               backgroundColor: "rgba(0,0,0,0.4)",
-              cursor: "pointer",
-              WebkitTapHighlightColor: "transparent",
-              touchAction: "manipulation",
             }}
             aria-hidden
           />
           <div
             style={{
               position: "fixed",
-              top: "56px",
+              top: "60px",
               right: "8px",
-              zIndex: 99999,
-              width: "min(calc(100vw - 16px), 280px)",
+              zIndex: 9999,
+              width: "280px",
               backgroundColor: "white",
               borderRadius: "16px",
               boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
@@ -192,8 +185,7 @@ function AvatarDropdown({
           </button>
         </div>
           </div>
-        </>,
-        document.body
+        </>
       )}
     </div>
   );
