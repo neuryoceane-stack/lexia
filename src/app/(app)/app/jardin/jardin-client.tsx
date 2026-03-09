@@ -50,14 +50,20 @@ const LANG_LABELS: Record<string, string> = {
 };
 
 const BADGES = [
-  { id: "first_streak", emoji: "🔥", label: "Première série", check: (d: SyntheseData, s: number) => s >= 1 },
+  { id: "first_streak", emoji: "🔥", label: "Première série", check: (_d: SyntheseData, s: number) => s >= 1 },
+  { id: "10_words", emoji: "📚", label: "10 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 10 },
   { id: "100_words", emoji: "📚", label: "100 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 100 },
   { id: "first_dictation", emoji: "⚡", label: "Première dictée", check: (d: SyntheseData) => d.wordsWritten >= 1 },
-  { id: "3_languages", emoji: "🌍", label: "3 langues", check: (d: SyntheseData) => (d.languagesAvailable?.length ?? 0) >= 3 },
+  { id: "2_languages", emoji: "🌍", label: "2 langues actives", check: (d: SyntheseData) => (d.languagesAvailable?.length ?? 0) >= 2 },
   { id: "streak_7", emoji: "🏆", label: "Streak 7 jours", check: (_d: SyntheseData, s: number) => s >= 7 },
-  { id: "500_words", emoji: "📖", label: "500 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 500 },
-  { id: "1000_words", emoji: "🎯", label: "1000 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 1000 },
-  { id: "streak_30", emoji: "⭐", label: "Streak 30 jours", check: (_d: SyntheseData, s: number) => s >= 30 },
+  { id: "streak_30", emoji: "💪", label: "Streak 30 jours", check: (_d: SyntheseData, s: number) => s >= 30 },
+  {
+    id: "50_sessions",
+    emoji: "🎯",
+    label: "50 sessions",
+    check: (d: SyntheseData) =>
+      Object.values(d.sessionsByDay).reduce((a, x) => a + x.count, 0) >= 50,
+  },
 ] as const;
 
 const VIOLET = "#6C3FC8";
@@ -69,10 +75,12 @@ function langLabel(code: string): string {
 
 function formatDuration(seconds: number): string {
   if (seconds < 60) return `${seconds} s`;
-  const m = Math.floor(seconds / 60);
-  const s = seconds % 60;
-  if (s === 0) return `${m} min`;
-  return `${m} min ${s} s`;
+  const totalMin = Math.floor(seconds / 60);
+  if (totalMin < 60) return `${totalMin} min`;
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  if (m === 0) return `${h} h`;
+  return `${h} h ${m} min`;
 }
 
 function getWordsThisWeek(sessionsByDay: SyntheseData["sessionsByDay"]): number {
@@ -86,6 +94,19 @@ function getWordsThisWeek(sessionsByDay: SyntheseData["sessionsByDay"]): number 
     total += s?.wordsRetained ?? 0;
   }
   return total;
+}
+
+function getMotivationalMessage(
+  streak: number,
+  wordsThisWeek: number
+): string {
+  if (streak > 0) {
+    return `${streak} jour${streak !== 1 ? "s" : ""} de série 🔥 Continue !`;
+  }
+  if (wordsThisWeek > 0) {
+    return `Tu as mémorisé ${wordsThisWeek} mot${wordsThisWeek !== 1 ? "s" : ""} cette semaine !`;
+  }
+  return "Lance ta première session 🚀";
 }
 
 function getChartData(
@@ -111,16 +132,6 @@ function getChartData(
     out.push({ date: dateKey, label, mots });
   }
   return out;
-}
-
-function getMainLanguage(
-  wordsByLanguage?: Record<string, { wordsRetained: number }>
-): string {
-  if (!wordsByLanguage || Object.keys(wordsByLanguage).length === 0)
-    return "";
-  return Object.entries(wordsByLanguage).sort(
-    (a, b) => (b[1]?.wordsRetained ?? 0) - (a[1]?.wordsRetained ?? 0)
-  )[0]?.[0] ?? "";
 }
 
 function getPalierProgress(words: number): { current: number; palier: number; pct: number } {
@@ -150,8 +161,6 @@ export function JardinClient() {
   const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [loading, setLoading] = useState(true);
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>("7j");
-  const [claudeMessage, setClaudeMessage] = useState<string | null>(null);
-  const [claudeLoading, setClaudeLoading] = useState(false);
 
   const fetchSynthese = useCallback(async () => {
     setLoading(true);
@@ -197,26 +206,6 @@ export function JardinClient() {
       .catch(() => {});
   }, []);
 
-  useEffect(() => {
-    if (!data) return;
-    setClaudeLoading(true);
-    const wordsThisWeek = getWordsThisWeek(data.sessionsByDay);
-    const mainLang = getMainLanguage(data.wordsByLanguage);
-    fetch("/api/synthese/message", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        streak,
-        wordsThisWeek,
-        mainLanguage: mainLang,
-      }),
-    })
-      .then((r) => r.json())
-      .then((d) => setClaudeMessage(d.message ?? null))
-      .catch(() => setClaudeMessage(null))
-      .finally(() => setClaudeLoading(false));
-  }, [data, streak]);
-
   const totalSessions = data
     ? Object.values(data.sessionsByDay).reduce((acc, d) => acc + d.count, 0)
     : 0;
@@ -235,7 +224,10 @@ export function JardinClient() {
       <BackLink href="/app" />
 
       <header className="text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-4xl">
+        <h1
+          className="text-3xl font-bold tracking-tight sm:text-4xl"
+          style={{ color: VIOLET }}
+        >
           Synthèse
         </h1>
         <p className="mt-2 text-slate-500 dark:text-slate-400">
@@ -285,62 +277,54 @@ export function JardinClient() {
             </Link>
           </section>
 
-          {/* Message Claude */}
+          {/* Carte message motivant */}
           <section
-            className="rounded-xl border border-slate-200 p-4 dark:border-slate-600"
-            style={{ backgroundColor: VIOLET_BG, borderLeftWidth: 4, borderLeftColor: VIOLET }}
+            className="rounded-xl border border-slate-200 dark:border-slate-600"
+            style={{
+              backgroundColor: VIOLET_BG,
+              borderLeftWidth: 4,
+              borderLeftColor: VIOLET,
+              padding: 20,
+              borderRadius: 12,
+            }}
           >
             <div className="flex gap-3">
               <span className="text-xl" aria-hidden>✨</span>
-              <div className="min-w-0 flex-1">
-                {claudeLoading ? (
-                  <div className="space-y-2">
-                    <div className="h-4 w-full animate-pulse rounded bg-slate-300/50" />
-                    <div className="h-4 w-4/5 animate-pulse rounded bg-slate-300/50" />
-                  </div>
-                ) : claudeMessage ? (
-                  <p className="text-slate-700 dark:text-slate-300">
-                    {claudeMessage}
-                  </p>
-                ) : (
-                  <p className="text-slate-500 dark:text-slate-400">
-                    Lance des sessions pour recevoir un message personnalisé !
-                  </p>
-                )}
-              </div>
+              <p className="text-slate-700 dark:text-slate-300">
+                {getMotivationalMessage(streak, getWordsThisWeek(data.sessionsByDay))}
+              </p>
             </div>
           </section>
 
           {/* 4 cartes métriques */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-4">
             <MetricCard
               icon="⏱️"
-              label="Temps total de révision"
+              label="Temps total"
               value={formatDuration(data.totalDurationSeconds)}
-              borderColor="#f59e0b"
             />
             <MetricCard
               icon="🎯"
-              label="Sessions complétées"
+              label="Sessions"
               value={String(totalSessions)}
-              borderColor="#10b981"
             />
             <MetricCard
               icon="📚"
               label="Mots mémorisés"
               value={String(data.wordsRetained)}
-              borderColor="#3b82f6"
             />
             <MetricCard
               icon="✍️"
               label="Mots écrits"
               value={String(data.wordsWritten)}
-              borderColor="#f43f5e"
             />
           </div>
 
-          {/* Graphique de progression */}
-          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+          {/* Graphique activité */}
+          <section
+            className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800"
+            style={{ borderRadius: 16, padding: 24 }}
+          >
             <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
                 Progression
@@ -404,7 +388,7 @@ export function JardinClient() {
           {Object.keys(wordsByLang).length > 0 && (
             <section className="space-y-4">
               <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                Progression par langue
+                🌍 Progression par langue
               </h2>
               <div className="grid gap-4 sm:grid-cols-2">
                 {Object.entries(wordsByLang).map(([code, stats]) => {
@@ -444,32 +428,35 @@ export function JardinClient() {
           {/* Badges */}
           <section className="space-y-4">
             <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-              Tes badges 🏆
+              🏆 Badges
             </h2>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+            <div className="grid grid-cols-4 gap-4 lg:grid-cols-6">
               {BADGES.map((badge) => {
                 const earned = badge.check(data, streak);
                 return (
                   <div
                     key={badge.id}
-                    className={`flex flex-col items-center gap-2 rounded-xl border p-4 text-center ${
+                    className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center ${
                       earned
                         ? "border-[#6C3FC8]/30 bg-[#F3EEFF] dark:bg-[#6C3FC8]/10"
-                        : "border-slate-200 bg-slate-50 opacity-60 dark:border-slate-600 dark:bg-slate-800/50"
+                        : "border-slate-200 bg-slate-100 opacity-40 dark:border-slate-600 dark:bg-slate-800/50"
                     }`}
                   >
-                    <span className="text-2xl">
-                      {earned ? badge.emoji : "🔒"}
-                    </span>
-                    <span
-                      className={`text-sm font-medium ${
-                        earned
-                          ? "text-slate-800 dark:text-slate-100"
-                          : "text-slate-500 dark:text-slate-400"
-                      }`}
-                    >
-                      {badge.label}
-                    </span>
+                    {earned ? (
+                      <>
+                        <span className="text-2xl">{badge.emoji}</span>
+                        <span className="text-xs font-medium text-slate-800 sm:text-sm dark:text-slate-100">
+                          {badge.label}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-2xl" aria-hidden>🔒</span>
+                        <span className="text-xs font-medium text-slate-500 sm:text-sm dark:text-slate-400">
+                          {badge.label}
+                        </span>
+                      </>
+                    )}
                   </div>
                 );
               })}
@@ -500,25 +487,20 @@ function MetricCard({
   icon,
   label,
   value,
-  borderColor,
 }: {
   icon: string;
   label: string;
   value: string;
-  borderColor: string;
 }) {
   return (
     <div
       className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800"
-      style={{ borderLeftWidth: 4, borderLeftColor: borderColor }}
+      style={{ borderRadius: 16 }}
     >
       <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
         {icon} {label}
       </p>
-      <p
-        className="mt-2 text-2xl font-bold"
-        style={{ color: VIOLET }}
-      >
+      <p className="mt-2 font-bold" style={{ color: VIOLET, fontSize: "2rem" }}>
         {value}
       </p>
     </div>

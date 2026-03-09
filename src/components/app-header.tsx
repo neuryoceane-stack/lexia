@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -53,12 +52,7 @@ function AvatarDropdown({
   isProfesseur?: boolean;
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -102,117 +96,101 @@ function AvatarDropdown({
         <Avatar name={name} />
       </button>
 
-      {mounted &&
-        open &&
-        typeof document !== "undefined" &&
-        createPortal(
-          <>
-            <div
-              style={{
-                position: "fixed",
-                inset: 0,
-                zIndex: 9998,
-                background: "rgba(0,0,0,0.4)",
-              }}
-              onClick={() => setOpen(false)}
-              aria-hidden
-            />
-            <div
-              style={{
-                position: "fixed",
-                top: "60px",
-                right: "8px",
-                zIndex: 9999,
-                width: "280px",
-                background: "white",
-                borderRadius: "16px",
-                boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
-                border: "1px solid #e2e8f0",
-                overflow: "hidden",
-              }}
-            >
-              {/* Carte de profil */}
-              <div
-                className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10"
-                style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 8px)",
+            right: 0,
+            zIndex: 9999,
+            width: "280px",
+            backgroundColor: "white",
+            borderRadius: "16px",
+            boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
+            border: "1px solid #e2e8f0",
+            overflow: "hidden",
+          }}
+        >
+          {/* Carte de profil */}
+          <div
+            className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10"
+            style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}
+          >
+            <div className="flex items-center gap-3">
+              <span
+                className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full bg-[#6C3FC8] text-base font-semibold text-white"
+                aria-hidden
               >
-                <div className="flex items-center gap-3">
-                  <span
-                    className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full bg-[#6C3FC8] text-base font-semibold text-white"
-                    aria-hidden
-                  >
-                    {initials}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-base font-bold text-vocab-gray dark:text-slate-100">
-                      {name}
-                    </p>
-                    <p className="text-xs text-slate-400">
-                      {isProfesseur ? "Professeur" : "Élève"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Séparateur */}
-              <div className="h-px bg-slate-200 dark:bg-slate-700" />
-
-              {/* Paramètres et Profil */}
-              <div className="space-y-0.5 px-2 py-2">
-                <a
-                  href="/app/parametres/information-personnelle"
-                  onClick={() => setOpen(false)}
-                  style={{
-                    cursor: "pointer",
-                    WebkitTapHighlightColor: "transparent",
-                    touchAction: "manipulation",
-                  }}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
-                >
-                  <span className="text-base" aria-hidden>👤</span>
-                  <span>Informations personnelles</span>
-                </a>
-                <a
-                  href="/app/parametres"
-                  onClick={() => setOpen(false)}
-                  style={{
-                    cursor: "pointer",
-                    WebkitTapHighlightColor: "transparent",
-                    touchAction: "manipulation",
-                  }}
-                  className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
-                >
-                  <span className="text-base" aria-hidden>⚙️</span>
-                  <span>Paramètres</span>
-                </a>
-              </div>
-
-              {/* Séparateur */}
-              <div className="h-px bg-slate-200 dark:bg-slate-700" />
-
-              {/* Déconnexion */}
-              <div className="p-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setOpen(false);
-                    void handleLogout();
-                  }}
-                  style={{
-                    cursor: "pointer",
-                    WebkitTapHighlightColor: "transparent",
-                    touchAction: "manipulation",
-                  }}
-                  className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10"
-                >
-                  <span className="text-base" aria-hidden>🔴</span>
-                  <span>Déconnexion</span>
-                </button>
+                {initials}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-base font-bold text-vocab-gray dark:text-slate-100">
+                  {name}
+                </p>
+                <p className="text-xs text-slate-400">
+                  {isProfesseur ? "Professeur" : "Élève"}
+                </p>
               </div>
             </div>
-          </>,
-          document.body
-        )}
+          </div>
+
+          {/* Séparateur */}
+          <div className="h-px bg-slate-200 dark:bg-slate-700" />
+
+          {/* Paramètres et Profil */}
+          <div className="space-y-0.5 px-2 py-2">
+            <a
+              href="/app/parametres/information-personnelle"
+              onClick={() => setOpen(false)}
+              style={{
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+            >
+              <span className="text-base" aria-hidden>👤</span>
+              <span>Informations personnelles</span>
+            </a>
+            <a
+              href="/app/parametres"
+              onClick={() => setOpen(false)}
+              style={{
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
+              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+            >
+              <span className="text-base" aria-hidden>⚙️</span>
+              <span>Paramètres</span>
+            </a>
+          </div>
+
+          {/* Séparateur */}
+          <div className="h-px bg-slate-200 dark:bg-slate-700" />
+
+          {/* Déconnexion */}
+          <div className="p-2">
+            <button
+              type="button"
+              onClick={() => {
+                setOpen(false);
+                void handleLogout();
+              }}
+              style={{
+                cursor: "pointer",
+                WebkitTapHighlightColor: "transparent",
+                touchAction: "manipulation",
+              }}
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10"
+            >
+              <span className="text-base" aria-hidden>🔴</span>
+              <span>Déconnexion</span>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
