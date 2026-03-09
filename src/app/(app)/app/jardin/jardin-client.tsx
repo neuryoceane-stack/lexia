@@ -2,28 +2,36 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 import { BackLink } from "@/components/back-link";
 import { SyntheseAvatar } from "@/components/synthese-avatar";
+import { FlagDisplay } from "@/components/flag-display";
 
-type SynthesePeriod = "day" | "week" | "month" | "year" | "all";
 type AvatarType = "arbre" | "phenix" | "koala";
+type ChartPeriod = "7j" | "30j" | "3m";
 
 type SyntheseData = {
   totalDurationSeconds: number;
   wordsRetained: number;
   wordsWritten: number;
   languagesAvailable: string[];
-  sessionsByDay: Record<string, { count: number; durationSeconds: number }>;
+  sessionsByDay: Record<
+    string,
+    { count: number; durationSeconds: number; wordsRetained?: number }
+  >;
+  wordsByLanguage?: Record<
+    string,
+    { wordsRetained: number; wordsWritten: number }
+  >;
   avatarState: number;
-};
-
-const PERIOD_LABELS: Record<SynthesePeriod, string> = {
-  day: "Jour",
-  week: "Semaine",
-  month: "Mois",
-  year: "Année",
-  all: "Tout",
 };
 
 const LANG_LABELS: Record<string, string> = {
@@ -32,15 +40,28 @@ const LANG_LABELS: Record<string, string> = {
   deu: "Allemand",
   spa: "Espagnol",
   ita: "Italien",
+  por: "Portugais",
+  nld: "Néerlandais",
+  pol: "Polonais",
+  rus: "Russe",
+  jpn: "Japonais",
+  zho: "Chinois",
+  ell: "Grec",
 };
 
-const ENCOURAGEMENT: Record<number, string> = {
-  1: "Lance une session pour faire grandir ton avatar !",
-  2: "Bien, tu as repris. Continue !",
-  3: "Bonne régularité, continue comme ça.",
-  4: "Forte progression, bravo !",
-  5: "Niveau suprême, impressionnant !",
-};
+const BADGES = [
+  { id: "first_streak", emoji: "🔥", label: "Première série", check: (d: SyntheseData, s: number) => s >= 1 },
+  { id: "100_words", emoji: "📚", label: "100 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 100 },
+  { id: "first_dictation", emoji: "⚡", label: "Première dictée", check: (d: SyntheseData) => d.wordsWritten >= 1 },
+  { id: "3_languages", emoji: "🌍", label: "3 langues", check: (d: SyntheseData) => (d.languagesAvailable?.length ?? 0) >= 3 },
+  { id: "streak_7", emoji: "🏆", label: "Streak 7 jours", check: (_d: SyntheseData, s: number) => s >= 7 },
+  { id: "500_words", emoji: "📖", label: "500 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 500 },
+  { id: "1000_words", emoji: "🎯", label: "1000 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 1000 },
+  { id: "streak_30", emoji: "⭐", label: "Streak 30 jours", check: (_d: SyntheseData, s: number) => s >= 30 },
+] as const;
+
+const VIOLET = "#6C3FC8";
+const VIOLET_BG = "#F3EEFF";
 
 function langLabel(code: string): string {
   return LANG_LABELS[code] ?? code;
@@ -54,80 +75,116 @@ function formatDuration(seconds: number): string {
   return `${m} min ${s} s`;
 }
 
-const validPeriods: SynthesePeriod[] = ["day", "week", "month", "year", "all"];
+function getWordsThisWeek(sessionsByDay: SyntheseData["sessionsByDay"]): number {
+  const now = new Date();
+  let total = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().slice(0, 10);
+    const s = sessionsByDay[key];
+    total += s?.wordsRetained ?? 0;
+  }
+  return total;
+}
 
-function IconClock({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 6v6l4 2" />
-    </svg>
-  );
+function getChartData(
+  period: ChartPeriod,
+  sessionsByDay: SyntheseData["sessionsByDay"]
+): { date: string; label: string; mots: number }[] {
+  const now = new Date();
+  const days =
+    period === "7j" ? 7 : period === "30j" ? 30 : 90;
+  const out: { date: string; label: string; mots: number }[] = [];
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateKey = d.toISOString().slice(0, 10);
+    const s = sessionsByDay[dateKey];
+    const mots = s?.wordsRetained ?? 0;
+    const label =
+      period === "7j"
+        ? ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][d.getDay()]
+        : period === "30j"
+          ? `${d.getDate()}/${d.getMonth() + 1}`
+          : `${d.getDate()}/${d.getMonth() + 1}`;
+    out.push({ date: dateKey, label, mots });
+  }
+  return out;
 }
-function IconPlay({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <polygon points="5 3 19 12 5 21 5 3" />
-    </svg>
-  );
+
+function getMainLanguage(
+  wordsByLanguage?: Record<string, { wordsRetained: number }>
+): string {
+  if (!wordsByLanguage || Object.keys(wordsByLanguage).length === 0)
+    return "";
+  return Object.entries(wordsByLanguage).sort(
+    (a, b) => (b[1]?.wordsRetained ?? 0) - (a[1]?.wordsRetained ?? 0)
+  )[0]?.[0] ?? "";
 }
-function IconCheck({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M20 6L9 17l-5-5" />
-    </svg>
-  );
-}
-function IconPencil({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
-    </svg>
-  );
+
+function getPalierProgress(words: number): { current: number; palier: number; pct: number } {
+  const paliers = [100, 500, 1000];
+  let palier = 100;
+  let prev = 0;
+  for (const p of paliers) {
+    if (words < p) {
+      palier = p;
+      break;
+    }
+    prev = p;
+    palier = p;
+  }
+  if (words >= 1000) {
+    return { current: words, palier: 1000, pct: 100 };
+  }
+  const range = palier - prev;
+  const pct = range > 0 ? Math.min(100, ((words - prev) / range) * 100) : 100;
+  return { current: words, palier, pct };
 }
 
 export function JardinClient() {
-  const searchParams = useSearchParams();
-  const periodFromUrl = searchParams.get("period")?.trim() as SynthesePeriod | null;
-  const initialPeriod = periodFromUrl && validPeriods.includes(periodFromUrl) ? periodFromUrl : "week";
-
-  const [period, setPeriodState] = useState<SynthesePeriod>(initialPeriod);
-  const [selectedLanguages, setSelectedLanguages] = useState<Set<string>>(new Set());
   const [data, setData] = useState<SyntheseData | null>(null);
+  const [streak, setStreak] = useState<number>(0);
+  const [userName, setUserName] = useState<string>("");
   const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [loading, setLoading] = useState(true);
-
-  const setPeriod = useCallback((p: SynthesePeriod) => {
-    setPeriodState(p);
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("period", p);
-    window.history.replaceState(null, "", `?${params.toString()}`);
-  }, [searchParams]);
-
-  useEffect(() => {
-    const p = periodFromUrl && validPeriods.includes(periodFromUrl) ? periodFromUrl : "week";
-    setPeriodState(p);
-  }, [periodFromUrl]);
+  const [chartPeriod, setChartPeriod] = useState<ChartPeriod>("7j");
+  const [claudeMessage, setClaudeMessage] = useState<string | null>(null);
+  const [claudeLoading, setClaudeLoading] = useState(false);
 
   const fetchSynthese = useCallback(async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({ period });
-      if (selectedLanguages.size > 0) {
-        params.set("languages", Array.from(selectedLanguages).join(","));
-      }
-      const res = await fetch(`/api/synthese?${params}`);
+      const res = await fetch("/api/synthese?period=all");
       const json = await res.json().catch(() => ({}));
       if (res.ok) setData(json);
       else setData(null);
     } finally {
       setLoading(false);
     }
-  }, [period, selectedLanguages]);
+  }, []);
 
   useEffect(() => {
     fetchSynthese();
   }, [fetchSynthese]);
+
+  useEffect(() => {
+    fetch("/api/streak")
+      .then((r) => r.json())
+      .then((d) => setStreak(d.currentStreak ?? 0))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    fetch("/api/user/profile")
+      .then((r) => r.json())
+      .then((d) => {
+        const name = [d.firstName, d.lastName].filter(Boolean).join(" ").trim();
+        setUserName(name || "Apprenant");
+      })
+      .catch(() => setUserName("Apprenant"));
+  }, []);
 
   useEffect(() => {
     fetch("/api/user/preferences")
@@ -140,191 +197,296 @@ export function JardinClient() {
       .catch(() => {});
   }, []);
 
-  const toggleLanguage = (code: string) => {
-    setSelectedLanguages((prev) => {
-      const next = new Set(prev);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
-  };
+  useEffect(() => {
+    if (!data) return;
+    setClaudeLoading(true);
+    const wordsThisWeek = getWordsThisWeek(data.sessionsByDay);
+    const mainLang = getMainLanguage(data.wordsByLanguage);
+    fetch("/api/synthese/message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        streak,
+        wordsThisWeek,
+        mainLanguage: mainLang,
+      }),
+    })
+      .then((r) => r.json())
+      .then((d) => setClaudeMessage(d.message ?? null))
+      .catch(() => setClaudeMessage(null))
+      .finally(() => setClaudeLoading(false));
+  }, [data, streak]);
 
-  const calendarDays = getCalendarDays(period, data?.sessionsByDay ?? {});
   const totalSessions = data
     ? Object.values(data.sessionsByDay).reduce((acc, d) => acc + d.count, 0)
     : 0;
-  const avatarStateNum = data ? (Math.min(5, Math.max(1, data.avatarState)) as 1 | 2 | 3 | 4 | 5) : 1;
+  const avatarStateNum = data
+    ? (Math.min(5, Math.max(1, data.avatarState)) as 1 | 2 | 3 | 4 | 5)
+    : 1;
+  const chartData = data ? getChartData(chartPeriod, data.sessionsByDay) : [];
+  const wordsByLang = Object.fromEntries(
+    Object.entries(data?.wordsByLanguage ?? {}).filter(
+      ([k]) => k && k !== "unknown"
+    )
+  );
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <BackLink href="/app" />
 
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-3xl">
+      <header className="text-center">
+        <h1 className="text-3xl font-bold tracking-tight text-slate-800 dark:text-slate-100 sm:text-4xl">
           Synthèse
         </h1>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Vue d’ensemble de ta progression et de ton activité.
+        <p className="mt-2 text-slate-500 dark:text-slate-400">
+          Ta progression en un coup d&apos;œil
         </p>
       </header>
 
-      {/* Barre période + langues */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
-          {(Object.keys(PERIOD_LABELS) as SynthesePeriod[]).map((p) => (
-            <button
-              key={p}
-              type="button"
-              onClick={() => setPeriod(p)}
-              className={`rounded-full px-4 py-2 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-p3-turquoise focus-visible:ring-offset-2 ${
-                period === p
-                  ? "bg-p3-turquoise text-white shadow-sm dark:bg-p3-turquoise/90 dark:text-slate-900"
-                  : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600"
-              }`}
-            >
-              {PERIOD_LABELS[p]}
-            </button>
-          ))}
-        </div>
-        {data && data.languagesAvailable.length > 0 && (
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Langues :
-            </span>
-            {data.languagesAvailable.map((code) => (
-              <button
-                key={code}
-                type="button"
-                onClick={() => toggleLanguage(code)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-p3-turquoise focus-visible:ring-offset-2 ${
-                  selectedLanguages.has(code)
-                    ? "bg-p3-turquoise/20 text-p3-turquoise dark:bg-p3-turquoise/30 dark:text-p3-turquoise"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600"
-                }`}
-              >
-                {langLabel(code)}
-              </button>
-            ))}
-            <span className="text-xs text-slate-400 dark:text-slate-500">
-              {selectedLanguages.size === 0 ? "Toutes" : ""}
-            </span>
-          </div>
-        )}
-      </div>
-
       {loading && !data ? (
-        <div className="space-y-6">
+        <div className="space-y-8">
+          <div className="flex justify-center">
+            <div className="h-24 w-24 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
+          </div>
+          <div className="h-24 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className="h-28 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700"
-                aria-hidden
+                className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700"
               />
             ))}
           </div>
-          <div className="h-48 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" aria-hidden />
         </div>
       ) : data ? (
         <>
-          {/* Bloc hero : avatar + message + paramètres */}
-          <section className="rounded-2xl border border-slate-200 bg-gradient-to-br from-p3-turquoise/5 to-transparent p-6 dark:border-slate-600 dark:from-p3-turquoise/10">
-            <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div className="flex flex-col items-center gap-3 text-center sm:text-left">
-                <SyntheseAvatar
-                  state={avatarStateNum}
-                  type={avatarType}
-                  showLabel
-                />
-                <p className="max-w-sm text-sm text-slate-600 dark:text-slate-400">
-                  {ENCOURAGEMENT[avatarStateNum]}
-                </p>
+          {/* Avatar centré + nom + niveau */}
+          <section className="flex flex-col items-center gap-4">
+            <div className="scale-125">
+              <SyntheseAvatar
+                state={avatarStateNum}
+                type={avatarType}
+                showLabel
+              />
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                {userName}
+              </p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Niveau {avatarStateNum}
+              </p>
+            </div>
+            <Link
+              href="/app/parametres"
+              className="text-sm text-slate-500 underline decoration-slate-300 hover:text-[#6C3FC8] hover:decoration-[#6C3FC8] dark:text-slate-400"
+            >
+              Changer l&apos;avatar
+            </Link>
+          </section>
+
+          {/* Message Claude */}
+          <section
+            className="rounded-xl border border-slate-200 p-4 dark:border-slate-600"
+            style={{ backgroundColor: VIOLET_BG, borderLeftWidth: 4, borderLeftColor: VIOLET }}
+          >
+            <div className="flex gap-3">
+              <span className="text-xl" aria-hidden>✨</span>
+              <div className="min-w-0 flex-1">
+                {claudeLoading ? (
+                  <div className="space-y-2">
+                    <div className="h-4 w-full animate-pulse rounded bg-slate-300/50" />
+                    <div className="h-4 w-4/5 animate-pulse rounded bg-slate-300/50" />
+                  </div>
+                ) : claudeMessage ? (
+                  <p className="text-slate-700 dark:text-slate-300">
+                    {claudeMessage}
+                  </p>
+                ) : (
+                  <p className="text-slate-500 dark:text-slate-400">
+                    Lance des sessions pour recevoir un message personnalisé !
+                  </p>
+                )}
               </div>
-              <Link
-                href="/app/parametres"
-                className="text-sm text-slate-500 underline decoration-slate-300 hover:text-p3-turquoise hover:decoration-p3-turquoise dark:text-slate-400 dark:decoration-slate-600"
-              >
-                Changer l’avatar (arbre, phénix, koala)
-              </Link>
             </div>
           </section>
 
-          {/* KPIs */}
+          {/* 4 cartes métriques */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-p3-turquoise/10 text-p3-turquoise dark:bg-p3-turquoise/20">
-                <IconClock className="h-6 w-6" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  Temps passé
-                </p>
-                <p className="mt-0.5 text-xl font-bold text-slate-800 dark:text-slate-100">
-                  {formatDuration(data.totalDurationSeconds)}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-p3-turquoise/10 text-p3-turquoise dark:bg-p3-turquoise/20">
-                <IconPlay className="h-6 w-6" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  Sessions
-                </p>
-                <p className="mt-0.5 text-xl font-bold text-slate-800 dark:text-slate-100">
-                  {totalSessions}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-p3-turquoise/10 text-p3-turquoise dark:bg-p3-turquoise/20">
-                <IconCheck className="h-6 w-6" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  Mots mémorisés
-                </p>
-                <p className="mt-0.5 text-xl font-bold text-slate-800 dark:text-slate-100">
-                  {data.wordsRetained}
-                </p>
-              </div>
-            </div>
-            <div className="flex gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-p3-turquoise/10 text-p3-turquoise dark:bg-p3-turquoise/20">
-                <IconPencil className="h-6 w-6" />
-              </span>
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                  Mots écrits
-                </p>
-                <p className="mt-0.5 text-xl font-bold text-slate-800 dark:text-slate-100">
-                  {data.wordsWritten}
-                </p>
-              </div>
-            </div>
+            <MetricCard
+              icon="⏱️"
+              label="Temps total de révision"
+              value={formatDuration(data.totalDurationSeconds)}
+              borderColor="#f59e0b"
+            />
+            <MetricCard
+              icon="🎯"
+              label="Sessions complétées"
+              value={String(totalSessions)}
+              borderColor="#10b981"
+            />
+            <MetricCard
+              icon="📚"
+              label="Mots mémorisés"
+              value={String(data.wordsRetained)}
+              borderColor="#3b82f6"
+            />
+            <MetricCard
+              icon="✍️"
+              label="Mots écrits"
+              value={String(data.wordsWritten)}
+              borderColor="#f43f5e"
+            />
           </div>
 
-          {/* Activité : heatmap lisible */}
-          {calendarDays.length > 0 && (
-            <ActiviteSection
-              period={period}
-              calendarDays={calendarDays}
-              formatDuration={formatDuration}
-            />
+          {/* Graphique de progression */}
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                Progression
+              </h2>
+              <div className="flex gap-2">
+                {(["7j", "30j", "3m"] as const).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setChartPeriod(p)}
+                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 ${
+                      chartPeriod === p
+                        ? "bg-[#6C3FC8] text-white"
+                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
+                    }`}
+                  >
+                    {p === "7j" ? "7 jours" : p === "30j" ? "30 jours" : "3 mois"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="h-64">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis
+                    dataKey="label"
+                    tick={{ fontSize: 12 }}
+                    stroke="#64748b"
+                  />
+                  <YAxis
+                    tick={{ fontSize: 12 }}
+                    stroke="#64748b"
+                    allowDecimals={false}
+                  />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "white",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: 8,
+                    }}
+                    formatter={(value) => [`${value ?? 0} mots`, "Mots révisés"]}
+                    labelFormatter={(_label, payload) =>
+                      payload?.[0]?.payload?.date ?? ""
+                    }
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="mots"
+                    stroke={VIOLET}
+                    strokeWidth={2}
+                    dot={{ fill: VIOLET, r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </section>
+
+          {/* Progression par langue */}
+          {Object.keys(wordsByLang).length > 0 && (
+            <section className="space-y-4">
+              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+                Progression par langue
+              </h2>
+              <div className="grid gap-4 sm:grid-cols-2">
+                {Object.entries(wordsByLang).map(([code, stats]) => {
+                  const { current, palier, pct } = getPalierProgress(
+                    stats.wordsRetained ?? 0
+                  );
+                  return (
+                    <div
+                      key={code}
+                      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-800"
+                    >
+                      <div className="flex items-center gap-2">
+                        <FlagDisplay langCode={code} size={24} />
+                        <span className="font-medium text-slate-800 dark:text-slate-100">
+                          {langLabel(code)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                        {current} mots appris · prochain palier : {palier}
+                      </p>
+                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                        <div
+                          className="h-full rounded-full transition-all"
+                          style={{
+                            width: `${pct}%`,
+                            backgroundColor: VIOLET,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
           )}
+
+          {/* Badges */}
+          <section className="space-y-4">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+              Tes badges 🏆
+            </h2>
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+              {BADGES.map((badge) => {
+                const earned = badge.check(data, streak);
+                return (
+                  <div
+                    key={badge.id}
+                    className={`flex flex-col items-center gap-2 rounded-xl border p-4 text-center ${
+                      earned
+                        ? "border-[#6C3FC8]/30 bg-[#F3EEFF] dark:bg-[#6C3FC8]/10"
+                        : "border-slate-200 bg-slate-50 opacity-60 dark:border-slate-600 dark:bg-slate-800/50"
+                    }`}
+                  >
+                    <span className="text-2xl">
+                      {earned ? badge.emoji : "🔒"}
+                    </span>
+                    <span
+                      className={`text-sm font-medium ${
+                        earned
+                          ? "text-slate-800 dark:text-slate-100"
+                          : "text-slate-500 dark:text-slate-400"
+                      }`}
+                    >
+                      {badge.label}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
         </>
       ) : (
         <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center dark:border-slate-600 dark:bg-slate-800/50">
           <p className="text-slate-600 dark:text-slate-400">
-            Aucune activité sur cette période.
+            Aucune activité pour le moment.
           </p>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">
-            Lance une session d’évaluation pour voir ta progression ici.
+            Lance une session d&apos;évaluation pour voir ta progression ici.
           </p>
           <Link
             href="/app/revision"
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-p3-turquoise px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-p3-turquoise/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-p3-turquoise focus-visible:ring-offset-2 dark:text-slate-900"
+            className="mt-6 inline-flex items-center justify-center rounded-full bg-[#6C3FC8] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#5a35b0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
           >
             Commencer une session
           </Link>
@@ -334,266 +496,31 @@ export function JardinClient() {
   );
 }
 
-type CalendarDay = {
-  dateKey: string;
-  label: string;
-  count: number;
-  durationSeconds: number;
-  /** Pour la vue mois : numéro du jour (1-31) ou 0 si padding */
-  dayNum?: number;
-  /** Pour la vue mois : libellé court (ex. "Lun") */
-  weekdayLabel?: string;
-};
-
-function ActiviteSection({
-  period,
-  calendarDays,
-  formatDuration,
+function MetricCard({
+  icon,
+  label,
+  value,
+  borderColor,
 }: {
-  period: SynthesePeriod;
-  calendarDays: CalendarDay[];
-  formatDuration: (s: number) => string;
+  icon: string;
+  label: string;
+  value: string;
+  borderColor: string;
 }) {
-  const maxDur = Math.max(...calendarDays.map((d) => d.durationSeconds), 1);
-  const cols = period === "year" ? 12 : 7;
-
-  const getLevel = (durationSeconds: number) => {
-    if (durationSeconds === 0) return 0;
-    const intensity = durationSeconds / maxDur;
-    if (intensity > 0.75) return 4;
-    if (intensity > 0.5) return 3;
-    if (intensity > 0.25) return 2;
-    return 1;
-  };
-
-  const getTooltip = (d: CalendarDay) => {
-    if (d.durationSeconds === 0 && d.count === 0) {
-      return period === "year" ? d.label : `${d.label} — Aucune révision`;
-    }
-    return `${d.label} — ${d.count} session${d.count !== 1 ? "s" : ""}, ${formatDuration(d.durationSeconds)}`;
-  };
-
   return (
-    <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-600 dark:bg-slate-800">
-      <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">
-        Activité
-      </h2>
-      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        {period === "year"
-          ? "Chaque carré = un mois. Plus c'est foncé, plus tu as révisé ce mois-là."
-          : period === "all"
-            ? "Chaque carré = un jour (35 derniers jours). Plus c'est foncé, plus tu as révisé ce jour-là."
-            : "Chaque carré = un jour. Plus c'est foncé, plus tu as passé de temps à réviser ce jour-là."}
+    <div
+      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800"
+      style={{ borderLeftWidth: 4, borderLeftColor: borderColor }}
+    >
+      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+        {icon} {label}
       </p>
-
-      {/* En-têtes des jours de la semaine pour la vue mois */}
-      {period === "month" && (
-        <div className="mt-4 grid grid-cols-7 gap-1.5">
-          {["Lun", "Mar", "Mer", "Jeu", "Ven", "Sam", "Dim"].map((w) => (
-            <div
-              key={w}
-              className="flex aspect-square items-center justify-center rounded-md text-xs font-medium text-slate-400 dark:text-slate-500"
-            >
-              {w}
-            </div>
-          ))}
-        </div>
-      )}
-
-      <div
-        className={`grid gap-1.5 ${period === "month" ? "mt-1.5" : "mt-4"}`}
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
+      <p
+        className="mt-2 text-2xl font-bold"
+        style={{ color: VIOLET }}
       >
-        {calendarDays.map((d) => {
-          const level = getLevel(d.durationSeconds);
-          const isEmpty = d.durationSeconds === 0 && d.count === 0;
-          return (
-            <div
-              key={d.dateKey}
-              title={getTooltip(d)}
-              className={`flex aspect-square flex-col items-center justify-center rounded-lg text-center transition ${
-                level === 0
-                  ? "bg-slate-100 dark:bg-slate-700/50"
-                  : level === 1
-                    ? "bg-p3-turquoise/25 text-slate-700 dark:bg-p3-turquoise/20 dark:text-slate-300"
-                    : level === 2
-                      ? "bg-p3-turquoise/45 text-slate-800 dark:bg-p3-turquoise/35 dark:text-slate-200"
-                      : level === 3
-                        ? "bg-p3-turquoise/65 text-slate-900 dark:bg-p3-turquoise/55 dark:text-slate-100"
-                        : "bg-p3-turquoise text-white dark:bg-p3-turquoise/90 dark:text-slate-900"
-              }`}
-            >
-              <span className="text-xs font-medium">
-                {period === "day"
-                  ? (d.label || "Auj.")
-                  : period === "week"
-                    ? d.label
-                    : period === "month"
-                      ? (d.dayNum && d.dayNum > 0 ? String(d.dayNum) : "")
-                      : d.label}
-              </span>
-              {!isEmpty && period !== "year" && (
-                <span className="mt-0.5 text-[10px] font-medium opacity-90">
-                  {d.durationSeconds < 60
-                    ? `${d.durationSeconds}s`
-                    : `${Math.floor(d.durationSeconds / 60)} min`}
-                </span>
-              )}
-              {!isEmpty && period === "year" && (
-                <span className="mt-0.5 text-[10px] font-medium opacity-90">
-                  {formatDuration(d.durationSeconds)}
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 pt-4 dark:border-slate-600">
-        <p className="text-xs text-slate-500 dark:text-slate-400">
-          <span className="font-medium">Légende :</span> plus le carré est foncé, plus le temps de révision est important. Passe la souris sur un carré pour voir le détail.
-        </p>
-        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-          <span>Moins</span>
-          <span className="flex gap-0.5">
-            {[0, 1, 2, 3, 4].map((level) => (
-              <span
-                key={level}
-                className={`inline-block h-3 w-3 rounded ${
-                  level === 0
-                    ? "bg-slate-100 dark:bg-slate-700/50"
-                    : level === 1
-                      ? "bg-p3-turquoise/25"
-                      : level === 2
-                        ? "bg-p3-turquoise/45"
-                        : level === 3
-                          ? "bg-p3-turquoise/65"
-                          : "bg-p3-turquoise"
-                }`}
-                aria-hidden
-              />
-            ))}
-          </span>
-          <span>Plus</span>
-        </div>
-      </div>
-    </section>
+        {value}
+      </p>
+    </div>
   );
-}
-
-function getCalendarDays(
-  period: SynthesePeriod,
-  sessionsByDay: Record<string, { count: number; durationSeconds: number }>
-): CalendarDay[] {
-  const now = new Date();
-  const out: CalendarDay[] = [];
-  const weekdays = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"];
-
-  if (period === "day") {
-    const today = now.toISOString().slice(0, 10);
-    const s = sessionsByDay[today] ?? { count: 0, durationSeconds: 0 };
-    out.push({
-      dateKey: today,
-      label: "Aujourd'hui",
-      count: s.count,
-      durationSeconds: s.durationSeconds,
-    });
-    return out;
-  }
-
-  if (period === "week") {
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      const dateKey = d.toISOString().slice(0, 10);
-      const dayLabel = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][d.getDay()];
-      const dayNum = d.getDate();
-      const isToday = i === 0;
-      const s = sessionsByDay[dateKey] ?? { count: 0, durationSeconds: 0 };
-      out.push({
-        dateKey,
-        label: isToday ? "Auj." : `${dayLabel} ${dayNum}`,
-        count: s.count,
-        durationSeconds: s.durationSeconds,
-      });
-    }
-    return out;
-  }
-
-  if (period === "month") {
-    const year = now.getFullYear();
-    const month = now.getMonth();
-    const first = new Date(year, month, 1);
-    const last = new Date(now);
-    const firstWeekday = (first.getDay() + 6) % 7; // Lun = 0
-    for (let i = 0; i < firstWeekday; i++) {
-      out.push({
-        dateKey: `pad-${i}`,
-        label: "",
-        count: 0,
-        durationSeconds: 0,
-        dayNum: 0,
-      });
-    }
-    for (let d = new Date(first); d <= last; d.setDate(d.getDate() + 1)) {
-      const dateKey = d.toISOString().slice(0, 10);
-      const s = sessionsByDay[dateKey] ?? { count: 0, durationSeconds: 0 };
-      const dayNum = d.getDate();
-      const weekdayLabel = weekdays[d.getDay()];
-      out.push({
-        dateKey,
-        label: `${weekdayLabel} ${dayNum}`,
-        count: s.count,
-        durationSeconds: s.durationSeconds,
-        dayNum,
-        weekdayLabel,
-      });
-    }
-    return out;
-  }
-
-  if (period === "year") {
-    const monthNames = [
-      "Janv", "Fév", "Mars", "Avr", "Mai", "Juin",
-      "Juil", "Août", "Sept", "Oct", "Nov", "Déc",
-    ];
-    for (let m = 0; m < 12; m++) {
-      const d = new Date(now.getFullYear(), m, 1);
-      const dateKey = d.toISOString().slice(0, 7);
-      let count = 0;
-      let durationSeconds = 0;
-      for (const [key, s] of Object.entries(sessionsByDay)) {
-        if (key.startsWith(dateKey)) {
-          count += s.count;
-          durationSeconds += s.durationSeconds;
-        }
-      }
-      out.push({
-        dateKey,
-        label: monthNames[m],
-        count,
-        durationSeconds,
-      });
-    }
-    return out;
-  }
-
-  if (period === "all") {
-    const keys = Object.keys(sessionsByDay).sort();
-    const recent = keys.slice(-35);
-    for (const dateKey of recent) {
-      const s = sessionsByDay[dateKey] ?? { count: 0, durationSeconds: 0 };
-      const d = new Date(dateKey);
-      const dayLabel = ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][d.getDay()];
-      out.push({
-        dateKey,
-        label: `${dayLabel} ${d.getDate()}/${d.getMonth() + 1}`,
-        count: s.count,
-        durationSeconds: s.durationSeconds,
-      });
-    }
-    return out;
-  }
-
-  return out;
 }

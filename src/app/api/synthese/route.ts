@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { revisionSessions } from "@/lib/db/schema";
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
 
-export type SynthesePeriod = "day" | "week" | "month" | "year" | "all";
+export type SynthesePeriod = "day" | "week" | "month" | "3months" | "year" | "all";
 
 function periodBounds(period: SynthesePeriod): { start: Date; end: Date } {
   const end = new Date();
@@ -20,6 +20,11 @@ function periodBounds(period: SynthesePeriod): { start: Date; end: Date } {
   }
   if (period === "month") {
     start.setMonth(start.getMonth() - 1);
+    start.setHours(0, 0, 0, 0);
+    return { start, end };
+  }
+  if (period === "3months") {
+    start.setMonth(start.getMonth() - 2);
     start.setHours(0, 0, 0, 0);
     return { start, end };
   }
@@ -43,7 +48,7 @@ function avatarState(
 ): number {
   if (totalDurationMinutes === 0 && daysWithActivity === 0) return 1;
   const maxDays =
-    period === "day" ? 1 : period === "week" ? 7 : period === "month" ? 30 : period === "year" ? 365 : 9999;
+    period === "day" ? 1 : period === "week" ? 7 : period === "month" ? 30 : period === "3months" ? 90 : period === "year" ? 365 : 9999;
   const regularity = maxDays > 0 ? daysWithActivity / Math.min(maxDays, 30) : 0;
 
   if (totalDurationMinutes >= 60 && regularity >= 0.2) return 5;
@@ -73,7 +78,7 @@ export async function GET(request: Request) {
       ? languagesParam.split(",").map((s) => s.trim()).filter(Boolean)
       : null;
 
-  const validPeriods: SynthesePeriod[] = ["day", "week", "month", "year", "all"];
+  const validPeriods: SynthesePeriod[] = ["day", "week", "month", "3months", "year", "all"];
   const periodFilter = validPeriods.includes(period) ? period : "week";
   const { start: periodStart, end: periodEnd } = periodBounds(periodFilter);
 
@@ -103,7 +108,8 @@ export async function GET(request: Request) {
   let totalDurationSeconds = 0;
   let wordsRetained = 0;
   let wordsWritten = 0;
-  const sessionsByDay: Record<string, { count: number; durationSeconds: number }> = {};
+  const sessionsByDay: Record<string, { count: number; durationSeconds: number; wordsRetained: number }> = {};
+  const wordsByLanguage: Record<string, { wordsRetained: number; wordsWritten: number }> = {};
   for (const r of rows) {
     totalDurationSeconds += r.durationSeconds ?? 0;
     wordsRetained += r.wordsRetained ?? 0;
@@ -113,11 +119,18 @@ export async function GET(request: Request) {
       : "";
     if (dayKey) {
       if (!sessionsByDay[dayKey]) {
-        sessionsByDay[dayKey] = { count: 0, durationSeconds: 0 };
+        sessionsByDay[dayKey] = { count: 0, durationSeconds: 0, wordsRetained: 0 };
       }
       sessionsByDay[dayKey].count += 1;
       sessionsByDay[dayKey].durationSeconds += r.durationSeconds ?? 0;
+      sessionsByDay[dayKey].wordsRetained += r.wordsRetained ?? 0;
     }
+    const lang = r.language ?? "unknown";
+    if (!wordsByLanguage[lang]) {
+      wordsByLanguage[lang] = { wordsRetained: 0, wordsWritten: 0 };
+    }
+    wordsByLanguage[lang].wordsRetained += r.wordsRetained ?? 0;
+    wordsByLanguage[lang].wordsWritten += r.wordsWritten ?? 0;
   }
 
   const daysWithActivity = Object.keys(sessionsByDay).length;
@@ -137,6 +150,7 @@ export async function GET(request: Request) {
     wordsWritten,
     languagesAvailable,
     sessionsByDay,
+    wordsByLanguage,
     avatarState: state,
   });
 }

@@ -2,7 +2,18 @@
 
 import Link from "next/link";
 
-const cards = [
+type EvaluationCard = {
+  id: string;
+  href: string;
+  icon: string;
+  title: string;
+  description: string;
+  gradient: string;
+  enabled: boolean;
+  badge?: string;
+};
+
+const cards: EvaluationCard[] = [
   {
     id: "flashcards",
     href: "/app/revision/flashcards",
@@ -31,7 +42,7 @@ const cards = [
     enabled: false,
     badge: "Bientôt",
   },
-] as const;
+];
 
 export function EvaluationLanding() {
   return (
