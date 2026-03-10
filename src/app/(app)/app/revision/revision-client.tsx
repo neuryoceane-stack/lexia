@@ -836,6 +836,7 @@ export function RevisionClient({
             {current && (
               <div
                 className="touch-pan-y select-none rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-lg dark:border-slate-600 dark:bg-slate-800"
+                style={{ touchAction: "pan-y" }}
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
                 onKeyDown={(e) => {
@@ -876,6 +877,7 @@ export function RevisionClient({
                     <button
                       type="button"
                       onClick={() => setRevealed(true)}
+                      style={{ touchAction: "manipulation", cursor: "pointer" }}
                       className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:border-primary hover:bg-primary/5 hover:text-primary dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:border-primary-light dark:hover:bg-primary/10"
                     >
                       Révéler la traduction
@@ -899,6 +901,7 @@ export function RevisionClient({
                       type="button"
                       onClick={() => recordReviewRating(0)}
                       disabled={sending}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       className="flex items-center gap-2 rounded-lg border-2 border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
                       aria-label="Oublié"
                     >
@@ -908,6 +911,7 @@ export function RevisionClient({
                       type="button"
                       onClick={() => recordReviewRating(1)}
                       disabled={sending}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       className="flex items-center gap-2 rounded-lg border-2 border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200 dark:hover:bg-amber-900/30"
                       aria-label="Difficile"
                     >
@@ -917,6 +921,7 @@ export function RevisionClient({
                       type="button"
                       onClick={() => recordReviewRating(2)}
                       disabled={sending}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       className="flex items-center gap-2 rounded-lg border-2 border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
                       aria-label="Bien"
                     >
@@ -926,6 +931,7 @@ export function RevisionClient({
                       type="button"
                       onClick={() => recordReviewRating(3)}
                       disabled={sending}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       className="flex items-center gap-2 rounded-lg border-2 border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-100 disabled:opacity-50 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/30"
                       aria-label="Parfait"
                     >
@@ -938,6 +944,7 @@ export function RevisionClient({
                       type="button"
                       onClick={() => handleSwipe(false)}
                       disabled={sending}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-red-200 bg-white text-red-500 shadow hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:bg-slate-800 dark:hover:bg-red-900/20"
                       aria-label="Oublié"
                     >
@@ -949,6 +956,7 @@ export function RevisionClient({
                       type="button"
                       onClick={() => handleSwipe(true)}
                       disabled={sending}
+                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-green-200 bg-white text-green-600 shadow hover:bg-green-50 disabled:opacity-50 dark:border-green-800 dark:bg-slate-800 dark:hover:bg-green-900/20"
                       aria-label="Bien"
                     >
