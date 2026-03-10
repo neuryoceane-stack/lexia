@@ -101,6 +101,12 @@ export function RevisionClient({
   const [endSessionDurationSeconds, setEndSessionDurationSeconds] = useState(0);
   const current = words[index];
 
+  // État de swipe pour les flashcards (déclaré au niveau racine pour respecter les règles des Hooks)
+  const [swipeOffset, setSwipeOffset] = useState(0);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
+  const [isAnimatingSwipe, setIsAnimatingSwipe] = useState(false);
+  const [swipeBadge, setSwipeBadge] = useState<"good" | "bad" | null>(null);
+
   const displaySide = direction === "term_to_def" ? "term" : "definition";
   const answerSide = direction === "term_to_def" ? "definition" : "term";
   const displayText = current
