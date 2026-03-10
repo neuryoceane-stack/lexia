@@ -44,35 +44,42 @@ export function MotsSauvagesSource({
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8">
+    <div className="mx-auto max-w-5xl px-4 py-8 bg-white">
       <button
         type="button"
         onClick={() => router.back()}
-        className="mb-6 text-slate-400 transition hover:text-white"
+        className="mb-6 text-sm font-medium text-slate-500 transition hover:text-slate-700"
       >
         ← Retour
       </button>
 
-      <h1 className="animate-pulse bg-gradient-to-r from-[#6C3FC8] via-[#8B5CF6] to-[#F5A623] bg-clip-text text-3xl font-bold text-transparent md:text-4xl">
-        Mots Sauvages 🌿
-      </h1>
-      <p className="mt-2 text-slate-400">
-        Découvre des mots depuis tes vraies lectures, musiques et vidéos
-      </p>
+      {/* Header */}
+      <header>
+        <h1 className="bg-gradient-to-r from-[#6C3FC8] via-[#8B5CF6] to-[#F5A623] bg-clip-text text-3xl font-bold text-transparent md:text-4xl">
+          Mots Sauvages 🌿
+        </h1>
+        <p className="mt-2 text-sm text-slate-600 md:text-base">
+          Découvre des mots depuis tes vraies lectures, musiques et vidéos
+        </p>
+      </header>
 
+      {/* Cartes sources */}
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {/* Carte 1 — PDF */}
         <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-1 hover:border-[#8B5CF6]"
+          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
           style={{
-            backgroundColor: "#1e1b4b",
+            backgroundColor: "#F3EEFF",
             border: "1px solid #6C3FC8",
-            boxShadow: "0 10px 40px rgba(108, 63, 200, 0.2)",
           }}
         >
-          <span className="text-[48px] leading-none" aria-hidden>📄</span>
-          <h2 className="mt-4 text-lg font-bold text-white">PDF</h2>
-          <p className="mt-2 flex-1 text-sm text-white/90">Importe un fichier PDF</p>
+          <span className="text-[48px] leading-none" aria-hidden>
+            📄
+          </span>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">PDF</h2>
+          <p className="mt-2 flex-1 text-sm text-slate-600">
+            Importe un fichier PDF
+          </p>
           <input
             ref={fileInputRef}
             type="file"
@@ -88,7 +95,7 @@ export function MotsSauvagesSource({
             type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={extractLoading}
-            className="mt-4 w-fit rounded-lg bg-[#6C3FC8] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#8B5CF6] disabled:opacity-50"
+            className="mt-4 w-fit rounded-full bg-[#6C3FC8] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#5b34b0] disabled:opacity-50"
           >
             Choisir un PDF
           </button>
@@ -96,16 +103,21 @@ export function MotsSauvagesSource({
 
         {/* Carte 2 — Prendre une photo */}
         <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-1 hover:border-[#F5A623]"
+          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
           style={{
-            backgroundColor: "#1a1200",
+            backgroundColor: "#FFF8EC",
             border: "1px solid #F5A623",
-            boxShadow: "0 10px 40px rgba(245, 166, 35, 0.2)",
           }}
         >
-          <span className="text-[48px] leading-none" aria-hidden>📷</span>
-          <h2 className="mt-4 text-lg font-bold text-white">Prendre une photo</h2>
-          <p className="mt-2 flex-1 text-sm text-white/90">Ouvre l&apos;appareil photo</p>
+          <span className="text-[48px] leading-none" aria-hidden>
+            📷
+          </span>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">
+            Prendre une photo
+          </h2>
+          <p className="mt-2 flex-1 text-sm text-slate-600">
+            Ouvre l&apos;appareil photo
+          </p>
           <input
             ref={cameraInputRef}
             type="file"
@@ -118,7 +130,7 @@ export function MotsSauvagesSource({
             type="button"
             onClick={() => cameraInputRef.current?.click()}
             disabled={extractLoading}
-            className="mt-4 w-fit rounded-lg bg-[#F5A623] px-4 py-2.5 text-sm font-medium text-slate-900 transition hover:bg-[#F97316] disabled:opacity-50"
+            className="mt-4 w-fit rounded-full bg-[#F5A623] px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-[#F97316] disabled:opacity-50"
           >
             Prendre une photo
           </button>
@@ -126,16 +138,21 @@ export function MotsSauvagesSource({
 
         {/* Carte 3 — Importer une image */}
         <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-1 hover:border-[#34D399]"
+          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
           style={{
-            backgroundColor: "#0d1f1a",
+            backgroundColor: "#EDFDF6",
             border: "1px solid #10B981",
-            boxShadow: "0 10px 40px rgba(16, 185, 129, 0.2)",
           }}
         >
-          <span className="text-[48px] leading-none" aria-hidden>🖼️</span>
-          <h2 className="mt-4 text-lg font-bold text-white">Importer une image</h2>
-          <p className="mt-2 flex-1 text-sm text-white/90">Depuis ta galerie</p>
+          <span className="text-[48px] leading-none" aria-hidden>
+            🖼️
+          </span>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">
+            Importer une image
+          </h2>
+          <p className="mt-2 flex-1 text-sm text-slate-600">
+            Depuis ta galerie
+          </p>
           <input
             ref={imageInputRef}
             type="file"
@@ -147,7 +164,7 @@ export function MotsSauvagesSource({
             type="button"
             onClick={() => imageInputRef.current?.click()}
             disabled={extractLoading}
-            className="mt-4 w-fit rounded-lg bg-[#10B981] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#059669] disabled:opacity-50"
+            className="mt-4 w-fit rounded-full bg-[#10B981] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#059669] disabled:opacity-50"
           >
             Choisir une image
           </button>
@@ -155,31 +172,36 @@ export function MotsSauvagesSource({
 
         {/* Carte 4 — Lien URL */}
         <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-1 hover:border-[#60A5FA]"
+          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
           style={{
-            backgroundColor: "#0f172a",
+            backgroundColor: "#EFF6FF",
             border: "1px solid #3B82F6",
-            boxShadow: "0 10px 40px rgba(59, 130, 246, 0.2)",
           }}
         >
           <div className="flex items-start justify-between gap-2">
-            <span className="text-[48px] leading-none" aria-hidden>🔗</span>
-            <span className="rounded-full bg-[#3B82F6]/90 px-2.5 py-0.5 text-xs font-medium text-white">Nouveau</span>
+            <span className="text-[48px] leading-none" aria-hidden>
+              🔗
+            </span>
+            <span className="rounded-full bg-[#3B82F6]/10 px-2.5 py-0.5 text-xs font-medium text-[#1D4ED8]">
+              Nouveau
+            </span>
           </div>
-          <h2 className="mt-4 text-lg font-bold text-white">Lien URL</h2>
-          <p className="mt-2 flex-1 text-sm text-white/90">Colle un lien d&apos;article</p>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">Lien URL</h2>
+          <p className="mt-2 flex-1 text-sm text-slate-600">
+            Colle un lien d&apos;article
+          </p>
           <input
             type="url"
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
             placeholder="https://..."
-            className="mt-3 w-full rounded-lg border border-slate-600 bg-slate-800/50 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+            className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400"
           />
           <button
             type="button"
             onClick={onUrlAnalyze}
             disabled={extractLoading || urlLoading || !urlInput.trim()}
-            className="mt-3 w-fit rounded-lg bg-[#3B82F6] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#60A5FA] disabled:opacity-50"
+            className="mt-3 w-fit rounded-full bg-[#3B82F6] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#2563EB] disabled:opacity-50"
           >
             {urlLoading ? "Analyse…" : "Analyser"}
           </button>
@@ -187,31 +209,38 @@ export function MotsSauvagesSource({
 
         {/* Carte 5 — Chanson */}
         <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-1 hover:border-[#F472B6] sm:col-span-2 lg:col-span-1"
+          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:col-span-2 lg:col-span-1"
           style={{
-            backgroundColor: "#1a0a1a",
+            backgroundColor: "#FDF2F8",
             border: "1px solid #EC4899",
-            boxShadow: "0 10px 40px rgba(236, 72, 153, 0.2)",
           }}
         >
           <div className="flex items-start justify-between gap-2">
-            <span className="text-[48px] leading-none" aria-hidden>🎵</span>
-            <span className="rounded-full bg-[#EC4899]/90 px-2.5 py-0.5 text-xs font-medium text-white">Nouveau</span>
+            <span className="text-[48px] leading-none" aria-hidden>
+              🎵
+            </span>
+            <span className="rounded-full bg-[#EC4899]/10 px-2.5 py-0.5 text-xs font-medium text-[#DB2777]">
+              Nouveau
+            </span>
           </div>
-          <h2 className="mt-4 text-lg font-bold text-white">Rechercher une chanson</h2>
-          <p className="mt-2 flex-1 text-sm text-white/90">Apprends depuis tes musiques préférées</p>
+          <h2 className="mt-4 text-lg font-bold text-slate-900">
+            Rechercher une chanson
+          </h2>
+          <p className="mt-2 flex-1 text-sm text-slate-600">
+            Apprends depuis tes musiques préférées
+          </p>
           <input
             type="text"
             value={songInput}
             onChange={(e) => setSongInput(e.target.value)}
             placeholder="Artiste + titre..."
-            className="mt-3 w-full rounded-lg border border-slate-600 bg-slate-800/50 px-3 py-2 text-sm text-white placeholder:text-slate-500"
+            className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400"
           />
           <button
             type="button"
             onClick={onSongSearch}
             disabled={extractLoading || songLoading || !songInput.trim()}
-            className="mt-3 w-fit rounded-lg bg-[#EC4899] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-[#F472B6] disabled:opacity-50"
+            className="mt-3 w-fit rounded-full bg-[#EC4899] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#DB2777] disabled:opacity-50"
           >
             {songLoading ? "Recherche…" : "Rechercher"}
           </button>
@@ -219,15 +248,17 @@ export function MotsSauvagesSource({
       </div>
 
       {extractLoading && (
-        <div className="mt-6 rounded-lg border border-slate-600 bg-slate-800/50 p-4">
-          <p className="font-medium text-slate-300">Reconnaissance du texte en cours…</p>
-          <p className="mt-1 text-sm text-slate-400">
+        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+          <p className="font-medium text-slate-800">
+            Reconnaissance du texte en cours…
+          </p>
+          <p className="mt-1 text-sm text-slate-600">
             Compte 30 secondes à 1–2 minutes (surtout la première fois : chargement du moteur OCR).
           </p>
         </div>
       )}
       {extractError && (
-        <p className="mt-4 text-sm text-red-400">{extractError}</p>
+        <p className="mt-4 text-sm text-red-600">{extractError}</p>
       )}
     </div>
   );
