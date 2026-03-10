@@ -91,7 +91,6 @@ export function RevisionClient({
   const [prefetchedSessionWords, setPrefetchedSessionWords] = useState<DueWord[] | null>(null);
 
   const touchStartX = useRef(0);
-  const touchStartY = useRef(0);
   const hasSavedEndOfSession = useRef(false);
   /** Évite de déclencher « révéler » au clic quand on vient de faire un swipe (flashcard). */
   const didSwipeRef = useRef(false);
@@ -100,12 +99,6 @@ export function RevisionClient({
   const [showEndRecap, setShowEndRecap] = useState(false);
   const [endSessionDurationSeconds, setEndSessionDurationSeconds] = useState(0);
   const current = words[index];
-
-  // État de swipe pour les flashcards (déclaré au niveau racine pour respecter les règles des Hooks)
-  const [swipeOffset, setSwipeOffset] = useState(0);
-  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
-  const [isAnimatingSwipe, setIsAnimatingSwipe] = useState(false);
-  const [swipeBadge, setSwipeBadge] = useState<"good" | "bad" | null>(null);
 
   const displaySide = direction === "term_to_def" ? "term" : "definition";
   const answerSide = direction === "term_to_def" ? "definition" : "term";
@@ -802,78 +795,25 @@ export function RevisionClient({
     );
 
     if (mode === "flashcard") {
-      const [swipeOffset, setSwipeOffset] = useState(0);
-      const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
-      const [isAnimatingSwipe, setIsAnimatingSwipe] = useState(false);
-      const [swipeBadge, setSwipeBadge] = useState<"good" | "bad" | null>(null);
-
-      const resetSwipeState = () => {
-        setSwipeOffset(0);
-        setSwipeDirection(null);
-        setIsAnimatingSwipe(false);
-        setSwipeBadge(null);
-      };
-
       const handleSwipe = (success: boolean) => {
         if (!current || sending) return;
         didSwipeRef.current = true;
         recordReviewRating(success ? 2 : 0);
-        resetSwipeState();
       };
 
-      const onTouchStart = (e: React.TouchEvent) => {
+      const handleTouchStart = (e: React.TouchEvent) => {
         touchStartX.current = e.touches[0].clientX;
-        touchStartY.current = e.touches[0].clientY;
         didSwipeRef.current = false;
-        setIsAnimatingSwipe(false);
-        setSwipeOffset(0);
-        setSwipeDirection(null);
-        setSwipeBadge(null);
       };
 
-      const onTouchMove = (e: React.TouchEvent) => {
-        const dx = e.touches[0].clientX - touchStartX.current;
-        setSwipeOffset(dx);
-        if (dx > 0) {
-          setSwipeDirection("right");
-          if (Math.abs(dx) > 20) setSwipeBadge("good");
-        } else if (dx < 0) {
-          setSwipeDirection("left");
-          if (Math.abs(dx) > 20) setSwipeBadge("bad");
-        } else {
-          setSwipeDirection(null);
-          setSwipeBadge(null);
-        }
-      };
-      const onTouchEnd = (e: React.TouchEvent) => {
-        const dx = e.changedTouches[0].clientX - touchStartX.current;
-        const dy = e.changedTouches[0].clientY - touchStartY.current;
-        const absDx = Math.abs(dx);
-        const absDy = Math.abs(dy);
-
-        // Tap ou léger swipe vertical : on retourne la carte
-        if (absDx < 10 && absDy < 30) {
-          resetSwipeState();
-          if (didSwipeRef.current) return;
-          setRevealed((r) => !r);
-          return;
-        }
-
-        const threshold = 60;
-        // Swipe horizontal suffisant
-        if (absDx >= threshold && absDx > absDy) {
-          const success = dx > 0;
-          setIsAnimatingSwipe(true);
-          setSwipeDirection(success ? "right" : "left");
-          setSwipeBadge(success ? "good" : "bad");
-          // Envoie la carte hors écran puis enregistre le swipe
-          setSwipeOffset(success ? 400 : -400);
-          setTimeout(() => {
-            handleSwipe(success);
-          }, 200);
-        } else {
-          // Retour à la position initiale si le geste est trop faible
-          resetSwipeState();
+      const handleTouchEnd = (e: React.TouchEvent) => {
+        const touch = e.changedTouches[0];
+        if (!touch) return;
+        const diff = touch.clientX - touchStartX.current;
+        if (diff < -60) {
+          handleSwipe(false);
+        } else if (diff > 60) {
+          handleSwipe(true);
         }
       };
 
@@ -896,9 +836,8 @@ export function RevisionClient({
             {current && (
               <div
                 className="touch-pan-y select-none rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-lg dark:border-slate-600 dark:bg-slate-800"
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
                 onKeyDown={(e) => {
                   if (e.key === " ") {
                     e.preventDefault();
@@ -907,25 +846,7 @@ export function RevisionClient({
                   if (e.key === "ArrowRight") handleSwipe(true);
                   if (e.key === "ArrowLeft") handleSwipe(false);
                 }}
-                style={{
-                  transform: `translateX(${swipeOffset}px) rotate(${swipeOffset * 0.05}deg)`,
-                  transition: isAnimatingSwipe ? "transform 0.2s ease-out" : "transform 0.06s linear",
-                }}
               >
-                {swipeBadge === "good" && (
-                  <div className="pointer-events-none absolute inset-0 flex items-start justify-end p-4">
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700 shadow">
-                      ✓ Bien
-                    </span>
-                  </div>
-                )}
-                {swipeBadge === "bad" && (
-                  <div className="pointer-events-none absolute inset-0 flex items-start justify-start p-4">
-                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 shadow">
-                      ✗ Raté
-                    </span>
-                  </div>
-                )}
                 <button
                   type="button"
                   onClick={onCardClick}
