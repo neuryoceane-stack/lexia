@@ -836,6 +836,11 @@ export function RevisionClient({
               <div
                 className="touch-pan-y select-none rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-lg dark:border-slate-600 dark:bg-slate-800"
                 style={{ touchAction: "pan-y" }}
+                onClick={(e) => {
+                  if (e.target === e.currentTarget) {
+                    onCardClick();
+                  }
+                }}
                 onPointerDown={handlePointerDown}
                 onPointerUp={handlePointerUp}
                 onKeyDown={(e) => {
@@ -849,7 +854,10 @@ export function RevisionClient({
               >
                 <button
                   type="button"
-                  onClick={onCardClick}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onCardClick();
+                  }}
                   className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
                 >
                   <div className="flex items-center justify-center gap-2">
@@ -875,7 +883,10 @@ export function RevisionClient({
                   <div className="mt-6 flex justify-center">
                     <button
                       type="button"
-                      onClick={() => setRevealed(true)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setRevealed(true);
+                      }}
                       style={{ touchAction: "manipulation", cursor: "pointer" }}
                       className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:border-primary hover:bg-primary/5 hover:text-primary dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:border-primary-light dark:hover:bg-primary/10"
                     >
@@ -898,7 +909,10 @@ export function RevisionClient({
                   <>
                     <button
                       type="button"
-                      onClick={() => recordReviewRating(0)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        recordReviewRating(0);
+                      }}
                       disabled={sending}
                       onTouchEnd={(e) => {
                         e.stopPropagation();
@@ -912,7 +926,10 @@ export function RevisionClient({
                     </button>
                     <button
                       type="button"
-                      onClick={() => recordReviewRating(1)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        recordReviewRating(1);
+                      }}
                       disabled={sending}
                       onTouchEnd={(e) => {
                         e.stopPropagation();
@@ -926,7 +943,10 @@ export function RevisionClient({
                     </button>
                     <button
                       type="button"
-                      onClick={() => recordReviewRating(2)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        recordReviewRating(2);
+                      }}
                       disabled={sending}
                       onTouchEnd={(e) => {
                         e.stopPropagation();
@@ -940,7 +960,10 @@ export function RevisionClient({
                     </button>
                     <button
                       type="button"
-                      onClick={() => recordReviewRating(3)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        recordReviewRating(3);
+                      }}
                       disabled={sending}
                       onTouchEnd={(e) => {
                         e.stopPropagation();
@@ -957,7 +980,10 @@ export function RevisionClient({
                   <>
                     <button
                       type="button"
-                      onClick={() => handleSwipe(false)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSwipe(false);
+                      }}
                       disabled={sending}
                       style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       onTouchEnd={(e) => {
@@ -973,7 +999,10 @@ export function RevisionClient({
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSwipe(true)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleSwipe(true);
+                      }}
                       disabled={sending}
                       style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
                       onTouchEnd={(e) => {
