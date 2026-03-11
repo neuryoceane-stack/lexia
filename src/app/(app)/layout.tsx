@@ -3,6 +3,10 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { AppHeader } from "@/components/app-header";
 import { FeedbackWidget } from "@/components/feedback-widget";
+import { db } from "@/lib/db";
+import { userProfiles } from "@/lib/db/schema";
+import { eq } from "drizzle-orm";
+import { OnboardingWrapper } from "@/components/onboarding-wrapper";
 
 export default async function AppLayout({
   children,
@@ -14,18 +18,27 @@ export default async function AppLayout({
   const headersList = await headers();
   const pathname = headersList.get("x-pathname") ?? headersList.get("x-invoke-path") ?? "";
   const isProfesseurRoute = pathname.startsWith("/app/professeur");
-  const isSharedRoute = pathname.startsWith("/app/familles")
-    || pathname.startsWith("/app/parametres");
+  const isSharedRoute = pathname.startsWith("/app/familles") || pathname.startsWith("/app/parametres");
+
   if (role === "professeur" && !isProfesseurRoute && !isSharedRoute) redirect("/app/professeur");
 
   const showProfesseurHeader = role === "professeur";
   const isCreator = role === "creator";
+
+  // Vérifier si l'onboarding a été complété
+  const profile = await db.query.userProfiles.findFirst({
+    where: eq(userProfiles.userId, user.id),
+  });
+  const showOnboarding = profile ? !profile.onboardingCompleted : false;
+  console.log("ONBOARDING DEBUG", { userId: user.id, profile, showOnboarding });
+  const userRole = role === "professeur" ? "professeur" : "etudiant";
 
   return (
     <div className="min-h-screen bg-slate-50/80 dark:bg-slate-900">
       <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
       <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
       <FeedbackWidget />
+      {showOnboarding && <OnboardingWrapper role={userRole} />}
     </div>
   );
 }

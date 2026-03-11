@@ -133,6 +133,9 @@ export const userProfiles = sqliteTable("user_profiles", {
   institutionName: text("institution_name"),
   /** Rôle : étudiant (par défaut) ou professeur. */
   role: text("role", { enum: ["etudiant", "professeur"] }),
+  onboardingCompleted: integer("onboarding_completed", { mode: "boolean" })
+    .notNull()
+    .default(false),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
