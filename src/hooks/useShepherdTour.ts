@@ -1,15 +1,58 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import Shepherd from "shepherd.js";
 import type { StepOptions } from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
 import "@/styles/shepherd-lexiva.css";
 
 type ShepherdTour = InstanceType<typeof Shepherd.Tour>;
+type AppRouter = ReturnType<typeof useRouter>;
 type Role = "etudiant" | "professeur";
 
-function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
+function waitForElement(
+  selector: string,
+  callback: () => void,
+  timeout = 3000,
+) {
+  const el = document.querySelector(selector);
+  if (el) {
+    callback();
+    return;
+  }
+  const observer = new MutationObserver(() => {
+    if (document.querySelector(selector)) {
+      observer.disconnect();
+      callback();
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+  setTimeout(() => {
+    observer.disconnect();
+    callback();
+  }, timeout);
+}
+
+function navigateAndWait(
+  router: AppRouter,
+  path: string,
+  selector: string,
+): Promise<void> {
+  return new Promise<void>((resolve) => {
+    if (window.location.pathname === path) {
+      waitForElement(selector, resolve);
+    } else {
+      router.push(path);
+      waitForElement(selector, resolve);
+    }
+  });
+}
+
+function buildStudentSteps(
+  tour: ShepherdTour,
+  router: AppRouter,
+): StepOptions[] {
   return [
     {
       id: "welcome",
@@ -54,7 +97,16 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
         </ul>
         <p class="lx-tip">💡 Idéal pour les romans, articles, panneaux…</p>
       `,
-      attachTo: { element: 'a[href="/app/familles"]', on: "right" },
+      attachTo: {
+        element: 'a[href="/app/familles/mots-sauvages"]',
+        on: "bottom",
+      },
+      beforeShowPromise: () =>
+        navigateAndWait(
+          router,
+          "/app/familles",
+          'a[href="/app/familles/mots-sauvages"]',
+        ),
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
         { text: "Suivant →", action: () => tour.next() },
@@ -72,6 +124,8 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
         <p class="lx-tip">🧠 L'algorithme SM-2 choisit les mots à revoir au bon moment.</p>
       `,
       attachTo: { element: 'a[href="/app/revision"]', on: "bottom" },
+      beforeShowPromise: () =>
+        navigateAndWait(router, "/app", 'a[href="/app/revision"]'),
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
         { text: "Suivant →", action: () => tour.next() },
@@ -89,7 +143,16 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
         </div>
         <p class="lx-tip">Plus tu te trompes, plus le mot revient vite.</p>
       `,
-      attachTo: { element: 'a[href="/app/revision"]', on: "top" },
+      attachTo: {
+        element: 'a[href="/app/revision/flashcards"]',
+        on: "bottom",
+      },
+      beforeShowPromise: () =>
+        navigateAndWait(
+          router,
+          "/app/revision",
+          'a[href="/app/revision/flashcards"]',
+        ),
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
         { text: "Suivant →", action: () => tour.next() },
@@ -107,12 +170,15 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
         </ul>
       `,
       attachTo: {
-        element: '.streak-widget, [data-streak], section[aria-label="Série de révision"]',
+        element:
+          '.streak-widget, [data-streak], section[aria-label="Série de révision"]',
         on: "bottom",
       },
+      beforeShowPromise: () =>
+        navigateAndWait(router, "/app", 'a[href="/app/revision"]'),
       showOn: () =>
         !!document.querySelector(
-          '.streak-widget, [data-streak], section[aria-label="Série de révision"]'
+          '.streak-widget, [data-streak], section[aria-label="Série de révision"]',
         ),
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
@@ -150,6 +216,8 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
           <p class="lx-sub">Commence par importer ta première liste 👇</p>
         </div>
       `,
+      beforeShowPromise: () =>
+        navigateAndWait(router, "/app", 'a[href="/app/familles"]'),
       buttons: [
         {
           text: "Aller à ma bibliothèque 📚",
@@ -163,7 +231,10 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
   ];
 }
 
-function buildTeacherSteps(tour: ShepherdTour): StepOptions[] {
+function buildTeacherSteps(
+  tour: ShepherdTour,
+  router: AppRouter,
+): StepOptions[] {
   return [
     {
       id: "welcome",
@@ -191,7 +262,10 @@ function buildTeacherSteps(tour: ShepherdTour): StepOptions[] {
           <li>📋 Assignez des listes en 1 clic</li>
         </ul>
       `,
-      attachTo: { element: 'a[href="/app/professeur/classes"]', on: "bottom" },
+      attachTo: {
+        element: 'a[href="/app/professeur/classes"]',
+        on: "bottom",
+      },
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
         { text: "Suivant →", action: () => tour.next() },
@@ -225,7 +299,10 @@ function buildTeacherSteps(tour: ShepherdTour): StepOptions[] {
           <li>📊 Taux de complétion par liste</li>
         </ul>
       `,
-      attachTo: { element: 'a[href="/app/professeur/classes"]', on: "bottom" },
+      attachTo: {
+        element: 'a[href="/app/professeur/classes"]',
+        on: "bottom",
+      },
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
         { text: "Suivant →", action: () => tour.next() },
@@ -254,6 +331,7 @@ function buildTeacherSteps(tour: ShepherdTour): StepOptions[] {
 }
 
 export function useShepherdTour(role: Role, onComplete: () => void) {
+  const router = useRouter();
   const tourRef = useRef<ShepherdTour | null>(null);
 
   const startTour = useCallback(() => {
@@ -271,8 +349,8 @@ export function useShepherdTour(role: Role, onComplete: () => void) {
 
     const steps =
       role === "professeur"
-        ? buildTeacherSteps(tour)
-        : buildStudentSteps(tour);
+        ? buildTeacherSteps(tour, router)
+        : buildStudentSteps(tour, router);
 
     tour.addSteps(steps);
 
@@ -281,7 +359,7 @@ export function useShepherdTour(role: Role, onComplete: () => void) {
 
     tourRef.current = tour;
     tour.start();
-  }, [role, onComplete]);
+  }, [role, onComplete, router]);
 
   useEffect(() => {
     return () => {
