@@ -44,7 +44,7 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
     },
     {
       id: "mots-sauvages",
-      title: "🌿 Mots Sauvages",
+      title: "🌿 Mots Sauvages — dans ta Bibliothèque",
       text: `
         <p>La fonctionnalité <strong>la plus puissante de Lexiva</strong>.</p>
         <ul class="lx-list">
@@ -54,7 +54,7 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
         </ul>
         <p class="lx-tip">💡 Idéal pour les romans, articles, panneaux…</p>
       `,
-      attachTo: { element: 'a[href="/app/familles"]', on: "bottom" },
+      attachTo: { element: 'a[href="/app/familles"]', on: "right" },
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
         { text: "Suivant →", action: () => tour.next() },
@@ -79,7 +79,7 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
     },
     {
       id: "flashcards",
-      title: "🃏 Flashcards",
+      title: "🃏 Flashcards — dans Évaluation",
       text: `
         <p>Retourne la carte, évalue toi-même ta réponse.</p>
         <div class="lx-badge-row">
@@ -89,7 +89,7 @@ function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
         </div>
         <p class="lx-tip">Plus tu te trompes, plus le mot revient vite.</p>
       `,
-      attachTo: { element: 'a[href="/app/revision"]', on: "bottom" },
+      attachTo: { element: 'a[href="/app/revision"]', on: "top" },
       buttons: [
         { text: "← Retour", action: () => tour.back(), secondary: true },
         { text: "Suivant →", action: () => tour.next() },
