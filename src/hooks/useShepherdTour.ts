@@ -1,13 +1,14 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
-import { Tour, type StepOptions } from "shepherd.js";
+import Shepherd from "shepherd.js";
+import type { StepOptions } from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
 import "@/styles/shepherd-lexiva.css";
 
 type Role = "etudiant" | "professeur";
 
-function buildStudentSteps(tour: Tour): StepOptions[] {
+function buildStudentSteps(tour: Shepherd.Tour): StepOptions[] {
   return [
     {
       id: "welcome",
@@ -161,7 +162,7 @@ function buildStudentSteps(tour: Tour): StepOptions[] {
   ];
 }
 
-function buildTeacherSteps(tour: Tour): StepOptions[] {
+function buildTeacherSteps(tour: Shepherd.Tour): StepOptions[] {
   return [
     {
       id: "welcome",
@@ -252,12 +253,12 @@ function buildTeacherSteps(tour: Tour): StepOptions[] {
 }
 
 export function useShepherdTour(role: Role, onComplete: () => void) {
-  const tourRef = useRef<Tour | null>(null);
+  const tourRef = useRef<Shepherd.Tour | null>(null);
 
   const startTour = useCallback(() => {
     if (tourRef.current) return;
 
-    const tour = new Tour({
+    const tour = new Shepherd.Tour({
       useModalOverlay: true,
       defaultStepOptions: {
         cancelIcon: { enabled: true },
