@@ -6,9 +6,10 @@ import type { StepOptions } from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
 import "@/styles/shepherd-lexiva.css";
 
+type ShepherdTour = InstanceType<typeof Shepherd.Tour>;
 type Role = "etudiant" | "professeur";
 
-function buildStudentSteps(tour: Shepherd.Tour): StepOptions[] {
+function buildStudentSteps(tour: ShepherdTour): StepOptions[] {
   return [
     {
       id: "welcome",
@@ -162,7 +163,7 @@ function buildStudentSteps(tour: Shepherd.Tour): StepOptions[] {
   ];
 }
 
-function buildTeacherSteps(tour: Shepherd.Tour): StepOptions[] {
+function buildTeacherSteps(tour: ShepherdTour): StepOptions[] {
   return [
     {
       id: "welcome",
@@ -253,7 +254,7 @@ function buildTeacherSteps(tour: Shepherd.Tour): StepOptions[] {
 }
 
 export function useShepherdTour(role: Role, onComplete: () => void) {
-  const tourRef = useRef<Shepherd.Tour | null>(null);
+  const tourRef = useRef<ShepherdTour | null>(null);
 
   const startTour = useCallback(() => {
     if (tourRef.current) return;
