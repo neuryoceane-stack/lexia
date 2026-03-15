@@ -251,6 +251,20 @@ export const feedbacks = sqliteTable("feedbacks", {
     .$defaultFn(() => new Date()),
 });
 
+/** Tokens de réinitialisation de mot de passe. */
+export const passwordResetTokens = sqliteTable("password_reset_tokens", {
+  id: text("id").primaryKey(),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  token: text("token").notNull().unique(),
+  expiresAt: integer("expires_at", { mode: "timestamp" }).notNull(),
+  usedAt: integer("used_at", { mode: "timestamp" }),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export type User = typeof users.$inferSelect;
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type Class = typeof classes.$inferSelect;
@@ -265,3 +279,4 @@ export type GardenProgress = typeof gardenProgress.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type Feedback = typeof feedbacks.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;

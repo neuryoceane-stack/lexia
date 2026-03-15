@@ -91,6 +91,14 @@ export default function LoginPage() {
             className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
           />
         </div>
+        <div className="text-right">
+          <Link
+            href="/forgot-password"
+            className="text-xs font-medium text-primary hover:underline dark:text-primary-light"
+          >
+            Mot de passe oublié ?
+          </Link>
+        </div>
         {error && (
           <p
             className={`flex items-center gap-2 text-sm ${
