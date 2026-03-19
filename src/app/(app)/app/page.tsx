@@ -46,6 +46,18 @@ export default async function AppDashboardPage() {
           <StreakWidget />
         </section>
       )}
+
+      <div className="flex justify-center">
+        <Link
+          href="/app/revision/express"
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl px-6 py-3 font-semibold text-slate-900 shadow-sm transition hover:brightness-95 sm:w-fit"
+          style={{ backgroundColor: "#F5A623" }}
+        >
+          <span>⚡</span>
+          Révision express
+        </Link>
+      </div>
+
       <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
         {/* Carte 1 — Bibliothèque */}
         <Link

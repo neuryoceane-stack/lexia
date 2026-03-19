@@ -26,6 +26,7 @@ export async function GET(request: Request) {
   const userId = user.id;
 
   const { searchParams } = new URL(request.url);
+  const isExpress = searchParams.get("express") === "1";
   const listId = searchParams.get("listId")?.trim() || undefined;
   const listIdsParam = searchParams.get("listIds")?.trim();
   const listIds = listIdsParam
@@ -35,6 +36,60 @@ export async function GET(request: Request) {
   const includeAll = searchParams.get("all") === "1";
 
   const now = new Date();
+
+  if (isExpress) {
+    const allUserWords = await db
+      .select({
+        id: words.id,
+        listId: words.listId,
+        term: words.term,
+        definition: words.definition,
+      })
+      .from(words)
+      .innerJoin(lists, eq(words.listId, lists.id))
+      .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
+      .where(eq(wordFamilies.userId, userId));
+
+    if (allUserWords.length === 0) {
+      return NextResponse.json({ words: [], upToDate: true });
+    }
+
+    const allRevs = await db
+      .select({
+        wordId: revisions.wordId,
+        nextReviewAt: revisions.nextReviewAt,
+        createdAt: revisions.createdAt,
+      })
+      .from(revisions)
+      .where(eq(revisions.userId, userId))
+      .orderBy(desc(revisions.createdAt));
+
+    const latestByWordExpress = new Map<string, Date>();
+    for (const r of allRevs) {
+      if (!latestByWordExpress.has(r.wordId)) {
+        latestByWordExpress.set(r.wordId, r.nextReviewAt);
+      }
+    }
+
+    const dueExpress = allUserWords
+      .filter((w) => {
+        const nra = latestByWordExpress.get(w.id);
+        if (!nra) return true;
+        return nra <= now;
+      })
+      .sort((a, b) => {
+        const aDate = latestByWordExpress.get(a.id)?.getTime() ?? 0;
+        const bDate = latestByWordExpress.get(b.id)?.getTime() ?? 0;
+        return aDate - bDate;
+      })
+      .slice(0, 10);
+
+    if (dueExpress.length === 0) {
+      return NextResponse.json({ words: [], upToDate: true });
+    }
+
+    return NextResponse.json({ words: dueExpress });
+  }
 
   let baseCondition = eq(wordFamilies.userId, userId);
   if (listIds && listIds.length > 0) {
