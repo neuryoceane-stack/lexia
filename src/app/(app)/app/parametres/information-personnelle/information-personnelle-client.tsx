@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { PhoneInput } from "@/components/phone-input";
@@ -48,6 +49,12 @@ export function InformationPersonnelleClient({
   const [loaded, setLoaded] = useState(!!initialData);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<"saved" | "error" | null>(null);
+
+  const router = useRouter();
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
+  const [deleteStatus, setDeleteStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (initialData) return;
@@ -251,6 +258,111 @@ export function InformationPersonnelleClient({
             {saving ? "Enregistrement…" : "Enregistrer"}
           </button>
         </form>
+      )}
+
+      {loaded && (
+        <>
+          <hr className="border-slate-200 dark:border-slate-700" />
+
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={() => {
+                setDeleteConfirmEmail("");
+                setDeleteStatus("idle");
+                setDeleteError("");
+                setDeleteModalOpen(true);
+              }}
+              className="rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-500 transition hover:bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:hover:bg-red-500/10"
+            >
+              Supprimer mon compte
+            </button>
+          </div>
+        </>
+      )}
+
+      {deleteModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          onClick={() => deleteStatus !== "loading" && setDeleteModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-800"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+              Supprimer mon compte
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+              Cette action est irréversible. Toutes vos données seront
+              définitivement supprimées : listes, mots, révisions, progression.
+            </p>
+
+            <label className="mt-5 block">
+              <span className="mb-1 block text-sm font-medium text-slate-700 dark:text-slate-300">
+                Pour confirmer, saisissez votre adresse email :
+              </span>
+              <input
+                type="email"
+                value={deleteConfirmEmail}
+                onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+                placeholder={email ?? ""}
+                className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder:text-slate-400 focus:border-red-400 focus:outline-none focus:ring-1 focus:ring-red-400 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
+              />
+            </label>
+
+            {deleteStatus === "error" && deleteError && (
+              <p className="mt-3 rounded-lg bg-red-50 p-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
+                {deleteError}
+              </p>
+            )}
+
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                type="button"
+                disabled={deleteStatus === "loading"}
+                onClick={() => setDeleteModalOpen(false)}
+                className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-700"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={
+                  deleteStatus === "loading" ||
+                  !email ||
+                  deleteConfirmEmail.trim().toLowerCase() !== email.toLowerCase()
+                }
+                onClick={async () => {
+                  setDeleteStatus("loading");
+                  setDeleteError("");
+                  try {
+                    const res = await fetch("/api/user/delete", {
+                      method: "DELETE",
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data.success) {
+                      router.push("/?deleted=true");
+                    } else {
+                      setDeleteError(
+                        data.error || "Erreur lors de la suppression."
+                      );
+                      setDeleteStatus("error");
+                    }
+                  } catch {
+                    setDeleteError("Erreur réseau, réessaie.");
+                    setDeleteStatus("error");
+                  }
+                }}
+                className="rounded-lg bg-red-500 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                {deleteStatus === "loading"
+                  ? "Suppression…"
+                  : "Supprimer définitivement"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -2,20 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { MotsSauvagesSource } from "./mots-sauvages-source";
-
-const LANG_OPTIONS: { value: string; label: string }[] = [
-  { value: "en", label: "Anglais" },
-  { value: "fr", label: "Français" },
-  { value: "es", label: "Espagnol" },
-  { value: "de", label: "Allemand" },
-  { value: "it", label: "Italien" },
-  { value: "pt", label: "Portugais" },
-  { value: "nl", label: "Néerlandais" },
-  { value: "pl", label: "Polonais" },
-  { value: "ru", label: "Russe" },
-  { value: "ja", label: "Japonais" },
-  { value: "zh", label: "Chinois" },
-];
+import { PREFERRED_LANGUAGE_OPTIONS, toIso6391 } from "@/lib/language";
 
 type Step = "source" | "langs" | "select" | "reading";
 
@@ -27,8 +14,8 @@ export default function MotsSauvagesPage() {
   const [extractLoading, setExtractLoading] = useState(false);
   const [extractError, setExtractError] = useState("");
   const [rawText, setRawText] = useState("");
-  const [sourceLang, setSourceLang] = useState("en");
-  const [targetLang, setTargetLang] = useState("fr");
+  const [sourceLang, setSourceLang] = useState("eng");
+  const [targetLang, setTargetLang] = useState("fra");
   const [bubble, setBubble] = useState<{
     word: string;
     translation: string;
@@ -108,8 +95,8 @@ export default function MotsSauvagesPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             text: w,
-            sourceLang,
-            targetLang,
+            sourceLang: toIso6391(sourceLang),
+            targetLang: toIso6391(targetLang),
           }),
         });
         const data = await res.json().catch(() => ({}));
@@ -330,7 +317,7 @@ export default function MotsSauvagesPage() {
                 onChange={(e) => setSourceLang(e.target.value)}
                 className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
               >
-                {LANG_OPTIONS.map((o) => (
+                {PREFERRED_LANGUAGE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
                   </option>
@@ -346,7 +333,7 @@ export default function MotsSauvagesPage() {
                 onChange={(e) => setTargetLang(e.target.value)}
                 className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
               >
-                {LANG_OPTIONS.map((o) => (
+                {PREFERRED_LANGUAGE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
                     {o.label}
                   </option>
