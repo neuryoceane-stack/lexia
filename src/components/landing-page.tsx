@@ -2,7 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 const DEMO_CARDS = [
   { term: "distorto", def: "distorcere : déformer", lang: "it" },
@@ -75,8 +76,36 @@ export function LandingPage() {
   const step3Ref = useInView();
   const [hoverWord, setHoverWord] = useState<string | null>(null);
 
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const [showDeletedBanner, setShowDeletedBanner] = useState(false);
+
+  const dismissBanner = useCallback(() => setShowDeletedBanner(false), []);
+
+  useEffect(() => {
+    if (searchParams.get("deleted") === "true") {
+      setShowDeletedBanner(true);
+      router.replace("/");
+      const timer = setTimeout(dismissBanner, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, router, dismissBanner]);
+
   return (
     <div className="min-h-screen overflow-x-hidden">
+      {showDeletedBanner && (
+        <div className="relative flex items-center justify-center gap-2 bg-[#dcfce7] px-4 py-3 text-sm font-medium text-[#166534]">
+          <span>✓ Votre compte a bien été supprimé. À bientôt sur Lexiva.</span>
+          <button
+            type="button"
+            onClick={dismissBanner}
+            className="absolute right-3 text-[#166534]/60 transition hover:text-[#166534]"
+            aria-label="Fermer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
       {/* SECTION 1 — HERO */}
       <section className="relative min-h-screen overflow-hidden bg-[#0A0612] px-4 pt-16 pb-20">
         <div className="absolute inset-0 overflow-hidden">
