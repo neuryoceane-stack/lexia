@@ -170,9 +170,9 @@ export function MotsSauvagesSource({
           </button>
         </div>
 
-        {/* Carte 4 — Lien URL */}
+        {/* Carte 4 — Lien URL (bientôt disponible) */}
         <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
+          className="flex flex-col rounded-2xl p-7 opacity-60 cursor-default"
           style={{
             backgroundColor: "#EFF6FF",
             border: "1px solid #3B82F6",
@@ -182,34 +182,20 @@ export function MotsSauvagesSource({
             <span className="text-[48px] leading-none" aria-hidden>
               🔗
             </span>
-            <span className="rounded-full bg-[#3B82F6]/10 px-2.5 py-0.5 text-xs font-medium text-[#1D4ED8]">
-              Nouveau
+            <span className="rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-medium text-white">
+              Bientôt
             </span>
           </div>
           <h2 className="mt-4 text-lg font-bold text-slate-900">Lien URL</h2>
           <p className="mt-2 flex-1 text-sm text-slate-600">
             Colle un lien d&apos;article
           </p>
-          <input
-            type="url"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            placeholder="https://..."
-            className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-          />
-          <button
-            type="button"
-            onClick={onUrlAnalyze}
-            disabled={extractLoading || urlLoading || !urlInput.trim()}
-            className="mt-3 w-fit rounded-full bg-[#3B82F6] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#2563EB] disabled:opacity-50"
-          >
-            {urlLoading ? "Analyse…" : "Analyser"}
-          </button>
+          <p className="mt-4 text-sm italic text-slate-400">Prochainement</p>
         </div>
 
-        {/* Carte 5 — Chanson */}
+        {/* Carte 5 — Chanson (bientôt disponible) */}
         <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md sm:col-span-2 lg:col-span-1"
+          className="flex flex-col rounded-2xl p-7 opacity-60 cursor-default sm:col-span-2 lg:col-span-1"
           style={{
             backgroundColor: "#FDF2F8",
             border: "1px solid #EC4899",
@@ -219,8 +205,8 @@ export function MotsSauvagesSource({
             <span className="text-[48px] leading-none" aria-hidden>
               🎵
             </span>
-            <span className="rounded-full bg-[#EC4899]/10 px-2.5 py-0.5 text-xs font-medium text-[#DB2777]">
-              Nouveau
+            <span className="rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-medium text-white">
+              Bientôt
             </span>
           </div>
           <h2 className="mt-4 text-lg font-bold text-slate-900">
@@ -229,21 +215,7 @@ export function MotsSauvagesSource({
           <p className="mt-2 flex-1 text-sm text-slate-600">
             Apprends depuis tes musiques préférées
           </p>
-          <input
-            type="text"
-            value={songInput}
-            onChange={(e) => setSongInput(e.target.value)}
-            placeholder="Artiste + titre..."
-            className="mt-3 w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-          />
-          <button
-            type="button"
-            onClick={onSongSearch}
-            disabled={extractLoading || songLoading || !songInput.trim()}
-            className="mt-3 w-fit rounded-full bg-[#EC4899] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#DB2777] disabled:opacity-50"
-          >
-            {songLoading ? "Recherche…" : "Rechercher"}
-          </button>
+          <p className="mt-4 text-sm italic text-slate-400">Prochainement</p>
         </div>
       </div>
 
