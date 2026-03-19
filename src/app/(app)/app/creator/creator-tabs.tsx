@@ -1,6 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 type FeedbackStatus = "pending" | "in_progress" | "done";
 type FeedbackWithUser = {
@@ -47,6 +56,30 @@ type AnalyticsData = {
   pendingFeedbacks: number;
 };
 
+type FinancePayment = {
+  date: string;
+  email: string;
+  amount: number;
+  status: "paid" | "failed" | "refunded";
+};
+
+type FinanceAlert = {
+  type: "churn" | "unpaid";
+  message: string;
+};
+
+type FinanceData = {
+  stripeNotConfigured?: boolean;
+  mrr: number;
+  activeSubscribers: number;
+  revenueThisMonth: number;
+  revenuePrevMonth: number;
+  monthVariation: number;
+  mrrHistory: { month: string; revenue: number }[];
+  recentPayments: FinancePayment[];
+  alerts: FinanceAlert[];
+};
+
 const ROLE_LABELS: Record<string, { label: string; color: string }> = {
   student: { label: "Étudiant", color: "bg-primary" },
   teacher: { label: "Professeur", color: "bg-blue-500" },
@@ -54,7 +87,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export function CreatorTabs() {
-  const [tab, setTab] = useState<"analytics" | "feedbacks">("analytics");
+  const [tab, setTab] = useState<"analytics" | "feedbacks" | "finance">("analytics");
   const [feedbacks, setFeedbacks] = useState<FeedbackWithUser[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -62,6 +95,9 @@ export function CreatorTabs() {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [finance, setFinance] = useState<FinanceData | null>(null);
+  const [financeLoading, setFinanceLoading] = useState(false);
+  const [paymentPage, setPaymentPage] = useState(0);
 
   const fetchAnalytics = useCallback(async () => {
     setAnalyticsLoading(true);
@@ -89,10 +125,25 @@ export function CreatorTabs() {
     }
   }, []);
 
+  const fetchFinance = useCallback(async () => {
+    setFinanceLoading(true);
+    try {
+      const res = await fetch("/api/creator/finance");
+      if (res.ok) {
+        const data = await res.json();
+        setFinance(data);
+        setPaymentPage(0);
+      }
+    } finally {
+      setFinanceLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (tab === "analytics") fetchAnalytics();
     if (tab === "feedbacks") fetchFeedbacks();
-  }, [tab, fetchAnalytics, fetchFeedbacks]);
+    if (tab === "finance") fetchFinance();
+  }, [tab, fetchAnalytics, fetchFeedbacks, fetchFinance]);
 
   async function handleStatusChange(id: string, status: FeedbackStatus) {
     setUpdatingId(id);
@@ -114,6 +165,24 @@ export function CreatorTabs() {
 
   function toggleExpanded(id: string) {
     setExpandedId((prev) => (prev === id ? null : id));
+  }
+
+  function exportPaymentsCsv() {
+    if (!finance?.recentPayments?.length) return;
+    const header = "Date,Email,Montant,Statut\n";
+    const rows = finance.recentPayments
+      .map(
+        (p) =>
+          `${new Date(p.date).toLocaleDateString("fr-FR")},${p.email},${p.amount}€,${p.status}`,
+      )
+      .join("\n");
+    const blob = new Blob([header + rows], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `lexiva-paiements-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
 
   const filteredFeedbacks =
@@ -145,6 +214,17 @@ export function CreatorTabs() {
           }`}
         >
           Feedbacks
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("finance")}
+          className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
+            tab === "finance"
+              ? "border-primary text-primary dark:border-primary-light dark:text-primary-light"
+              : "border-transparent text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+          }`}
+        >
+          Finance 💰
         </button>
       </div>
 
@@ -251,6 +331,216 @@ export function CreatorTabs() {
           ) : (
             <p className="text-slate-500 dark:text-slate-400">
               Impossible de charger les analytics.
+            </p>
+          )}
+        </div>
+      )}
+
+      {tab === "finance" && (
+        <div className="space-y-6">
+          {financeLoading ? (
+            <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+          ) : finance?.stripeNotConfigured ? (
+            <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-12 text-center dark:border-slate-700 dark:bg-slate-800/50">
+              <span className="text-5xl">💳</span>
+              <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+                Stripe non configuré
+              </h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Revenez après l'intégration Stripe (Semaine 4)
+              </p>
+            </div>
+          ) : finance ? (
+            <>
+              {/* Metric cards */}
+              <div className="grid gap-4 sm:grid-cols-3">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    💰 MRR
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                    {finance.mrr.toFixed(2)} €
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    👥 Abonnés actifs
+                  </p>
+                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                    {finance.activeSubscribers}
+                  </p>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    📈 Variation mois
+                  </p>
+                  <p
+                    className={`mt-1 text-2xl font-bold ${
+                      finance.monthVariation >= 0
+                        ? "text-green-600 dark:text-green-400"
+                        : "text-red-600 dark:text-red-400"
+                    }`}
+                  >
+                    {finance.monthVariation >= 0 ? "+" : ""}
+                    {finance.monthVariation}%
+                  </p>
+                  <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                    {finance.revenueThisMonth.toFixed(2)} € vs{" "}
+                    {finance.revenuePrevMonth.toFixed(2)} €
+                  </p>
+                </div>
+              </div>
+
+              {/* Graphique MRR 12 mois */}
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Revenus — 12 derniers mois
+                </h3>
+                <ResponsiveContainer width="100%" height={260}>
+                  <LineChart data={finance.mrrHistory}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                    <XAxis
+                      dataKey="month"
+                      tick={{ fontSize: 12, fill: "#94a3b8" }}
+                    />
+                    <YAxis
+                      tick={{ fontSize: 12, fill: "#94a3b8" }}
+                      tickFormatter={(v: number) => `${v}€`}
+                    />
+                    <Tooltip
+                      formatter={(value) => [`${value} €`, "Revenus"]}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="revenue"
+                      stroke="#6C3FC8"
+                      strokeWidth={2}
+                      dot={{ fill: "#6C3FC8", r: 4 }}
+                      activeDot={{ r: 6 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Alertes */}
+              {finance.alerts.length > 0 && (
+                <div className="space-y-2">
+                  {finance.alerts.map((alert, i) => (
+                    <div
+                      key={i}
+                      className={`rounded-lg border p-3 text-sm font-medium ${
+                        alert.type === "churn"
+                          ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-900/20 dark:text-red-300"
+                          : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-900/20 dark:text-amber-300"
+                      }`}
+                    >
+                      {alert.type === "churn" ? "🔴" : "🟡"} {alert.message}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Tableau paiements */}
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    Derniers paiements
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={exportPaymentsCsv}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+                  >
+                    Exporter CSV
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-left dark:border-slate-700">
+                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                          Date
+                        </th>
+                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                          Email
+                        </th>
+                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                          Montant
+                        </th>
+                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                          Statut
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {finance.recentPayments
+                        .slice(paymentPage * 5, paymentPage * 5 + 5)
+                        .map((p, i) => (
+                          <tr
+                            key={i}
+                            className="border-b border-slate-50 last:border-b-0 dark:border-slate-700/50"
+                          >
+                            <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
+                              {new Date(p.date).toLocaleDateString("fr-FR", {
+                                day: "numeric",
+                                month: "short",
+                              })}
+                            </td>
+                            <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                              {p.email}
+                            </td>
+                            <td className="px-4 py-2 font-medium text-slate-800 dark:text-slate-100">
+                              {p.amount.toFixed(2)} €
+                            </td>
+                            <td className="px-4 py-2">
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                                  p.status === "paid"
+                                    ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                                    : p.status === "failed"
+                                      ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                                      : "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300"
+                                }`}
+                              >
+                                {p.status === "paid"
+                                  ? "Payé"
+                                  : p.status === "failed"
+                                    ? "Échoué"
+                                    : "Remboursé"}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
+                    </tbody>
+                  </table>
+                </div>
+                {finance.recentPayments.length > 5 && (
+                  <div className="flex justify-center gap-2 border-t border-slate-100 px-4 py-2 dark:border-slate-700">
+                    <button
+                      type="button"
+                      disabled={paymentPage === 0}
+                      onClick={() => setPaymentPage((p) => p - 1)}
+                      className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-700"
+                    >
+                      ← Précédent
+                    </button>
+                    <button
+                      type="button"
+                      disabled={
+                        (paymentPage + 1) * 5 >= finance.recentPayments.length
+                      }
+                      onClick={() => setPaymentPage((p) => p + 1)}
+                      className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-700"
+                    >
+                      Suivant →
+                    </button>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <p className="text-slate-500 dark:text-slate-400">
+              Impossible de charger les données financières.
             </p>
           )}
         </div>
