@@ -265,6 +265,26 @@ export const passwordResetTokens = sqliteTable("password_reset_tokens", {
     .$defaultFn(() => new Date()),
 });
 
+/** Astuces mnémotechniques personnelles associées à un mot. */
+export const memoTips = sqliteTable("memo_tips", {
+  id: text("id").primaryKey(),
+  wordId: text("word_id")
+    .notNull()
+    .references(() => words.id, { onDelete: "cascade" }),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tip: text("tip").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+  updatedAt: integer("updated_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export type MemoTip = typeof memoTips.$inferSelect;
+
 export type User = typeof users.$inferSelect;
 export type UserProfile = typeof userProfiles.$inferSelect;
 export type Class = typeof classes.$inferSelect;

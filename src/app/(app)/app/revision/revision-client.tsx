@@ -100,6 +100,12 @@ export function RevisionClient({
   const [endSessionDurationSeconds, setEndSessionDurationSeconds] = useState(0);
   const current = words[index];
 
+  const [memoTip, setMemoTip] = useState<string>("");
+  const [memoInput, setMemoInput] = useState<string>("");
+  const [showMemoInput, setShowMemoInput] = useState<boolean>(false);
+  const [memoWordId, setMemoWordId] = useState<string | null>(null);
+  const [memoLoading, setMemoLoading] = useState<boolean>(false);
+
   const displaySide = direction === "term_to_def" ? "term" : "definition";
   const answerSide = direction === "term_to_def" ? "definition" : "term";
   const displayText = current
@@ -166,6 +172,18 @@ export function RevisionClient({
       })
       .catch(() => {});
   }, [step, selectedListIds]);
+
+  useEffect(() => {
+    if (!current?.id || step !== "session") {
+      setMemoTip("");
+      setShowMemoInput(false);
+      return;
+    }
+    fetch(`/api/memo-tip?wordId=${encodeURIComponent(current.id)}`)
+      .then((r) => r.json())
+      .then((data) => setMemoTip(data.tip ?? ""))
+      .catch(() => setMemoTip(""));
+  }, [current?.id, step]);
 
   /** En dictée : remettre le focus sur le champ de saisie après validation (mot suivant) ou après « Réessayer ». */
   useEffect(() => {
@@ -382,6 +400,15 @@ export function RevisionClient({
       }
       setWordsSeen((n) => n + 1);
       if (success) setWordsRetained((n) => n + 1);
+
+      if (rating === 0 || rating === 1) {
+        setMemoWordId(current.id);
+        setMemoInput(memoTip);
+        setShowMemoInput(true);
+      } else {
+        setShowMemoInput(false);
+      }
+
       if (!success) {
         setWords((prev) => {
           const rest = prev.filter((w) => w.id !== current.id);
@@ -872,6 +899,13 @@ export function RevisionClient({
                     />
                   </div>
                 </button>
+                {memoTip && (
+                  <div className="mt-3 rounded-lg border border-[#F5A623]/30 bg-[#F5A623]/10 px-3 py-2 dark:border-[#F5A623]/40 dark:bg-[#F5A623]/15">
+                    <p className="text-xs text-[#b8750f] dark:text-[#f0c060]">
+                      💡 <span className="font-medium">Astuce :</span> {memoTip}
+                    </p>
+                  </div>
+                )}
                 {revealed ? (
                   <div className="mt-6 flex items-center justify-center gap-2 border-t border-slate-200 pt-6 dark:border-slate-600">
                     <p className="text-center text-lg text-slate-600 dark:text-slate-400">
@@ -1018,6 +1052,49 @@ export function RevisionClient({
                     </button>
                   </>
                 )}
+              </div>
+            )}
+
+            {showMemoInput && (
+              <div className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 p-4 dark:border-[#6C3FC8]/30 dark:bg-[#6C3FC8]/10">
+                <p className="mb-2 text-sm font-medium text-[#6C3FC8] dark:text-[#a78bfa]">
+                  💡 Ajoute une astuce mémo{" "}
+                  <span className="font-normal text-slate-500 dark:text-slate-400">(optionnel)</span>
+                </p>
+                <textarea
+                  value={memoInput}
+                  onChange={(e) => setMemoInput(e.target.value)}
+                  placeholder="Une image mentale, une association, un moyen mnémotechnique…"
+                  rows={2}
+                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#6C3FC8] focus:outline-none focus:ring-1 focus:ring-[#6C3FC8] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
+                />
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      setMemoLoading(true);
+                      await fetch("/api/memo-tip", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ wordId: memoWordId, tip: memoInput.trim() }),
+                      }).catch(() => {});
+                      setMemoTip(memoInput.trim());
+                      setMemoLoading(false);
+                      setShowMemoInput(false);
+                    }}
+                    disabled={memoLoading}
+                    className="rounded-lg bg-[#6C3FC8] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#5b34b0] disabled:opacity-50"
+                  >
+                    {memoLoading ? "Sauvegarde…" : "Sauvegarder"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowMemoInput(false)}
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+                  >
+                    Passer
+                  </button>
+                </div>
               </div>
             )}
           </div>
