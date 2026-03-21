@@ -8,6 +8,7 @@ const SEPARATORS = [
   /\s+-\s+/,     // tiret court avec espaces (mot - traduction)
   /\s+=\s+/,     // égal (mot = traduction)
   /\s+\|\s+/,    // barre verticale (mot | traduction)
+  /\s*→\s*/,   // flèche → (ex. "chien → cane")
   / : /,
   / :/,
   /:/,
@@ -64,12 +65,56 @@ export function parseLinesToItems(rawText: string): ExtractedItem[] {
     if (pair) items.push(pair);
   }
 
+  // 1b) PDF sans retours à la ligne : séquence "A → B → C → D → ..."
+  // Format : titre? → mot1 → trad1 → mot2 → trad2 → ...
+  if (items.length <= 1 && normalized.includes("→")) {
+    const parts = normalized
+      .split(/\s*→\s*/)
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length >= 3) {
+      const paired: ExtractedItem[] = [];
+      // Détecter où commencent les vraies paires
+      // Le premier segment qui contient ":" ou "(" ou est très long = titre
+      let start = 0;
+      if (/[():]/.test(parts[0]) || parts[0].split(/\s+/).length > 3) {
+        start = 1;
+      }
+      // Les segments alternent : mot FR, trad IT, mot FR, trad IT...
+      // Mais chaque segment peut contenir "mot_precedent trad mot_suivant"
+      // Ex: parts[1] = "cane chat" → prendre le dernier mot comme trad du précédent
+      // et le premier mot comme terme courant
+      for (let i = start; i < parts.length - 1; i++) {
+        const currentParts = parts[i].split(/\s+/);
+        const nextParts = parts[i + 1].split(/\s+/);
+        // Le terme est le dernier token du segment courant
+        const term = currentParts[currentParts.length - 1];
+        // La définition est le premier token du segment suivant
+        const definition = nextParts[0];
+        if (term && definition && term.length < 80 && definition.length < 80) {
+          // Eviter les doublons consécutifs
+          const last = paired[paired.length - 1];
+          if (!last || last.term !== term) {
+            paired.push({ term, definition });
+          }
+        }
+      }
+      if (paired.length > items.length) return paired;
+    }
+  }
+
   // 2) Si on a très peu d’items pour un texte long, essayer un découpage global par séparateur
   const hasEnoughContent = normalized.length > 80 && /[\s-–—:]/.test(normalized);
   if (hasEnoughContent && items.length <= 1) {
+    const byArrow = normalized.split(/\s*→\s*/);
     const byDash = normalized.split(/\s+[–—]\s+/);
     const byColon = normalized.split(/\s+:\s+|\s+:\s*/);
-    const parts = byDash.length >= byColon.length ? byDash : byColon;
+    const parts =
+      byArrow.length >= byDash.length && byArrow.length >= byColon.length
+        ? byArrow
+        : byDash.length >= byColon.length
+          ? byDash
+          : byColon;
     if (parts.length >= 2) {
       const paired: ExtractedItem[] = [];
       for (let i = 0; i < parts.length - 1; i += 2) {

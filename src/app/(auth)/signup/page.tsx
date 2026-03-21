@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { BookOpen, Eye, EyeOff, LogIn, ChevronLeft } from "lucide-react";
@@ -81,7 +81,14 @@ export default function SignupPage() {
 
   const selectedProfileRole = STATUS_OPTIONS.find((s) => s.value === status)?.role;
   const isProfessor = selectedProfileRole === "professeur";
-  const onboardingTotalSteps = step >= 1 && status ? (isProfessor ? 2 : 3) : 3;
+
+  useEffect(() => {
+    if (step === 3 && isProfessor) setStep(2);
+  }, [step, isProfessor]);
+
+  /** Après l’étape compte : 2 étapes (profil + enseignant) ou 3 (profil + langues + motivation). */
+  const onboardingTotalSteps =
+    step >= 1 && status ? (isProfessor ? 2 : 3) : 3;
   const onboardingProgressIndex =
     step === 1 ? 1 : step === 2 ? 2 : step === 3 ? 3 : 0;
 
@@ -402,7 +409,7 @@ export default function SignupPage() {
             <BackButton onClick={() => setStep(1)} />
             <StepTitle>Votre profil enseignant</StepTitle>
             <form onSubmit={handleFinalSubmit}>
-              <FieldLabel>Matière enseignée</FieldLabel>
+              <FieldLabel>Matière enseignée (optionnel)</FieldLabel>
               <input
                 type="text"
                 value={teacherSubject}
@@ -415,7 +422,7 @@ export default function SignupPage() {
                 onBlur={handleBlur}
               />
 
-              <FieldLabel>Nom de l&apos;établissement</FieldLabel>
+              <FieldLabel>Nom de l&apos;établissement (optionnel)</FieldLabel>
               <input
                 type="text"
                 value={teacherSchoolName}
@@ -494,8 +501,8 @@ export default function SignupPage() {
           </>
         )}
 
-        {/* =================== Step 3 — Motivation =================== */}
-        {step === 3 && (
+        {/* =================== Step 3 — Motivation (élèves uniquement) =================== */}
+        {step === 3 && !isProfessor && (
           <>
             <BackButton onClick={() => setStep(2)} />
             <StepTitle>Motivation</StepTitle>

@@ -197,6 +197,8 @@ export const classLists = sqliteTable("class_lists", {
   addedAt: integer("added_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
+  visibleFrom: integer("visible_from", { mode: "timestamp" }),
+  dueDate: integer("due_date", { mode: "timestamp" }),
 });
 
 /** Préférences utilisateur (avatar Synthèse, langue enrichie, etc.). */
