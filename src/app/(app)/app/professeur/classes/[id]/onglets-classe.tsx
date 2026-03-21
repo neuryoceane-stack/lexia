@@ -11,6 +11,8 @@ const PRIMARY = "#6C3FC8";
 const GREEN = "#1D9E75";
 const GOLD = "#F5A623";
 const BORDER_TERTIARY = "#E2DCF5";
+/** Badge « en difficulté » (maîtrise &lt; 30 % avec activité de révision). */
+const DIFFICULTE_RED = "#E53E3E";
 
 function masteryTone(pct: number): { color: string; fill: string } {
   if (pct >= 70) return { color: GREEN, fill: GREEN };
@@ -38,6 +40,14 @@ type Member = {
     lastActivityAt: string | null;
   };
 };
+
+function eleveEnDifficulte(m: Member): boolean {
+  return (
+    m.progress.masteryPct < 30 &&
+    m.progress.lastActivityAt != null &&
+    m.progress.lastActivityAt !== ""
+  );
+}
 
 type ClassList = {
   id: string;
@@ -89,6 +99,12 @@ export function OngletsClasse({
 }: Props) {
   const baseHref = `/app/professeur/classes/${classId}`;
   const accepted = members.filter((m) => m.status === "accepted");
+  const acceptedSorted = [...accepted].sort((a, b) => {
+    const da = eleveEnDifficulte(a);
+    const db = eleveEnDifficulte(b);
+    if (da === db) return 0;
+    return da ? -1 : 1;
+  });
 
   return (
     <div className="mb-10">
@@ -260,9 +276,10 @@ export function OngletsClasse({
               }}
             >
               <ul className="m-0 list-none p-0">
-                {accepted.map((m, idx) => {
-                  const last = idx === accepted.length - 1;
+                {acceptedSorted.map((m, idx) => {
+                  const last = idx === acceptedSorted.length - 1;
                   const tone = masteryTone(m.progress.masteryPct);
+                  const enDifficulte = eleveEnDifficulte(m);
                   return (
                     <li
                       key={m.id}
@@ -275,17 +292,35 @@ export function OngletsClasse({
                       }}
                     >
                       <div
-                        className="flex shrink-0 items-center justify-center rounded-full"
-                        style={{
-                          width: 32,
-                          height: 32,
-                          background: "#F0EDF8",
-                          fontSize: 11,
-                          fontWeight: 500,
-                          color: PRIMARY,
-                        }}
+                        className="relative shrink-0"
+                        style={{ width: 32, height: 32 }}
                       >
-                        {initials(m.name)}
+                        <div
+                          className="flex size-8 items-center justify-center rounded-full"
+                          style={{
+                            background: "#F0EDF8",
+                            fontSize: 11,
+                            fontWeight: 500,
+                            color: PRIMARY,
+                          }}
+                        >
+                          {initials(m.name)}
+                        </div>
+                        {enDifficulte ? (
+                          <span
+                            title="En difficulté"
+                            aria-label="En difficulté"
+                            className="absolute"
+                            style={{
+                              bottom: 0,
+                              right: 0,
+                              width: 10,
+                              height: 10,
+                              borderRadius: "50%",
+                              background: DIFFICULTE_RED,
+                            }}
+                          />
+                        ) : null}
                       </div>
                       <div className="min-w-0 flex-1">
                         <p
