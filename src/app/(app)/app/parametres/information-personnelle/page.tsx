@@ -36,7 +36,7 @@ export default async function InformationPersonnellePage() {
   };
 
   return (
-    <div>
+    <div className="bg-[var(--background)]">
       <InformationPersonnelleClient initialData={initialData} />
     </div>
   );

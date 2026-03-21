@@ -59,7 +59,7 @@ export function ParametresClient() {
   };
 
   return (
-    <div className="mx-auto max-w-lg" style={{ background: "#F8F7FF" }}>
+    <div className="mx-auto max-w-lg bg-[var(--background)]">
       {/* Bouton retour */}
       <button
         type="button"
@@ -67,37 +67,37 @@ export function ParametresClient() {
         className="mb-4 flex items-center gap-1 transition hover:opacity-70"
         style={{
           fontSize: 12,
-          color: "#71717a",
+          color: "var(--foreground-muted)",
           background: "none",
           border: "none",
           cursor: "pointer",
           width: "fit-content",
         }}
       >
-        <ChevronLeft size={14} stroke="#71717a" />
+        <ChevronLeft size={14} stroke="var(--foreground-muted)" />
         Retour
       </button>
 
       {/* Titre */}
-      <h1 className="mb-4" style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>
+      <h1 className="mb-4" style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
         Paramètres
       </h1>
 
       {/* -------- Section Avatar -------- */}
       <div
         className="mb-3"
-        style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 16 }}
+        style={{ background: "var(--background-card)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 16 }}
       >
         <div className="mb-3.5 flex items-start gap-2.5">
           <div
             className="flex shrink-0 items-center justify-center"
-            style={{ width: 28, height: 28, borderRadius: 7, background: "#F0EDF8" }}
+            style={{ width: 28, height: 28, borderRadius: 7, background: "var(--background-subtle)" }}
           >
             <User size={14} stroke="#6C3FC8" />
           </div>
           <div>
-            <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>Avatar</p>
-            <p style={{ fontSize: 11, color: "#71717a", marginTop: 1 }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>Avatar</p>
+            <p style={{ fontSize: 11, color: "var(--foreground-muted)", marginTop: 1 }}>
               Choisis ton avatar — il évolue avec ton niveau d&apos;activité.
             </p>
           </div>
@@ -118,21 +118,21 @@ export function ParametresClient() {
                     borderRadius: 10,
                     padding: "12px 8px",
                     textAlign: "center",
-                    border: `1.5px solid ${selected ? "#6C3FC8" : "#e4e4e7"}`,
-                    background: selected ? "#F0EDF8" : "#f4f4f5",
+                    border: `1.5px solid ${selected ? "#6C3FC8" : "var(--border)"}`,
+                    background: selected ? "var(--background-subtle)" : "var(--background-card)",
                     cursor: "pointer",
                     transition: "border-color 120ms, background 120ms",
                   }}
                   onMouseEnter={(e) => {
                     if (!selected) {
                       e.currentTarget.style.borderColor = "#6C3FC8";
-                      e.currentTarget.style.background = "#F0EDF8";
+                      e.currentTarget.style.background = "var(--background-subtle)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!selected) {
-                      e.currentTarget.style.borderColor = "#e4e4e7";
-                      e.currentTarget.style.background = "#f4f4f5";
+                      e.currentTarget.style.borderColor = "var(--border)";
+                      e.currentTarget.style.background = "var(--background-card)";
                     }
                   }}
                 >
@@ -141,12 +141,12 @@ export function ParametresClient() {
                     style={{
                       fontSize: 11,
                       fontWeight: 500,
-                      color: selected ? "#6C3FC8" : "#71717a",
+                      color: selected ? "#6C3FC8" : "var(--foreground-muted)",
                     }}
                   >
                     {label}
                   </span>
-                  <span style={{ fontSize: 10, color: "#a1a1aa" }}>{subLabel}</span>
+                  <span style={{ fontSize: 10, color: "var(--foreground-disabled)" }}>{subLabel}</span>
                 </button>
               );
             })}
@@ -156,7 +156,7 @@ export function ParametresClient() {
 
       {/* -------- Section Abonnement & Paiement -------- */}
       <div
-        style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 16 }}
+        style={{ background: "var(--background-card)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 16 }}
       >
         {/* Header section */}
         <div className="mb-3 flex items-center gap-2.5">
@@ -166,7 +166,7 @@ export function ParametresClient() {
           >
             <CreditCard size={14} stroke="#C47D0A" />
           </div>
-          <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+          <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
             Abonnement &amp; paiement
           </p>
         </div>
@@ -190,12 +190,12 @@ export function ParametresClient() {
         {/* Détails plan */}
         <div
           className="mb-3"
-          style={{ background: "#f4f4f5", borderRadius: 10, padding: "12px 14px" }}
+          style={{ background: "var(--background-subtle)", borderRadius: 10, padding: "12px 14px" }}
         >
           <PlanRow label="Tarif" value="6 € / mois" />
-          <div style={{ borderTop: "0.5px solid #e4e4e7", margin: "4px 0" }} />
+          <div style={{ borderTop: "0.5px solid var(--border)", margin: "4px 0" }} />
           <PlanRow label="Prochain renouvellement" value="—" />
-          <div style={{ borderTop: "0.5px solid #e4e4e7", margin: "4px 0" }} />
+          <div style={{ borderTop: "0.5px solid var(--border)", margin: "4px 0" }} />
           <PlanRow label="Statut" value="✓ Actif" valueColor="#1D9E75" />
         </div>
 
@@ -244,7 +244,7 @@ export function ParametresClient() {
             fontWeight: 500,
             textTransform: "uppercase",
             letterSpacing: "0.04em",
-            color: "#71717a",
+            color: "var(--foreground-muted)",
             marginBottom: 8,
           }}
         >
@@ -254,7 +254,7 @@ export function ParametresClient() {
         {/* Carte placeholder */}
         <div
           className="mb-2 flex items-center gap-2.5"
-          style={{ background: "#f4f4f5", borderRadius: 10, padding: "10px 14px" }}
+          style={{ background: "var(--background-subtle)", borderRadius: 10, padding: "10px 14px" }}
         >
           <div
             className="flex shrink-0 items-center justify-center"
@@ -272,10 +272,10 @@ export function ParametresClient() {
             VISA
           </div>
           <div className="min-w-0 flex-1">
-            <p style={{ fontSize: 12, fontWeight: 500, color: "#1a1a1a" }}>
+            <p style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}>
               •••• •••• •••• 4242
             </p>
-            <p style={{ fontSize: 11, color: "#a1a1aa" }}>Expire 12/27</p>
+            <p style={{ fontSize: 11, color: "var(--foreground-disabled)" }}>Expire 12/27</p>
           </div>
           <button
             type="button"
@@ -296,7 +296,7 @@ export function ParametresClient() {
         {/* Bouton ajouter carte */}
         <button
           type="button"
-          className="flex w-full items-center justify-center gap-[5px] transition hover:bg-[#F0EDF8]/40"
+          className="flex w-full items-center justify-center gap-[5px] transition hover:bg-[var(--hover-bg)]"
           style={{
             fontSize: 12,
             color: "#6C3FC8",
@@ -328,8 +328,8 @@ function PlanRow({
 }) {
   return (
     <div className="flex items-center justify-between" style={{ padding: "4px 0" }}>
-      <span style={{ fontSize: 12, color: "#71717a" }}>{label}</span>
-      <span style={{ fontSize: 12, fontWeight: 500, color: valueColor ?? "#1a1a1a" }}>
+      <span style={{ fontSize: 12, color: "var(--foreground-muted)" }}>{label}</span>
+      <span style={{ fontSize: 12, fontWeight: 500, color: valueColor ?? "var(--foreground)" }}>
         {value}
       </span>
     </div>

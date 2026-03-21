@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { ProfesseurSM2Modal } from "@/components/professeur-sm2-modal";
 
 type StreakData = { currentStreak: number; longestStreak: number };
 type Stats = {
@@ -16,6 +17,7 @@ export function DashboardClient() {
   const [loading, setLoading] = useState(true);
   const [displayStreak, setDisplayStreak] = useState(0);
   const animatedRef = useRef(false);
+  const [sm2Open, setSm2Open] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -82,34 +84,24 @@ export function DashboardClient() {
         : "Tu es dans le rythme — ne lâche pas.";
 
   return (
-    <div className="flex flex-col gap-[10px]">
+    <div className="flex flex-col gap-[10px] bg-[var(--background)]">
       {/* Bannière Streak */}
-      <section
-        style={{
-          background: "#FEF8EC",
-          border: "0.5px solid #F5D08A",
-          borderRadius: 10,
-          padding: 16,
-        }}
-      >
+      <section className="rounded-[10px] border border-[var(--border)] bg-[var(--background-card)] p-4">
         <div className="mb-3 flex items-start gap-4">
           <div className="shrink-0">
-            <p
-              className="leading-none"
-              style={{ fontSize: 38, fontWeight: 500, color: "#F5A623" }}
-            >
+            <p className="text-[38px] font-medium leading-none text-[var(--foreground)]">
               {displayStreak}
             </p>
-            <p className="mt-0.5" style={{ fontSize: 11, color: "#C47D0A" }}>
+            <p className="mt-0.5 text-[11px] text-[var(--foreground)]">
               jour{s !== 1 ? "s" : ""} d&apos;affilée
             </p>
           </div>
 
           <div className="flex-1 pt-1">
-            <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+            <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
               {streakMessage}
             </p>
-            <p className="mt-0.5" style={{ fontSize: 12, color: "#9a8a6e" }}>
+            <p className="mt-0.5 text-[12px] text-[var(--foreground-muted)]">
               {dueCount} mot{dueCount !== 1 ? "s" : ""} à revoir
               aujourd&apos;hui
             </p>
@@ -119,10 +111,9 @@ export function DashboardClient() {
         <Link
           href="/app/revision/express"
           onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}
-          className="flex items-center justify-between no-underline transition hover:brightness-95"
+          className="flex items-center justify-between revision-express-text no-underline transition hover:brightness-95"
           style={{
             background: "#F5A623",
-            color: "white",
             borderRadius: 8,
             padding: "11px 16px",
           }}
@@ -132,10 +123,10 @@ export function DashboardClient() {
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
             <div>
-              <p className="leading-tight" style={{ fontSize: 13, fontWeight: 500 }}>
+              <p className="leading-tight text-[13px] font-medium revision-express-text">
                 Révision express
               </p>
-              <p className="leading-tight" style={{ fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
+              <p className="leading-tight text-[11px] revision-express-text opacity-80">
                 5 min · 10 mots · basé sur SM-2
               </p>
             </div>
@@ -146,6 +137,24 @@ export function DashboardClient() {
         </Link>
       </section>
 
+      <button
+        type="button"
+        onClick={() => setSm2Open(true)}
+        className="self-start text-[12px] font-medium text-[var(--primary)] transition hover:opacity-80"
+        style={{
+          color: "var(--primary)",
+          background: "none",
+          border: "none",
+          cursor: "pointer",
+          padding: 0,
+          marginTop: -4,
+        }}
+      >
+        🧠 Pourquoi réviser maintenant ?
+      </button>
+
+      <ProfesseurSM2Modal open={sm2Open} onClose={() => setSm2Open(false)} />
+
       {/* 3 Cartes */}
       <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-3">
         {/* Bibliothèque */}
@@ -153,7 +162,7 @@ export function DashboardClient() {
           href="/app/familles"
           className="card-hover flex flex-col gap-2 no-underline"
           style={{
-            background: "#F0EDF8",
+            background: "var(--background-subtle)",
             border: "0.5px solid #DDD6F5",
             borderRadius: 10,
             padding: "14px 12px",
@@ -165,7 +174,7 @@ export function DashboardClient() {
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
           </div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>Bibliothèque</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Bibliothèque</p>
           <span style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8", background: "#DDD6F5", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
             {listsCount} liste{listsCount !== 1 ? "s" : ""}
           </span>
@@ -176,7 +185,7 @@ export function DashboardClient() {
           href="/app/revision"
           className="card-hover flex flex-col gap-2 no-underline"
           style={{
-            background: "#FEF3DC",
+            background: "var(--background-card)",
             border: "0.5px solid #FAE5B0",
             borderRadius: 10,
             padding: "14px 12px",
@@ -188,7 +197,7 @@ export function DashboardClient() {
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
           </div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>Évaluation</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Évaluation</p>
           <span
             className={dueCount > 0 ? "badge-urgent" : ""}
             style={{ fontSize: 11, fontWeight: 500, color: "#C47D0A", background: "#FAE5B0", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}
@@ -202,7 +211,7 @@ export function DashboardClient() {
           href="/app/jardin"
           className="card-hover flex flex-col gap-2 no-underline"
           style={{
-            background: "#EAF4EF",
+            background: "var(--background-card)",
             border: "0.5px solid #C3E6D6",
             borderRadius: 10,
             padding: "14px 12px",
@@ -214,7 +223,7 @@ export function DashboardClient() {
               <path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />
             </svg>
           </div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: "#1a1a1a" }}>Synthèse</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Synthèse</p>
           <span style={{ fontSize: 11, fontWeight: 500, color: "#1D9E75", background: "#C3E6D6", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
             {masteredCount} mot{masteredCount !== 1 ? "s" : ""} maîtrisé{masteredCount !== 1 ? "s" : ""}
           </span>

@@ -507,7 +507,7 @@ export function RevisionClient({
     return (
       <div className="space-y-6">
         <BackLink href="/app" />
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">
           Choisis un mode
         </h2>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -517,13 +517,13 @@ export function RevisionClient({
               setMode("flashcard");
               setStep("lists");
             }}
-            className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 text-left transition hover:border-primary hover:shadow-md dark:hover:border-primary-light"
           >
             <span className="text-2xl" aria-hidden>🃏</span>
-            <h3 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
+            <h3 className="mt-2 font-semibold text-[var(--foreground)]">
               Flashcards
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-[var(--foreground-muted)]">
               Carte avec le mot · Révéler la traduction · Swipe droite = appris, gauche = raté (reviendra en fin de liste).
             </p>
           </button>
@@ -533,13 +533,13 @@ export function RevisionClient({
               setMode("dictee");
               setStep("lists");
             }}
-            className="btn-relief rounded-xl border-2 border-slate-200 bg-white p-6 text-left transition hover:border-primary hover:shadow-md dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 text-left transition hover:border-primary hover:shadow-md dark:hover:border-primary-light"
           >
             <span className="text-2xl" aria-hidden>✏️</span>
-            <h3 className="mt-2 font-semibold text-slate-800 dark:text-slate-100">
+            <h3 className="mt-2 font-semibold text-[var(--foreground)]">
               Dictée / Écriture active
             </h3>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm text-[var(--foreground-muted)]">
               Écris la traduction, validation et feedback immédiat.
             </p>
           </button>
@@ -552,7 +552,7 @@ export function RevisionClient({
     return (
       <div className="space-y-6">
         <BackLink href={backHref} onClick={initialMode ? undefined : () => setStep("mode")} />
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">
           Sélectionne une ou plusieurs listes (même langue)
         </h2>
         {error && (
@@ -561,9 +561,9 @@ export function RevisionClient({
           </p>
         )}
         {loading ? (
-          <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+          <p className="text-[var(--foreground-muted)]">Chargement…</p>
         ) : lists.length === 0 ? (
-          <p className="text-slate-500 dark:text-slate-400">
+          <p className="text-[var(--foreground-muted)]">
             Aucune liste. Crée des listes dans la Bibliothèque.
           </p>
         ) : (
@@ -578,8 +578,8 @@ export function RevisionClient({
                       selected
                         ? "border-primary bg-primary/5 dark:bg-primary/10"
                         : disabled
-                          ? "border-slate-200 opacity-60 dark:border-slate-700"
-                          : "border-slate-200 hover:border-slate-300 dark:border-slate-700 dark:hover:border-slate-600"
+                          ? "border-[var(--border)] opacity-60"
+                          : "border-[var(--border)] hover:border-primary/35"
                     }`}
                   >
                     <input
@@ -587,12 +587,12 @@ export function RevisionClient({
                       checked={selected}
                       onChange={() => toggleList(list.id)}
                       disabled={disabled}
-                      className="h-4 w-4 rounded border-slate-300 text-primary"
+                      className="h-4 w-4 rounded border-[var(--input-border)] text-primary"
                     />
-                    <span className="font-medium text-slate-800 dark:text-slate-100">
+                    <span className="font-medium text-[var(--foreground)]">
                       {list.name}
                     </span>
-                    <span className="text-sm text-slate-500 dark:text-slate-400">
+                    <span className="text-sm text-[var(--foreground-muted)]">
                       {list.familyName} · {list.wordCount} mots
                     </span>
                   </label>
@@ -628,10 +628,10 @@ export function RevisionClient({
     return (
       <div className="space-y-6">
         <BackLink href="/app" onClick={() => setStep("lists")} />
-        <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
+        <h2 className="text-lg font-semibold text-[var(--foreground)]">
           Sens de la dictée
         </h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-[var(--foreground-muted)]">
           Choisis dans quel sens tu veux écrire : on t’affiche un côté, tu écris l’autre.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -646,17 +646,17 @@ export function RevisionClient({
                 loadSessionWords();
               }
             }}
-            className="btn-relief flex flex-col items-center gap-3 rounded-xl border-2 border-slate-200 bg-white p-6 transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief flex flex-col items-center gap-3 rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 transition hover:border-primary dark:hover:border-primary-light"
           >
             <div className="flex items-center gap-2">
               <FlagDisplay langCode={langTerm} size={32} />
-              <span className="text-lg font-medium text-slate-400">→</span>
+              <span className="text-lg font-medium text-[var(--foreground-disabled)]">→</span>
               <FlagDisplay langCode={langDef} size={32} />
             </div>
-            <p className="text-center text-sm font-medium text-slate-600 dark:text-slate-400">
+            <p className="text-center text-sm font-medium text-[var(--foreground-muted)]">
               {labelTerm} → {labelDef}
             </p>
-            <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-center text-xs text-[var(--foreground-muted)]">
               On affiche le mot, tu écris la traduction.
             </p>
           </button>
@@ -671,17 +671,17 @@ export function RevisionClient({
                 loadSessionWords();
               }
             }}
-            className="btn-relief flex flex-col items-center gap-3 rounded-xl border-2 border-slate-200 bg-white p-6 transition hover:border-primary dark:border-slate-600 dark:bg-slate-800 dark:hover:border-primary-light"
+            className="btn-relief flex flex-col items-center gap-3 rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 transition hover:border-primary dark:hover:border-primary-light"
           >
             <div className="flex items-center gap-2">
               <FlagDisplay langCode={langDef} size={32} />
-              <span className="text-lg font-medium text-slate-400">→</span>
+              <span className="text-lg font-medium text-[var(--foreground-disabled)]">→</span>
               <FlagDisplay langCode={langTerm} size={32} />
             </div>
-            <p className="text-center text-sm font-medium text-slate-600 dark:text-slate-400">
+            <p className="text-center text-sm font-medium text-[var(--foreground-muted)]">
               {labelDef} → {labelTerm}
             </p>
-            <p className="text-center text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-center text-xs text-[var(--foreground-muted)]">
               On affiche la traduction, tu écris le mot.
             </p>
           </button>
@@ -695,7 +695,7 @@ export function RevisionClient({
       return (
         <div className="space-y-4">
           <BackLink href="/app" />
-          <p className="text-slate-500 dark:text-slate-400">Chargement des mots…</p>
+          <p className="text-[var(--foreground-muted)]">Chargement des mots…</p>
         </div>
       );
     }
@@ -709,7 +709,7 @@ export function RevisionClient({
           <button
             type="button"
             onClick={() => setStep("direction")}
-            className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700"
+            className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
           >
             Changer de listes ou sens
           </button>
@@ -725,11 +725,11 @@ export function RevisionClient({
         return (
           <div className="space-y-6">
             <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 dark:border-slate-600 dark:bg-slate-800">
-              <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+            <div className="rounded-2xl border border-[var(--border)] bg-[var(--background-card)] p-6">
+              <h2 className="text-xl font-semibold text-[var(--foreground)]">
                 Session terminée
               </h2>
-              <ul className="mt-4 space-y-2 text-slate-600 dark:text-slate-400">
+              <ul className="mt-4 space-y-2 text-[var(--foreground-muted)]">
                 <li>Temps : {durationStr}</li>
                 <li>Mots vus : {wordsSeen}</li>
                 <li>Retenus : {wordsRetained}</li>
@@ -763,7 +763,7 @@ export function RevisionClient({
       return (
         <div className="space-y-4">
           <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-[var(--foreground-muted)]">
             Aucun mot à réviser pour les listes choisies. Reviens plus tard.
           </p>
           <button
@@ -814,7 +814,7 @@ export function RevisionClient({
           if (stopPropagation) e.stopPropagation();
           speakWord(text, lang);
         }}
-        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-600 transition hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600 ${className}`}
+        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--background-subtle)] text-[var(--foreground-muted)] transition hover:bg-[var(--background-card)] ${className}`}
         aria-label="Écouter la prononciation"
       >
         <span aria-hidden>🔊</span>
@@ -852,7 +852,7 @@ export function RevisionClient({
         <div className="flex min-h-[50vh] flex-col">
           <div className="mb-4 flex items-center justify-between">
             <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
-            <span className="text-sm text-slate-500 dark:text-slate-400">
+            <span className="text-sm text-[var(--foreground-muted)]">
               {progressLabel}
             </span>
           </div>
@@ -861,7 +861,7 @@ export function RevisionClient({
           <div className="flex flex-1 flex-col">
             {current && (
               <div
-                className="touch-pan-y select-none rounded-2xl border-2 border-slate-200 bg-white p-8 shadow-lg dark:border-slate-600 dark:bg-slate-800"
+                className="touch-pan-y select-none rounded-2xl border-2 border-[var(--border)] bg-[var(--background-card)] p-8 shadow-lg"
                 style={{ touchAction: "pan-y" }}
                 onClick={(e) => {
                   if (e.target === e.currentTarget) {
@@ -888,7 +888,7 @@ export function RevisionClient({
                   className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
                 >
                   <div className="flex items-center justify-center gap-2">
-                    <p className="text-center text-2xl font-semibold text-slate-800 dark:text-slate-100">
+                    <p className="text-center text-2xl font-semibold text-[var(--foreground)]">
                       {displayText}
                     </p>
                     <SpeakButton
@@ -907,8 +907,8 @@ export function RevisionClient({
                   </div>
                 )}
                 {revealed ? (
-                  <div className="mt-6 flex items-center justify-center gap-2 border-t border-slate-200 pt-6 dark:border-slate-600">
-                    <p className="text-center text-lg text-slate-600 dark:text-slate-400">
+                  <div className="mt-6 flex items-center justify-center gap-2 border-t border-[var(--border)] pt-6">
+                    <p className="text-center text-lg text-[var(--foreground-muted)]">
                       {answerText || "—"}
                     </p>
                     <SpeakButton text={answerText || ""} lang={answerLang} />
@@ -922,7 +922,7 @@ export function RevisionClient({
                         setRevealed(true);
                       }}
                       style={{ touchAction: "manipulation", cursor: "pointer" }}
-                      className="rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 px-4 py-2 text-sm font-medium text-slate-600 hover:border-primary hover:bg-primary/5 hover:text-primary dark:border-slate-600 dark:bg-slate-700/50 dark:text-slate-300 dark:hover:border-primary-light dark:hover:bg-primary/10"
+                      className="rounded-xl border-2 border-dashed border-[var(--input-border)] bg-[var(--background-subtle)] px-4 py-2 text-sm font-medium text-[var(--foreground-muted)] hover:border-primary hover:bg-primary/5 hover:text-primary dark:hover:border-primary-light dark:hover:bg-primary/10"
                     >
                       Révéler la traduction
                     </button>
@@ -934,7 +934,7 @@ export function RevisionClient({
             {/* En bas : 4 boutons SM-2 quand révélé, sinon swipe hint ; swipe droite=2, gauche=0 */}
             {current && (
               <div className="mt-6 flex flex-wrap items-center gap-3">
-                <span className="text-xs text-slate-400 dark:text-slate-500 sm:mr-auto">
+                <span className="text-xs text-[var(--foreground-disabled)] sm:mr-auto">
                   {revealed
                     ? "Comment s'est passée la révision ?"
                     : "Swipe droite = bien · gauche = oublié"}
@@ -1024,7 +1024,7 @@ export function RevisionClient({
                         e.stopPropagation();
                         handleSwipe(false);
                       }}
-                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-red-200 bg-white text-red-500 shadow hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:bg-slate-800 dark:hover:bg-red-900/20"
+                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-red-200 bg-[var(--background-card)] text-red-500 shadow hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:hover:bg-red-900/20"
                       aria-label="Oublié"
                     >
                       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1043,7 +1043,7 @@ export function RevisionClient({
                         e.stopPropagation();
                         handleSwipe(true);
                       }}
-                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-green-200 bg-white text-green-600 shadow hover:bg-green-50 disabled:opacity-50 dark:border-green-800 dark:bg-slate-800 dark:hover:bg-green-900/20"
+                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-green-200 bg-[var(--background-card)] text-green-600 shadow hover:bg-green-50 disabled:opacity-50 dark:border-green-800 dark:hover:bg-green-900/20"
                       aria-label="Bien"
                     >
                       <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1059,14 +1059,14 @@ export function RevisionClient({
               <div className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 p-4 dark:border-[#6C3FC8]/30 dark:bg-[#6C3FC8]/10">
                 <p className="mb-2 text-sm font-medium text-[#6C3FC8] dark:text-[#a78bfa]">
                   💡 Ajoute une astuce mémo{" "}
-                  <span className="font-normal text-slate-500 dark:text-slate-400">(optionnel)</span>
+                  <span className="font-normal text-[var(--foreground-muted)]">(optionnel)</span>
                 </p>
                 <textarea
                   value={memoInput}
                   onChange={(e) => setMemoInput(e.target.value)}
                   placeholder="Une image mentale, une association, un moyen mnémotechnique…"
                   rows={2}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 placeholder:text-slate-400 focus:border-[#6C3FC8] focus:outline-none focus:ring-1 focus:ring-[#6C3FC8] dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
+                  className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)] focus:border-[#6C3FC8] focus:outline-none focus:ring-1 focus:ring-[#6C3FC8]"
                 />
                 <div className="mt-2 flex gap-2">
                   <button
@@ -1090,7 +1090,7 @@ export function RevisionClient({
                   <button
                     type="button"
                     onClick={() => setShowMemoInput(false)}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+                    className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--foreground-muted)] hover:bg-[var(--background-subtle)]"
                   >
                     Passer
                   </button>
@@ -1146,14 +1146,14 @@ export function RevisionClient({
       <div className="flex min-h-[50vh] flex-col">
         <div className="mb-4 flex items-center justify-between">
           <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
-          <span className="text-sm text-slate-500 dark:text-slate-400">
+          <span className="text-sm text-[var(--foreground-muted)]">
             {progressLabel}
           </span>
         </div>
         {current && (
-          <div className="rounded-2xl border-2 border-slate-200 bg-white p-6 dark:border-slate-600 dark:bg-slate-800">
+          <div className="rounded-2xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6">
             <div className="flex items-center gap-2">
-              <p className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+              <p className="text-xl font-semibold text-[var(--foreground)]">
                 {displayText}
               </p>
               <SpeakButton text={displayText} lang={displayLang} />
@@ -1167,7 +1167,7 @@ export function RevisionClient({
                 onKeyDown={(e) => e.key === "Enter" && submitDictee()}
                 placeholder="Écris la traduction…"
                 disabled={sending}
-                className="w-full rounded-lg border border-slate-300 bg-white px-4 py-3 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-[var(--foreground)]"
                 autoFocus
               />
             </div>
@@ -1182,7 +1182,7 @@ export function RevisionClient({
                   Faux.
                 </p>
                 {writeRevealed && (
-                  <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                  <p className="mt-1 text-sm text-[var(--foreground-muted)]">
                     Réponse : <strong>{answerText || "—"}</strong>
                   </p>
                 )}
@@ -1198,7 +1198,7 @@ export function RevisionClient({
                     <button
                       type="button"
                       onClick={onWrongReveal}
-                      className="btn-relief rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:text-slate-300"
+                      className="btn-relief rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground-muted)]"
                     >
                       Révéler
                     </button>
@@ -1214,7 +1214,7 @@ export function RevisionClient({
                     <button
                       type="button"
                       onClick={onWrongNext}
-                      className="btn-relief rounded-lg bg-slate-700 px-3 py-2 text-sm text-white dark:bg-slate-600"
+                      className="btn-relief rounded-lg bg-[var(--foreground-muted)] px-3 py-2 text-sm text-[var(--background)]"
                     >
                       Suivant
                     </button>

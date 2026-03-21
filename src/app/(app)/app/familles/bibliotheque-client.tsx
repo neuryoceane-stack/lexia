@@ -30,7 +30,7 @@ type ClassWithLists = {
 const SORT_OPTIONS = [
   { value: "alpha", label: "Alphabétique" },
   { value: "created", label: "Date de création" },
-  { value: "updated", label: "Date d’ajout" },
+  { value: "updated", label: "Date d'ajout" },
 ] as const;
 
 const KNOWN_LANGS = new Set(PREFERRED_LANGUAGE_OPTIONS.map((o) => o.value));
@@ -101,7 +101,7 @@ export function BibliothequeClient() {
     fetchLists();
   }, [fetchLists]);
 
-  /** Recharger les listes à chaque affichage de la Bibliothèque (données à jour après modification d’une liste). */
+  /** Recharger les listes à chaque affichage de la Bibliothèque (données à jour après modification d'une liste). */
   useEffect(() => {
     if (pathname === "/app/familles") fetchLists();
   }, [pathname, fetchLists]);
@@ -144,7 +144,7 @@ export function BibliothequeClient() {
       });
   }, []);
 
-  /** Appliquer le filtre langue depuis l’URL (?lang=eng) au chargement (ex. après création d’une liste). */
+  /** Appliquer le filtre langue depuis l'URL (?lang=eng) au chargement (ex. après création d'une liste). */
   const langFromUrl = searchParams.get("lang")?.trim().toLowerCase() || null;
   const langToApply = langFromUrl === "en" ? "eng" : langFromUrl;
   useEffect(() => {
@@ -260,7 +260,7 @@ export function BibliothequeClient() {
       if (res.ok) {
         setPreferredLanguages(Array.isArray(data.preferredLanguages) ? data.preferredLanguages : [code]);
       } else {
-        const errMsg = (data.error as string) || "Impossible d’enregistrer la langue.";
+        const errMsg = (data.error as string) || "Impossible d'enregistrer la langue.";
         setPreferredLangError(
           data.details ? `${errMsg} (${data.details})` : errMsg
         );
@@ -337,25 +337,25 @@ export function BibliothequeClient() {
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[var(--background)]">
       <BackLink href="/app" ariaLabel="Retour au tableau de bord" />
 
       {!prefsLoaded && lists.length === 0 && (
-        <p className="text-sm text-slate-500 dark:text-slate-400">Chargement…</p>
+        <p className="text-sm text-[var(--foreground-muted)]">Chargement…</p>
       )}
 
       {/* Bulle première visite : choix de la langue à enrichir */}
       {showOnboardingBubble && (
         <div
-          className="rounded-xl border border-primary/30 bg-primary/5 p-4 dark:border-primary/40 dark:bg-primary/10"
+          className="rounded-xl border border-primary/30 bg-primary/5"
           role="dialog"
           aria-labelledby="onboarding-lang-title"
           aria-describedby="onboarding-lang-desc"
         >
-          <h2 id="onboarding-lang-title" className="mb-2 text-base font-semibold text-slate-800 dark:text-slate-100">
+          <h2 id="onboarding-lang-title" className="mb-2 text-base font-semibold text-[var(--foreground)]">
             Quelle langue vous souhaitez enrichir avec du nouveau vocabulaire ?
           </h2>
-          <p id="onboarding-lang-desc" className="mb-3 text-sm text-slate-600 dark:text-slate-400">
+          <p id="onboarding-lang-desc" className="mb-3 text-sm text-[var(--foreground-muted)]">
             Choisissez une langue dans la liste ci-dessous.
           </p>
           {preferredLangError && (
@@ -367,7 +367,7 @@ export function BibliothequeClient() {
             <select
               value={(onboardingLang || PREFERRED_LANGUAGE_OPTIONS[0]?.value) ?? ""}
               onChange={(e) => setOnboardingLang(e.target.value)}
-              className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--foreground)]"
               aria-label="Langue à enrichir"
             >
               {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
@@ -420,8 +420,8 @@ export function BibliothequeClient() {
       {/* Header : titre + sous-titre + boutons */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>Bibliothèque</h1>
-          <p className="mt-1" style={{ fontSize: 12, color: "#71717a" }}>
+          <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>Bibliothèque</h1>
+          <p className="mt-1" style={{ fontSize: 12, color: "var(--foreground-muted)" }}>
             {totalLists} liste{totalLists !== 1 ? "s" : ""} · {uniqueLangs} langue{uniqueLangs !== 1 ? "s" : ""} · {totalWords} mot{totalWords !== 1 ? "s" : ""} · {totalDue} à revoir
           </p>
         </div>
@@ -450,10 +450,10 @@ export function BibliothequeClient() {
       {lists.length > 0 && (
         <div>
           <div className="flex items-center justify-between">
-            <span style={{ fontSize: 11, color: "#71717a" }}>Maîtrise globale — toutes langues</span>
+            <span style={{ fontSize: 11, color: "var(--foreground-muted)" }}>Maîtrise globale — toutes langues</span>
             <span style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8" }}>{avgMastery}%</span>
           </div>
-          <div style={{ height: 5, background: "#F0EDF8", borderRadius: 3, marginTop: 4 }}>
+          <div style={{ height: 5, background: "var(--background-subtle)", borderRadius: 3, marginTop: 4 }}>
             <div className="transition-all duration-300" style={{ height: "100%", width: `${avgMastery}%`, background: "#6C3FC8", borderRadius: 3 }} />
           </div>
         </div>
@@ -473,31 +473,31 @@ export function BibliothequeClient() {
 
       {/* Filtres langue (chips scrollable) */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-        <button type="button" onClick={() => setActiveLanguage(null)} className="shrink-0" style={{ background: activeLanguage === null ? "#F0EDF8" : "white", color: activeLanguage === null ? "#6C3FC8" : "#71717a", border: activeLanguage === null ? "1px solid #DDD6F5" : "0.5px solid #d4d4d8", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: activeLanguage === null ? 500 : 400, cursor: "pointer" }}>Toutes les langues</button>
+        <button type="button" onClick={() => setActiveLanguage(null)} className="shrink-0" style={{ background: activeLanguage === null ? "#6C3FC8" : "var(--background-card)", color: activeLanguage === null ? "white" : "var(--foreground-muted)", border: activeLanguage === null ? "1px solid #6C3FC8" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: activeLanguage === null ? 500 : 400, cursor: "pointer" }}>Toutes les langues</button>
         {preferredLanguages.map((code) => {
           const active = activeLanguage === code;
           const label = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code;
           return (
-            <button key={code} type="button" onClick={() => setActiveLanguage(code)} className="inline-flex shrink-0 items-center gap-1.5" style={{ background: active ? "#F0EDF8" : "white", color: active ? "#6C3FC8" : "#71717a", border: active ? "1px solid #DDD6F5" : "0.5px solid #d4d4d8", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: active ? 500 : 400, cursor: "pointer" }}>
+            <button key={code} type="button" onClick={() => setActiveLanguage(code)} className="inline-flex shrink-0 items-center gap-1.5" style={{ background: active ? "#6C3FC8" : "var(--background-card)", color: active ? "white" : "var(--foreground-muted)", border: active ? "1px solid #6C3FC8" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: active ? 500 : 400, cursor: "pointer" }}>
               <FlagDisplay langCode={code} size={16} />
               {label}
             </button>
           );
         })}
-        <button type="button" onClick={() => setLangModalOpen(true)} className="shrink-0 transition hover:text-[#6C3FC8]" style={{ background: "transparent", border: "0.5px dashed #d4d4d8", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#a1a1aa", cursor: "pointer" }}>+ Langue</button>
+        <button type="button" onClick={() => setLangModalOpen(true)} className="shrink-0 transition hover:text-[#6C3FC8]" style={{ background: "transparent", border: "0.5px dashed var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "var(--foreground-disabled)", cursor: "pointer" }}>+ Langue</button>
       </div>
 
       {/* Toolbar : recherche + filtres état + vue */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative max-w-xs flex-1">
-          <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+          <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground-disabled)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher…"
-            className="w-full bg-white pl-9 pr-3 py-2 text-sm text-slate-800 placeholder:text-slate-400"
-            style={{ borderRadius: 20, border: "0.5px solid #d4d4d8" }}
+            className="w-full bg-[var(--input-bg)] pl-9 pr-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)]"
+            style={{ borderRadius: 20, border: "0.5px solid var(--border)" }}
           />
         </div>
         <div className="flex gap-1">
@@ -507,9 +507,9 @@ export function BibliothequeClient() {
               type="button"
               onClick={() => setStatusFilter(val)}
               style={{
-                background: statusFilter === val ? "#F0EDF8" : "white",
-                color: statusFilter === val ? "#6C3FC8" : "#71717a",
-                border: statusFilter === val ? "1px solid #DDD6F5" : "0.5px solid #d4d4d8",
+                background: statusFilter === val ? "#6C3FC8" : "var(--background-card)",
+                color: statusFilter === val ? "white" : "var(--foreground-muted)",
+                border: statusFilter === val ? "1px solid #6C3FC8" : "0.5px solid var(--border)",
                 borderRadius: 20,
                 padding: "5px 12px",
                 fontSize: 12,
@@ -521,12 +521,12 @@ export function BibliothequeClient() {
             </button>
           ))}
         </div>
-        <div className="flex overflow-hidden" style={{ borderRadius: 8, border: "0.5px solid #d4d4d8" }}>
+        <div className="flex overflow-hidden" style={{ borderRadius: 8, border: "0.5px solid var(--border)" }}>
           <button
             type="button"
             onClick={() => setViewMode("grid")}
             className="px-2.5 py-2 transition"
-            style={{ background: viewMode === "grid" ? "#F0EDF8" : "white", color: viewMode === "grid" ? "#6C3FC8" : "#a1a1aa" }}
+            style={{ background: viewMode === "grid" ? "#6C3FC8" : "var(--background-card)", color: viewMode === "grid" ? "white" : "var(--foreground-disabled)" }}
             title="Vue mosaïque"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
@@ -535,7 +535,7 @@ export function BibliothequeClient() {
             type="button"
             onClick={() => setViewMode("list")}
             className="px-2.5 py-2 transition"
-            style={{ background: viewMode === "list" ? "#F0EDF8" : "white", color: viewMode === "list" ? "#6C3FC8" : "#a1a1aa" }}
+            style={{ background: viewMode === "list" ? "#6C3FC8" : "var(--background-card)", color: viewMode === "list" ? "white" : "var(--foreground-disabled)" }}
             title="Vue liste"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
@@ -545,16 +545,16 @@ export function BibliothequeClient() {
 
       {/* Contenu */}
       {loading ? (
-        <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+        <p className="text-[var(--foreground-muted)]">Chargement…</p>
       ) : (
         <>
           {classesWithLists.length > 0 && (
-            <section className="mb-6 rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800/60">
-              <h2 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-100">
+            <section className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-4 shadow-[var(--shadow-card)]">
+              <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Mes classes
               </h2>
               {visibleStudentClasses.length === 0 ? (
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-[var(--foreground-muted)]">
                   Aucune classe pour cette langue. Choisis « Toutes les langues » pour les voir.
                 </p>
               ) : (
@@ -564,14 +564,14 @@ export function BibliothequeClient() {
                     return (
                       <li
                         key={cls.id}
-                        className="rounded-lg border border-slate-200 bg-slate-50/80 dark:border-slate-600 dark:bg-slate-800/80"
+                        className="rounded-lg border border-[var(--border)] bg-[var(--background-subtle)]"
                       >
                         <button
                           type="button"
                           onClick={() =>
                             setExpandedClassId((id) => (id === cls.id ? null : cls.id))
                           }
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-[var(--hover-bg)]"
                           aria-expanded={isExpanded}
                         >
                           {cls.language && (
@@ -582,19 +582,19 @@ export function BibliothequeClient() {
                             />
                           )}
                           <span
-                            className="min-w-0 flex-1 truncate font-medium text-slate-700 dark:text-slate-200"
+                            className="min-w-0 flex-1 truncate font-medium text-[var(--foreground)]"
                             title={cls.title}
                           >
                             {cls.title}
                           </span>
                           <span
-                            className="text-slate-400 dark:text-slate-500"
+                            className="text-[var(--foreground-disabled)]"
                             aria-hidden
                           >
                             {cls.lists.length} liste{cls.lists.length !== 1 ? "s" : ""}
                           </span>
                           <svg
-                            className={`h-5 w-5 flex-shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${
+                            className={`h-5 w-5 flex-shrink-0 text-[var(--foreground-muted)] transition-transform ${
                               isExpanded ? "rotate-180" : ""
                             }`}
                             fill="none"
@@ -610,10 +610,10 @@ export function BibliothequeClient() {
                           </svg>
                         </button>
                         {isExpanded && (
-                          <div className="border-t border-slate-200 px-3 py-2 dark:border-slate-600">
+                          <div className="border-t border-[var(--border)] px-3 py-2">
                             {cls.lists.length === 0 ? (
-                              <p className="py-2 text-xs text-slate-500 dark:text-slate-400">
-                                Aucune liste partagée par le professeur pour l’instant.
+                              <p className="py-2 text-xs text-[var(--foreground-muted)]">
+                                Aucune liste partagée par le professeur pour l'instant.
                               </p>
                             ) : (
                               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -621,13 +621,12 @@ export function BibliothequeClient() {
                                   <li key={list.id}>
                                     <Link
                                       href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
-                                      className="block rounded-lg border border-slate-200 bg-white p-3 shadow-sm transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800"
+                                      className="block rounded-lg border border-[var(--border)] bg-[var(--background-card)] p-3 shadow-[var(--shadow-card)] transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                                     >
                                       <div className="flex items-start justify-between gap-2">
-                                        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-slate-800 dark:text-slate-100">
+                                        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--foreground)]">
                                           {list.name}
                                         </h3>
-                                        {/* Langue = filtre bibliothèque uniquement, non cliquable pour les listes du professeur */}
                                         {activeLanguage && (
                                           <span
                                             className="flex-shrink-0 select-none"
@@ -638,18 +637,18 @@ export function BibliothequeClient() {
                                           </span>
                                         )}
                                       </div>
-                                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                      <p className="mt-0.5 text-xs text-[var(--foreground-muted)]">
                                         {list.familyName} · {list.wordCount} mot
                                         {list.wordCount !== 1 ? "s" : ""}
                                       </p>
                                       <div className="mt-2 flex items-center gap-2">
-                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-600">
+                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--background-subtle)]">
                                           <div
                                             className="h-full rounded-full bg-p2-primary transition-all duration-200"
                                             style={{ width: `${list.progressPercent}%` }}
                                           />
                                         </div>
-                                        <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
+                                        <span className="text-xs font-medium text-[var(--foreground-muted)]">
                                           {list.progressPercent} %
                                         </span>
                                       </div>
@@ -669,8 +668,8 @@ export function BibliothequeClient() {
           )}
 
           {lists.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center dark:border-slate-600 dark:bg-slate-800/50">
-              <p className="text-slate-600 dark:text-slate-400">
+            <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--background-subtle)] p-8 text-center">
+              <p className="text-[var(--foreground-muted)]">
                 Aucune liste pour cette langue. Crée une liste de mots ou importe un PDF / une photo.
               </p>
             </div>
@@ -678,21 +677,21 @@ export function BibliothequeClient() {
         <ul className="grid gap-[10px] grid-cols-1 sm:grid-cols-2">
           {filteredByStatus.map((list) => {
             const dueWords = listDueMap.get(list.id) ?? 0;
-            const borderColor = dueWords > 0 ? "border-[#F5D08A]" : list.progressPercent >= 80 ? "border-[#C3E6D6]" : "border-slate-200";
+            const borderColor = dueWords > 0 ? "border-[#F5D08A]" : list.progressPercent >= 80 ? "border-[#C3E6D6]" : "border-[var(--border)]";
             return (
             <li key={list.id} className="relative">
               <Link
                 href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
-                className={`block rounded-[12px] border ${borderColor} bg-white shadow-sm transition-[box-shadow,transform] duration-150 hover:-translate-y-[2px] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800`}
+                className={`block rounded-[12px] border ${borderColor} bg-[var(--background-card)] shadow-[var(--shadow-card)] transition-[box-shadow,transform] duration-150 hover:-translate-y-[2px] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
                 style={{ padding: "14px 12px" }}
               >
                 <div className="flex items-center gap-2">
                   {list.language && <FlagDisplay langCode={list.language} size={20} className="shrink-0" />}
                 </div>
-                <h2 className="mt-2 truncate" style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+                <h2 className="mt-2 truncate" style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
                   {list.name}
                 </h2>
-                <p className="mt-0.5" style={{ fontSize: 11, color: "#71717a" }}>
+                <p className="mt-0.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
                   {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""} · {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === list.language)?.label ?? list.language ?? "—"}
                 </p>
                 {(() => {
@@ -704,7 +703,7 @@ export function BibliothequeClient() {
                       <div style={{ height: 4, background: trackBg, borderRadius: 3 }}>
                         <div className="transition-all duration-300" style={{ height: "100%", width: `${pct}%`, background: fillBg, borderRadius: 3 }} />
                       </div>
-                      <p className="mt-1" style={{ fontSize: 11, color: "#71717a" }}>{pct}% maîtrisé</p>
+                      <p className="mt-1" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>{pct}% maîtrisé</p>
                     </div>
                   );
                 })()}
@@ -724,7 +723,7 @@ export function BibliothequeClient() {
                     e.preventDefault();
                     setMenuOpenId(menuOpenId === list.id ? null : list.id);
                   }}
-                  className="btn-relief rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                  className="btn-relief rounded-lg p-1.5 text-[var(--foreground-disabled)] hover:bg-[var(--hover-bg)] hover:text-[var(--foreground-muted)]"
                   aria-label="Menu"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -734,10 +733,10 @@ export function BibliothequeClient() {
                   </svg>
                 </button>
                 {menuOpenId === list.id && (
-                  <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                  <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-[var(--border)] bg-[var(--background-card)] py-1 shadow-[var(--shadow-elevated)]">
                     <button
                       type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
                       onClick={() => {
                         setMenuOpenId(null);
                         setDuplicateModalList(list);
@@ -753,7 +752,7 @@ export function BibliothequeClient() {
                     </button>
                     <button
                       type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
                       onClick={() => handleRenameList(list)}
                     >
                       Renommer la liste
@@ -777,26 +776,26 @@ export function BibliothequeClient() {
             <button
               type="button"
               onClick={() => setAddModal("list")}
-              className="flex h-full w-full flex-col items-center justify-center gap-2 transition hover:bg-slate-50"
-              style={{ border: "1.5px dashed #d4d4d8", borderRadius: 12, background: "transparent", padding: "32px 12px", cursor: "pointer" }}
+              className="flex h-full w-full flex-col items-center justify-center gap-2 transition hover:bg-[var(--hover-bg)]"
+              style={{ border: "1.5px dashed var(--border)", borderRadius: 12, background: "transparent", padding: "32px 12px", cursor: "pointer" }}
             >
-              <div className="flex h-7 w-7 items-center justify-center" style={{ background: "#F0EDF8", borderRadius: "50%", color: "#6C3FC8", fontSize: 16, fontWeight: 600 }}>+</div>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "#71717a" }}>Nouvelle liste</span>
+              <div className="flex h-7 w-7 items-center justify-center" style={{ background: "var(--background-subtle)", borderRadius: "50%", color: "#6C3FC8", fontSize: 16, fontWeight: 600 }}>+</div>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)" }}>Nouvelle liste</span>
             </button>
           </li>
         </ul>
           ) : (
-        <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
+        <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--background-card)]">
           {filteredByStatus.map((list) => (
             <li key={list.id} className="relative flex items-center gap-4 px-4 py-3">
               <Link
                 href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
                 className="min-w-0 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
               >
-                <span className="block truncate font-semibold text-slate-800 dark:text-slate-100">
+                <span className="block truncate font-semibold text-[var(--foreground)]">
                   {list.name}
                 </span>
-                <span className="text-sm text-slate-500 dark:text-slate-400">
+                <span className="text-sm text-[var(--foreground-muted)]">
                   {list.familyName} · {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""} · {list.progressPercent} % retenu
                 </span>
               </Link>
@@ -807,7 +806,7 @@ export function BibliothequeClient() {
                     e.preventDefault();
                     setMenuOpenId(menuOpenId === list.id ? null : list.id);
                   }}
-                  className="btn-relief rounded p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-700 dark:hover:text-slate-300"
+                  className="btn-relief rounded p-1.5 text-[var(--foreground-disabled)] hover:bg-[var(--hover-bg)] hover:text-[var(--foreground-muted)]"
                   aria-label="Menu"
                 >
                   <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
@@ -817,10 +816,10 @@ export function BibliothequeClient() {
                   </svg>
                 </button>
                 {menuOpenId === list.id && (
-                  <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+                  <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-[var(--border)] bg-[var(--background-card)] py-1 shadow-[var(--shadow-elevated)]">
                     <button
                       type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
                       onClick={() => {
                         setMenuOpenId(null);
                         setDuplicateModalList(list);
@@ -836,7 +835,7 @@ export function BibliothequeClient() {
                     </button>
                     <button
                       type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
+                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
                       onClick={() => handleRenameList(list)}
                     >
                       Renommer la liste
@@ -869,13 +868,13 @@ export function BibliothequeClient() {
           aria-labelledby="rename-modal-title"
         >
           <div
-            className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800"
+            className="w-full max-w-md rounded-xl bg-[var(--background-card)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="rename-modal-title" className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <h2 id="rename-modal-title" className="mb-4 text-lg font-semibold text-[var(--foreground)]">
               Renommer la liste
             </h2>
-            <label htmlFor="rename-list-input" className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-400">
+            <label htmlFor="rename-list-input" className="mb-2 block text-sm font-medium text-[var(--foreground-muted)]">
               Nom de la liste
             </label>
             <input
@@ -884,7 +883,7 @@ export function BibliothequeClient() {
               value={renameInput}
               onChange={(e) => setRenameInput(e.target.value)}
               placeholder="ex. Mots extraits du PDF"
-              className="mb-6 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="mb-6 w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--foreground)]"
               disabled={!!renamingListId}
             />
             <div className="flex justify-end gap-2">
@@ -892,7 +891,7 @@ export function BibliothequeClient() {
                 type="button"
                 onClick={() => !renamingListId && setRenameModalList(null)}
                 disabled={!!renamingListId}
-                className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300 disabled:opacity-50"
+                className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--foreground-muted)] disabled:opacity-50"
               >
                 Annuler
               </button>
@@ -919,22 +918,22 @@ export function BibliothequeClient() {
           aria-labelledby="duplicate-modal-title"
         >
           <div
-            className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800"
+            className="w-full max-w-md rounded-xl bg-[var(--background-card)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="duplicate-modal-title" className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <h2 id="duplicate-modal-title" className="mb-4 text-lg font-semibold text-[var(--foreground)]">
               Dupliquer « {duplicateModalList.name} »
             </h2>
-            <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+            <p className="mb-2 text-sm font-medium text-[var(--foreground-muted)]">
               De (langue de la liste)
             </p>
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 dark:border-slate-600 dark:bg-slate-700/50">
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] px-3 py-2">
               <FlagDisplay langCode={duplicateModalList.language || "eng"} size={24} />
-              <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
+              <span className="text-sm font-medium text-[var(--foreground)]">
                 {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === (duplicateModalList.language || "eng"))?.label ?? duplicateModalList.language ?? "Anglais"}
               </span>
             </div>
-            <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+            <p className="mb-2 text-sm font-medium text-[var(--foreground-muted)]">
               Vers (langue de la nouvelle liste)
             </p>
             <div className="mb-6 flex flex-wrap gap-2">
@@ -945,8 +944,8 @@ export function BibliothequeClient() {
                   onClick={() => setDuplicateToLang(opt.value)}
                   className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     duplicateToLang === opt.value
-                      ? "border-primary bg-primary/10 text-primary dark:bg-primary/20"
-                      : "border-slate-200 bg-white text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-[var(--border)] bg-[var(--background-card)] text-[var(--foreground)] hover:bg-[var(--hover-bg)]"
                   }`}
                 >
                   <FlagDisplay langCode={opt.value} size={20} />
@@ -958,7 +957,7 @@ export function BibliothequeClient() {
               <button
                 type="button"
                 onClick={() => setDuplicateModalList(null)}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                className="rounded-lg border border-[var(--border)] bg-[var(--background-card)] px-4 py-2 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--hover-bg)]"
               >
                 Annuler
               </button>
@@ -976,7 +975,7 @@ export function BibliothequeClient() {
                 disabled={!duplicateToLang || duplicateToLang === (duplicateModalList.language || "eng")}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
               >
-                Voir l’aperçu
+                Voir l'aperçu
               </button>
             </div>
           </div>
@@ -993,27 +992,27 @@ export function BibliothequeClient() {
           aria-labelledby="lang-modal-title"
         >
           <div
-            className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800"
+            className="w-full max-w-md rounded-xl bg-[var(--background-card)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="lang-modal-title" className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <h2 id="lang-modal-title" className="mb-4 text-lg font-semibold text-[var(--foreground)]">
               Langues à enrichir
             </h2>
 
-            <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+            <p className="mb-2 text-sm font-medium text-[var(--foreground-muted)]">
               Vos langues
             </p>
             <div className="mb-6 flex flex-wrap gap-2">
               {preferredLanguages.length === 0 ? (
-                <span className="text-sm text-slate-500 dark:text-slate-400">Aucune langue choisie.</span>
+                <span className="text-sm text-[var(--foreground-muted)]">Aucune langue choisie.</span>
               ) : (
                 preferredLanguages.map((code) => (
                   <span
                     key={code}
-                    className="relative inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-slate-50 pl-3 pr-8 py-2 dark:border-slate-600 dark:bg-slate-700/50"
+                    className="relative inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] pl-3 pr-8 py-2"
                   >
                     <FlagDisplay langCode={code} size={24} />
-                    <span className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                    <span className="text-sm font-medium text-[var(--foreground)]">
                       {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code}
                     </span>
                     <button
@@ -1032,12 +1031,12 @@ export function BibliothequeClient() {
               )}
             </div>
 
-            <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
+            <p className="mb-2 text-sm font-medium text-[var(--foreground-muted)]">
               Ajouter une langue
             </p>
             <div className="flex flex-wrap gap-2">
               {PREFERRED_LANGUAGE_OPTIONS.filter((o) => !preferredLanguages.includes(o.value)).length === 0 ? (
-                <span className="text-sm text-slate-500 dark:text-slate-400">Vous avez déjà ajouté toutes les langues disponibles.</span>
+                <span className="text-sm text-[var(--foreground-muted)]">Vous avez déjà ajouté toutes les langues disponibles.</span>
               ) : (
                 PREFERRED_LANGUAGE_OPTIONS.filter((o) => !preferredLanguages.includes(o.value)).map((opt) => (
                   <button
@@ -1045,7 +1044,7 @@ export function BibliothequeClient() {
                     type="button"
                     onClick={() => handleAddSecondLanguage(opt.value)}
                     disabled={savingSecondLang}
-                    className="btn-relief inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:border-primary hover:bg-primary/5 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-primary-light dark:hover:bg-primary/10 disabled:opacity-50"
+                    className="btn-relief inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background-card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-primary hover:bg-primary/5 disabled:opacity-50"
                   >
                     <FlagDisplay langCode={opt.value} size={22} />
                     {opt.label}
@@ -1058,7 +1057,7 @@ export function BibliothequeClient() {
               <button
                 type="button"
                 onClick={() => setLangModalOpen(false)}
-                className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
+                className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--foreground-muted)]"
               >
                 Fermer
               </button>
@@ -1077,10 +1076,10 @@ export function BibliothequeClient() {
           aria-labelledby="confirm-remove-lang-title"
         >
           <div
-            className="w-full max-w-sm rounded-xl bg-white p-6 dark:bg-slate-800"
+            className="w-full max-w-sm rounded-xl bg-[var(--background-card)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="confirm-remove-lang-title" className="mb-3 text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <h2 id="confirm-remove-lang-title" className="mb-3 text-lg font-semibold text-[var(--foreground)]">
               Êtes-vous sûr de supprimer cette langue ?
             </h2>
             <p className="mb-6 text-sm text-red-600 dark:text-red-400">
@@ -1091,7 +1090,7 @@ export function BibliothequeClient() {
                 type="button"
                 onClick={() => setLangToRemove(null)}
                 disabled={removingLang}
-                className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300 disabled:opacity-50"
+                className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-sm text-[var(--foreground-muted)] disabled:opacity-50"
               >
                 Annuler
               </button>
@@ -1117,7 +1116,7 @@ export function BibliothequeClient() {
         >
           <div
             className="w-full overflow-hidden"
-            style={{ maxWidth: 400, borderRadius: 20, background: "white", border: "0.5px solid rgba(108,63,200,0.15)" }}
+            style={{ maxWidth: 400, borderRadius: 20, background: "var(--background-card)", border: "0.5px solid rgba(108,63,200,0.15)" }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header violet */}
@@ -1145,7 +1144,7 @@ export function BibliothequeClient() {
 
             {/* Corps */}
             <div style={{ padding: "22px 24px" }}>
-              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "#71717a", marginBottom: 8 }}>
+              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8 }}>
                 Langue
               </p>
               <div className="grid grid-cols-4 gap-[7px]" style={{ marginBottom: 4 }}>
@@ -1160,16 +1159,16 @@ export function BibliothequeClient() {
                       style={{
                         borderRadius: 10,
                         padding: "8px 4px",
-                        border: `1.5px solid ${sel ? "#6C3FC8" : "#e4e4e7"}`,
-                        background: sel ? "#F0EDF8" : "#f4f4f5",
+                        border: `1.5px solid ${sel ? "#6C3FC8" : "var(--border)"}`,
+                        background: sel ? "var(--background-subtle)" : "var(--background-subtle)",
                         cursor: "pointer",
                         transition: "border-color 120ms, background 120ms",
                       }}
-                      onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "#F0EDF8"; } }}
-                      onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#e4e4e7"; e.currentTarget.style.background = "#f4f4f5"; } }}
+                      onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
+                      onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
                     >
                       <FlagDisplay langCode={opt.value} size={18} />
-                      <span style={{ fontSize: 10, fontWeight: 500, color: sel ? "#6C3FC8" : "#71717a" }}>{opt.label}</span>
+                      <span style={{ fontSize: 10, fontWeight: 500, color: sel ? "#6C3FC8" : "var(--foreground-muted)" }}>{opt.label}</span>
                     </button>
                   );
                 })}
@@ -1183,7 +1182,7 @@ export function BibliothequeClient() {
                 Autre langue →
               </button>
 
-              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "#71717a", marginBottom: 8 }}>
+              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8 }}>
                 Nom de la liste
               </p>
               <input
@@ -1197,16 +1196,16 @@ export function BibliothequeClient() {
                   fontSize: 13,
                   padding: "11px 14px",
                   borderRadius: 10,
-                  border: "1.5px solid #e4e4e7",
-                  background: "#f4f4f5",
-                  color: "#1a1a1a",
+                  border: "1.5px solid var(--input-border)",
+                  background: "var(--input-bg)",
+                  color: "var(--foreground)",
                   outline: "none",
                   width: "100%",
                 }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "white"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "#e4e4e7"; e.currentTarget.style.background = "#f4f4f5"; }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--input-bg)"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--input-border)"; e.currentTarget.style.background = "var(--input-bg)"; }}
               />
-              <p style={{ fontSize: 11, color: "#a1a1aa", marginTop: 5 }}>Un nom précis t&apos;aidera à retrouver ta liste.</p>
+              <p style={{ fontSize: 11, color: "var(--foreground-disabled)", marginTop: 5 }}>Un nom précis t&apos;aidera à retrouver ta liste.</p>
             </div>
 
             {/* Footer */}
@@ -1214,8 +1213,8 @@ export function BibliothequeClient() {
               <button
                 type="button"
                 onClick={() => setAddModal(null)}
-                className="flex-1 transition hover:bg-[#f4f4f5]"
-                style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "1.5px solid #e4e4e7", background: "transparent", color: "#71717a", cursor: "pointer" }}
+                className="flex-1 transition hover:bg-[var(--hover-bg)]"
+                style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "1.5px solid var(--border)", background: "transparent", color: "var(--foreground-muted)", cursor: "pointer" }}
               >
                 Annuler
               </button>

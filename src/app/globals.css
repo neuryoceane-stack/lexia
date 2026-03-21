@@ -13,19 +13,48 @@
 
   /* Accent : doré */
   --accent: #F5A623;
+  --on-accent: #1A1035;
 
   /* Mode clair */
   --background: #F8F7FF;
   --background-card: #FFFFFF;
+  --background-subtle: #F0EDF8;
   --foreground: #1A1535;
   --foreground-muted: #6B6B8A;
+  --foreground-disabled: #B0A8CC;
+  --border: #E2DCF5;
+  --border-subtle: #EDE8FA;
+  --input-bg: #FFFFFF;
+  --input-border: #C8BDEA;
+  --input-focus: #6C3FC8;
+  --hover-bg: rgba(108, 63, 200, 0.06);
+  --active-bg: rgba(108, 63, 200, 0.12);
+  --shadow-card: 0 2px 12px rgba(108, 63, 200, 0.08);
+  --shadow-elevated: 0 8px 32px rgba(108, 63, 200, 0.15);
 }
 
 html.dark {
-  --background: #0F0E1A;
-  --background-card: #1A1830;
-  --foreground: #F0EEFF;
-  --foreground-muted: #9B99B8;
+  --background: #0F0A1E;
+  --background-card: #1A1035;
+  --background-subtle: #150D2E;
+  --foreground: #F1EEFF;
+  --foreground-muted: #9B8EC4;
+  --foreground-disabled: #5C4E8A;
+  --border: #2D1F5E;
+  --border-subtle: #1F1545;
+  --input-bg: #1A1035;
+  --input-border: #2D1F5E;
+  --input-focus: #6C3FC8;
+  --hover-bg: rgba(108, 63, 200, 0.12);
+  --active-bg: rgba(108, 63, 200, 0.20);
+  --primary: #C084FC;
+  --primary-dark: #5529A0;
+  --primary-light: #9D7BE8;
+  --accent: #F5A623;
+  --on-accent: #FFFFFF;
+  --on-accent: #1A1035;
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
+  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
 /* ========== Thème Tailwind ========== */
@@ -55,6 +84,20 @@ h1, h2, h3 {
 
 .font-heading {
   font-family: var(--font-heading);
+}
+
+/* Cartes Évaluation (révision) : fonds teintés en clair, surface neutre en dark */
+.card-dictee-bg {
+  background: #FEF8EC;
+}
+html.dark .card-dictee-bg {
+  background: var(--background-card);
+}
+.card-prononciation-bg {
+  background: #EAF4EF;
+}
+html.dark .card-prononciation-bg {
+  background: var(--background-card);
 }
 
 /* Boutons en relief (effet 3D marqué) */
@@ -286,4 +329,13 @@ html {
     animation: none;
     background: #f0edf8;
   }
+}
+
+/* Révision express - texte sur fond gold */
+
+.revision-express-text {
+  color: #FFFFFF;
+}
+html.dark .revision-express-text {
+  color: #1A1035;
 }

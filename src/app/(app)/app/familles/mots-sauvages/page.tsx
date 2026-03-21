@@ -277,7 +277,7 @@ export default function MotsSauvagesPage() {
   }, [songInput]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[var(--background)]">
       {step === "source" && (
         <MotsSauvagesSource
           extractLoading={extractLoading}
@@ -301,21 +301,21 @@ export default function MotsSauvagesPage() {
 
       {step === "langs" && (
         <>
-          <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+          <h1 className="text-xl font-semibold text-[var(--foreground)]">
             Langues
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-[var(--foreground-muted)]">
             Indique la langue du texte et la langue vers laquelle traduire.
           </p>
           <div className="flex flex-wrap gap-6">
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+              <label className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]">
                 Langue du texte
               </label>
               <select
                 value={sourceLang}
                 onChange={(e) => setSourceLang(e.target.value)}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                className="rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
               >
                 {PREFERRED_LANGUAGE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -325,13 +325,13 @@ export default function MotsSauvagesPage() {
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+              <label className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]">
                 Traduire en
               </label>
               <select
                 value={targetLang}
                 onChange={(e) => setTargetLang(e.target.value)}
-                className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                className="rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
               >
                 {PREFERRED_LANGUAGE_OPTIONS.map((o) => (
                   <option key={o.value} value={o.value}>
@@ -345,7 +345,7 @@ export default function MotsSauvagesPage() {
             <button
               type="button"
               onClick={() => setStep("source")}
-              className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+              className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
             >
               ← Retour
             </button>
@@ -362,29 +362,29 @@ export default function MotsSauvagesPage() {
 
       {step === "select" && (
         <>
-          <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+          <h1 className="text-xl font-semibold text-[var(--foreground)]">
             Sélectionne la partie à traduire
           </h1>
-          <p className="text-slate-600 dark:text-slate-400">
+          <p className="text-[var(--foreground-muted)]">
             Surligne le texte que tu veux garder, ou garde tout
           </p>
           <textarea
             readOnly
             value={rawText}
-            className="mb-4 block min-h-[50vh] max-h-[70vh] w-full resize-none overflow-y-auto rounded-xl border border-slate-200 bg-white p-4 font-mono text-sm text-slate-800 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+            className="mb-4 block min-h-[50vh] max-h-[70vh] w-full resize-none overflow-y-auto rounded-xl border border-[var(--border)] bg-[var(--input-bg)] p-4 font-mono text-sm text-[var(--foreground)]"
           />
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setStep("langs")}
-              className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+              className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
             >
               ← Retour
             </button>
             <button
               type="button"
               onClick={() => setStep("reading")}
-              className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+              className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
             >
               Tout garder →
             </button>
@@ -411,26 +411,26 @@ export default function MotsSauvagesPage() {
         <>
           <div className={selectedWords.length > 0 ? "pb-24" : ""}>
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+            <h1 className="text-xl font-semibold text-[var(--foreground)]">
               Touche un mot pour voir sa traduction
             </h1>
             <button
               type="button"
               onClick={() => setStep("select")}
-              className="btn-relief rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
+              className="btn-relief rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)]"
             >
               ← Retour
             </button>
           </div>
 
-          <div className="relative rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
+          <div className="relative rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
             {translateLoading && (
-              <p className="mb-2 text-sm text-slate-500 dark:text-slate-400">
+              <p className="mb-2 text-sm text-[var(--foreground-muted)]">
                 Traduction…
               </p>
             )}
             <div className="max-h-[60vh] overflow-y-auto">
-              <p className="leading-relaxed text-slate-800 dark:text-slate-100">
+              <p className="leading-relaxed text-[var(--foreground)]">
                 {tokens.map((token, i) => {
                   const isWord = /^\p{L}/u.test(token);
                   const isSelected = isWord && selectedWords.some(
@@ -459,14 +459,14 @@ export default function MotsSauvagesPage() {
 
             {bubble && (
               <div className="mt-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-4 dark:border-primary/50 dark:bg-primary/10">
-                <p className="text-sm text-slate-600 dark:text-slate-400">
-                  <strong className="text-slate-800 dark:text-slate-100">
+                <p className="text-sm text-[var(--foreground-muted)]">
+                  <strong className="text-[var(--foreground)]">
                     {bubble.word}
                   </strong>{" "}
                   → {bubble.translation}
                 </p>
                 {bubble.example && (
-                  <p className="mt-1 text-sm italic text-slate-500 dark:text-slate-500">
+                  <p className="mt-1 text-sm italic text-[var(--foreground-muted)]">
                     {bubble.example}
                   </p>
                 )}
@@ -497,11 +497,11 @@ export default function MotsSauvagesPage() {
           </div>
 
           {selectedWords.length > 0 && (
-            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-slate-200 bg-white p-4 shadow-lg dark:border-slate-700 dark:bg-slate-800">
+            <div className="fixed bottom-0 left-0 right-0 z-40 border-t border-[var(--border)] bg-[var(--background-card)] p-4 shadow-lg">
               <button
                 type="button"
                 onClick={() => openAddModal(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white hover:bg-primary-dark dark:bg-primary-light dark:text-slate-900 dark:hover:bg-primary/90"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white hover:bg-primary-dark dark:bg-primary-light dark:text-[var(--background)] dark:hover:bg-primary/90"
               >
                 <span>{selectedWords.length} mot{selectedWords.length > 1 ? "s" : ""} sélectionné{selectedWords.length > 1 ? "s" : ""}</span>
                 <span>—</span>
@@ -517,10 +517,10 @@ export default function MotsSauvagesPage() {
               onClick={() => setAddModalOpen(false)}
             >
               <div
-                className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800"
+                className="w-full max-w-md rounded-xl bg-[var(--background-card)] p-6"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+                <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
                   Ajouter à un groupe de vocabulaire
                 </h2>
                 {addSuccess ? (
@@ -530,13 +530,13 @@ export default function MotsSauvagesPage() {
                 ) : showCreateForm ? (
                   <div className="space-y-4">
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+                      <label className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]">
                         Famille
                       </label>
                       <select
                         value={createListFamilyId || (families[0]?.id ?? "")}
                         onChange={(e) => setCreateListFamilyId(e.target.value)}
-                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
                       >
                         {families.map((f) => (
                           <option key={f.id} value={f.id}>
@@ -546,7 +546,7 @@ export default function MotsSauvagesPage() {
                       </select>
                     </div>
                     <div>
-                      <label className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+                      <label className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]">
                         Nom de la liste
                       </label>
                       <input
@@ -554,7 +554,7 @@ export default function MotsSauvagesPage() {
                         value={createListName}
                         onChange={(e) => setCreateListName(e.target.value)}
                         placeholder="Ex: Verbes irréguliers"
-                        className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
+                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)]"
                       />
                     </div>
                     <div className="flex gap-2">
@@ -564,7 +564,7 @@ export default function MotsSauvagesPage() {
                           setShowCreateForm(false);
                           setCreateListName("");
                         }}
-                        className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+                        className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
                       >
                         Annuler
                       </button>
@@ -583,7 +583,7 @@ export default function MotsSauvagesPage() {
                     (f) => (listsByFamily[f.id] ?? []).length > 0
                   );
                   return familiesWithLists.length === 0 ? (
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="text-sm text-[var(--foreground-muted)]">
                       Crée d'abord une liste dans ta Bibliothèque
                     </p>
                   ) : (
@@ -592,7 +592,7 @@ export default function MotsSauvagesPage() {
                       const listes = listsByFamily[f.id] ?? [];
                       return (
                         <li key={f.id}>
-                          <span className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                          <span className="block text-sm font-medium text-[var(--foreground)]">
                             {f.name}
                           </span>
                           <ul className="ml-3 mt-1 space-y-1">
@@ -602,7 +602,7 @@ export default function MotsSauvagesPage() {
                                     type="button"
                                     onClick={() => addToList(list.id)}
                                     disabled={addLoading}
-                                    className="btn-relief rounded-lg border border-slate-200 px-3 py-2 text-sm text-slate-800 hover:bg-slate-50 dark:border-slate-600 dark:text-slate-100 dark:hover:bg-slate-700"
+                                    className="btn-relief rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--background-subtle)]"
                                   >
                                     {list.name}
                                   </button>
@@ -630,7 +630,7 @@ export default function MotsSauvagesPage() {
                   <button
                     type="button"
                     onClick={() => setAddModalOpen(false)}
-                    className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+                    className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
                   >
                     Fermer
                   </button>

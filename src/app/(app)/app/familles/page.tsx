@@ -7,7 +7,7 @@ export default async function BibliothequePage() {
   if (!user?.id) redirect("/login");
 
   return (
-    <div>
+    <div className="bg-[var(--background)]">
       <BibliothequeClient />
     </div>
   );

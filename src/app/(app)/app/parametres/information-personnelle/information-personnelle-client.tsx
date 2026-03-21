@@ -10,8 +10,8 @@ const LEVEL_NAMES: Record<number, string> = { 1: "Graine", 2: "Pousse", 3: "Expl
 function getLevelName(l: number) { return l >= 6 ? "Légende" : LEVEL_NAMES[l] ?? "Graine"; }
 
 const STATUS_OPTIONS = [
-  { value: "etudiant", label: "Étudiant·e" },
-  { value: "professeur", label: "Enseignant·e" },
+  { value: "etudiant", label: "Étudiant" },
+  { value: "professeur", label: "Enseignant" },
 ] as const;
 
 type ProfileForm = {
@@ -132,27 +132,27 @@ export function InformationPersonnelleClient({
 
   const initial = form.firstName ? form.firstName.trim()[0]?.toUpperCase() ?? "?" : "?";
 
-  const inputBase = "w-full text-sm" as const;
+  const inputBase = "w-full text-sm placeholder:text-[var(--foreground-disabled)]" as const;
   const inputRead = `${inputBase}` as const;
   const inputEdit = `${inputBase}` as const;
 
   return (
-    <div className="mx-auto max-w-lg" style={{ background: "#F8F7FF" }}>
+    <div className="mx-auto max-w-lg bg-[var(--background)]">
       {/* Bouton retour */}
       <button
         type="button"
         onClick={() => router.push("/app/parametres")}
         className="mb-4 flex items-center gap-1 transition hover:opacity-70"
-        style={{ fontSize: 12, color: "#71717a", background: "none", border: "none", cursor: "pointer", width: "fit-content" }}
+        style={{ fontSize: 12, color: "var(--foreground-muted)", background: "none", border: "none", cursor: "pointer", width: "fit-content" }}
       >
-        <ChevronLeft size={14} stroke="#71717a" />
+        <ChevronLeft size={14} stroke="var(--foreground-muted)" />
         Retour
       </button>
 
       {/* Hero card */}
       <div
         className="mb-4 flex items-center gap-4"
-        style={{ background: "#F0EDF8", borderRadius: 14, padding: "20px 16px" }}
+        style={{ background: "var(--background-subtle)", borderRadius: 14, padding: "20px 16px" }}
       >
         {/* Avatar */}
         <div className="relative shrink-0">
@@ -192,10 +192,10 @@ export function InformationPersonnelleClient({
 
         {/* Infos */}
         <div className="min-w-0 flex-1">
-          <p className="truncate" style={{ fontSize: 17, fontWeight: 500, color: "#1a1a1a", marginBottom: 2 }}>
+          <p className="truncate" style={{ fontSize: 17, fontWeight: 500, color: "var(--foreground)", marginBottom: 2 }}>
             {form.firstName || "—"} {form.lastName || ""}
           </p>
-          <p className="truncate" style={{ fontSize: 12, color: "#71717a", marginBottom: 8 }}>
+          <p className="truncate" style={{ fontSize: 12, color: "var(--foreground-muted)", marginBottom: 8 }}>
             {email ?? "—"}
           </p>
           <span
@@ -219,17 +219,17 @@ export function InformationPersonnelleClient({
 
       {/* Badge mode édition */}
       {editing && (
-        <div className="mb-3 inline-block" style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8", background: "#F0EDF8", padding: "3px 10px", borderRadius: 8 }}>
+        <div className="mb-3 inline-block" style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8", background: "var(--background-subtle)", padding: "3px 10px", borderRadius: 8 }}>
           ✏️ Mode modification activé
         </div>
       )}
 
       {!loaded ? (
-        <p style={{ fontSize: 13, color: "#a1a1aa" }}>Chargement…</p>
+        <p style={{ fontSize: 13, color: "var(--foreground-disabled)" }}>Chargement…</p>
       ) : (
         <form onSubmit={submit}>
           {/* Section Informations personnelles */}
-          <div className="mb-3" style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 16 }}>
+          <div className="mb-3" style={{ background: "var(--background-card)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 16 }}>
             <SectionLabel>Informations personnelles</SectionLabel>
 
             <div className="grid grid-cols-2 gap-[10px] mb-3">
@@ -276,7 +276,7 @@ export function InformationPersonnelleClient({
                   onChange={(v) => update({ city: v })}
                   placeholder="Ta ville"
                   disabled={saving}
-                  className={`${inputEdit} !rounded-[10px] !border-[1.5px] !border-[#6C3FC8] !bg-white !text-[13px] !px-3 !py-[9px]`}
+                  className={`${inputEdit} !rounded-[10px] !border-[1.5px] !border-[#6C3FC8] !bg-[var(--input-bg)] !text-[13px] !text-[var(--foreground)] !px-3 !py-[9px]`}
                 />
               ) : (
                 <div className={inputRead} style={fieldStyle(false)}>
@@ -303,7 +303,7 @@ export function InformationPersonnelleClient({
           </div>
 
           {/* Section Compte */}
-          <div className="mb-3" style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 16 }}>
+          <div className="mb-3" style={{ background: "var(--background-card)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 16 }}>
             <SectionLabel>Compte</SectionLabel>
 
             <FieldBlock label="Email" className="mb-3">
@@ -315,7 +315,7 @@ export function InformationPersonnelleClient({
                 className={inputRead}
                 style={{ ...fieldStyle(false), cursor: "not-allowed" }}
               />
-              <p style={{ fontSize: 11, color: "#a1a1aa", marginTop: 4 }}>
+              <p style={{ fontSize: 11, color: "var(--foreground-disabled)", marginTop: 4 }}>
                 L&apos;adresse mail ne peut pas être modifiée ici.
               </p>
             </FieldBlock>
@@ -387,15 +387,15 @@ export function InformationPersonnelleClient({
                 <button
                   type="button"
                   onClick={() => { setEditing(false); setMessage(null); }}
-                  className="flex-1 transition hover:bg-slate-50"
+                  className="flex-1 transition hover:bg-[var(--hover-bg)]"
                   style={{
                     fontSize: 13,
                     fontWeight: 500,
                     padding: 11,
                     borderRadius: 10,
-                    border: "0.5px solid #d4d4d8",
+                    border: "0.5px solid var(--border)",
                     background: "transparent",
-                    color: "#71717a",
+                    color: "var(--foreground-muted)",
                     cursor: "pointer",
                   }}
                 >
@@ -470,19 +470,19 @@ export function InformationPersonnelleClient({
         >
           <div
             className="w-full max-w-md overflow-hidden"
-            style={{ borderRadius: 20, background: "white" }}
+            style={{ borderRadius: 20, background: "var(--background-card)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ padding: "20px" }}>
-              <h2 style={{ fontSize: 16, fontWeight: 500, color: "#1a1a1a", marginBottom: 8 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 500, color: "var(--foreground)", marginBottom: 8 }}>
                 Supprimer mon compte
               </h2>
-              <p style={{ fontSize: 13, color: "#71717a", lineHeight: 1.5, marginBottom: 16 }}>
+              <p style={{ fontSize: 13, color: "var(--foreground-muted)", lineHeight: 1.5, marginBottom: 16 }}>
                 Cette action est irréversible. Toutes vos données seront définitivement supprimées : listes, mots, révisions, progression.
               </p>
 
               <label className="block">
-                <span style={{ fontSize: 11, fontWeight: 500, color: "#71717a", marginBottom: 5, display: "block", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                <span style={{ fontSize: 11, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 5, display: "block", textTransform: "uppercase", letterSpacing: "0.04em" }}>
                   Pour confirmer, saisissez votre adresse email
                 </span>
                 <input
@@ -506,8 +506,8 @@ export function InformationPersonnelleClient({
                   type="button"
                   disabled={deleteStatus === "loading"}
                   onClick={() => setDeleteModalOpen(false)}
-                  className="flex-1 transition hover:bg-slate-50"
-                  style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "0.5px solid #d4d4d8", background: "transparent", color: "#71717a", cursor: "pointer" }}
+                  className="flex-1 transition hover:bg-[var(--hover-bg)]"
+                  style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "0.5px solid var(--border)", background: "transparent", color: "var(--foreground-muted)", cursor: "pointer" }}
                 >
                   Annuler
                 </button>
@@ -554,9 +554,9 @@ function fieldStyle(editable: boolean): React.CSSProperties {
     borderRadius: 10,
     width: "100%",
     border: editable ? "1.5px solid #6C3FC8" : "1px solid transparent",
-    background: editable ? "white" : "#f4f4f5",
+    background: editable ? "var(--input-bg)" : "var(--background-subtle)",
     outline: "none",
-    color: "#1a1a1a",
+    color: "var(--foreground)",
   };
 }
 
@@ -567,7 +567,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       fontWeight: 500,
       textTransform: "uppercase",
       letterSpacing: "0.05em",
-      color: "#71717a",
+      color: "var(--foreground-muted)",
       marginBottom: 14,
     }}>
       {children}
@@ -583,7 +583,7 @@ function FieldBlock({ label, children, className }: { label: string; children: R
         fontWeight: 500,
         textTransform: "uppercase",
         letterSpacing: "0.04em",
-        color: "#71717a",
+        color: "var(--foreground-muted)",
         marginBottom: 5,
       }}>
         {label}

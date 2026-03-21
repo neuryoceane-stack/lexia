@@ -139,8 +139,8 @@ export function RevueImport({
 
   if (editing) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-        <h2 className="mb-4 font-medium text-slate-800 dark:text-slate-100">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
+        <h2 className="mb-4 font-medium text-[var(--foreground)]">
           Modifier le mot
         </h2>
         <EditForm
@@ -157,15 +157,15 @@ export function RevueImport({
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-        <p className="text-slate-600 dark:text-slate-400">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
+        <p className="text-[var(--foreground-muted)]">
           Aucun mot à réviser. Tu as tout supprimé.
         </p>
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+            className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
           >
             Retour
           </button>
@@ -179,14 +179,14 @@ export function RevueImport({
   return (
     <div className="space-y-6">
       <div className="mb-2 flex flex-wrap items-center gap-3">
-        <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+        <h2 className="text-xl font-semibold text-[var(--foreground)]">
           Réviser les mots extraits
         </h2>
         {(displayTermLang || displayDefLang) && (
           <span className="flex items-center gap-1 text-xl" title="Langues détectées">
             <FlagDisplay langCode={displayTermLang} size={24} />
             {displayTermLang && displayDefLang && (
-              <span className="mx-1 text-slate-400" aria-hidden>→</span>
+              <span className="mx-1 text-[var(--foreground-disabled)]" aria-hidden>→</span>
             )}
             <FlagDisplay langCode={displayDefLang} size={24} />
           </span>
@@ -202,22 +202,22 @@ export function RevueImport({
           </button>
         )}
       </div>
-      <p className="text-sm text-slate-600 dark:text-slate-400">
+      <p className="text-sm text-[var(--foreground-muted)]">
         Garde, modifie ou supprime chaque mot. Puis donne un nom à la liste et enregistre.
       </p>
 
       {/* Carte type Tinder */}
       {current ? (
         <div className="mx-auto max-w-md">
-          <div className="rounded-2xl border-2 border-slate-200 bg-white p-6 shadow-lg dark:border-slate-600 dark:bg-slate-800">
-            <p className="text-xs text-slate-400 dark:text-slate-500">
+          <div className="rounded-2xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 shadow-lg">
+            <p className="text-xs text-[var(--foreground-disabled)]">
               Mot {index + 1} / {items.length}
             </p>
-            <p className="mt-2 text-xl font-semibold text-slate-800 dark:text-slate-100">
+            <p className="mt-2 text-xl font-semibold text-[var(--foreground)]">
               {current.term}
             </p>
             {current.definition && (
-              <p className="mt-1 text-slate-600 dark:text-slate-400">
+              <p className="mt-1 text-[var(--foreground-muted)]">
                 {current.definition}
               </p>
             )}
@@ -250,24 +250,24 @@ export function RevueImport({
           </div>
         </div>
       ) : (
-        <p className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
+        <p className="rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] px-4 py-3 text-sm text-[var(--foreground-muted)]">
           Toutes les fiches ont été parcourues. Donne un nom à la liste et enregistre ci-dessous.
         </p>
       )}
 
       {/* Enregistrer la liste */}
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-        <h3 className="mb-2 font-medium text-slate-800 dark:text-slate-100">
+      <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
+        <h3 className="mb-2 font-medium text-[var(--foreground)]">
           Enregistrer la liste
         </h3>
-        <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mb-4 text-sm text-[var(--foreground-muted)]">
           {items.length} mot(s) conservé(s). Donne un nom puis enregistre.
         </p>
         <div className="flex flex-wrap items-end gap-4">
           <div>
             <label
               htmlFor="revue-list-name"
-              className="mb-1 block text-sm text-slate-600 dark:text-slate-400"
+              className="mb-1 block text-sm text-[var(--foreground-muted)]"
             >
               Nom de la liste
             </label>
@@ -277,14 +277,14 @@ export function RevueImport({
               value={listName}
               onChange={(e) => setListName(e.target.value)}
               placeholder="ex. Mots extraits du PDF"
-              className="w-64 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+              className="w-64 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
             />
           </div>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={onCancel}
-              className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+              className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
             >
               Annuler
             </button>
@@ -323,32 +323,32 @@ function EditForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm text-slate-600 dark:text-slate-400">
+        <label className="mb-1 block text-sm text-[var(--foreground-muted)]">
           Mot / terme
         </label>
         <input
           type="text"
           value={t}
           onChange={(e) => setT(e.target.value)}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm text-slate-600 dark:text-slate-400">
+        <label className="mb-1 block text-sm text-[var(--foreground-muted)]">
           Traduction / définition
         </label>
         <input
           type="text"
           value={d}
           onChange={(e) => setD(e.target.value)}
-          className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
         />
       </div>
       <div className="flex gap-2">
         <button
           type="button"
           onClick={onCancel}
-          className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+          className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
         >
           Annuler
         </button>

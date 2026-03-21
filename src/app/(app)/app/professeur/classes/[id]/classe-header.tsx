@@ -1,22 +1,35 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+
+const PRIMARY = "#6C3FC8";
+const BORDER_SECONDARY = "var(--border)";
+const RED_BORDER = "#F09595";
+const RED_TEXT = "#E24B4A";
+
+type LangDisplay = { flag: string; label: string } | null;
 
 export function ClasseHeader({
   classId,
   initialTitle,
-  language,
+  languageDisplay,
+  schoolLevel,
 }: {
   classId: string;
   initialTitle: string;
-  language: string | null;
+  languageDisplay: LangDisplay;
+  schoolLevel: string | null;
 }) {
   const router = useRouter();
   const [title, setTitle] = useState(initialTitle);
   const [editing, setEditing] = useState(false);
   const [loading, setLoading] = useState<"rename" | "delete" | null>(null);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    setTitle(initialTitle);
+  }, [initialTitle]);
 
   async function handleRename(e: React.FormEvent) {
     e.preventDefault();
@@ -71,21 +84,42 @@ export function ClasseHeader({
   }
 
   return (
-    <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-      <div>
+    <div
+      className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"
+      style={{ marginBottom: 16 }}
+    >
+      <div className="min-w-0 flex-1">
         {editing ? (
-          <form onSubmit={handleRename} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          <form
+            onSubmit={handleRename}
+            className="flex flex-col gap-2 sm:flex-row sm:items-center"
+          >
             <input
               type="text"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-lg font-semibold text-vocab-gray dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
+              className="w-full max-w-md rounded-[10px] px-3 py-2 outline-none"
+              style={{
+                border: `1.5px solid ${PRIMARY}`,
+                fontSize: 16,
+                color: "var(--foreground)",
+                background: "var(--input-bg)",
+              }}
             />
             <div className="flex gap-2">
               <button
                 type="submit"
                 disabled={loading === "rename"}
-                className="btn-primary rounded-lg px-3 py-2 text-sm font-medium disabled:opacity-50"
+                className="cursor-pointer border-0"
+                style={{
+                  background: PRIMARY,
+                  color: "white",
+                  borderRadius: 16,
+                  padding: "7px 14px",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  opacity: loading === "rename" ? 0.6 : 1,
+                }}
               >
                 {loading === "rename" ? "Enregistrement…" : "Enregistrer"}
               </button>
@@ -96,7 +130,16 @@ export function ClasseHeader({
                   setTitle(initialTitle);
                   setError("");
                 }}
-                className="btn-relief rounded-lg px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-300"
+                className="cursor-pointer border-solid"
+                style={{
+                  borderRadius: 16,
+                  padding: "7px 14px",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  border: `1.5px solid ${BORDER_SECONDARY}`,
+                  background: "transparent",
+                  color: "var(--foreground-muted)",
+                }}
               >
                 Annuler
               </button>
@@ -104,40 +147,92 @@ export function ClasseHeader({
           </form>
         ) : (
           <>
-            <h1 className="text-2xl font-bold text-vocab-gray dark:text-slate-100">
+            <h1
+              style={{
+                fontSize: 22,
+                fontWeight: 500,
+                color: "var(--foreground)",
+                margin: "0 0 4px",
+              }}
+            >
               {title}
             </h1>
-            {language && (
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Langue : {language}
-              </p>
-            )}
+            <div
+              className="flex flex-wrap items-center"
+              style={{ gap: 8 }}
+            >
+              {languageDisplay && (
+                <span
+                  style={{
+                    fontSize: 12,
+                    color: "var(--foreground-muted)",
+                  }}
+                >
+                  <span aria-hidden>{languageDisplay.flag}</span>{" "}
+                  {languageDisplay.label}
+                </span>
+              )}
+              {schoolLevel && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 500,
+                    padding: "2px 8px",
+                    borderRadius: 8,
+                    background: "#F0EDF8",
+                    color: "#4B3A9E",
+                  }}
+                >
+                  {schoolLevel}
+                </span>
+              )}
+            </div>
           </>
         )}
         {error && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400">{error}</p>
+          <p className="mt-2 text-[13px]" style={{ color: RED_TEXT }}>
+            {error}
+          </p>
         )}
       </div>
-      <div className="flex flex-wrap gap-2">
-        {!editing && (
+      {!editing && (
+        <div className="flex shrink-0 flex-wrap gap-2">
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="btn-relief rounded-lg px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
+            className="cursor-pointer border-solid"
+            style={{
+              border: `1.5px solid ${BORDER_SECONDARY}`,
+              background: "transparent",
+              color: "var(--foreground-muted)",
+              borderRadius: 16,
+              padding: "7px 14px",
+              fontSize: 12,
+              fontWeight: 500,
+            }}
           >
-            Modifier la classe
+            Modifier
           </button>
-        )}
-        <button
-          type="button"
-          onClick={handleDelete}
-          disabled={loading === "delete"}
-          className="btn-relief rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
-        >
-          {loading === "delete" ? "Suppression…" : "Supprimer la classe"}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={handleDelete}
+            disabled={loading === "delete"}
+            className="cursor-pointer border-solid"
+            style={{
+              border: `1.5px solid ${RED_BORDER}`,
+              background: "transparent",
+              color: RED_TEXT,
+              borderRadius: 16,
+              padding: "7px 14px",
+              fontSize: 12,
+              fontWeight: 500,
+              opacity: loading === "delete" ? 0.6 : 1,
+            }}
+          >
+            {loading === "delete" ? "Suppression…" : "Supprimer"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
-

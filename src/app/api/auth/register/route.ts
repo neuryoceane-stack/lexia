@@ -19,6 +19,10 @@ export async function POST(request: Request) {
     firstName?: string;
     lastName?: string;
     role?: "etudiant" | "professeur";
+    /** Matière enseignée (inscription professeur, optionnel). */
+    subject?: string;
+    /** Nom de l'établissement (inscription professeur, optionnel). */
+    school_name?: string;
   };
   try {
     body = await request.json();
@@ -38,7 +42,18 @@ export async function POST(request: Request) {
     body.name?.trim() ||
     null;
   const role = body.role === "professeur" ? "professeur" : "etudiant";
-  const appRole = email === "oci@lexiva.app" ? "creator" : "student";
+  const appRole =
+    email === "oci@lexiva.app"
+      ? "creator"
+      : role === "professeur"
+        ? "teacher"
+        : "student";
+  const subject =
+    typeof body.subject === "string" ? body.subject.trim() || null : null;
+  const schoolName =
+    typeof body.school_name === "string"
+      ? body.school_name.trim() || null
+      : null;
 
   if (!email || !password) {
     return NextResponse.json(
@@ -81,6 +96,8 @@ export async function POST(request: Request) {
     passwordHash,
     name: name ?? null,
     role: appRole,
+    subject: role === "professeur" ? subject : null,
+    schoolName: role === "professeur" ? schoolName : null,
   });
   await db.insert(gardenProgress).values({ userId: id });
   await db

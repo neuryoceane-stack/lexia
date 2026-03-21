@@ -73,8 +73,17 @@ export default function SignupPage() {
   const [learningLanguages, setLearningLanguages] = useState<string[]>([]);
   const [motivations, setMotivations] = useState<string[]>([]);
   const [weeklyGoal, setWeeklyGoal] = useState("");
+  /** Inscription professeur : champs optionnels (étape unique après le profil). */
+  const [teacherSubject, setTeacherSubject] = useState("");
+  const [teacherSchoolName, setTeacherSchoolName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  const selectedProfileRole = STATUS_OPTIONS.find((s) => s.value === status)?.role;
+  const isProfessor = selectedProfileRole === "professeur";
+  const onboardingTotalSteps = step >= 1 && status ? (isProfessor ? 2 : 3) : 3;
+  const onboardingProgressIndex =
+    step === 1 ? 1 : step === 2 ? 2 : step === 3 ? 3 : 0;
 
   const toggleMulti = (value: string, list: string[], setter: (v: string[]) => void) => {
     if (list.includes(value)) setter(list.filter((v) => v !== value));
@@ -87,19 +96,31 @@ export default function SignupPage() {
     setLoading(true);
     try {
       const role = STATUS_OPTIONS.find((s) => s.value === status)?.role ?? "etudiant";
+      const basePayload = {
+        email: email.trim().toLowerCase(),
+        password,
+        firstName: firstName.trim() || undefined,
+        role,
+      };
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password,
-          firstName: firstName.trim() || undefined,
-          role,
-          nativeLanguage: nativeLanguage || undefined,
-          learningLanguages: learningLanguages.length > 0 ? learningLanguages : undefined,
-          motivations: motivations.length > 0 ? motivations : undefined,
-          weeklyGoal: weeklyGoal || undefined,
-        }),
+        body: JSON.stringify(
+          role === "professeur"
+            ? {
+                ...basePayload,
+                subject: teacherSubject.trim() || undefined,
+                school_name: teacherSchoolName.trim() || undefined,
+              }
+            : {
+                ...basePayload,
+                nativeLanguage: nativeLanguage || undefined,
+                learningLanguages:
+                  learningLanguages.length > 0 ? learningLanguages : undefined,
+                motivations: motivations.length > 0 ? motivations : undefined,
+                weeklyGoal: weeklyGoal || undefined,
+              }
+        ),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -132,26 +153,24 @@ export default function SignupPage() {
     }
   }
 
-  const progressSteps = step >= 1 ? Math.min(step, 3) : 0;
-
   return (
     <div style={{ width: "100%", maxWidth: 320, margin: "0 auto" }}>
       {/* Progress bar (steps 1-3) */}
       {step >= 1 && (
         <div className="mb-3 flex items-center gap-2">
-          <div className="flex-1" style={{ height: 4, background: "rgba(255,255,255,0.5)", borderRadius: 3 }}>
+          <div className="flex-1" style={{ height: 4, background: "rgba(108,63,200,0.12)", borderRadius: 3 }}>
             <div
               style={{
                 height: "100%",
                 borderRadius: 3,
                 background: "#6C3FC8",
-                width: `${(progressSteps / 3) * 100}%`,
+                width: `${(onboardingProgressIndex / onboardingTotalSteps) * 100}%`,
                 transition: "width 300ms",
               }}
             />
           </div>
           <span style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8" }}>
-            {progressSteps}/3
+            {onboardingProgressIndex}/{onboardingTotalSteps}
           </span>
         </div>
       )}
@@ -159,7 +178,7 @@ export default function SignupPage() {
       <div
         style={{
           background: "white",
-          borderRadius: 20,
+          borderRadius: 16,
           width: "100%",
           padding: "26px 22px",
           border: "0.5px solid rgba(108,63,200,0.15)",
@@ -261,7 +280,7 @@ export default function SignupPage() {
                   fontSize: 13,
                   fontWeight: 500,
                   padding: 11,
-                  borderRadius: 10,
+                  borderRadius: 20,
                   border: "none",
                   background: "#6C3FC8",
                   color: "white",
@@ -377,8 +396,63 @@ export default function SignupPage() {
           </>
         )}
 
-        {/* =================== Step 2 — Langues =================== */}
-        {step === 2 && (
+        {/* =================== Step 2 — Profil enseignant (prof.) ou Langues (élève) =================== */}
+        {step === 2 && isProfessor && (
+          <>
+            <BackButton onClick={() => setStep(1)} />
+            <StepTitle>Votre profil enseignant</StepTitle>
+            <form onSubmit={handleFinalSubmit}>
+              <FieldLabel>Matière enseignée</FieldLabel>
+              <input
+                type="text"
+                value={teacherSubject}
+                onChange={(e) => setTeacherSubject(e.target.value)}
+                autoComplete="off"
+                placeholder="Ex. : Anglais, Espagnol, Latin…"
+                className="mb-4 w-full transition-colors"
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+              />
+
+              <FieldLabel>Nom de l&apos;établissement</FieldLabel>
+              <input
+                type="text"
+                value={teacherSchoolName}
+                onChange={(e) => setTeacherSchoolName(e.target.value)}
+                autoComplete="organization"
+                placeholder="Ex. : Lycée Victor Hugo, Paris"
+                className="mb-3 w-full transition-colors"
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+              />
+
+              {error && <p className="mb-2" style={{ fontSize: 12, color: "#dc2626" }}>{error}</p>}
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex w-full items-center justify-center gap-[7px] transition active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  padding: 11,
+                  borderRadius: 20,
+                  border: "none",
+                  background: "#6C3FC8",
+                  color: "white",
+                  cursor: "pointer",
+                  marginTop: 12,
+                }}
+              >
+                {loading ? "Création du compte…" : "Commencer →"}
+              </button>
+            </form>
+          </>
+        )}
+
+        {step === 2 && !isProfessor && (
           <>
             <BackButton onClick={() => setStep(1)} />
             <StepTitle>Langues</StepTitle>
@@ -462,7 +536,7 @@ export default function SignupPage() {
                   fontSize: 13,
                   fontWeight: 500,
                   padding: 11,
-                  borderRadius: 10,
+                  borderRadius: 20,
                   border: "none",
                   background: "#6C3FC8",
                   color: "white",
@@ -477,7 +551,7 @@ export default function SignupPage() {
         )}
       </div>
 
-      {/* Lien login pour steps 1-2 */}
+      {/* Lien login pour steps 1-2 (élève) ou 1 seul intermédiaire (prof : étape 2 = dernière avant submit) */}
       {step > 0 && step < 3 && (
         <p className="mt-4 text-center" style={{ fontSize: 12, color: "#71717a" }}>
           Déjà un compte ?{" "}
@@ -561,7 +635,7 @@ function StepSubmitButton({ children }: { children: React.ReactNode }) {
         fontSize: 13,
         fontWeight: 500,
         padding: 11,
-        borderRadius: 10,
+        borderRadius: 20,
         border: "none",
         background: "#6C3FC8",
         color: "white",

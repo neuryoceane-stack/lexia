@@ -40,7 +40,7 @@ export async function GET() {
 
 /**
  * POST /api/classes
- * Crée une classe. Body: { title: string, language?: string }
+ * Crée une classe. Body: { title: string, language?: string, schoolLevel?: string }
  */
 export async function POST(request: Request) {
   const user = await getUser();
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Réservé aux professeurs" }, { status: 403 });
   }
 
-  let body: { title?: string; language?: string };
+  let body: { title?: string; language?: string; schoolLevel?: string };
   try {
     body = await request.json();
   } catch {
@@ -66,6 +66,8 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+
+  const schoolLevel = body.schoolLevel?.trim() || null;
 
   let identifier = generateIdentifier();
   for (let attempt = 0; attempt < 10; attempt++) {
@@ -85,6 +87,7 @@ export async function POST(request: Request) {
     identifier,
     title,
     language: body.language?.trim() || null,
+    schoolLevel,
     createdAt: new Date(),
   });
 

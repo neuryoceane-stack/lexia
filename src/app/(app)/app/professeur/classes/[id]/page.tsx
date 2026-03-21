@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { Activity, ChevronLeft, FileText, Users } from "lucide-react";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
@@ -12,31 +13,28 @@ import {
   revisionSessions,
 } from "@/lib/db/schema";
 import { eq, and, inArray, sql, asc } from "drizzle-orm";
+import { getClassDetailAnalytics } from "@/lib/class-detail-analytics";
+import { getLanguageDisplay } from "@/lib/language-display";
 import { OngletsClasse, type TabId } from "./onglets-classe";
 import { ClasseHeader } from "./classe-header";
+import { ClassAccessCodeBanner } from "./class-access-code-banner";
 
-function BackIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M19 12H5" />
-      <path d="M12 19l-7-7 7-7" />
-    </svg>
-  );
-}
+const PAGE_BG = "#F8F7FF";
+const PRIMARY = "#6C3FC8";
+const GOLD = "#F5A623";
+const GREEN = "#1D9E75";
+const BORDER_TERTIARY = "#E2DCF5";
 
 const TAB_IDS: TabId[] = ["tableau-de-bord", "eleves", "listes"];
 function parseTab(tab: string | null): TabId {
   if (tab && TAB_IDS.includes(tab as TabId)) return tab as TabId;
   return "tableau-de-bord";
+}
+
+function statMasteryColor(pct: number): string {
+  if (pct >= 70) return GREEN;
+  if (pct >= 40) return PRIMARY;
+  return GOLD;
 }
 
 export default async function ClasseDetailPage({
@@ -77,6 +75,7 @@ export default async function ClasseDetailPage({
   const acceptedUserIds = members
     .filter((m) => m.status === "accepted")
     .map((m) => m.userId!);
+
   const statsByUser: Record<
     string,
     { sessions: number; wordsRetained: number; wordsWritten: number }
@@ -116,6 +115,31 @@ export default async function ClasseDetailPage({
     .where(eq(classLists.classId, id))
     .orderBy(asc(classLists.orderIndex));
 
+  const assignmentInputs = classListsData
+    .filter((row): row is (typeof row & { listId: string }) => Boolean(row.listId))
+    .map((row) => ({
+      classListId: row.id,
+      listId: row.listId,
+      name: row.listName ?? "Liste",
+      familyName: row.familyName ?? "",
+    }));
+
+  const analytics = await getClassDetailAnalytics(
+    acceptedUserIds,
+    assignmentInputs
+  );
+
+  const listProgressDTO = analytics.listProgress.map((lp) => ({
+    ...lp,
+    lastActivityAt: lp.lastActivityAt?.toISOString() ?? null,
+  }));
+
+  const zeroProgress = {
+    masteryPct: 0,
+    wordsMastered: 0,
+    lastActivityAt: null as string | null,
+  };
+
   const membersWithStats = members.map((m) => ({
     id: m.id,
     userId: m.userId,
@@ -124,42 +148,212 @@ export default async function ClasseDetailPage({
     name: m.userName || m.userEmail?.split("@")[0] || "Élève",
     email: m.userEmail,
     stats: m.userId
-      ? statsByUser[m.userId] ?? { sessions: 0, wordsRetained: 0, wordsWritten: 0 }
+      ? statsByUser[m.userId] ?? {
+          sessions: 0,
+          wordsRetained: 0,
+          wordsWritten: 0,
+        }
       : null,
+    progress:
+      m.userId && m.status === "accepted"
+        ? (() => {
+            const p = analytics.byUserId[m.userId];
+            return p
+              ? {
+                  masteryPct: p.masteryPct,
+                  wordsMastered: p.wordsMastered,
+                  lastActivityAt: p.lastActivityAt?.toISOString() ?? null,
+                }
+              : zeroProgress;
+          })()
+        : zeroProgress,
   }));
 
+  const listsForTab = classListsData
+    .filter((l): l is (typeof l & { listId: string }) => Boolean(l.listId))
+    .map((l) => {
+      const prog = analytics.listProgress.find((p) => p.listId === l.listId);
+      return {
+        id: l.id,
+        listId: l.listId,
+        isVisible: l.isVisible ?? false,
+        name: l.listName ?? "Liste",
+        familyName: l.familyName ?? "",
+        wordCount: prog?.wordCount ?? 0,
+        masteryPct: prog?.masteryPct ?? 0,
+      };
+    });
+
+  const nbEleves = membersWithStats.filter((m) => m.status === "accepted").length;
+  const nbListes = classListsData.length;
+  const mc = statMasteryColor(analytics.globalMasteryPct);
+
   return (
-    <div className="mx-auto max-w-[900px]">
-      <Link
-        href="/app/professeur/classes"
-        className="btn-relief mb-6 inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
-      >
-        <BackIcon className="h-4 w-4" />
-        Retour
-      </Link>
+    <div
+      className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
+      style={{ backgroundColor: PAGE_BG }}
+    >
+      <div className="mx-auto max-w-[900px]">
+        <Link
+          href="/app/professeur/classes"
+          className="inline-flex items-center gap-1 no-underline"
+          style={{
+            width: "fit-content",
+            marginBottom: 14,
+            fontSize: 12,
+            color: "var(--foreground-muted)",
+          }}
+        >
+          <ChevronLeft size={14} strokeWidth={2} aria-hidden />
+          Mes classes
+        </Link>
 
-      <ClasseHeader
-        classId={id}
-        initialTitle={cls.title}
-        language={cls.language}
-      />
+        <ClasseHeader
+          classId={id}
+          initialTitle={cls.title}
+          languageDisplay={getLanguageDisplay(cls.language)}
+          schoolLevel={cls.schoolLevel ?? null}
+        />
 
-      <OngletsClasse
-        classId={id}
-        activeTab={activeTab}
-        identifier={cls.identifier}
-        nbEleves={membersWithStats.filter((m) => m.status === "accepted").length}
-        nbListes={classListsData.length}
-        members={membersWithStats}
-        lists={classListsData.map((l) => ({
-          id: l.id,
-          listId: l.listId,
-          isVisible: l.isVisible ?? false,
-          name: l.listName ?? "Liste",
-          familyName: l.familyName ?? "",
-        }))}
-        classLanguage={cls.language}
-      />
+        <ClassAccessCodeBanner identifier={cls.identifier} />
+
+        <div
+          className="grid grid-cols-1 sm:grid-cols-3"
+          style={{ gap: 10, marginBottom: 16 }}
+        >
+          <div
+            style={{
+              background: "white",
+              border: `0.5px solid ${BORDER_TERTIARY}`,
+              borderRadius: 12,
+              padding: "14px 12px",
+            }}
+          >
+            <div
+              className="mb-2 flex items-center justify-center"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 7,
+                background: "#F0EDF8",
+              }}
+            >
+              <Users size={14} stroke={PRIMARY} strokeWidth={2} aria-hidden />
+            </div>
+            <p
+              style={{
+                fontSize: 26,
+                fontWeight: 500,
+                color: PRIMARY,
+                margin: "0 0 3px",
+                lineHeight: 1.1,
+              }}
+            >
+              {nbEleves}
+            </p>
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--foreground-muted)",
+                margin: 0,
+              }}
+            >
+              élèves inscrits
+            </p>
+          </div>
+          <div
+            style={{
+              background: "white",
+              border: `0.5px solid ${BORDER_TERTIARY}`,
+              borderRadius: 12,
+              padding: "14px 12px",
+            }}
+          >
+            <div
+              className="mb-2 flex items-center justify-center"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 7,
+                background: "#FEF3DC",
+              }}
+            >
+              <FileText size={14} stroke={GOLD} strokeWidth={2} aria-hidden />
+            </div>
+            <p
+              style={{
+                fontSize: 26,
+                fontWeight: 500,
+                color: GOLD,
+                margin: "0 0 3px",
+                lineHeight: 1.1,
+              }}
+            >
+              {nbListes}
+            </p>
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--foreground-muted)",
+                margin: 0,
+              }}
+            >
+              listes assignées
+            </p>
+          </div>
+          <div
+            style={{
+              background: "white",
+              border: `0.5px solid ${BORDER_TERTIARY}`,
+              borderRadius: 12,
+              padding: "14px 12px",
+            }}
+          >
+            <div
+              className="mb-2 flex items-center justify-center"
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 7,
+                background: "#EAF4EF",
+              }}
+            >
+              <Activity size={14} stroke={GREEN} strokeWidth={2} aria-hidden />
+            </div>
+            <p
+              style={{
+                fontSize: 26,
+                fontWeight: 500,
+                color: mc,
+                margin: "0 0 3px",
+                lineHeight: 1.1,
+              }}
+            >
+              {analytics.globalMasteryPct}%
+            </p>
+            <p
+              style={{
+                fontSize: 11,
+                color: "var(--foreground-muted)",
+                margin: 0,
+              }}
+            >
+              maîtrise moyenne
+            </p>
+          </div>
+        </div>
+
+        <OngletsClasse
+          classId={id}
+          activeTab={activeTab}
+          nbEleves={nbEleves}
+          nbListes={nbListes}
+          members={membersWithStats}
+          lists={listsForTab}
+          classLanguage={cls.language}
+          listProgress={listProgressDTO}
+        />
+      </div>
     </div>
   );
 }

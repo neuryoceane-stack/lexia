@@ -217,7 +217,7 @@ export default function NouvelleListePage() {
 
   if (extractedItems.length > 0) {
     return (
-      <div>
+      <div className="bg-[var(--background)]">
         <BackLink href={`/app/familles/${familyId}`} />
         <RevueImport
           familyId={familyId}
@@ -233,21 +233,21 @@ export default function NouvelleListePage() {
   }
 
   return (
-    <div style={{ background: "#F8F7FF" }}>
+    <div className="bg-[var(--background)]">
       {/* Header */}
       <button
         type="button"
         onClick={() => router.push(`/app/familles/${familyId}`)}
-        className="mb-4 flex items-center gap-1 transition hover:opacity-70"
-        style={{ fontSize: 12, color: "#71717a", background: "none", border: "none", cursor: "pointer" }}
+        className="mb-4 flex items-center gap-1 text-[var(--foreground-muted)] transition hover:opacity-70"
+        style={{ fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
       >
-        <ArrowRight size={13} stroke="#71717a" className="rotate-180" />
+        <ArrowRight size={13} stroke="currentColor" className="rotate-180" />
         Retour
       </button>
-      <h1 className="mb-1" style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>
+      <h1 className="mb-1" style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
         Comment veux-tu ajouter tes mots ?
       </h1>
-      <p className="mb-6" style={{ fontSize: 13, color: "#71717a" }}>
+      <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
         Choisis un mode pour créer ta liste.
       </p>
 
@@ -259,7 +259,7 @@ export default function NouvelleListePage() {
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           {/* Carte Manuel */}
           <MethodCard
-            bg="#F0EDF8"
+            bg="var(--background-subtle)"
             border="#C4B5F4"
             hoverBorder="#6C3FC8"
             iconBg="#6C3FC8"
@@ -277,8 +277,8 @@ export default function NouvelleListePage() {
 
           {/* Carte PDF */}
           <MethodCard
-            bg="#FEF8EC"
-            border="#F5D08A"
+            bg="var(--background-card)"
+            border="var(--border)"
             hoverBorder="#F5A623"
             iconBg="#F5A623"
             icon={<FileText size={22} stroke="white" />}
@@ -295,8 +295,8 @@ export default function NouvelleListePage() {
 
           {/* Carte Photo ou image */}
           <MethodCard
-            bg="#EAF4EF"
-            border="#6EE7B7"
+            bg="var(--background-card)"
+            border="var(--border)"
             hoverBorder="#1D9E75"
             iconBg="#1D9E75"
             icon={<ImageIcon size={22} stroke="white" />}
@@ -322,10 +322,10 @@ export default function NouvelleListePage() {
       )}
 
       {extractLoading && (
-        <div className="mt-8 rounded-xl border border-slate-200 bg-slate-50 p-6 dark:border-slate-700 dark:bg-slate-800/50">
+        <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] p-6">
           <div className="flex items-start gap-4">
             {method === "image" && imagePreviewUrl && (
-              <div className="flex-shrink-0 overflow-hidden rounded-lg border border-slate-200 dark:border-slate-600">
+              <div className="flex-shrink-0 overflow-hidden rounded-lg border border-[var(--border)]">
                 <img
                   src={imagePreviewUrl}
                   alt=""
@@ -338,7 +338,7 @@ export default function NouvelleListePage() {
               aria-hidden
             />
             <div className="min-w-0">
-              <p className="font-medium text-slate-800 dark:text-slate-100">
+              <p className="font-medium text-[var(--foreground)]">
                 {method === "image"
                   ? extractPhase === "vision"
                     ? "Extraction par IA en cours…"
@@ -346,7 +346,7 @@ export default function NouvelleListePage() {
                   : "Extraction en cours…"}
               </p>
               {method === "image" && extractPhase === "ocr" && (
-                <p className="mt-2 text-sm text-slate-600 dark:text-slate-400">
+                <p className="mt-2 text-sm text-[var(--foreground-muted)]">
                   {ocrProgress || "Reconnaissance du texte dans le navigateur…"}
                 </p>
               )}
@@ -465,14 +465,14 @@ function FormManuel({
       <button
         type="button"
         onClick={onBack}
-        className="btn-relief rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:hover:text-slate-200"
+        className="btn-relief rounded px-2 py-1 text-sm text-[var(--foreground-muted)] hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)]"
       >
         ← Changer de méthode
       </button>
       <div>
         <label
           htmlFor="list-name-manual"
-          className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
+          className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]"
         >
           Nom de la liste
         </label>
@@ -483,13 +483,13 @@ function FormManuel({
           onChange={(e) => setListName(e.target.value)}
           required
           placeholder="ex. Parties du corps"
-          className="w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+          className="w-full max-w-md rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
         />
       </div>
       <div>
         <label
           htmlFor="list-lang-manual"
-          className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
+          className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]"
         >
           Langue de la liste
         </label>
@@ -497,7 +497,7 @@ function FormManuel({
           id="list-lang-manual"
           value={listLanguage}
           onChange={(e) => setListLanguage(e.target.value)}
-          className="w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+          className="w-full max-w-md rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
           aria-label="Langue de la liste"
         >
           <option value="">Aucune</option>
@@ -510,7 +510,7 @@ function FormManuel({
       </div>
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm font-medium text-slate-600 dark:text-slate-400">
+          <label className="text-sm font-medium text-[var(--foreground-muted)]">
             Mots
           </label>
           <button
@@ -529,19 +529,19 @@ function FormManuel({
                 value={row.term}
                 onChange={(e) => updateRow(i, "term", e.target.value)}
                 placeholder="Mot / terme"
-                className="flex-1 min-w-[120px] rounded border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                className="flex-1 min-w-[120px] rounded border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
               />
               <input
                 type="text"
                 value={row.definition}
                 onChange={(e) => updateRow(i, "definition", e.target.value)}
                 placeholder="Traduction / définition"
-                className="flex-1 min-w-[120px] rounded border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                className="flex-1 min-w-[120px] rounded border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
               />
               <button
                 type="button"
                 onClick={() => removeRow(i)}
-                className="btn-relief rounded p-2 text-slate-400 hover:bg-slate-100 hover:text-red-600 dark:hover:bg-slate-700 dark:hover:text-red-400"
+                className="btn-relief rounded p-2 text-[var(--foreground-disabled)] hover:bg-[var(--background-subtle)] hover:text-red-600 dark:hover:text-red-400"
                 aria-label="Supprimer la ligne"
               >
                 ✕
@@ -557,7 +557,7 @@ function FormManuel({
         <button
           type="button"
           onClick={onBack}
-          className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+          className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
         >
           Annuler
         </button>
@@ -625,10 +625,10 @@ function MethodCard({
       >
         {icon}
       </div>
-      <p style={{ fontSize: 14, fontWeight: 500, color: "#1a1a1a", marginBottom: 5 }}>
+      <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground)", marginBottom: 5 }}>
         {title}
       </p>
-      <p style={{ fontSize: 12, color: "#71717a", flex: 1, marginBottom: 18 }}>
+      <p style={{ fontSize: 12, color: "var(--foreground-muted)", flex: 1, marginBottom: 18 }}>
         {description}
       </p>
       <div className="flex items-center justify-between">

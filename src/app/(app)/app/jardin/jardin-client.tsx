@@ -176,14 +176,14 @@ export function JardinClient() {
   const maxMots = Math.max(1, ...chartData.map((d) => d.mots));
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6" style={{ background: "#F8F7FF" }}>
+    <div className="mx-auto max-w-3xl space-y-6 bg-[var(--background)]">
       <BackLink href="/app" />
 
       {loading && !data ? (
         <div className="space-y-4">
-          <div className="h-28 animate-pulse rounded-[14px] bg-slate-200" />
+          <div className="h-28 animate-pulse rounded-[14px]" style={{ background: "var(--background-subtle)" }} />
           <div className="grid grid-cols-2 gap-[10px]">
-            {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 animate-pulse rounded-[12px] bg-slate-200" />)}
+            {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 animate-pulse rounded-[12px]" style={{ background: "var(--background-subtle)" }} />)}
           </div>
         </div>
       ) : data ? (
@@ -191,7 +191,7 @@ export function JardinClient() {
           {/* ========== HERO CARD ========== */}
           <div
             className="flex gap-4"
-            style={{ background: "#F0EDF8", borderRadius: 14, padding: "20px 16px" }}
+            style={{ background: "var(--background-subtle)", borderRadius: 14, padding: "20px 16px" }}
           >
             {/* Avatar */}
             <div
@@ -215,7 +215,7 @@ export function JardinClient() {
 
             {/* Infos */}
             <div className="min-w-0 flex-1">
-              <p style={{ fontSize: 16, fontWeight: 500, color: "#1a1a1a" }}>{userName}</p>
+              <p style={{ fontSize: 16, fontWeight: 500, color: "var(--foreground)" }}>{userName}</p>
               <span
                 className="mt-1 inline-flex items-center gap-[5px]"
                 style={{
@@ -239,7 +239,7 @@ export function JardinClient() {
                     style={{ height: "100%", width: `${(xpInLevel / 1000) * 100}%`, background: "#6C3FC8", borderRadius: 3 }}
                   />
                 </div>
-                <p style={{ fontSize: 11, color: "#71717a", marginTop: 3 }}>
+                <p style={{ fontSize: 11, color: "var(--foreground-muted)", marginTop: 3 }}>
                   {xpInLevel} / 1000 XP vers le niveau suivant
                 </p>
               </div>
@@ -264,7 +264,7 @@ export function JardinClient() {
             <div className="grid grid-cols-2 gap-[10px]">
               <StatCard
                 icon={<Clock size={14} stroke="#6C3FC8" />}
-                iconBg="#F0EDF8"
+                iconBg="var(--background-subtle)"
                 label="Temps total"
                 value={String(formatMinutes(data.totalDurationSeconds))}
                 unit="min"
@@ -301,9 +301,9 @@ export function JardinClient() {
           {/* ========== GRAPHE PROGRESSION ========== */}
           <div>
             <SectionLabel>Activité</SectionLabel>
-            <div style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 14 }}>
+            <div style={{ background: "var(--background-card)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 14 }}>
               <div className="mb-3 flex items-center justify-between">
-                <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+                <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
                   Mots appris par jour
                 </p>
                 <div className="flex gap-1">
@@ -313,9 +313,9 @@ export function JardinClient() {
                       type="button"
                       onClick={() => setChartPeriod(p)}
                       style={{
-                        background: chartPeriod === p ? "#6C3FC8" : "white",
-                        color: chartPeriod === p ? "white" : "#71717a",
-                        border: chartPeriod === p ? "none" : "0.5px solid #d4d4d8",
+                        background: chartPeriod === p ? "#6C3FC8" : "var(--background-card)",
+                        color: chartPeriod === p ? "white" : "var(--foreground-muted)",
+                        border: chartPeriod === p ? "none" : "0.5px solid var(--border)",
                         borderRadius: 20,
                         padding: "3px 10px",
                         fontSize: 11,
@@ -330,7 +330,7 @@ export function JardinClient() {
               </div>
 
               {chartData.every((d) => d.mots === 0) ? (
-                <p className="py-10 text-center" style={{ fontSize: 13, color: "#a1a1aa" }}>
+                <p className="py-10 text-center" style={{ fontSize: 13, color: "var(--foreground-disabled)" }}>
                   Continue tes révisions pour voir ta progression ici 💪
                 </p>
               ) : (
@@ -351,7 +351,7 @@ export function JardinClient() {
                           title={`${d.label}: ${d.mots} mots`}
                         />
                         {chartPeriod === "7j" && (
-                          <span className="mt-1" style={{ fontSize: 10, color: "#a1a1aa" }}>
+                          <span className="mt-1" style={{ fontSize: 10, color: "var(--foreground-disabled)" }}>
                             {d.label}
                           </span>
                         )}
@@ -373,12 +373,12 @@ export function JardinClient() {
                   return (
                     <div
                       key={code}
-                      style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 14 }}
+                      style={{ background: "var(--background-card)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 14 }}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <FlagDisplay langCode={code} size={20} />
-                          <span style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+                          <span style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
                             {langLabel(code)}
                           </span>
                         </div>
@@ -386,16 +386,16 @@ export function JardinClient() {
                           {Math.round(pct)}%
                         </span>
                       </div>
-                      <p style={{ fontSize: 11, color: "#71717a", marginTop: 3 }}>
+                      <p style={{ fontSize: 11, color: "var(--foreground-muted)", marginTop: 3 }}>
                         {current} mots appris
                       </p>
-                      <div style={{ height: 6, background: "#F0EDF8", borderRadius: 3, marginTop: 6 }}>
+                      <div style={{ height: 6, background: "var(--background-subtle)", borderRadius: 3, marginTop: 6 }}>
                         <div
                           className="transition-all duration-300"
                           style={{ height: "100%", width: `${pct}%`, background: "#6C3FC8", borderRadius: 3 }}
                         />
                       </div>
-                      <p style={{ fontSize: 11, color: "#a1a1aa", marginTop: 5 }}>
+                      <p style={{ fontSize: 11, color: "var(--foreground-disabled)", marginTop: 5 }}>
                         Prochain palier : {palier} mots — encore {remaining} à apprendre
                       </p>
                     </div>
@@ -450,19 +450,19 @@ export function JardinClient() {
                     key={badge.id}
                     className="flex flex-col items-center gap-1.5 text-center"
                     style={{
-                      background: "white",
-                      border: "0.5px solid #e4e4e7",
+                      background: "var(--background-card)",
+                      border: "0.5px solid var(--border)",
                       borderRadius: 12,
                       padding: "12px 6px",
                     }}
                   >
                     <div
                       className="flex items-center justify-center"
-                      style={{ width: 36, height: 36, borderRadius: "50%", background: "#f4f4f5" }}
+                      style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--background-subtle)" }}
                     >
-                      <Lock size={16} stroke="#a1a1aa" />
+                      <Lock size={16} stroke="var(--foreground-disabled)" />
                     </div>
-                    <span style={{ fontSize: 10, fontWeight: 500, color: "#a1a1aa" }}>
+                    <span style={{ fontSize: 10, fontWeight: 500, color: "var(--foreground-disabled)" }}>
                       {badge.label}
                     </span>
                   </div>
@@ -474,10 +474,10 @@ export function JardinClient() {
       ) : (
         <div
           className="text-center"
-          style={{ background: "white", border: "0.5px dashed #d4d4d8", borderRadius: 12, padding: "40px 20px" }}
+          style={{ background: "var(--background-card)", border: "0.5px dashed var(--border)", borderRadius: 12, padding: "40px 20px" }}
         >
-          <p style={{ fontSize: 14, color: "#71717a" }}>Aucune activité pour le moment.</p>
-          <p className="mt-1" style={{ fontSize: 12, color: "#a1a1aa" }}>
+          <p style={{ fontSize: 14, color: "var(--foreground-muted)" }}>Aucune activité pour le moment.</p>
+          <p className="mt-1" style={{ fontSize: 12, color: "var(--foreground-disabled)" }}>
             Lance une session d&apos;évaluation pour voir ta progression ici.
           </p>
           <Link
@@ -510,7 +510,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
         fontWeight: 500,
         textTransform: "uppercase",
         letterSpacing: "0.05em",
-        color: "#71717a",
+        color: "var(--foreground-muted)",
         marginBottom: 10,
       }}
     >
@@ -537,7 +537,7 @@ function StatCard({
   subLabel: string;
 }) {
   return (
-    <div style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 14 }}>
+    <div style={{ background: "var(--background-card)", border: "0.5px solid var(--border)", borderRadius: 12, padding: 14 }}>
       <div className="flex items-center gap-2">
         <div
           className="flex items-center justify-center"
@@ -545,13 +545,13 @@ function StatCard({
         >
           {icon}
         </div>
-        <span style={{ fontSize: 11, color: "#71717a" }}>{label}</span>
+        <span style={{ fontSize: 11, color: "var(--foreground-muted)" }}>{label}</span>
       </div>
       <p className="mt-2" style={{ fontSize: 28, fontWeight: 500, color: valueColor }}>
         {value}
         {unit && <span style={{ fontSize: 13, fontWeight: 400, marginLeft: 3 }}>{unit}</span>}
       </p>
-      <p style={{ fontSize: 11, color: "#a1a1aa" }}>{subLabel}</p>
+      <p style={{ fontSize: 11, color: "var(--foreground-disabled)" }}>{subLabel}</p>
     </div>
   );
 }

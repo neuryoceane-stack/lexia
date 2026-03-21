@@ -46,15 +46,15 @@ export function FamillesClient() {
       </button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-sm rounded-xl bg-white p-6 dark:bg-slate-800">
-            <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <div className="w-full max-w-sm rounded-xl bg-[var(--background-card)] p-6">
+            <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
               Nouvelle famille
             </h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>
                 <label
                   htmlFor="family-name"
-                  className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
+                  className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]"
                 >
                   Nom (ex. Corps, Adverbes)
                 </label>
@@ -65,7 +65,7 @@ export function FamillesClient() {
                   onChange={(e) => setName(e.target.value)}
                   required
                   placeholder="Corps"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                  className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
                 />
               </div>
               {error && (
@@ -75,7 +75,7 @@ export function FamillesClient() {
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="btn-relief flex-1 rounded-lg border border-slate-300 py-2 text-slate-700 dark:border-slate-600 dark:text-slate-300"
+                  className="btn-relief flex-1 rounded-lg border border-[var(--border)] py-2 text-[var(--foreground-muted)]"
                 >
                   Annuler
                 </button>

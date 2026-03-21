@@ -45,11 +45,11 @@ export function MotsSauvagesSource({
   };
 
   return (
-    <div className="mx-auto max-w-3xl" style={{ background: "#F8F7FF" }}>
+    <div className="mx-auto max-w-3xl bg-[var(--background)]">
       <button
         type="button"
         onClick={() => router.back()}
-        className="mb-5 text-sm font-medium text-slate-500 transition hover:text-slate-700"
+        className="mb-5 text-sm font-medium text-[var(--foreground-muted)] transition hover:text-[var(--foreground)]"
       >
         ← Retour
       </button>
@@ -62,17 +62,17 @@ export function MotsSauvagesSource({
             style={{
               width: 32,
               height: 32,
-              background: "#F0EDF8",
+              background: "var(--background-subtle)",
               borderRadius: 8,
             }}
           >
             <PawPrint size={18} stroke="#6C3FC8" />
           </div>
-          <h1 style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>
+          <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
             Mots sauvages
           </h1>
         </div>
-        <p className="mt-2" style={{ fontSize: 13, color: "#71717a" }}>
+        <p className="mt-2" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
           Capture des mots depuis ton environnement réel — musique, articles,
           photos, PDF.
         </p>
@@ -86,7 +86,7 @@ export function MotsSauvagesSource({
           fontWeight: 500,
           textTransform: "uppercase",
           letterSpacing: "0.05em",
-          color: "#71717a",
+          color: "var(--foreground-muted)",
         }}
       >
         Choisir un mode
@@ -96,7 +96,7 @@ export function MotsSauvagesSource({
       <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-3">
         {/* PDF */}
         <ActiveCard
-          bg="#F0EDF8"
+          bg="var(--background-subtle)"
           border="#DDD6F5"
           hoverBorder="#6C3FC8"
           iconBg="#DDD6F5"
@@ -112,7 +112,7 @@ export function MotsSauvagesSource({
 
         {/* Photo */}
         <ActiveCard
-          bg="#FEF8EC"
+          bg="var(--background-card)"
           border="#F5D08A"
           hoverBorder="#F5A623"
           iconBg="#FAE5B0"
@@ -128,7 +128,7 @@ export function MotsSauvagesSource({
 
         {/* Galerie */}
         <ActiveCard
-          bg="#EAF4EF"
+          bg="var(--background-card)"
           border="#C3E6D6"
           hoverBorder="#1D9E75"
           iconBg="#C3E6D6"
@@ -172,44 +172,46 @@ export function MotsSauvagesSource({
       />
 
       {/* Section "Bientôt disponible" */}
-      <p
-        className="mb-3 mt-8"
-        style={{
-          fontSize: 11,
-          fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          color: "#71717a",
-        }}
-      >
-        Bientôt disponible
-      </p>
+      <section className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] p-4">
+        <p
+          className="mb-3"
+          style={{
+            fontSize: 11,
+            fontWeight: 500,
+            textTransform: "uppercase",
+            letterSpacing: "0.05em",
+            color: "var(--foreground-muted)",
+          }}
+        >
+          Bientôt disponible
+        </p>
 
-      <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-2">
         <ComingSoonCard
-          icon={<Link2 size={18} stroke="#a1a1aa" />}
+          icon={<Link2 size={18} className="text-[var(--foreground-disabled)]" stroke="currentColor" />}
           title="Lien URL"
           description="Colle le lien d'un article de presse ou d'une page web."
         />
         <ComingSoonCard
-          icon={<Music size={18} stroke="#a1a1aa" />}
+          icon={<Music size={18} className="text-[var(--foreground-disabled)]" stroke="currentColor" />}
           title="Chanson"
           description="Apprends depuis les paroles de tes musiques préférées."
         />
-      </div>
+        </div>
+      </section>
 
       {/* Tip */}
       <div
         className="mt-8 flex items-start gap-3"
         style={{
-          background: "#FEF8EC",
-          border: "0.5px solid #F5D08A",
+          background: "var(--background-subtle)",
+          border: "0.5px solid var(--border)",
           borderRadius: 10,
           padding: "11px 14px",
         }}
       >
         <PawPrint size={15} stroke="#F5A623" className="mt-0.5 shrink-0" />
-        <p style={{ fontSize: 12, color: "#92640A", lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12, color: "var(--foreground-muted)", lineHeight: 1.5 }}>
           Touche n&apos;importe quel mot que tu ne connais pas — la traduction
           apparaît instantanément et tu peux l&apos;ajouter à ta liste en un
           tap.
@@ -221,16 +223,16 @@ export function MotsSauvagesSource({
         <div
           className="mt-6"
           style={{
-            background: "#FEF8EC",
-            border: "0.5px solid #F5D08A",
+            background: "var(--background-subtle)",
+            border: "0.5px solid var(--border)",
             borderRadius: 10,
             padding: "12px 14px",
           }}
         >
-          <p style={{ fontSize: 13, fontWeight: 500, color: "#92640A" }}>
+          <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
             Reconnaissance du texte en cours…
           </p>
-          <p className="mt-1" style={{ fontSize: 11, color: "#C47D0A" }}>
+          <p className="mt-1" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
             Compte 30 secondes à 1–2 minutes (surtout la première fois :
             chargement du moteur OCR).
           </p>
@@ -302,10 +304,10 @@ function ActiveCard({
       >
         {icon}
       </div>
-      <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a", marginBottom: 4 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)", marginBottom: 4 }}>
         {title}
       </p>
-      <p style={{ fontSize: 11, color: "#71717a", flex: 1, marginBottom: 12 }}>
+      <p style={{ fontSize: 11, color: "var(--foreground-muted)", flex: 1, marginBottom: 12 }}>
         {description}
       </p>
       <button
@@ -347,8 +349,8 @@ function ComingSoonCard({
     <div
       className="relative flex flex-col"
       style={{
-        background: "white",
-        border: "0.5px dashed #d4d4d8",
+        background: "var(--background)",
+        border: "0.5px dashed var(--border)",
         borderRadius: 16,
         padding: "16px 14px",
         opacity: 0.75,
@@ -360,7 +362,7 @@ function ComingSoonCard({
         style={{
           top: 12,
           right: 12,
-          background: "#F0EDF8",
+          background: "var(--background-subtle)",
           color: "#6C3FC8",
           fontSize: 10,
           fontWeight: 500,
@@ -376,19 +378,19 @@ function ComingSoonCard({
           width: 36,
           height: 36,
           borderRadius: "50%",
-          background: "#f4f4f5",
+          background: "var(--background-subtle)",
           marginBottom: 10,
         }}
       >
         {icon}
       </div>
-      <p style={{ fontSize: 13, fontWeight: 500, color: "#71717a", marginBottom: 4 }}>
+      <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground-disabled)", marginBottom: 4 }}>
         {title}
       </p>
-      <p style={{ fontSize: 11, color: "#a1a1aa", flex: 1, marginBottom: 12 }}>
+      <p style={{ fontSize: 11, color: "var(--foreground-disabled)", flex: 1, marginBottom: 12 }}>
         {description}
       </p>
-      <p style={{ fontSize: 12, color: "#a1a1aa", fontStyle: "italic" }}>
+      <p style={{ fontSize: 12, color: "var(--foreground-disabled)", fontStyle: "italic" }}>
         Prochainement
       </p>
     </div>

@@ -18,6 +18,10 @@ export const users = sqliteTable("users", {
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
+  /** Matière enseignée (profil enseignant, optionnel). */
+  subject: text("subject"),
+  /** Nom de l'établissement (profil enseignant, optionnel). */
+  schoolName: text("school_name"),
 });
 
 export const wordFamilies = sqliteTable("word_families", {
@@ -152,6 +156,8 @@ export const classes = sqliteTable("classes", {
   title: text("title").notNull(),
   /** Code langue ISO 639-3 (ex. fra, eng). */
   language: text("language"),
+  /** Niveau scolaire affiché à la création (ex. 6ème, Terminale). */
+  schoolLevel: text("school_level"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

@@ -204,7 +204,7 @@ function buildStudentSteps(
     },
     {
       id: "finish",
-      title: "🎉 Tu es prêt·e !",
+      title: "🎉 Tu es prêt !",
       text: `
         <div class="lx-finish">
           <p class="lx-intro">Lexiva va transformer ta façon d'apprendre.</p>
@@ -310,7 +310,7 @@ function buildTeacherSteps(
     },
     {
       id: "finish",
-      title: "🎉 Vous êtes prêt·e !",
+      title: "🎉 Vous êtes prêt !",
       text: `
         <div class="lx-finish">
           <p class="lx-intro">Créez votre première classe et invitez vos élèves.</p>
@@ -322,7 +322,7 @@ function buildTeacherSteps(
           text: "Créer ma première classe 🏫",
           action: () => {
             tour.complete();
-            window.location.href = "/app/professeur/classes/nouvelle";
+            window.location.href = "/app/professeur/classes?creer=1";
           },
         },
       ],

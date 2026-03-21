@@ -30,11 +30,10 @@ export default async function AppLayout({
     where: eq(userProfiles.userId, user.id),
   });
   const showOnboarding = profile ? !profile.onboardingCompleted : false;
-  console.log("ONBOARDING DEBUG", { userId: user.id, profile, showOnboarding });
   const userRole = role === "professeur" ? "professeur" : "etudiant";
 
   return (
-    <div className="min-h-screen dark:bg-slate-900" style={{ backgroundColor: "#F8F7FF" }}>
+    <div className="min-h-screen bg-[var(--background)]">
       <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
       <main className="page-fade-in mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
       <FeedbackWidget />

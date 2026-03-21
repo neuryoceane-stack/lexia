@@ -83,13 +83,13 @@ function ArrowIcon({ color }: { color: string }) {
 
 export function EvaluationLanding() {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[var(--background)]">
       {/* Titre */}
       <div>
-        <h1 style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>
+        <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
           On s&apos;entraîne comment aujourd&apos;hui ?
         </h1>
-        <p className="mt-1" style={{ fontSize: 13, color: "#71717a" }}>
+        <p className="mt-1" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
           Flashcards pour mémoriser, dictée pour ancrer.
         </p>
       </div>
@@ -101,7 +101,7 @@ export function EvaluationLanding() {
           href="/app/revision/flashcards"
           className="relative flex flex-col overflow-hidden no-underline card-hover"
           style={{
-            background: "#F0EDF8",
+            background: "var(--background-subtle)",
             border: "1.5px solid #C4B5F4",
             borderRadius: 16,
             padding: "20px 16px 16px",
@@ -146,14 +146,14 @@ export function EvaluationLanding() {
           </div>
 
           {/* Titre */}
-          <p style={{ fontSize: 14, fontWeight: 500, color: "#1a1a1a" }}>
+          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground)" }}>
             Flashcards
           </p>
 
           {/* Description */}
           <p
             className="mt-1 flex-1"
-            style={{ fontSize: 12, color: "#71717a", lineHeight: 1.5 }}
+            style={{ fontSize: 12, color: "var(--foreground-muted)", lineHeight: 1.5 }}
           >
             Révise avec des cartes intelligentes — l&apos;algorithme SM-2
             optimise ta mémorisation.
@@ -207,9 +207,8 @@ export function EvaluationLanding() {
         {/* ──── Carte Dictée ──── */}
         <Link
           href="/app/revision/dictee"
-          className="relative flex flex-col overflow-hidden no-underline card-hover"
+          className="card-dictee-bg relative flex flex-col overflow-hidden no-underline card-hover"
           style={{
-            background: "#FEF8EC",
             border: "1.5px solid #F5D08A",
             borderRadius: 16,
             padding: "20px 16px 16px",
@@ -251,13 +250,13 @@ export function EvaluationLanding() {
             ))}
           </div>
 
-          <p style={{ fontSize: 14, fontWeight: 500, color: "#1a1a1a" }}>
+          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground)" }}>
             Dictée
           </p>
 
           <p
             className="mt-1 flex-1"
-            style={{ fontSize: 12, color: "#71717a", lineHeight: 1.5 }}
+            style={{ fontSize: 12, color: "var(--foreground-muted)", lineHeight: 1.5 }}
           >
             Écris la traduction de mémoire — le mode le plus efficace pour
             ancrer les mots.
@@ -308,9 +307,8 @@ export function EvaluationLanding() {
 
         {/* ──── Carte Prononciation (désactivée) ──── */}
         <div
-          className="relative flex flex-col overflow-hidden"
+          className="card-prononciation-bg relative flex flex-col overflow-hidden"
           style={{
-            background: "#EAF4EF",
             border: "0.5px solid #6EE7B7",
             borderRadius: 16,
             padding: "20px 16px 16px",
@@ -341,19 +339,20 @@ export function EvaluationLanding() {
               width: 48,
               height: 48,
               borderRadius: "50%",
-              background: "#9CA3AF",
+              background: "var(--background-subtle)",
+              border: "0.5px solid var(--border)",
             }}
           >
             <MicIcon />
           </div>
 
-          <p style={{ fontSize: 14, fontWeight: 500, color: "#71717a" }}>
+          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground-muted)" }}>
             Prononciation
           </p>
 
           <p
             className="mt-1 flex-1"
-            style={{ fontSize: 12, color: "#a1a1aa", lineHeight: 1.5 }}
+            style={{ fontSize: 12, color: "var(--foreground-disabled)", lineHeight: 1.5 }}
           >
             Enregistre ta voix et obtiens un score phonétique — arrive
             bientôt.
@@ -361,7 +360,7 @@ export function EvaluationLanding() {
 
           <p
             className="mt-3"
-            style={{ fontSize: 12, fontStyle: "italic", color: "#a1a1aa" }}
+            style={{ fontSize: 12, fontStyle: "italic", color: "var(--foreground-disabled)" }}
           >
             Prochainement
           </p>

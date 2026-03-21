@@ -1,6 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useCallback } from "react";
+import { DM_Sans } from "next/font/google";
+
+const dmSans = DM_Sans({
+  subsets: ["latin"],
+  weight: ["400", "500"],
+  display: "swap",
+});
 
 const WORDS = [
   "serendipity", "bonjour", "Heimweh", "ephemeral",
@@ -65,8 +72,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       `}</style>
       <div
         ref={containerRef}
-        className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4"
-        style={{ background: "#EDE9FE" }}
+        className={`relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 ${dmSans.className}`}
+        style={{ background: "#F8F7FF" }}
       >
         <div className="relative w-full max-w-[320px]" style={{ zIndex: 10 }}>
           {children}

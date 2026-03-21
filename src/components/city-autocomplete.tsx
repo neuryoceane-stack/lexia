@@ -115,7 +115,7 @@ export function CityAutocomplete({
       />
       {loading && (
         <span
-          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400"
+          className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--foreground-disabled)]"
           aria-hidden
         >
           …
@@ -125,7 +125,7 @@ export function CityAutocomplete({
         <ul
           id={`${id}-listbox`}
           role="listbox"
-          className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-600 dark:bg-slate-800"
+          className="absolute z-10 mt-1 max-h-56 w-full overflow-auto rounded-lg border border-[var(--border)] bg-[var(--background-card)] py-1 shadow-lg"
         >
           {suggestions.map((s, i) => (
             <li
@@ -134,7 +134,7 @@ export function CityAutocomplete({
               tabIndex={-1}
               onClick={() => handleSelect(s)}
               onMouseDown={(e) => e.preventDefault()}
-              className="cursor-pointer px-3 py-2 text-sm text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"
+              className="cursor-pointer px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--hover-bg)]"
             >
               {s.displayName}
             </li>

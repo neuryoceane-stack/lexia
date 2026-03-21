@@ -93,20 +93,20 @@ export default function RevisionExpressPage() {
 
   if (step === "loading") {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center">
-        <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+      <div className="flex min-h-[60vh] items-center justify-center bg-[var(--background)]">
+        <p className="text-[var(--foreground-muted)]">Chargement…</p>
       </div>
     );
   }
 
   if (step === "empty") {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-[var(--background)] text-center">
         <span className="text-6xl">🎉</span>
-        <h1 className="mt-4 text-2xl font-bold text-slate-800 dark:text-slate-100">
+        <h1 className="mt-4 text-2xl font-bold text-[var(--foreground)]">
           Tout est à jour !
         </h1>
-        <p className="mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-2 max-w-sm text-sm text-[var(--foreground-muted)]">
           Aucun mot urgent. Reviens demain pour continuer ta progression.
         </p>
         <button
@@ -131,21 +131,21 @@ export default function RevisionExpressPage() {
           : "text-red-600 dark:text-red-400";
 
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
-        <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-[var(--background)] text-center">
+        <h1 className="text-2xl font-bold text-[var(--foreground)]">
           Session terminée ⚡
         </h1>
         <p className={`mt-4 text-5xl font-extrabold ${scoreColor}`}>
           {score.correct} / {score.total}
         </p>
-        <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">
+        <p className="mt-3 text-sm text-[var(--foreground-muted)]">
           Temps écoulé : {formatTime(elapsed)}
         </p>
         <div className="mt-6 flex gap-3">
           <button
             type="button"
             onClick={() => router.push("/app")}
-            className="rounded-xl border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-300 dark:hover:bg-slate-800"
+            className="rounded-xl border border-[var(--border)] px-5 py-2.5 text-sm font-medium text-[var(--foreground)] transition hover:bg-[var(--background-subtle)]"
           >
             Retour à l&apos;accueil
           </button>
@@ -169,20 +169,20 @@ export default function RevisionExpressPage() {
       ? "text-red-500"
       : timeLeft < 60
         ? "text-amber-500"
-        : "text-slate-600 dark:text-slate-300";
+        : "text-[var(--foreground-muted)]";
 
   return (
-    <div className="mx-auto flex max-w-lg flex-col items-center gap-6 py-4">
+    <div className="mx-auto flex max-w-lg flex-col items-center gap-6 bg-[var(--background)] py-4">
       {/* Timer + progress */}
       <div className="flex w-full items-center justify-between">
         <p className={`text-lg font-bold tabular-nums ${timerColor}`}>
           {formatTime(timeLeft)}
         </p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-[var(--foreground-muted)]">
           {index + 1} / {words.length}
         </p>
       </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+      <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--background-subtle)]">
         <div
           className="h-full rounded-full transition-all duration-300"
           style={{ width: `${progress}%`, backgroundColor: "#6C3FC8" }}
@@ -190,12 +190,12 @@ export default function RevisionExpressPage() {
       </div>
 
       {/* Card */}
-      <div className="flex min-h-[280px] w-full flex-col items-center justify-center rounded-2xl border border-slate-200 bg-white p-8 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-        <p className="text-center text-2xl font-bold text-slate-800 dark:text-slate-100">
+      <div className="flex min-h-[280px] w-full flex-col items-center justify-center rounded-2xl border border-[var(--border)] bg-[var(--background-card)] p-8 shadow-sm">
+        <p className="text-center text-2xl font-bold text-[var(--foreground)]">
           {word.term}
         </p>
         {revealed && (
-          <p className="mt-6 text-center text-lg text-slate-600 dark:text-slate-300">
+          <p className="mt-6 text-center text-lg text-[var(--foreground-muted)]">
             {word.definition}
           </p>
         )}

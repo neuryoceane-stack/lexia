@@ -11,6 +11,12 @@ type Member = {
   name: string;
   email: string | null;
   stats: { sessions: number; wordsRetained: number; wordsWritten: number } | null;
+  /** Ignoré ici ; présent quand les données viennent de la page détail. */
+  progress?: {
+    masteryPct: number;
+    wordsMastered: number;
+    lastActivityAt: string | null;
+  };
 };
 
 type Props = {

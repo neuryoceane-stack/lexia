@@ -139,10 +139,10 @@ export function PhoneInput({
           aria-controls={open ? "phone-prefix-listbox" : undefined}
           onClick={() => !disabled && setOpen((o) => !o)}
           disabled={disabled}
-          className="flex min-w-[5.5rem] items-center justify-between gap-1 rounded-l-lg border border-r-0 border-slate-300 bg-slate-50 px-2 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 disabled:opacity-50"
+          className="flex min-w-[5.5rem] items-center justify-between gap-1 rounded-l-lg border border-r-0 border-[var(--input-border)] bg-[var(--background-subtle)] px-2 py-2 text-[var(--foreground)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
         >
           <span>{prefix}</span>
-          <svg className="h-4 w-4 flex-shrink-0 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+          <svg className="h-4 w-4 flex-shrink-0 text-[var(--foreground-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </button>
@@ -150,7 +150,7 @@ export function PhoneInput({
           <ul
             id="phone-prefix-listbox"
             role="listbox"
-            className="absolute left-0 top-full z-10 mt-1 max-h-64 w-72 overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-600 dark:bg-slate-800"
+            className="absolute left-0 top-full z-10 mt-1 max-h-64 w-72 overflow-auto rounded-lg border border-[var(--border)] bg-[var(--background-card)] py-1 shadow-lg"
           >
             {PREFIXES_LIST.map((p) => (
               <li
@@ -162,7 +162,7 @@ export function PhoneInput({
                   setOpen(false);
                 }}
                 onMouseDown={(e) => e.preventDefault()}
-                className={`cursor-pointer px-3 py-2 text-sm ${p.code === prefix ? "bg-primary/10 font-medium text-primary dark:bg-primary/20 dark:text-primary-light" : "text-slate-800 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-700"}`}
+                className={`cursor-pointer px-3 py-2 text-sm ${p.code === prefix ? "bg-primary/10 font-medium text-primary" : "text-[var(--foreground)] hover:bg-[var(--hover-bg)]"}`}
               >
                 {p.code} ({p.country})
               </li>
@@ -179,7 +179,7 @@ export function PhoneInput({
         disabled={disabled}
         autoComplete="tel-national"
         aria-label={ariaLabel}
-        className={`flex-1 rounded-r-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 ${inputClassName ?? ""}`}
+        className={`flex-1 rounded-r-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ${inputClassName ?? ""}`}
       />
     </div>
   );

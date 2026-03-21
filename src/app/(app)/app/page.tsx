@@ -7,7 +7,7 @@ export default async function AppDashboardPage() {
   const isStudent = role === "etudiant";
 
   return (
-    <div className="mx-auto max-w-[1100px]">
+    <div className="mx-auto max-w-[1100px] bg-[var(--background)]">
       {isStudent && <DashboardClient />}
     </div>
   );
