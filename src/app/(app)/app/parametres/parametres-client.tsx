@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import {
   ChevronLeft,
@@ -12,6 +12,7 @@ import {
   Check,
   Star,
   Plus,
+  GraduationCap,
 } from "lucide-react";
 
 type AvatarType = "arbre" | "phenix" | "koala";
@@ -28,11 +29,53 @@ const AVATAR_OPTIONS: {
   { value: "koala", label: "Cristal", subLabel: "Éclat → Nexus", icon: Gem, color: "#6C3FC8" },
 ];
 
+type MaClasseRow = {
+  id: string;
+  title: string;
+  language: string | null;
+  schoolLevel: string | null;
+  status: "pending" | "accepted";
+};
+
 export function ParametresClient() {
   const router = useRouter();
   const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+
+  const [mesClasses, setMesClasses] = useState<MaClasseRow[]>([]);
+  const [classesLoading, setClassesLoading] = useState(true);
+  const [joinCode, setJoinCode] = useState("");
+  const [joinLoading, setJoinLoading] = useState(false);
+  const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
+  const [joinError, setJoinError] = useState<string | null>(null);
+
+  const loadMesClasses = useCallback(() => {
+    setClassesLoading(true);
+    fetch("/api/eleve/classes-avec-listes", { cache: "no-store" })
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.classes)) {
+          setMesClasses(
+            data.classes.map((c: MaClasseRow & { status?: string }) => ({
+              id: c.id,
+              title: c.title,
+              language: c.language ?? null,
+              schoolLevel: c.schoolLevel ?? null,
+              status: c.status === "pending" ? "pending" : "accepted",
+            }))
+          );
+        } else {
+          setMesClasses([]);
+        }
+      })
+      .catch(() => setMesClasses([]))
+      .finally(() => setClassesLoading(false));
+  }, []);
+
+  useEffect(() => {
+    loadMesClasses();
+  }, [loadMesClasses]);
 
   useEffect(() => {
     fetch("/api/user/preferences")
@@ -57,6 +100,49 @@ export function ParametresClient() {
       .then(() => {})
       .finally(() => setSaving(false));
   };
+
+  async function handleJoinClass(e: React.FormEvent) {
+    e.preventDefault();
+    const identifier = joinCode.trim();
+    if (!identifier || joinLoading) return;
+    setJoinLoading(true);
+    setJoinError(null);
+    setJoinSuccess(null);
+    try {
+      const res = await fetch("/api/classes/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        status?: string;
+        message?: string;
+      };
+      if (!res.ok) {
+        setJoinError(
+          typeof data.error === "string"
+            ? data.error
+            : "Impossible de rejoindre la classe."
+        );
+        return;
+      }
+      const st = data.status;
+      if (st === "pending") {
+        setJoinSuccess(
+          "Demande envoyée ! En attente de validation par ton professeur."
+        );
+      } else if (st === "accepted") {
+        setJoinSuccess("Tu as rejoint la classe !");
+      } else if (typeof data.message === "string") {
+        setJoinSuccess(data.message);
+      }
+      setJoinCode("");
+      loadMesClasses();
+    } finally {
+      setJoinLoading(false);
+    }
+  }
 
   return (
     <div className="mx-auto max-w-lg bg-[var(--background)]">
@@ -310,6 +396,183 @@ export function ParametresClient() {
           <Plus size={12} stroke="#6C3FC8" />
           Ajouter une carte
         </button>
+      </div>
+
+      {/* -------- Section Ma classe -------- */}
+      <div
+        className="mb-3 mt-3"
+        style={{
+          background: "white",
+          border: "0.5px solid var(--border)",
+          borderRadius: 12,
+          padding: 16,
+        }}
+      >
+        <div className="mb-3 flex items-center gap-2.5">
+          <div
+            className="flex shrink-0 items-center justify-center"
+            style={{
+              width: 28,
+              height: 28,
+              borderRadius: 7,
+              background: "var(--background-subtle)",
+            }}
+          >
+            <GraduationCap size={14} stroke="#6C3FC8" />
+          </div>
+          <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
+            Ma classe
+          </p>
+        </div>
+
+        {classesLoading ? (
+          <p style={{ fontSize: 12, color: "var(--foreground-muted)", margin: "0 0 12px" }}>
+            Chargement…
+          </p>
+        ) : mesClasses.length === 0 ? (
+          <p style={{ fontSize: 12, color: "var(--foreground-muted)", margin: "0 0 12px" }}>
+            Tu n&apos;as pas encore rejoint de classe.
+          </p>
+        ) : (
+          <ul className="m-0 mb-3 list-none space-y-2 p-0">
+            {mesClasses.map((c, idx) => (
+              <li
+                key={c.id}
+                style={{
+                  borderBottom:
+                    idx === mesClasses.length - 1
+                      ? "none"
+                      : "0.5px solid var(--border)",
+                  paddingBottom: idx === mesClasses.length - 1 ? 0 : 8,
+                }}
+              >
+                <p
+                  style={{
+                    fontSize: 13,
+                    fontWeight: 500,
+                    color: "var(--foreground)",
+                    margin: 0,
+                  }}
+                >
+                  {c.title}
+                </p>
+                <p
+                  style={{
+                    fontSize: 11,
+                    color: "var(--foreground-muted)",
+                    margin: "4px 0 0",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    gap: 6,
+                  }}
+                >
+                  {c.schoolLevel ? (
+                    <span>{c.schoolLevel}</span>
+                  ) : null}
+                  {c.schoolLevel ? (
+                    <span style={{ color: "var(--border)" }} aria-hidden>
+                      ·
+                    </span>
+                  ) : null}
+                  {c.status === "accepted" ? (
+                    <span
+                      style={{
+                        background: "#EAF4EF",
+                        color: "#1D9E75",
+                        borderRadius: 20,
+                        padding: "2px 8px",
+                        fontSize: 11,
+                        fontWeight: 500,
+                      }}
+                    >
+                      Membre
+                    </span>
+                  ) : (
+                    <span
+                      style={{
+                        background: "#FEF3DC",
+                        color: "#F5A623",
+                        borderRadius: 20,
+                        padding: "2px 8px",
+                        fontSize: 11,
+                        fontWeight: 500,
+                      }}
+                    >
+                      En attente
+                    </span>
+                  )}
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <form onSubmit={handleJoinClass} className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+          <input
+            type="text"
+            value={joinCode}
+            onChange={(e) => {
+              setJoinCode(e.target.value);
+              setJoinError(null);
+              setJoinSuccess(null);
+            }}
+            placeholder="Code de la classe (ex. LX-F2H2QU)"
+            disabled={joinLoading}
+            className="min-w-0 flex-1 outline-none"
+            style={{
+              border: "1px solid var(--border)",
+              borderRadius: 8,
+              padding: "8px 12px",
+              fontSize: 14,
+              fontFamily: "'DM Sans', var(--font-sans, system-ui), sans-serif",
+              color: "var(--foreground)",
+              background: "var(--background-card)",
+            }}
+            autoComplete="off"
+            aria-label="Code de la classe"
+          />
+          <button
+            type="submit"
+            disabled={joinLoading || !joinCode.trim()}
+            className="shrink-0 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+            style={{
+              background: "#6C3FC8",
+              color: "white",
+              borderRadius: 20,
+              padding: "8px 16px",
+              fontSize: 13,
+              fontWeight: 500,
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            {joinLoading ? "Rejoindre…" : "Rejoindre"}
+          </button>
+        </form>
+
+        {joinSuccess ? (
+          <p
+            style={{
+              margin: "10px 0 0",
+              fontSize: 12,
+              color: "#1D9E75",
+            }}
+          >
+            {joinSuccess}
+          </p>
+        ) : null}
+        {joinError ? (
+          <p
+            style={{
+              margin: "10px 0 0",
+              fontSize: 12,
+              color: "#E24B4A",
+            }}
+          >
+            {joinError}
+          </p>
+        ) : null}
       </div>
     </div>
   );

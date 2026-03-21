@@ -27,14 +27,18 @@ export type ClassWithLists = {
   id: string;
   title: string;
   language: string | null;
+  /** Niveau scolaire (ex. 6ème) — affichage Paramètres / fiches classe. */
+  schoolLevel: string | null;
+  /** pending = salle d'attente ; accepted = accès listes visibles. */
+  status: "pending" | "accepted";
   lists: BibliothequeList[];
 };
 
 /**
  * GET /api/eleve/classes-avec-listes
- * Pour l'élève connecté : retourne les classes acceptées avec, pour chaque classe,
- * les listes rendues visibles par le professeur (wordCount + progressPercent de l'élève).
- * Utilisé dans la Bibliothèque pour afficher les listes sous « Mes classes ».
+ * Classes où l'utilisateur est membre (pending ou accepted), avec listes visibles
+ * pour les acceptés uniquement. Utilisé par la Bibliothèque (filtrer status accepted)
+ * et Paramètres « Ma classe ».
  */
 export async function GET() {
   const user = await getUser();
@@ -43,29 +47,44 @@ export async function GET() {
   }
   const userId = user.id;
 
-  const classRows = await db
+  const membershipRows = await db
     .select({
+      memberStatus: classMembers.status,
       id: classes.id,
       title: classes.title,
       language: classes.language,
+      schoolLevel: classes.schoolLevel,
     })
     .from(classMembers)
     .innerJoin(classes, eq(classes.id, classMembers.classId))
     .where(
       and(
         eq(classMembers.userId, userId),
-        eq(classMembers.status, "accepted")
+        inArray(classMembers.status, ["pending", "accepted"])
       )
     )
     .orderBy(asc(classes.createdAt));
 
-  if (classRows.length === 0) {
+  if (membershipRows.length === 0) {
     return NextResponse.json({ classes: [] });
   }
 
   const result: ClassWithLists[] = [];
 
-  for (const cls of classRows) {
+  for (const row of membershipRows) {
+    if (row.memberStatus === "pending") {
+      result.push({
+        id: row.id,
+        title: row.title,
+        language: row.language,
+        schoolLevel: row.schoolLevel,
+        status: "pending",
+        lists: [],
+      });
+      continue;
+    }
+
+    const cls = row;
     const listRows = await db
       .select({
         id: lists.id,
@@ -79,15 +98,19 @@ export async function GET() {
       .innerJoin(lists, eq(lists.id, classLists.listId))
       .innerJoin(wordFamilies, eq(wordFamilies.id, lists.familyId))
       .where(
-        and(
-          eq(classLists.classId, cls.id),
-          eq(classLists.isVisible, true)
-        )
+        and(eq(classLists.classId, cls.id), eq(classLists.isVisible, true))
       )
       .orderBy(asc(classLists.orderIndex));
 
     if (listRows.length === 0) {
-      result.push({ id: cls.id, title: cls.title, language: cls.language, lists: [] });
+      result.push({
+        id: cls.id,
+        title: cls.title,
+        language: cls.language,
+        schoolLevel: cls.schoolLevel,
+        status: "accepted",
+        lists: [],
+      });
       continue;
     }
 
@@ -143,6 +166,8 @@ export async function GET() {
       id: cls.id,
       title: cls.title,
       language: cls.language,
+      schoolLevel: cls.schoolLevel,
+      status: "accepted",
       lists: listsWithStats,
     });
   }

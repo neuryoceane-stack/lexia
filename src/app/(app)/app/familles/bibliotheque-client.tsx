@@ -24,6 +24,8 @@ type ClassWithLists = {
   id: string;
   title: string;
   language: string | null;
+  schoolLevel?: string | null;
+  status?: "pending" | "accepted";
   lists: BibliothequeList[];
 };
 
@@ -130,6 +132,7 @@ export function BibliothequeClient() {
         if (Array.isArray(data.classes)) {
           setClassesWithLists(data.classes);
           const classLangs = (data.classes as ClassWithLists[])
+            .filter((c) => c.status !== "pending")
             .map((c) => c.language)
             .filter((x: string | null): x is string => !!x);
           if (classLangs.length > 0) {
@@ -191,7 +194,9 @@ export function BibliothequeClient() {
     }
   }, [flagMenuOpen]);
 
-  const visibleStudentClasses = classesWithLists.filter((cls) => {
+  const acceptedClassesOnly = classesWithLists.filter((c) => c.status !== "pending");
+
+  const visibleStudentClasses = acceptedClassesOnly.filter((cls) => {
     if (!activeLanguage || !cls.language) return true;
     return cls.language.toLowerCase().trim() === activeLanguage.toLowerCase().trim();
   });
@@ -548,7 +553,7 @@ export function BibliothequeClient() {
         <p className="text-[var(--foreground-muted)]">Chargement…</p>
       ) : (
         <>
-          {classesWithLists.length > 0 && (
+          {acceptedClassesOnly.length > 0 && (
             <section className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-4 shadow-[var(--shadow-card)]">
               <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
                 Mes classes
