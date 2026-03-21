@@ -44,19 +44,10 @@ export async function getClassDetailAnalytics(
   byUserId: Record<string, StudentProgressAnalytics>;
 }> {
   const listIds = [...new Set(assignments.map((a) => a.listId))];
-  if (listIds.length === 0 || acceptedUserIds.length === 0) {
+  if (listIds.length === 0) {
     return {
       globalMasteryPct: 0,
-      listProgress: assignments.map((a) => ({
-        classListId: a.classListId,
-        listId: a.listId,
-        name: a.name,
-        familyName: a.familyName,
-        masteryPct: 0,
-        studentsRevisedCount: 0,
-        wordCount: 0,
-        lastActivityAt: null,
-      })),
+      listProgress: [],
       byUserId: {},
     };
   }
@@ -73,20 +64,32 @@ export async function getClassDetailAnalytics(
     wordsByList.set(w.listId, arr);
   }
 
+  /** Nombre de mots dans chaque liste (table words), indépendamment des révisions. */
+  const listProgressZeroMastery = (): ListProgressAnalytics[] =>
+    assignments.map((a) => ({
+      classListId: a.classListId,
+      listId: a.listId,
+      name: a.name,
+      familyName: a.familyName,
+      masteryPct: 0,
+      studentsRevisedCount: 0,
+      wordCount: wordsByList.get(a.listId)?.length ?? 0,
+      lastActivityAt: null,
+    }));
+
+  if (acceptedUserIds.length === 0) {
+    return {
+      globalMasteryPct: 0,
+      listProgress: listProgressZeroMastery(),
+      byUserId: {},
+    };
+  }
+
   const allWordIds = wordRows.map((w) => w.id);
   if (allWordIds.length === 0) {
     return {
       globalMasteryPct: 0,
-      listProgress: assignments.map((a) => ({
-        classListId: a.classListId,
-        listId: a.listId,
-        name: a.name,
-        familyName: a.familyName,
-        masteryPct: 0,
-        studentsRevisedCount: 0,
-        wordCount: wordsByList.get(a.listId)?.length ?? 0,
-        lastActivityAt: null,
-      })),
+      listProgress: listProgressZeroMastery(),
       byUserId: Object.fromEntries(
         acceptedUserIds.map((uid) => [
           uid,

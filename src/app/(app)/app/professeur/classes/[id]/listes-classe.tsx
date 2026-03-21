@@ -227,7 +227,6 @@ export function ListesClasse({
                     >
                       {l.wordCount} mot{l.wordCount !== 1 ? "s" : ""} ·{" "}
                       {l.masteryPct}% de maîtrise moyenne
-                      {l.familyName ? ` · ${l.familyName}` : ""}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5">
