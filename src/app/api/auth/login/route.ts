@@ -76,7 +76,7 @@ export async function POST(request: Request) {
   const role =
     appRole === "creator"
       ? "creator"
-      : profile?.role === "professeur"
+      : profile?.role === "professeur" || appRole === "teacher"
         ? "professeur"
         : "etudiant";
   const token = await signToken({

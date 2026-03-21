@@ -18,7 +18,8 @@ export async function POST(request: Request) {
     name?: string;
     firstName?: string;
     lastName?: string;
-    role?: "etudiant" | "professeur";
+    /** Inscription : professeur en français ou teacher (anglais) côté client. */
+    role?: "etudiant" | "professeur" | "teacher" | "student";
     /** Matière enseignée (inscription professeur, optionnel). */
     subject?: string;
     /** Nom de l'établissement (inscription professeur, optionnel). */
@@ -41,11 +42,14 @@ export async function POST(request: Request) {
     [firstName, lastName].filter(Boolean).join(" ") ||
     body.name?.trim() ||
     null;
-  const role = body.role === "professeur" ? "professeur" : "etudiant";
+  const isProfessor =
+    body.role === "professeur" || body.role === "teacher";
+  /** Valeur stockée dans user_profiles.role (enum etudiant | professeur). */
+  const profileRole = isProfessor ? "professeur" : "etudiant";
   const appRole =
     email === "oci@lexiva.app"
       ? "creator"
-      : role === "professeur"
+      : isProfessor
         ? "teacher"
         : "student";
   const subject =
@@ -96,8 +100,8 @@ export async function POST(request: Request) {
     passwordHash,
     name: name ?? null,
     role: appRole,
-    subject: role === "professeur" ? subject : null,
-    schoolName: role === "professeur" ? schoolName : null,
+    subject: isProfessor ? subject : null,
+    schoolName: isProfessor ? schoolName : null,
   });
   await db.insert(gardenProgress).values({ userId: id });
   await db
@@ -106,12 +110,12 @@ export async function POST(request: Request) {
       userId: id,
       firstName: firstName ?? null,
       lastName: lastName ?? null,
-      role,
+      role: profileRole,
       updatedAt: new Date(),
     })
     .onConflictDoUpdate({
       target: userProfiles.userId,
-      set: { role, updatedAt: new Date() },
+      set: { role: profileRole, updatedAt: new Date() },
     });
 
   const [{ count: totalUsers }] = await db
@@ -141,6 +145,6 @@ export async function POST(request: Request) {
     userId: id,
     firstName,
     lastName,
-    role,
+    role: profileRole,
   });
 }
