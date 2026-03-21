@@ -5,11 +5,20 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
+import {
+  Pencil,
+  FileText,
+  Image as ImageIcon,
+  Upload,
+  Camera,
+  Plus,
+  ArrowRight,
+} from "lucide-react";
 
 /** Redimensionne l'image (côté client) pour accélérer envoi et traitement. */
 function resizeImage(file: File, maxSize: number): Promise<File> {
   return new Promise((resolve, reject) => {
-    const img = new Image();
+    const img = new window.Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
@@ -224,65 +233,83 @@ export default function NouvelleListePage() {
   }
 
   return (
-    <div>
-      <BackLink href={`/app/familles/${familyId}`} />
-      <h1 className="mb-6 text-2xl font-semibold text-slate-800 dark:text-slate-100">
-        Nouvelle liste de mots
+    <div style={{ background: "#F8F7FF" }}>
+      {/* Header */}
+      <button
+        type="button"
+        onClick={() => router.push(`/app/familles/${familyId}`)}
+        className="mb-4 flex items-center gap-1 transition hover:opacity-70"
+        style={{ fontSize: 12, color: "#71717a", background: "none", border: "none", cursor: "pointer" }}
+      >
+        <ArrowRight size={13} stroke="#71717a" className="rotate-180" />
+        Retour
+      </button>
+      <h1 className="mb-1" style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>
+        Comment veux-tu ajouter tes mots ?
       </h1>
-      <p className="mb-8 text-slate-600 dark:text-slate-400">
-        Choisis comment ajouter tes mots : à la main, depuis un PDF ou une image (reconnaissance de texte).
+      <p className="mb-6" style={{ fontSize: 13, color: "#71717a" }}>
+        Choisis un mode pour créer ta liste.
       </p>
 
+      {/* Hidden file inputs */}
+      <input type="file" accept=".pdf,application/pdf" className="hidden" id="pdf-input-nl" onChange={handlePdfChange} disabled={extractLoading} />
+      <input type="file" accept="image/*" className="hidden" id="image-input-nl" onChange={handleImageChange} disabled={extractLoading} />
+
       {method === null && (
-        <div className="grid gap-4 sm:grid-cols-3">
-          <button
-            type="button"
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          {/* Carte Manuel */}
+          <MethodCard
+            bg="#F0EDF8"
+            border="#C4B5F4"
+            hoverBorder="#6C3FC8"
+            iconBg="#6C3FC8"
+            icon={<Pencil size={22} stroke="white" />}
+            decoColor="#6C3FC8"
+            title="Manuel"
+            description="Saisis tes mots un par un ou colle une liste."
+            btnBg="#6C3FC8"
+            btnIcon={<Plus size={11} stroke="white" />}
+            btnLabel="Commencer"
+            arrowBg="#DDD6F5"
+            arrowColor="#6C3FC8"
             onClick={() => setMethod("manual")}
-            className="btn-relief flex flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light"
-          >
-            <span className="text-3xl" aria-hidden>✏️</span>
-            <span className="font-medium text-slate-800 dark:text-slate-100">
-              Manuel
-            </span>
-            <span className="text-center text-sm text-slate-500 dark:text-slate-400">
-              Saisir les mots un par un ou en bloc
-            </span>
-          </button>
-          <label className="btn-relief flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
-            <input
-              type="file"
-              accept=".pdf,application/pdf"
-              className="hidden"
-              onChange={handlePdfChange}
-              disabled={extractLoading}
-            />
-            <span className="text-3xl" aria-hidden>📄</span>
-            <span className="font-medium text-slate-800 dark:text-slate-100">
-              PDF
-            </span>
-            <span className="text-center text-sm text-slate-500 dark:text-slate-400">
-              Extraire le texte d’un document PDF
-            </span>
-          </label>
-          <label className="btn-relief flex cursor-pointer flex-col items-center gap-3 rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light">
-            <input
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={handleImageChange}
-              disabled={extractLoading}
-            />
-            <span className="text-3xl" aria-hidden>🖼️</span>
-            <span className="font-medium text-slate-800 dark:text-slate-100">
-              Image
-            </span>
-            <span className="text-center text-sm text-slate-500 dark:text-slate-400">
-              Photo ou capture : extraction par IA (rapide) si configurée, sinon OCR. Une ligne par paire accélère.
-            </span>
-            <span className="text-center text-xs text-slate-400 dark:text-slate-500">
-              Idéal : une ligne par paire, avec un séparateur (ex. « mot - traduction » ou « mot : traduction »).
-            </span>
-          </label>
+          />
+
+          {/* Carte PDF */}
+          <MethodCard
+            bg="#FEF8EC"
+            border="#F5D08A"
+            hoverBorder="#F5A623"
+            iconBg="#F5A623"
+            icon={<FileText size={22} stroke="white" />}
+            decoColor="#F5A623"
+            title="PDF"
+            description="Importe un document — l'IA extrait les mots automatiquement."
+            btnBg="#F5A623"
+            btnIcon={<Upload size={11} stroke="white" />}
+            btnLabel="Importer"
+            arrowBg="#FAE5B0"
+            arrowColor="#F5A623"
+            onClick={() => document.getElementById("pdf-input-nl")?.click()}
+          />
+
+          {/* Carte Photo ou image */}
+          <MethodCard
+            bg="#EAF4EF"
+            border="#6EE7B7"
+            hoverBorder="#1D9E75"
+            iconBg="#1D9E75"
+            icon={<ImageIcon size={22} stroke="white" />}
+            decoColor="#1D9E75"
+            title="Photo ou image"
+            description="Prends une photo ou importe une image — l'IA lit le texte pour toi."
+            btnBg="#1D9E75"
+            btnIcon={<Camera size={11} stroke="white" />}
+            btnLabel="Choisir"
+            arrowBg="#C3E6D6"
+            arrowColor="#1D9E75"
+            onClick={() => document.getElementById("image-input-nl")?.click()}
+          />
         </div>
       )}
 
@@ -543,5 +570,102 @@ function FormManuel({
         </button>
       </div>
     </form>
+  );
+}
+
+function MethodCard({
+  bg,
+  border,
+  hoverBorder,
+  iconBg,
+  icon,
+  decoColor,
+  title,
+  description,
+  btnBg,
+  btnIcon,
+  btnLabel,
+  arrowBg,
+  arrowColor,
+  onClick,
+}: {
+  bg: string;
+  border: string;
+  hoverBorder: string;
+  iconBg: string;
+  icon: React.ReactNode;
+  decoColor: string;
+  title: string;
+  description: string;
+  btnBg: string;
+  btnIcon: React.ReactNode;
+  btnLabel: string;
+  arrowBg: string;
+  arrowColor: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative flex flex-col overflow-hidden text-left card-hover"
+      style={{
+        background: bg,
+        border: `1.5px solid ${border}`,
+        borderRadius: 16,
+        padding: "20px 16px 16px",
+        cursor: "pointer",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = hoverBorder)}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = border)}
+    >
+      <div
+        className="flex items-center justify-center"
+        style={{ width: 48, height: 48, borderRadius: "50%", background: iconBg, marginBottom: 14 }}
+      >
+        {icon}
+      </div>
+      <p style={{ fontSize: 14, fontWeight: 500, color: "#1a1a1a", marginBottom: 5 }}>
+        {title}
+      </p>
+      <p style={{ fontSize: 12, color: "#71717a", flex: 1, marginBottom: 18 }}>
+        {description}
+      </p>
+      <div className="flex items-center justify-between">
+        <span
+          className="inline-flex items-center gap-[5px]"
+          style={{
+            background: btnBg,
+            color: "white",
+            borderRadius: 20,
+            padding: "7px 14px",
+            fontSize: 12,
+            fontWeight: 500,
+          }}
+        >
+          {btnIcon}
+          {btnLabel}
+        </span>
+        <span
+          className="flex items-center justify-center"
+          style={{ width: 28, height: 28, borderRadius: "50%", background: arrowBg }}
+        >
+          <ArrowRight size={12} stroke={arrowColor} />
+        </span>
+      </div>
+      {/* Cercle décoratif */}
+      <div
+        className="pointer-events-none absolute"
+        style={{
+          bottom: -20,
+          right: -20,
+          width: 70,
+          height: 70,
+          borderRadius: "50%",
+          background: decoColor,
+          opacity: 0.1,
+        }}
+      />
+    </button>
   );
 }

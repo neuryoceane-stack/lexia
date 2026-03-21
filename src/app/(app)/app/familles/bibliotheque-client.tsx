@@ -6,6 +6,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 import { BackLink } from "@/components/back-link";
+import { PawPrint, FileText, X, Plus } from "lucide-react";
 
 type BibliothequeList = {
   id: string;
@@ -308,8 +309,32 @@ export function BibliothequeClient() {
     }
   }
 
+  const [statusFilter, setStatusFilter] = useState<"all" | "urgent" | "mastered">("all");
+
   const showOnboardingBubble = prefsLoaded && preferredLanguages.length === 0;
   const showDashboard = (lists.length > 0 || prefsLoaded) && !showOnboardingBubble;
+
+  const totalLists = lists.length;
+  const totalWords = lists.reduce((s, l) => s + l.wordCount, 0);
+  const uniqueLangs = new Set(lists.map((l) => l.language).filter(Boolean)).size;
+  const avgMastery =
+    lists.length > 0
+      ? Math.round(lists.reduce((s, l) => s + l.progressPercent, 0) / lists.length)
+      : 0;
+
+  const listDueMap = new Map(
+    lists.map((l) => [l.id, Math.round(l.wordCount * (1 - l.progressPercent / 100))]),
+  );
+  const totalDue = Array.from(listDueMap.values()).reduce((s, n) => s + n, 0);
+  const mostUrgentList = [...lists].sort(
+    (a, b) => (listDueMap.get(b.id) ?? 0) - (listDueMap.get(a.id) ?? 0),
+  )[0];
+
+  const filteredByStatus = lists.filter((l) => {
+    if (statusFilter === "urgent") return (listDueMap.get(l.id) ?? 0) > 0;
+    if (statusFilter === "mastered") return l.progressPercent >= 80;
+    return true;
+  });
 
   return (
     <div className="space-y-6">
@@ -392,199 +417,128 @@ export function BibliothequeClient() {
           </button>
         </div>
       )}
-      {/* Barre supérieure: titre + langue + boutons d’ajout */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-          Bibliothèque
-        </h1>
-        <div className="flex flex-wrap items-center gap-3">
-          {false && (
-          <div className="flex items-center gap-1 rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-800">
-            <button
-              type="button"
-              onClick={() => {}}
-              className={`btn-relief rounded-l-md px-2.5 py-2 text-xl transition ${
-                false
-                  ? "bg-primary/10 ring-1 ring-primary/30 dark:bg-primary/20"
-                  : "hover:bg-slate-100 dark:hover:bg-slate-700"
-              }`}
-              title="Toutes langues"
-            >
-              🌐
-            </button>
-            {languages.map((l) => (
-              <button
-                key={l}
-                type="button"
-                onClick={() => {}}
-                className={`btn-relief flex items-center justify-center px-2.5 py-2 text-xl transition ${
-                  false
-                    ? "bg-primary/10 ring-1 ring-primary/30 dark:bg-primary/20"
-                    : "hover:bg-slate-100 dark:hover:bg-slate-700"
-                }`}
-                title={l}
-              >
-                <FlagDisplay
-                  langCode={l}
-                  size={24}
-                  className="relative flex h-6 w-6 flex-shrink-0 items-center justify-center overflow-hidden rounded-sm"
-                />
-              </button>
-            ))}
-          </div>
-          )}
-
-          {/* Boutons d’ajout */}
-          <div className="flex items-center gap-2">
-            {preferredLanguages.length > 0 && (
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setFlagMenuOpen((o) => !o);
-                  }}
-                  className="btn-relief inline-flex h-10 items-center justify-center rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                  title={activeLanguage == null ? "Toutes les langues" : (PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === activeLanguage)?.label ?? activeLanguage)}
-                  aria-expanded={flagMenuOpen}
-                  aria-haspopup="true"
-                >
-                  {activeLanguage == null ? (
-                    <span className="flex h-6 w-6 items-center justify-center text-base" aria-hidden>🌐</span>
-                  ) : (
-                    <FlagDisplay langCode={activeLanguage} size={24} />
-                  )}
-                </button>
-                {flagMenuOpen && (
-                  <div
-                    className="absolute left-0 top-full z-20 mt-1 flex flex-col gap-1 rounded-lg border border-slate-200 bg-white p-2 shadow-lg dark:border-slate-600 dark:bg-slate-800"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActiveLanguage(null);
-                        setFlagMenuOpen(false);
-                      }}
-                      className={`flex w-full items-center gap-2 rounded px-2 py-1.5 text-left text-sm ${
-                        activeLanguage === null
-                          ? "bg-primary/10 font-medium text-primary dark:bg-primary-light/20 dark:text-primary-light"
-                          : "text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700"
-                      }`}
-                      title="Afficher toutes les listes, toutes langues"
-                    >
-                      Toutes les langues
-                    </button>
-                    <div className="flex flex-wrap items-center gap-1">
-                      {preferredLanguages.map((code) => (
-                        <button
-                          key={code}
-                          type="button"
-                          onClick={() => {
-                            setActiveLanguage(code);
-                            setFlagMenuOpen(false);
-                          }}
-                          className={`flex h-8 w-8 items-center justify-center rounded border transition ${
-                            activeLanguage === code
-                              ? "border-primary ring-2 ring-primary/30 dark:border-primary-light dark:ring-primary-light/30"
-                              : "border-slate-200 hover:border-slate-300 dark:border-slate-600 dark:hover:border-slate-500"
-                          }`}
-                          title={PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code}
-                          aria-label={`Choisir ${PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code}`}
-                          aria-pressed={activeLanguage === code}
-                        >
-                          <FlagDisplay langCode={code} size={20} />
-                        </button>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setLangModalOpen(true);
-                        setFlagMenuOpen(false);
-                      }}
-                      className="flex h-8 w-8 items-center justify-center rounded border border-dashed border-slate-300 text-slate-500 hover:border-primary hover:text-primary dark:border-slate-500 dark:hover:border-primary-light dark:hover:text-primary-light"
-                      title="Ajouter une langue à apprendre"
-                      aria-label="Ajouter une langue"
-                    >
-                      +
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={() => setAddModal("list")}
-              className="btn-relief inline-flex h-10 items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              Liste de mots
-            </button>
-            <Link
-              href="/app/familles/mots-sauvages"
-              className="btn-relief inline-flex h-10 items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-vocab-gray hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-            >
-              <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-              Mots sauvages
-            </Link>
-          </div>
+      {/* Header : titre + sous-titre + boutons */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>Bibliothèque</h1>
+          <p className="mt-1" style={{ fontSize: 12, color: "#71717a" }}>
+            {totalLists} liste{totalLists !== 1 ? "s" : ""} · {uniqueLangs} langue{uniqueLangs !== 1 ? "s" : ""} · {totalWords} mot{totalWords !== 1 ? "s" : ""} · {totalDue} à revoir
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/app/familles/mots-sauvages"
+            className="inline-flex items-center gap-1.5 no-underline transition hover:brightness-95"
+            style={{ border: "2px solid #6C3FC8", color: "#6C3FC8", borderRadius: 20, padding: "7px 14px", fontSize: 13, fontWeight: 500 }}
+          >
+            <PawPrint size={16} />
+            Mots sauvages
+          </Link>
+          <button
+            type="button"
+            onClick={() => setAddModal("list")}
+            className="inline-flex items-center gap-1.5 transition hover:brightness-95"
+            style={{ background: "#6C3FC8", color: "white", borderRadius: 20, padding: "9px 16px", fontSize: 13, fontWeight: 500, border: "none", cursor: "pointer" }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
+            Ajouter
+          </button>
         </div>
       </div>
 
-      {/* Recherche + tri + vue */}
-      <div className="flex flex-wrap items-center gap-4">
-        <input
-          type="search"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Rechercher un nom de liste ou un mot…"
-          className="max-w-xs flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-vocab-gray placeholder:text-slate-400 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 dark:placeholder:text-slate-500"
-        />
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value as typeof sort)}
-          className="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-vocab-gray dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100"
-        >
-          {SORT_OPTIONS.map((o) => (
-            <option key={o.value} value={o.value}>
-              {o.label}
-            </option>
+      {/* Barre de maîtrise globale */}
+      {lists.length > 0 && (
+        <div>
+          <div className="flex items-center justify-between">
+            <span style={{ fontSize: 11, color: "#71717a" }}>Maîtrise globale — toutes langues</span>
+            <span style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8" }}>{avgMastery}%</span>
+          </div>
+          <div style={{ height: 5, background: "#F0EDF8", borderRadius: 3, marginTop: 4 }}>
+            <div className="transition-all duration-300" style={{ height: "100%", width: `${avgMastery}%`, background: "#6C3FC8", borderRadius: 3 }} />
+          </div>
+        </div>
+      )}
+
+      {/* Bannière SM-2 urgente */}
+      {totalDue > 0 && mostUrgentList && (
+        <div className="flex items-center gap-3" style={{ background: "#FEF8EC", border: "0.5px solid #F5D08A", borderRadius: 10, padding: "12px 14px" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5A623" aria-hidden className="shrink-0"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+          <div className="min-w-0 flex-1">
+            <p style={{ fontSize: 13, fontWeight: 500, color: "#92640A" }}>{totalDue} mot{totalDue !== 1 ? "s" : ""} à revoir maintenant</p>
+            <p className="truncate" style={{ fontSize: 11, color: "#C47D0A" }}>{mostUrgentList.name} · SM-2 recommande aujourd&apos;hui</p>
+          </div>
+          <Link href="/app/revision/express" className="shrink-0 no-underline transition hover:brightness-95" style={{ background: "#F5A623", color: "white", borderRadius: 16, padding: "6px 12px", fontSize: 12, fontWeight: 500 }}>Réviser</Link>
+        </div>
+      )}
+
+      {/* Filtres langue (chips scrollable) */}
+      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
+        <button type="button" onClick={() => setActiveLanguage(null)} className="shrink-0" style={{ background: activeLanguage === null ? "#F0EDF8" : "white", color: activeLanguage === null ? "#6C3FC8" : "#71717a", border: activeLanguage === null ? "1px solid #DDD6F5" : "0.5px solid #d4d4d8", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: activeLanguage === null ? 500 : 400, cursor: "pointer" }}>Toutes les langues</button>
+        {preferredLanguages.map((code) => {
+          const active = activeLanguage === code;
+          const label = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code;
+          return (
+            <button key={code} type="button" onClick={() => setActiveLanguage(code)} className="inline-flex shrink-0 items-center gap-1.5" style={{ background: active ? "#F0EDF8" : "white", color: active ? "#6C3FC8" : "#71717a", border: active ? "1px solid #DDD6F5" : "0.5px solid #d4d4d8", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: active ? 500 : 400, cursor: "pointer" }}>
+              <FlagDisplay langCode={code} size={16} />
+              {label}
+            </button>
+          );
+        })}
+        <button type="button" onClick={() => setLangModalOpen(true)} className="shrink-0 transition hover:text-[#6C3FC8]" style={{ background: "transparent", border: "0.5px dashed #d4d4d8", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "#a1a1aa", cursor: "pointer" }}>+ Langue</button>
+      </div>
+
+      {/* Toolbar : recherche + filtres état + vue */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative max-w-xs flex-1">
+          <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Rechercher…"
+            className="w-full bg-white pl-9 pr-3 py-2 text-sm text-slate-800 placeholder:text-slate-400"
+            style={{ borderRadius: 20, border: "0.5px solid #d4d4d8" }}
+          />
+        </div>
+        <div className="flex gap-1">
+          {([["all", "Toutes"], ["urgent", "Urgentes"], ["mastered", "Maîtrisées"]] as const).map(([val, label]) => (
+            <button
+              key={val}
+              type="button"
+              onClick={() => setStatusFilter(val)}
+              style={{
+                background: statusFilter === val ? "#F0EDF8" : "white",
+                color: statusFilter === val ? "#6C3FC8" : "#71717a",
+                border: statusFilter === val ? "1px solid #DDD6F5" : "0.5px solid #d4d4d8",
+                borderRadius: 20,
+                padding: "5px 12px",
+                fontSize: 12,
+                fontWeight: statusFilter === val ? 500 : 400,
+                cursor: "pointer",
+              }}
+            >
+              {label}
+            </button>
           ))}
-        </select>
-        <div className="flex rounded-lg border border-slate-200 dark:border-slate-600">
+        </div>
+        <div className="flex overflow-hidden" style={{ borderRadius: 8, border: "0.5px solid #d4d4d8" }}>
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className={`btn-relief rounded-l-lg px-3 py-2 transition ${
-              viewMode === "grid"
-                ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
-                : "hover:bg-slate-100 dark:hover:bg-slate-700"
-            }`}
+            className="px-2.5 py-2 transition"
+            style={{ background: viewMode === "grid" ? "#F0EDF8" : "white", color: viewMode === "grid" ? "#6C3FC8" : "#a1a1aa" }}
             title="Vue mosaïque"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-            </svg>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
           </button>
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className={`btn-relief rounded-r-lg px-3 py-2 transition ${
-              viewMode === "list"
-                ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light"
-                : "hover:bg-slate-100 dark:hover:bg-slate-700"
-            }`}
+            className="px-2.5 py-2 transition"
+            style={{ background: viewMode === "list" ? "#F0EDF8" : "white", color: viewMode === "list" ? "#6C3FC8" : "#a1a1aa" }}
             title="Vue liste"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
-            </svg>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
           </button>
         </div>
       </div>
@@ -721,33 +675,46 @@ export function BibliothequeClient() {
               </p>
             </div>
           ) : viewMode === "grid" ? (
-        <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {lists.map((list) => (
+        <ul className="grid gap-[10px] grid-cols-1 sm:grid-cols-2">
+          {filteredByStatus.map((list) => {
+            const dueWords = listDueMap.get(list.id) ?? 0;
+            const borderColor = dueWords > 0 ? "border-[#F5D08A]" : list.progressPercent >= 80 ? "border-[#C3E6D6]" : "border-slate-200";
+            return (
             <li key={list.id} className="relative">
               <Link
                 href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
-                className="block rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800"
+                className={`block rounded-[12px] border ${borderColor} bg-white shadow-sm transition-[box-shadow,transform] duration-150 hover:-translate-y-[2px] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800`}
+                style={{ padding: "14px 12px" }}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 flex-1">
-                    <h2 className="truncate text-lg font-semibold text-slate-800 dark:text-slate-100">
-                      {list.name}
-                    </h2>
-                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                      {list.familyName} · {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""}
-                    </p>
-                    <div className="mt-2 flex items-center gap-2">
-                      <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-600">
-                        <div
-                          className="h-full rounded-full bg-p2-primary transition-all duration-200"
-                          style={{ width: `${list.progressPercent}%` }}
-                        />
+                <div className="flex items-center gap-2">
+                  {list.language && <FlagDisplay langCode={list.language} size={20} className="shrink-0" />}
+                </div>
+                <h2 className="mt-2 truncate" style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+                  {list.name}
+                </h2>
+                <p className="mt-0.5" style={{ fontSize: 11, color: "#71717a" }}>
+                  {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""} · {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === list.language)?.label ?? list.language ?? "—"}
+                </p>
+                {(() => {
+                  const pct = list.progressPercent;
+                  const trackBg = pct < 30 ? "#FEF3DC" : pct < 80 ? "#EAF4EF" : "#F0EDF8";
+                  const fillBg = pct < 30 ? "#F5A623" : pct < 80 ? "#1D9E75" : "#6C3FC8";
+                  return (
+                    <div className="mt-2">
+                      <div style={{ height: 4, background: trackBg, borderRadius: 3 }}>
+                        <div className="transition-all duration-300" style={{ height: "100%", width: `${pct}%`, background: fillBg, borderRadius: 3 }} />
                       </div>
-                      <span className="text-xs font-medium text-slate-600 dark:text-slate-400">
-                        {list.progressPercent} %
-                      </span>
+                      <p className="mt-1" style={{ fontSize: 11, color: "#71717a" }}>{pct}% maîtrisé</p>
                     </div>
-                  </div>
+                  );
+                })()}
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {dueWords > 0 && (
+                    <span style={{ background: "#FEF3DC", color: "#A06800", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>{dueWords} mot{dueWords !== 1 ? "s" : ""} dus</span>
+                  )}
+                  {list.progressPercent >= 80 && (
+                    <span style={{ background: "#EAF4EF", color: "#27500A", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>Presque terminé ✓</span>
+                  )}
                 </div>
               </Link>
               <div className="absolute right-2 top-2">
@@ -803,11 +770,24 @@ export function BibliothequeClient() {
                 )}
               </div>
             </li>
-          ))}
+            );
+          })}
+          {/* Carte vide "+" */}
+          <li>
+            <button
+              type="button"
+              onClick={() => setAddModal("list")}
+              className="flex h-full w-full flex-col items-center justify-center gap-2 transition hover:bg-slate-50"
+              style={{ border: "1.5px dashed #d4d4d8", borderRadius: 12, background: "transparent", padding: "32px 12px", cursor: "pointer" }}
+            >
+              <div className="flex h-7 w-7 items-center justify-center" style={{ background: "#F0EDF8", borderRadius: "50%", color: "#6C3FC8", fontSize: 16, fontWeight: 600 }}>+</div>
+              <span style={{ fontSize: 12, fontWeight: 500, color: "#71717a" }}>Nouvelle liste</span>
+            </button>
+          </li>
         </ul>
           ) : (
         <ul className="divide-y divide-slate-200 rounded-xl border border-slate-200 bg-white dark:divide-slate-700 dark:border-slate-700 dark:bg-slate-800">
-          {lists.map((list) => (
+          {filteredByStatus.map((list) => (
             <li key={list.id} className="relative flex items-center gap-4 px-4 py-3">
               <Link
                 href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
@@ -1130,58 +1110,112 @@ export function BibliothequeClient() {
 
       {/* Modal Liste de mots : langue + nom, puis Créer ma liste ou Annuler */}
       {addModal === "list" && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md rounded-xl bg-white p-6 dark:bg-slate-800">
-            <h2 className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
-              Liste de mots
-            </h2>
-            <div className="mb-4">
-              <p className="mb-2 text-sm font-medium text-slate-600 dark:text-slate-400">
-                Langue de la liste
-              </p>
-              <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
-                La liste apparaîtra dans la Bibliothèque sous « Toutes les langues » et sous ce drapeau.
-              </p>
-              <div className="flex items-center gap-3">
-                {newListLanguage ? (
-                  <FlagDisplay langCode={newListLanguage} size={24} />
-                ) : (
-                  <span className="flex h-9 w-9 items-center justify-center rounded-full border border-dashed border-slate-300 text-xs text-slate-400 dark:border-slate-600 dark:text-slate-500">
-                    ?
-                  </span>
-                )}
-                <select
-                  value={newListLanguage}
-                  onChange={(e) => setNewListLanguage(e.target.value)}
-                  className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 shadow-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                >
-                  <option value="">Choisir une langue…</option>
-                  {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(80,60,120,0.18)" }}
+          onClick={() => setAddModal(null)}
+        >
+          <div
+            className="w-full overflow-hidden"
+            style={{ maxWidth: 400, borderRadius: 20, background: "white", border: "0.5px solid rgba(108,63,200,0.15)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header violet */}
+            <div className="flex items-center gap-3" style={{ background: "#6C3FC8", padding: "22px 24px 20px" }}>
+              <div
+                className="flex shrink-0 items-center justify-center"
+                style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)" }}
+              >
+                <FileText size={20} stroke="white" />
               </div>
+              <div className="min-w-0 flex-1">
+                <p style={{ color: "white", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>Nouvelle liste de mots</p>
+                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>Elle apparaîtra dans ta bibliothèque</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setAddModal(null)}
+                className="flex shrink-0 items-center justify-center transition hover:brightness-90"
+                style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.15)", border: "none", cursor: "pointer" }}
+                aria-label="Fermer"
+              >
+                <X size={12} stroke="white" />
+              </button>
             </div>
-            <div className="mb-6">
-              <label htmlFor="modal-list-name" className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+
+            {/* Corps */}
+            <div style={{ padding: "22px 24px" }}>
+              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "#71717a", marginBottom: 8 }}>
+                Langue
+              </p>
+              <div className="grid grid-cols-4 gap-[7px]" style={{ marginBottom: 4 }}>
+                {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
+                  const sel = newListLanguage === opt.value;
+                  return (
+                    <button
+                      key={opt.value}
+                      type="button"
+                      onClick={() => setNewListLanguage(opt.value)}
+                      className="flex flex-col items-center gap-1 transition-all"
+                      style={{
+                        borderRadius: 10,
+                        padding: "8px 4px",
+                        border: `1.5px solid ${sel ? "#6C3FC8" : "#e4e4e7"}`,
+                        background: sel ? "#F0EDF8" : "#f4f4f5",
+                        cursor: "pointer",
+                        transition: "border-color 120ms, background 120ms",
+                      }}
+                      onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "#F0EDF8"; } }}
+                      onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#e4e4e7"; e.currentTarget.style.background = "#f4f4f5"; } }}
+                    >
+                      <FlagDisplay langCode={opt.value} size={18} />
+                      <span style={{ fontSize: 10, fontWeight: 500, color: sel ? "#6C3FC8" : "#71717a" }}>{opt.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+              <button
+                type="button"
+                onClick={() => setLangModalOpen(true)}
+                className="transition hover:opacity-70"
+                style={{ fontSize: 11, color: "#6C3FC8", background: "none", border: "none", cursor: "pointer", fontWeight: 500, textDecoration: "underline", marginTop: 4, marginBottom: 16 }}
+              >
+                Autre langue →
+              </button>
+
+              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "#71717a", marginBottom: 8 }}>
                 Nom de la liste
-              </label>
+              </p>
               <input
                 id="modal-list-name"
                 type="text"
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
-                placeholder="ex. Mots extraits du PDF"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                placeholder="ex. Chapitre 3 — La Révolution"
+                className="w-full transition-colors"
+                style={{
+                  fontSize: 13,
+                  padding: "11px 14px",
+                  borderRadius: 10,
+                  border: "1.5px solid #e4e4e7",
+                  background: "#f4f4f5",
+                  color: "#1a1a1a",
+                  outline: "none",
+                  width: "100%",
+                }}
+                onFocus={(e) => { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "white"; }}
+                onBlur={(e) => { e.currentTarget.style.borderColor = "#e4e4e7"; e.currentTarget.style.background = "#f4f4f5"; }}
               />
+              <p style={{ fontSize: 11, color: "#a1a1aa", marginTop: 5 }}>Un nom précis t&apos;aidera à retrouver ta liste.</p>
             </div>
-            <div className="flex justify-end gap-2">
+
+            {/* Footer */}
+            <div className="flex gap-[10px]" style={{ padding: "0 24px 22px" }}>
               <button
                 type="button"
                 onClick={() => setAddModal(null)}
-                className="btn-relief rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 dark:border-slate-600 dark:text-slate-300"
+                className="flex-1 transition hover:bg-[#f4f4f5]"
+                style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "1.5px solid #e4e4e7", background: "transparent", color: "#71717a", cursor: "pointer" }}
               >
                 Annuler
               </button>
@@ -1208,15 +1242,12 @@ export function BibliothequeClient() {
                     setAddModal(null);
                   }
                 }}
-                className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+                className="flex flex-[2] items-center justify-center gap-[7px] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
+                style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "none", background: "#6C3FC8", color: "white", cursor: "pointer" }}
               >
+                <Plus size={14} stroke="white" />
                 {creatingFamily ? "Création…" : "Créer ma liste"}
               </button>
-              {!newListLanguage.trim() && (
-                <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
-                  Choisis une langue ci-dessus pour activer le bouton.
-                </p>
-              )}
             </div>
           </div>
         </div>

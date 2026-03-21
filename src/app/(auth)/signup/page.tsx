@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { BookOpen, Eye, EyeOff, LogIn, ChevronLeft } from "lucide-react";
 
 const STATUS_OPTIONS = [
   { value: "collegien", label: "Collégien", role: "etudiant" as const },
@@ -41,6 +41,24 @@ const WEEKLY_GOAL_OPTIONS = [
   { value: "100", label: "100 mots" },
 ];
 
+function GoogleIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 48 48">
+      <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
+      <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
+      <path fill="#FBBC05" d="M10.53 28.59a14.5 14.5 0 0 1 0-9.18l-7.97-6.19a24.01 24.01 0 0 0 0 21.56l7.97-6.19z" />
+      <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
+    </svg>
+  );
+}
+
+const FEATURE_CHIPS = [
+  { emoji: "⚡", label: "SM-2" },
+  { emoji: "🐾", label: "Mots sauvages" },
+  { emoji: "🔥", label: "Streaks" },
+  { emoji: "🌍", label: "Multi-langues" },
+];
+
 type Step = 0 | 1 | 2 | 3;
 
 export default function SignupPage() {
@@ -48,6 +66,7 @@ export default function SignupPage() {
   const [step, setStep] = useState<Step>(0);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [status, setStatus] = useState<string>("");
   const [nativeLanguage, setNativeLanguage] = useState("");
@@ -58,11 +77,8 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
 
   const toggleMulti = (value: string, list: string[], setter: (v: string[]) => void) => {
-    if (list.includes(value)) {
-      setter(list.filter((v) => v !== value));
-    } else {
-      setter([...list, value]);
-    }
+    if (list.includes(value)) setter(list.filter((v) => v !== value));
+    else setter([...list, value]);
   };
 
   async function handleFinalSubmit(e: React.FormEvent) {
@@ -94,10 +110,7 @@ export default function SignupPage() {
       const loginRes = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password,
-        }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
       if (!loginRes.ok) {
         setError("Compte créé. Connecte-toi avec ton email et mot de passe.");
@@ -120,42 +133,69 @@ export default function SignupPage() {
   }
 
   const progressSteps = step >= 1 ? Math.min(step, 3) : 0;
-  const progressLabel = progressSteps > 0 ? `${progressSteps}/3` : "";
 
   return (
-    <div className="mx-auto w-full max-w-md">
-      <Link
-        href="/"
-        className="mb-6 flex flex-col items-center no-underline hover:opacity-90 transition-opacity"
-      >
-        <Image src="/logo.png" alt="" width={64} height={64} style={{ objectFit: "contain" }} />
-        <span className="mt-2 text-2xl font-semibold text-primary dark:text-primary-light">
-          LEXIVA
-        </span>
-        <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-          Apprends le vocabulaire autrement
-        </p>
-      </Link>
+    <div style={{ width: "100%", maxWidth: 320, margin: "0 auto" }}>
+      {/* Progress bar (steps 1-3) */}
       {step >= 1 && (
-        <div className="mb-6 flex items-center justify-between">
-          <div className="h-1.5 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
+        <div className="mb-3 flex items-center gap-2">
+          <div className="flex-1" style={{ height: 4, background: "rgba(255,255,255,0.5)", borderRadius: 3 }}>
             <div
-              className="h-full rounded-full bg-primary transition-all duration-300"
-              style={{ width: `${(progressSteps / 3) * 100}%` }}
+              style={{
+                height: "100%",
+                borderRadius: 3,
+                background: "#6C3FC8",
+                width: `${(progressSteps / 3) * 100}%`,
+                transition: "width 300ms",
+              }}
             />
           </div>
-          <span className="ml-3 text-sm font-medium text-slate-500 dark:text-slate-400">
-            {progressLabel}
+          <span style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8" }}>
+            {progressSteps}/3
           </span>
         </div>
       )}
 
-      <div className="rounded-2xl bg-white p-6 shadow-lg dark:bg-slate-800">
+      <div
+        style={{
+          background: "white",
+          borderRadius: 20,
+          width: "100%",
+          padding: "26px 22px",
+          border: "0.5px solid rgba(108,63,200,0.15)",
+        }}
+      >
+        {/* =================== Step 0 — Compte =================== */}
         {step === 0 && (
           <>
-            <h1 className="mb-6 text-center text-xl font-semibold text-slate-800 dark:text-slate-100">
-              Crée ton compte
-            </h1>
+            {/* Logo */}
+            <div className="mb-[18px] text-center">
+              <Link href="/" className="inline-block no-underline">
+                <div
+                  className="mx-auto mb-2 flex items-center justify-center"
+                  style={{
+                    width: 52,
+                    height: 52,
+                    borderRadius: 14,
+                    background: "#F0EDF8",
+                    border: "1.5px solid #DDD6F5",
+                  }}
+                >
+                  <BookOpen size={26} stroke="#6C3FC8" />
+                </div>
+                <p style={{ fontSize: 17, fontWeight: 500, color: "#6C3FC8", marginBottom: 2 }}>
+                  LEXIVA
+                </p>
+                <p style={{ fontSize: 11, color: "#71717a" }}>
+                  Apprends le vocabulaire autrement
+                </p>
+              </Link>
+            </div>
+
+            <p className="mb-4" style={{ fontSize: 15, fontWeight: 500, color: "#1a1a1a" }}>
+              Crée ton compte 🎉
+            </p>
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -166,284 +206,269 @@ export default function SignupPage() {
                 }
                 setStep(1);
               }}
-              className="flex flex-col gap-4"
             >
-              <div>
-                <label
-                  htmlFor="email"
-                  className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
-                >
-                  Email
-                </label>
+              <FieldLabel>Email</FieldLabel>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                autoComplete="email"
+                placeholder="ton@email.com"
+                className="mb-3 w-full transition-colors"
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+              />
+
+              <FieldLabel>Mot de passe</FieldLabel>
+              <div className="relative">
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  autoComplete="email"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="password"
-                  className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
-                >
-                  Mot de passe
-                </label>
-                <input
-                  id="password"
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   minLength={8}
                   autoComplete="new-password"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                  placeholder="••••••••"
+                  className="w-full transition-colors"
+                  style={{ ...inputStyle, paddingRight: 36 }}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
                 />
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                  8 caractères min. · 1 majuscule · 1 chiffre
-                </p>
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute top-1/2 flex -translate-y-1/2 items-center justify-center"
+                  style={{ right: 10, background: "none", border: "none", cursor: "pointer", color: "#a1a1aa" }}
+                  aria-label={showPassword ? "Masquer" : "Afficher"}
+                >
+                  {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                </button>
               </div>
+              <p style={{ fontSize: 10, color: "#a1a1aa", marginTop: 4, marginBottom: 8 }}>
+                8 caractères min. · 1 majuscule · 1 chiffre
+              </p>
+
               {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+                <p className="mb-2" style={{ fontSize: 12, color: "#dc2626" }}>{error}</p>
               )}
+
               <button
                 type="submit"
-                className="btn-relief w-full rounded-lg bg-primary py-2.5 font-medium text-white transition hover:bg-primary-dark"
+                className="flex w-full items-center justify-center gap-[7px] transition active:scale-[0.98]"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  padding: 11,
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#6C3FC8",
+                  color: "white",
+                  cursor: "pointer",
+                  margin: "16px 0 12px",
+                }}
               >
-                Continuer →
+                <LogIn size={12} stroke="white" />
+                Créer mon compte
               </button>
             </form>
-            <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+
+            {/* Séparateur */}
+            <div className="mb-[10px] flex items-center gap-[10px]">
+              <div className="flex-1" style={{ height: 0.5, background: "#e4e4e7" }} />
+              <span style={{ fontSize: 11, color: "#a1a1aa" }}>ou</span>
+              <div className="flex-1" style={{ height: 0.5, background: "#e4e4e7" }} />
+            </div>
+
+            {/* Google */}
+            <button
+              type="button"
+              className="mb-3.5 flex w-full items-center justify-center gap-2 transition hover:brightness-95"
+              style={{
+                fontSize: 12,
+                padding: 9,
+                borderRadius: 10,
+                border: "1.5px solid #e4e4e7",
+                background: "white",
+                color: "#1a1a1a",
+                cursor: "pointer",
+              }}
+            >
+              <GoogleIcon />
+              Continuer avec Google
+            </button>
+
+            {/* Lien login */}
+            <p className="mb-3.5 text-center" style={{ fontSize: 12, color: "#71717a" }}>
               Déjà un compte ?{" "}
-              <Link
-                href="/login"
-                className="font-medium text-primary hover:underline dark:text-primary-light"
-              >
+              <Link href="/login" className="no-underline" style={{ fontWeight: 500, color: "#6C3FC8" }}>
                 Se connecter
               </Link>
             </p>
+
+            {/* Chips */}
+            <div style={{ borderTop: "0.5px solid #e4e4e7", paddingTop: 12 }}>
+              <div className="flex flex-wrap justify-center gap-[5px]">
+                {FEATURE_CHIPS.map((c) => (
+                  <span
+                    key={c.label}
+                    className="inline-flex items-center gap-[3px]"
+                    style={{
+                      fontSize: 10,
+                      fontWeight: 500,
+                      padding: "2px 7px",
+                      borderRadius: 8,
+                      background: "#F0EDF8",
+                      color: "#4B3A9E",
+                    }}
+                  >
+                    {c.emoji} {c.label}
+                  </span>
+                ))}
+              </div>
+            </div>
           </>
         )}
 
+        {/* =================== Step 1 — Profil =================== */}
         {step === 1 && (
           <>
-            <button
-              type="button"
-              onClick={() => setStep(0)}
-              className="mb-4 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-            >
-              ← Retour
-            </button>
-            <h1 className="mb-6 text-center text-xl font-semibold text-slate-800 dark:text-slate-100">
-              Ton profil
-            </h1>
+            <BackButton onClick={() => setStep(0)} />
+            <StepTitle>Ton profil</StepTitle>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                if (!status) {
-                  setError("Choisis ton statut");
-                  return;
-                }
+                if (!status) { setError("Choisis ton statut"); return; }
                 setError("");
                 setStep(2);
               }}
-              className="flex flex-col gap-4"
             >
-              <div>
-                <label
-                  htmlFor="firstName"
-                  className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400"
-                >
-                  Prénom
-                </label>
-                <input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  autoComplete="given-name"
-                  placeholder="Comment on t'appelle ?"
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
-                />
+              <FieldLabel>Prénom</FieldLabel>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                autoComplete="given-name"
+                placeholder="Comment on t'appelle ?"
+                className="mb-4 w-full transition-colors"
+                style={inputStyle}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+              />
+
+              <FieldLabel>Tu es…</FieldLabel>
+              <div className="mb-3 flex flex-wrap gap-[6px]">
+                {STATUS_OPTIONS.map((opt) => (
+                  <ChipButton
+                    key={opt.value}
+                    selected={status === opt.value}
+                    onClick={() => setStatus(opt.value)}
+                  >
+                    {opt.label}
+                  </ChipButton>
+                ))}
               </div>
-              <div>
-                <p className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-400">
-                  Tu es…
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {STATUS_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setStatus(opt.value)}
-                      className={`rounded-xl border-2 px-4 py-2 text-sm font-medium transition ${
-                        status === opt.value
-                          ? "border-primary bg-primary/10 text-primary dark:border-primary-light dark:bg-primary/20 dark:text-primary-light"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              )}
-              <button
-                type="submit"
-                className="btn-relief w-full rounded-lg bg-primary py-2.5 font-medium text-white transition hover:bg-primary-dark"
-              >
-                Continuer →
-              </button>
+
+              {error && <p className="mb-2" style={{ fontSize: 12, color: "#dc2626" }}>{error}</p>}
+
+              <StepSubmitButton>Continuer →</StepSubmitButton>
             </form>
           </>
         )}
 
+        {/* =================== Step 2 — Langues =================== */}
         {step === 2 && (
           <>
-            <button
-              type="button"
-              onClick={() => setStep(1)}
-              className="mb-4 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-            >
-              ← Retour
-            </button>
-            <h1 className="mb-6 text-center text-xl font-semibold text-slate-800 dark:text-slate-100">
-              Langues
-            </h1>
+            <BackButton onClick={() => setStep(1)} />
+            <StepTitle>Langues</StepTitle>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
                 setError("");
                 setStep(3);
               }}
-              className="flex flex-col gap-6"
             >
-              <div>
-                <label
-                  htmlFor="nativeLang"
-                  className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-400"
-                >
-                  Quelle est ta langue maternelle ?
-                </label>
-                <select
-                  id="nativeLang"
-                  value={nativeLanguage}
-                  onChange={(e) => setNativeLanguage(e.target.value)}
-                  className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
-                >
-                  <option value="">— Choisir —</option>
-                  {LANG_OPTIONS.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <p className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-400">
-                  Quelle(s) langue(s) veux-tu apprendre ?
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {LANG_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() =>
-                        toggleMulti(opt.value, learningLanguages, setLearningLanguages)
-                      }
-                      className={`rounded-xl border-2 px-4 py-2 text-sm font-medium transition ${
-                        learningLanguages.includes(opt.value)
-                          ? "border-primary bg-primary/10 text-primary dark:border-primary-light dark:bg-primary/20 dark:text-primary-light"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <button
-                type="submit"
-                className="btn-relief w-full rounded-lg bg-primary py-2.5 font-medium text-white transition hover:bg-primary-dark"
+              <FieldLabel>Langue maternelle</FieldLabel>
+              <select
+                value={nativeLanguage}
+                onChange={(e) => setNativeLanguage(e.target.value)}
+                className="mb-4 w-full transition-colors"
+                style={inputStyle}
               >
-                Continuer →
-              </button>
+                <option value="">— Choisir —</option>
+                {LANG_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+
+              <FieldLabel>Langue(s) à apprendre</FieldLabel>
+              <div className="mb-3 flex flex-wrap gap-[6px]">
+                {LANG_OPTIONS.map((opt) => (
+                  <ChipButton
+                    key={opt.value}
+                    selected={learningLanguages.includes(opt.value)}
+                    onClick={() => toggleMulti(opt.value, learningLanguages, setLearningLanguages)}
+                  >
+                    {opt.label}
+                  </ChipButton>
+                ))}
+              </div>
+
+              <StepSubmitButton>Continuer →</StepSubmitButton>
             </form>
           </>
         )}
 
+        {/* =================== Step 3 — Motivation =================== */}
         {step === 3 && (
           <>
-            <button
-              type="button"
-              onClick={() => setStep(2)}
-              className="mb-4 text-sm font-medium text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-            >
-              ← Retour
-            </button>
-            <h1 className="mb-6 text-center text-xl font-semibold text-slate-800 dark:text-slate-100">
-              Motivation
-            </h1>
-            <form
-              onSubmit={handleFinalSubmit}
-              className="flex flex-col gap-6"
-            >
-              <div>
-                <p className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-400">
-                  Pourquoi tu apprends ?
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {MOTIVATION_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() =>
-                        toggleMulti(opt.value, motivations, setMotivations)
-                      }
-                      className={`rounded-xl border-2 px-4 py-2 text-sm font-medium transition ${
-                        motivations.includes(opt.value)
-                          ? "border-primary bg-primary/10 text-primary dark:border-primary-light dark:bg-primary/20 dark:text-primary-light"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+            <BackButton onClick={() => setStep(2)} />
+            <StepTitle>Motivation</StepTitle>
+            <form onSubmit={handleFinalSubmit}>
+              <FieldLabel>Pourquoi tu apprends ?</FieldLabel>
+              <div className="mb-4 flex flex-wrap gap-[6px]">
+                {MOTIVATION_OPTIONS.map((opt) => (
+                  <ChipButton
+                    key={opt.value}
+                    selected={motivations.includes(opt.value)}
+                    onClick={() => toggleMulti(opt.value, motivations, setMotivations)}
+                  >
+                    {opt.label}
+                  </ChipButton>
+                ))}
               </div>
-              <div>
-                <p className="mb-2 block text-sm font-medium text-slate-600 dark:text-slate-400">
-                  Objectif hebdomadaire
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {WEEKLY_GOAL_OPTIONS.map((opt) => (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setWeeklyGoal(opt.value)}
-                      className={`rounded-xl border-2 px-4 py-2 text-sm font-medium transition ${
-                        weeklyGoal === opt.value
-                          ? "border-primary bg-primary/10 text-primary dark:border-primary-light dark:bg-primary/20 dark:text-primary-light"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:border-slate-500"
-                      }`}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
+
+              <FieldLabel>Objectif hebdomadaire</FieldLabel>
+              <div className="mb-3 flex flex-wrap gap-[6px]">
+                {WEEKLY_GOAL_OPTIONS.map((opt) => (
+                  <ChipButton
+                    key={opt.value}
+                    selected={weeklyGoal === opt.value}
+                    onClick={() => setWeeklyGoal(opt.value)}
+                  >
+                    {opt.label}
+                  </ChipButton>
+                ))}
               </div>
-              {error && (
-                <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-              )}
+
+              {error && <p className="mb-2" style={{ fontSize: 12, color: "#dc2626" }}>{error}</p>}
+
               <button
                 type="submit"
                 disabled={loading}
-                className="btn-relief w-full rounded-lg bg-primary py-2.5 font-medium text-white transition hover:bg-primary-dark disabled:opacity-50"
+                className="flex w-full items-center justify-center gap-[7px] transition active:scale-[0.98] disabled:opacity-50"
+                style={{
+                  fontSize: 13,
+                  fontWeight: 500,
+                  padding: 11,
+                  borderRadius: 10,
+                  border: "none",
+                  background: "#6C3FC8",
+                  color: "white",
+                  cursor: "pointer",
+                  marginTop: 12,
+                }}
               >
                 {loading ? "Création du compte…" : "Commencer Lexiva 🚀"}
               </button>
@@ -452,17 +477,129 @@ export default function SignupPage() {
         )}
       </div>
 
+      {/* Lien login pour steps 1-2 */}
       {step > 0 && step < 3 && (
-        <p className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+        <p className="mt-4 text-center" style={{ fontSize: 12, color: "#71717a" }}>
           Déjà un compte ?{" "}
-          <Link
-            href="/login"
-            className="font-medium text-primary hover:underline dark:text-primary-light"
-          >
+          <Link href="/login" className="no-underline" style={{ fontWeight: 500, color: "#6C3FC8" }}>
             Se connecter
           </Link>
         </p>
       )}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+const inputStyle: React.CSSProperties = {
+  fontSize: 13,
+  padding: "10px 12px",
+  borderRadius: 10,
+  border: "1.5px solid #e4e4e7",
+  background: "#FAFAFA",
+  color: "#1a1a1a",
+  outline: "none",
+  width: "100%",
+};
+
+function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
+  e.currentTarget.style.borderColor = "#6C3FC8";
+  e.currentTarget.style.background = "white";
+}
+
+function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
+  e.currentTarget.style.borderColor = "#e4e4e7";
+  e.currentTarget.style.background = "#FAFAFA";
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      style={{
+        fontSize: 11,
+        fontWeight: 500,
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+        color: "#71717a",
+        marginBottom: 5,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="mb-3 flex items-center gap-1 transition hover:opacity-70"
+      style={{ fontSize: 12, color: "#71717a", background: "none", border: "none", cursor: "pointer" }}
+    >
+      <ChevronLeft size={14} stroke="#71717a" />
+      Retour
+    </button>
+  );
+}
+
+function StepTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-4" style={{ fontSize: 15, fontWeight: 500, color: "#1a1a1a" }}>
+      {children}
+    </p>
+  );
+}
+
+function StepSubmitButton({ children }: { children: React.ReactNode }) {
+  return (
+    <button
+      type="submit"
+      className="flex w-full items-center justify-center gap-[7px] transition active:scale-[0.98]"
+      style={{
+        fontSize: 13,
+        fontWeight: 500,
+        padding: 11,
+        borderRadius: 10,
+        border: "none",
+        background: "#6C3FC8",
+        color: "white",
+        cursor: "pointer",
+        marginTop: 12,
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function ChipButton({
+  children,
+  selected,
+  onClick,
+}: {
+  children: React.ReactNode;
+  selected: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        fontSize: 12,
+        fontWeight: 500,
+        padding: "6px 14px",
+        borderRadius: 10,
+        border: `1.5px solid ${selected ? "#6C3FC8" : "#e4e4e7"}`,
+        background: selected ? "#F0EDF8" : "white",
+        color: selected ? "#6C3FC8" : "#52525b",
+        cursor: "pointer",
+        transition: "border-color 120ms, background 120ms, color 120ms",
+      }}
+    >
+      {children}
+    </button>
   );
 }

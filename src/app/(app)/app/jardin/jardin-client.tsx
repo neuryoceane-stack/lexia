@@ -2,20 +2,20 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import {
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 import { BackLink } from "@/components/back-link";
-import { SyntheseAvatar } from "@/components/synthese-avatar";
 import { FlagDisplay } from "@/components/flag-display";
+import {
+  Star,
+  Clock,
+  Zap,
+  Check,
+  Pencil,
+  Lock,
+  Sprout,
+  TreePine,
+  Flame,
+} from "lucide-react";
 
-type AvatarType = "arbre" | "phenix" | "koala";
 type ChartPeriod = "7j" | "30j" | "3m";
 
 type SyntheseData = {
@@ -49,73 +49,39 @@ const LANG_LABELS: Record<string, string> = {
   ell: "Grec",
 };
 
-const BADGES = [
-  { id: "first_streak", emoji: "🔥", label: "Première série", check: (_d: SyntheseData, s: number) => s >= 1 },
-  { id: "10_words", emoji: "📚", label: "10 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 10 },
-  { id: "100_words", emoji: "📚", label: "100 mots appris", check: (d: SyntheseData) => d.wordsRetained >= 100 },
-  { id: "first_dictation", emoji: "⚡", label: "Première dictée", check: (d: SyntheseData) => d.wordsWritten >= 1 },
-  { id: "2_languages", emoji: "🌍", label: "2 langues actives", check: (d: SyntheseData) => (d.languagesAvailable?.length ?? 0) >= 2 },
-  { id: "streak_7", emoji: "🏆", label: "Streak 7 jours", check: (_d: SyntheseData, s: number) => s >= 7 },
-  { id: "streak_30", emoji: "💪", label: "Streak 30 jours", check: (_d: SyntheseData, s: number) => s >= 30 },
-  {
-    id: "50_sessions",
-    emoji: "🎯",
-    label: "50 sessions",
-    check: (d: SyntheseData) =>
-      Object.values(d.sessionsByDay).reduce((a, x) => a + x.count, 0) >= 50,
-  },
-] as const;
+const LEVEL_NAMES: Record<number, string> = {
+  1: "Graine",
+  2: "Pousse",
+  3: "Explorateur",
+  4: "Apprenti",
+  5: "Maître",
+};
 
-const VIOLET = "#6C3FC8";
-const VIOLET_BG = "#F3EEFF";
+const BADGES_DEF = [
+  { id: "10_words", label: "10 mots appris", type: "violet" as const, check: (d: SyntheseData, _s: number) => d.wordsRetained >= 10 },
+  { id: "first_dictation", label: "Première dictée", type: "gold" as const, check: (d: SyntheseData, _s: number) => d.wordsWritten >= 1 },
+  { id: "100_words", label: "100 mots appris", type: "violet" as const, check: (d: SyntheseData, _s: number) => d.wordsRetained >= 100 },
+  { id: "streak_7", label: "Streak 7 jours", type: "gold" as const, check: (_d: SyntheseData, s: number) => s >= 7 },
+  { id: "2_languages", label: "2 langues actives", type: "violet" as const, check: (d: SyntheseData, _s: number) => (d.languagesAvailable?.length ?? 0) >= 2 },
+  { id: "50_sessions", label: "50 sessions", type: "violet" as const, check: (d: SyntheseData, _s: number) => Object.values(d.sessionsByDay).reduce((a, x) => a + x.count, 0) >= 50 },
+  { id: "streak_30", label: "Streak 30 jours", type: "gold" as const, check: (_d: SyntheseData, s: number) => s >= 30 },
+  { id: "first_streak", label: "Première série", type: "gold" as const, check: (_d: SyntheseData, s: number) => s >= 1 },
+] as const;
 
 function langLabel(code: string): string {
   return LANG_LABELS[code] ?? code;
 }
 
-function formatDuration(seconds: number): string {
-  if (seconds < 60) return `${seconds} s`;
-  const totalMin = Math.floor(seconds / 60);
-  if (totalMin < 60) return `${totalMin} min`;
-  const h = Math.floor(totalMin / 60);
-  const m = totalMin % 60;
-  if (m === 0) return `${h} h`;
-  return `${h} h ${m} min`;
-}
-
-function getWordsThisWeek(sessionsByDay: SyntheseData["sessionsByDay"]): number {
-  const now = new Date();
-  let total = 0;
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(now);
-    d.setDate(d.getDate() - i);
-    const key = d.toISOString().slice(0, 10);
-    const s = sessionsByDay[key];
-    total += s?.wordsRetained ?? 0;
-  }
-  return total;
-}
-
-function getMotivationalMessage(
-  streak: number,
-  wordsThisWeek: number
-): string {
-  if (streak > 0) {
-    return `${streak} jour${streak !== 1 ? "s" : ""} de série 🔥 Continue !`;
-  }
-  if (wordsThisWeek > 0) {
-    return `Tu as mémorisé ${wordsThisWeek} mot${wordsThisWeek !== 1 ? "s" : ""} cette semaine !`;
-  }
-  return "Lance ta première session 🚀";
+function formatMinutes(seconds: number): number {
+  return Math.max(1, Math.round(seconds / 60));
 }
 
 function getChartData(
   period: ChartPeriod,
-  sessionsByDay: SyntheseData["sessionsByDay"]
+  sessionsByDay: SyntheseData["sessionsByDay"],
 ): { date: string; label: string; mots: number }[] {
   const now = new Date();
-  const days =
-    period === "7j" ? 7 : period === "30j" ? 30 : 90;
+  const days = period === "7j" ? 7 : period === "30j" ? 30 : 90;
   const out: { date: string; label: string; mots: number }[] = [];
   for (let i = days - 1; i >= 0; i--) {
     const d = new Date(now);
@@ -126,39 +92,43 @@ function getChartData(
     const label =
       period === "7j"
         ? ["Dim", "Lun", "Mar", "Mer", "Jeu", "Ven", "Sam"][d.getDay()]
-        : period === "30j"
-          ? `${d.getDate()}/${d.getMonth() + 1}`
-          : `${d.getDate()}/${d.getMonth() + 1}`;
+        : `${d.getDate()}/${d.getMonth() + 1}`;
     out.push({ date: dateKey, label, mots });
   }
   return out;
 }
 
-function getPalierProgress(words: number): { current: number; palier: number; pct: number } {
+function getPalierProgress(words: number): { current: number; palier: number; pct: number; remaining: number } {
   const paliers = [100, 500, 1000];
   let palier = 100;
   let prev = 0;
   for (const p of paliers) {
-    if (words < p) {
-      palier = p;
-      break;
-    }
+    if (words < p) { palier = p; break; }
     prev = p;
     palier = p;
   }
-  if (words >= 1000) {
-    return { current: words, palier: 1000, pct: 100 };
-  }
+  if (words >= 1000) return { current: words, palier: 1000, pct: 100, remaining: 0 };
   const range = palier - prev;
   const pct = range > 0 ? Math.min(100, ((words - prev) / range) * 100) : 100;
-  return { current: words, palier, pct };
+  return { current: words, palier, pct, remaining: palier - words };
+}
+
+function getLevelName(level: number): string {
+  if (level >= 6) return "Légende";
+  return LEVEL_NAMES[level] ?? "Graine";
+}
+
+function computeXP(data: SyntheseData): { xp: number; level: number } {
+  const totalSessions = Object.values(data.sessionsByDay).reduce((a, x) => a + x.count, 0);
+  const xp = data.wordsRetained * 5 + totalSessions * 20 + data.wordsWritten * 3;
+  const level = Math.max(1, Math.min(6, Math.floor(xp / 1000) + 1));
+  return { xp, level };
 }
 
 export function JardinClient() {
   const [data, setData] = useState<SyntheseData | null>(null);
   const [streak, setStreak] = useState<number>(0);
   const [userName, setUserName] = useState<string>("");
-  const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [loading, setLoading] = useState(true);
   const [chartPeriod, setChartPeriod] = useState<ChartPeriod>("7j");
 
@@ -174,9 +144,7 @@ export function JardinClient() {
     }
   }, []);
 
-  useEffect(() => {
-    fetchSynthese();
-  }, [fetchSynthese]);
+  useEffect(() => { fetchSynthese(); }, [fetchSynthese]);
 
   useEffect(() => {
     fetch("/api/streak")
@@ -195,314 +163,395 @@ export function JardinClient() {
       .catch(() => setUserName("Apprenant"));
   }, []);
 
-  useEffect(() => {
-    fetch("/api/user/preferences")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.avatarType && ["arbre", "phenix", "koala"].includes(d.avatarType)) {
-          setAvatarType(d.avatarType);
-        }
-      })
-      .catch(() => {});
-  }, []);
-
   const totalSessions = data
     ? Object.values(data.sessionsByDay).reduce((acc, d) => acc + d.count, 0)
     : 0;
-  const avatarStateNum = data
-    ? (Math.min(5, Math.max(1, data.avatarState)) as 1 | 2 | 3 | 4 | 5)
-    : 1;
   const chartData = data ? getChartData(chartPeriod, data.sessionsByDay) : [];
   const wordsByLang = Object.fromEntries(
-    Object.entries(data?.wordsByLanguage ?? {}).filter(
-      ([k]) => k && k !== "unknown"
-    )
+    Object.entries(data?.wordsByLanguage ?? {}).filter(([k]) => k && k !== "unknown"),
   );
+  const { xp, level } = data ? computeXP(data) : { xp: 0, level: 1 };
+  const xpInLevel = xp % 1000;
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const maxMots = Math.max(1, ...chartData.map((d) => d.mots));
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
+    <div className="mx-auto max-w-3xl space-y-6" style={{ background: "#F8F7FF" }}>
       <BackLink href="/app" />
 
-      <header className="text-center">
-        <h1
-          className="text-3xl font-bold tracking-tight sm:text-4xl"
-          style={{ color: VIOLET }}
-        >
-          Synthèse
-        </h1>
-        <p className="mt-2 text-slate-500 dark:text-slate-400">
-          Ta progression en un coup d&apos;œil
-        </p>
-      </header>
-
       {loading && !data ? (
-        <div className="space-y-8">
-          <div className="flex justify-center">
-            <div className="h-24 w-24 animate-pulse rounded-full bg-slate-200 dark:bg-slate-700" />
-          </div>
-          <div className="h-24 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700" />
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-32 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-700"
-              />
-            ))}
+        <div className="space-y-4">
+          <div className="h-28 animate-pulse rounded-[14px] bg-slate-200" />
+          <div className="grid grid-cols-2 gap-[10px]">
+            {[1, 2, 3, 4].map((i) => <div key={i} className="h-24 animate-pulse rounded-[12px] bg-slate-200" />)}
           </div>
         </div>
       ) : data ? (
         <>
-          {/* Avatar centré + nom + niveau */}
-          <section className="flex flex-col items-center gap-4">
-            <div className="scale-125">
-              <SyntheseAvatar
-                state={avatarStateNum}
-                type={avatarType}
-                showLabel
-              />
-            </div>
-            <div className="text-center">
-              <p className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                {userName}
-              </p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Niveau {avatarStateNum}
-              </p>
-            </div>
-            <Link
-              href="/app/parametres"
-              className="text-sm text-slate-500 underline decoration-slate-300 hover:text-[#6C3FC8] hover:decoration-[#6C3FC8] dark:text-slate-400"
+          {/* ========== HERO CARD ========== */}
+          <div
+            className="flex gap-4"
+            style={{ background: "#F0EDF8", borderRadius: 14, padding: "20px 16px" }}
+          >
+            {/* Avatar */}
+            <div
+              className="flex shrink-0 items-center justify-center"
+              style={{
+                width: 64,
+                height: 64,
+                borderRadius: "50%",
+                border: "3px solid #DDD6F5",
+                background: level <= 2 ? "#EAF4EF" : level <= 4 ? "#F0EDF8" : "#FEF3DC",
+              }}
             >
-              Changer l&apos;avatar
-            </Link>
-          </section>
-
-          {/* Carte message motivant */}
-          <section
-            className="rounded-xl border border-slate-200 dark:border-slate-600"
-            style={{
-              backgroundColor: VIOLET_BG,
-              borderLeftWidth: 4,
-              borderLeftColor: VIOLET,
-              padding: 20,
-              borderRadius: 12,
-            }}
-          >
-            <div className="flex gap-3">
-              <span className="text-xl" aria-hidden>✨</span>
-              <p className="text-slate-700 dark:text-slate-300">
-                {getMotivationalMessage(streak, getWordsThisWeek(data.sessionsByDay))}
-              </p>
+              {level <= 2 ? (
+                <Sprout size={28} stroke="#1D9E75" />
+              ) : level <= 4 ? (
+                <TreePine size={28} stroke="#6C3FC8" />
+              ) : (
+                <Flame size={28} stroke="#F5A623" />
+              )}
             </div>
-          </section>
 
-          {/* 4 cartes métriques */}
-          <div className="grid grid-cols-2 gap-4">
-            <MetricCard
-              icon="⏱️"
-              label="Temps total"
-              value={formatDuration(data.totalDurationSeconds)}
-            />
-            <MetricCard
-              icon="🎯"
-              label="Sessions"
-              value={String(totalSessions)}
-            />
-            <MetricCard
-              icon="📚"
-              label="Mots mémorisés"
-              value={String(data.wordsRetained)}
-            />
-            <MetricCard
-              icon="✍️"
-              label="Mots écrits"
-              value={String(data.wordsWritten)}
-            />
-          </div>
+            {/* Infos */}
+            <div className="min-w-0 flex-1">
+              <p style={{ fontSize: 16, fontWeight: 500, color: "#1a1a1a" }}>{userName}</p>
+              <span
+                className="mt-1 inline-flex items-center gap-[5px]"
+                style={{
+                  background: "#DDD6F5",
+                  color: "#4B3A9E",
+                  fontSize: 11,
+                  fontWeight: 500,
+                  padding: "3px 10px",
+                  borderRadius: 10,
+                }}
+              >
+                <Star size={10} stroke="#4B3A9E" />
+                Niveau {level} — {getLevelName(level)}
+              </span>
 
-          {/* Graphique activité */}
-          <section
-            className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-600 dark:bg-slate-800"
-            style={{ borderRadius: 16, padding: 24 }}
-          >
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                Progression
-              </h2>
-              <div className="flex gap-2">
-                {(["7j", "30j", "3m"] as const).map((p) => (
-                  <button
-                    key={p}
-                    type="button"
-                    onClick={() => setChartPeriod(p)}
-                    className={`rounded-lg px-3 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 ${
-                      chartPeriod === p
-                        ? "bg-[#6C3FC8] text-white"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300"
-                    }`}
-                  >
-                    {p === "7j" ? "7 jours" : p === "30j" ? "30 jours" : "3 mois"}
-                  </button>
-                ))}
+              {/* Barre XP */}
+              <div style={{ marginTop: 8 }}>
+                <div style={{ height: 5, background: "#DDD6F5", borderRadius: 3 }}>
+                  <div
+                    className="transition-all duration-300"
+                    style={{ height: "100%", width: `${(xpInLevel / 1000) * 100}%`, background: "#6C3FC8", borderRadius: 3 }}
+                  />
+                </div>
+                <p style={{ fontSize: 11, color: "#71717a", marginTop: 3 }}>
+                  {xpInLevel} / 1000 XP vers le niveau suivant
+                </p>
+              </div>
+
+              {/* Badges inline */}
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <span style={{ background: "#EAF4EF", color: "#1A6645", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>
+                  {data.wordsRetained} mots maîtrisés
+                </span>
+                {streak > 0 && (
+                  <span style={{ background: "#FEF3DC", color: "#A06800", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>
+                    Série active 🔥
+                  </span>
+                )}
               </div>
             </div>
-            <div className="h-64">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-                  <XAxis
-                    dataKey="label"
-                    tick={{ fontSize: 12 }}
-                    stroke="#64748b"
-                  />
-                  <YAxis
-                    tick={{ fontSize: 12 }}
-                    stroke="#64748b"
-                    allowDecimals={false}
-                  />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "white",
-                      border: "1px solid #e2e8f0",
-                      borderRadius: 8,
-                    }}
-                    formatter={(value) => [`${value ?? 0} mots`, "Mots révisés"]}
-                    labelFormatter={(_label, payload) =>
-                      payload?.[0]?.payload?.date ?? ""
-                    }
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="mots"
-                    stroke={VIOLET}
-                    strokeWidth={2}
-                    dot={{ fill: VIOLET, r: 3 }}
-                    activeDot={{ r: 5 }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </section>
+          </div>
 
-          {/* Progression par langue */}
+          {/* ========== STATS ========== */}
+          <div>
+            <SectionLabel>Statistiques</SectionLabel>
+            <div className="grid grid-cols-2 gap-[10px]">
+              <StatCard
+                icon={<Clock size={14} stroke="#6C3FC8" />}
+                iconBg="#F0EDF8"
+                label="Temps total"
+                value={String(formatMinutes(data.totalDurationSeconds))}
+                unit="min"
+                valueColor="#6C3FC8"
+                subLabel="minutes de révision"
+              />
+              <StatCard
+                icon={<Zap size={14} stroke="#F5A623" />}
+                iconBg="#FEF3DC"
+                label="Sessions"
+                value={String(totalSessions)}
+                valueColor="#F5A623"
+                subLabel="sessions complétées"
+              />
+              <StatCard
+                icon={<Check size={14} stroke="#1D9E75" />}
+                iconBg="#EAF4EF"
+                label="Mots mémorisés"
+                value={String(data.wordsRetained)}
+                valueColor="#1D9E75"
+                subLabel="par flashcards"
+              />
+              <StatCard
+                icon={<Pencil size={14} stroke="#0F6E56" />}
+                iconBg="#E1F5EE"
+                label="Mots écrits"
+                value={String(data.wordsWritten)}
+                valueColor="#0F6E56"
+                subLabel="par dictée"
+              />
+            </div>
+          </div>
+
+          {/* ========== GRAPHE PROGRESSION ========== */}
+          <div>
+            <SectionLabel>Activité</SectionLabel>
+            <div style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 14 }}>
+              <div className="mb-3 flex items-center justify-between">
+                <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+                  Mots appris par jour
+                </p>
+                <div className="flex gap-1">
+                  {(["7j", "30j", "3m"] as const).map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => setChartPeriod(p)}
+                      style={{
+                        background: chartPeriod === p ? "#6C3FC8" : "white",
+                        color: chartPeriod === p ? "white" : "#71717a",
+                        border: chartPeriod === p ? "none" : "0.5px solid #d4d4d8",
+                        borderRadius: 20,
+                        padding: "3px 10px",
+                        fontSize: 11,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                      }}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {chartData.every((d) => d.mots === 0) ? (
+                <p className="py-10 text-center" style={{ fontSize: 13, color: "#a1a1aa" }}>
+                  Continue tes révisions pour voir ta progression ici 💪
+                </p>
+              ) : (
+                <div className="flex items-end gap-[3px]" style={{ height: 120 }}>
+                  {chartData.map((d) => {
+                    const h = d.mots > 0 ? Math.max(8, (d.mots / maxMots) * 100) : 0;
+                    const isToday = d.date === todayKey;
+                    return (
+                      <div key={d.date} className="flex flex-1 flex-col items-center">
+                        <div
+                          className="w-full transition-all duration-200"
+                          style={{
+                            height: `${h}%`,
+                            background: isToday ? "#6C3FC8" : "#DDD6F5",
+                            borderRadius: "4px 4px 0 0",
+                            minWidth: 4,
+                          }}
+                          title={`${d.label}: ${d.mots} mots`}
+                        />
+                        {chartPeriod === "7j" && (
+                          <span className="mt-1" style={{ fontSize: 10, color: "#a1a1aa" }}>
+                            {d.label}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ========== PROGRESSION PAR LANGUE ========== */}
           {Object.keys(wordsByLang).length > 0 && (
-            <section className="space-y-4">
-              <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-                🌍 Progression par langue
-              </h2>
-              <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <SectionLabel>Par langue</SectionLabel>
+              <div className="space-y-[10px]">
                 {Object.entries(wordsByLang).map(([code, stats]) => {
-                  const { current, palier, pct } = getPalierProgress(
-                    stats.wordsRetained ?? 0
-                  );
+                  const { current, palier, pct, remaining } = getPalierProgress(stats.wordsRetained ?? 0);
                   return (
                     <div
                       key={code}
-                      className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-600 dark:bg-slate-800"
+                      style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 14 }}
                     >
-                      <div className="flex items-center gap-2">
-                        <FlagDisplay langCode={code} size={24} />
-                        <span className="font-medium text-slate-800 dark:text-slate-100">
-                          {langLabel(code)}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <FlagDisplay langCode={code} size={20} />
+                          <span style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a" }}>
+                            {langLabel(code)}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: 13, fontWeight: 500, color: "#6C3FC8" }}>
+                          {Math.round(pct)}%
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        {current} mots appris · prochain palier : {palier}
+                      <p style={{ fontSize: 11, color: "#71717a", marginTop: 3 }}>
+                        {current} mots appris
                       </p>
-                      <div className="mt-2 h-2 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                      <div style={{ height: 6, background: "#F0EDF8", borderRadius: 3, marginTop: 6 }}>
                         <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${pct}%`,
-                            backgroundColor: VIOLET,
-                          }}
+                          className="transition-all duration-300"
+                          style={{ height: "100%", width: `${pct}%`, background: "#6C3FC8", borderRadius: 3 }}
                         />
                       </div>
+                      <p style={{ fontSize: 11, color: "#a1a1aa", marginTop: 5 }}>
+                        Prochain palier : {palier} mots — encore {remaining} à apprendre
+                      </p>
                     </div>
                   );
                 })}
               </div>
-            </section>
+            </div>
           )}
 
-          {/* Badges */}
-          <section className="space-y-4">
-            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100">
-              🏆 Badges
-            </h2>
-            <div className="grid grid-cols-4 gap-4 lg:grid-cols-6">
-              {BADGES.map((badge) => {
+          {/* ========== BADGES ========== */}
+          <div>
+            <SectionLabel>Badges</SectionLabel>
+            <div className="grid grid-cols-4 gap-2">
+              {BADGES_DEF.map((badge) => {
                 const earned = badge.check(data, streak);
+                if (earned) {
+                  const isGold = badge.type === "gold";
+                  return (
+                    <div
+                      key={badge.id}
+                      className="flex flex-col items-center gap-1.5 text-center"
+                      style={{
+                        background: isGold ? "#FEF3DC" : "#F0EDF8",
+                        border: `0.5px solid ${isGold ? "#F5D08A" : "#DDD6F5"}`,
+                        borderRadius: 12,
+                        padding: "12px 6px",
+                      }}
+                    >
+                      <div
+                        className="flex items-center justify-center"
+                        style={{
+                          width: 36,
+                          height: 36,
+                          borderRadius: "50%",
+                          background: isGold ? "#FAE5B0" : "#DDD6F5",
+                        }}
+                      >
+                        {isGold ? (
+                          <Flame size={16} stroke="#A06800" />
+                        ) : (
+                          <Star size={16} stroke="#4B3A9E" />
+                        )}
+                      </div>
+                      <span style={{ fontSize: 10, fontWeight: 500, color: isGold ? "#A06800" : "#4B3A9E" }}>
+                        {badge.label}
+                      </span>
+                    </div>
+                  );
+                }
                 return (
                   <div
                     key={badge.id}
-                    className={`relative flex flex-col items-center justify-center gap-2 rounded-xl border p-4 text-center ${
-                      earned
-                        ? "border-[#6C3FC8]/30 bg-[#F3EEFF] dark:bg-[#6C3FC8]/10"
-                        : "border-slate-200 bg-slate-100 opacity-40 dark:border-slate-600 dark:bg-slate-800/50"
-                    }`}
+                    className="flex flex-col items-center gap-1.5 text-center"
+                    style={{
+                      background: "white",
+                      border: "0.5px solid #e4e4e7",
+                      borderRadius: 12,
+                      padding: "12px 6px",
+                    }}
                   >
-                    {earned ? (
-                      <>
-                        <span className="text-2xl">{badge.emoji}</span>
-                        <span className="text-xs font-medium text-slate-800 sm:text-sm dark:text-slate-100">
-                          {badge.label}
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="text-2xl" aria-hidden>🔒</span>
-                        <span className="text-xs font-medium text-slate-500 sm:text-sm dark:text-slate-400">
-                          {badge.label}
-                        </span>
-                      </>
-                    )}
+                    <div
+                      className="flex items-center justify-center"
+                      style={{ width: 36, height: 36, borderRadius: "50%", background: "#f4f4f5" }}
+                    >
+                      <Lock size={16} stroke="#a1a1aa" />
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 500, color: "#a1a1aa" }}>
+                      {badge.label}
+                    </span>
                   </div>
                 );
               })}
             </div>
-          </section>
+          </div>
         </>
       ) : (
-        <section className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-12 text-center dark:border-slate-600 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">
-            Aucune activité pour le moment.
-          </p>
-          <p className="mt-2 text-sm text-slate-500 dark:text-slate-500">
+        <div
+          className="text-center"
+          style={{ background: "white", border: "0.5px dashed #d4d4d8", borderRadius: 12, padding: "40px 20px" }}
+        >
+          <p style={{ fontSize: 14, color: "#71717a" }}>Aucune activité pour le moment.</p>
+          <p className="mt-1" style={{ fontSize: 12, color: "#a1a1aa" }}>
             Lance une session d&apos;évaluation pour voir ta progression ici.
           </p>
           <Link
             href="/app/revision"
-            className="mt-6 inline-flex items-center justify-center rounded-full bg-[#6C3FC8] px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-[#5a35b0] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+            className="mt-4 inline-flex items-center justify-center no-underline transition hover:brightness-95"
+            style={{
+              background: "#6C3FC8",
+              color: "white",
+              borderRadius: 20,
+              padding: "9px 20px",
+              fontSize: 13,
+              fontWeight: 500,
+            }}
           >
             Commencer une session
           </Link>
-        </section>
+        </div>
       )}
     </div>
   );
 }
 
-function MetricCard({
+/* ------------------------------------------------------------------ */
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p
+      style={{
+        fontSize: 11,
+        fontWeight: 500,
+        textTransform: "uppercase",
+        letterSpacing: "0.05em",
+        color: "#71717a",
+        marginBottom: 10,
+      }}
+    >
+      {children}
+    </p>
+  );
+}
+
+function StatCard({
   icon,
+  iconBg,
   label,
   value,
+  unit,
+  valueColor,
+  subLabel,
 }: {
-  icon: string;
+  icon: React.ReactNode;
+  iconBg: string;
   label: string;
   value: string;
+  unit?: string;
+  valueColor: string;
+  subLabel: string;
 }) {
   return (
-    <div
-      className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-600 dark:bg-slate-800"
-      style={{ borderRadius: 16 }}
-    >
-      <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-        {icon} {label}
-      </p>
-      <p className="mt-2 font-bold" style={{ color: VIOLET, fontSize: "2rem" }}>
+    <div style={{ background: "white", border: "0.5px solid #e4e4e7", borderRadius: 12, padding: 14 }}>
+      <div className="flex items-center gap-2">
+        <div
+          className="flex items-center justify-center"
+          style={{ width: 28, height: 28, borderRadius: 7, background: iconBg }}
+        >
+          {icon}
+        </div>
+        <span style={{ fontSize: 11, color: "#71717a" }}>{label}</span>
+      </div>
+      <p className="mt-2" style={{ fontSize: 28, fontWeight: 500, color: valueColor }}>
         {value}
+        {unit && <span style={{ fontSize: 13, fontWeight: 400, marginLeft: 3 }}>{unit}</span>}
       </p>
+      <p style={{ fontSize: 11, color: "#a1a1aa" }}>{subLabel}</p>
     </div>
   );
 }

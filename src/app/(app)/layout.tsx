@@ -34,9 +34,9 @@ export default async function AppLayout({
   const userRole = role === "professeur" ? "professeur" : "etudiant";
 
   return (
-    <div className="min-h-screen bg-slate-50/80 dark:bg-slate-900">
+    <div className="min-h-screen dark:bg-slate-900" style={{ backgroundColor: "#F8F7FF" }}>
       <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
-      <main className="mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
+      <main className="page-fade-in mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
       <FeedbackWidget />
       {showOnboarding && <OnboardingWrapper role={userRole} />}
     </div>

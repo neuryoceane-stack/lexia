@@ -1,6 +1,15 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import {
+  PawPrint,
+  FileText,
+  Camera,
+  Image,
+  Upload,
+  Link2,
+  Music,
+} from "lucide-react";
 
 type MotsSauvagesSourceProps = {
   extractLoading: boolean;
@@ -22,15 +31,7 @@ type MotsSauvagesSourceProps = {
 export function MotsSauvagesSource({
   extractLoading,
   extractError,
-  urlInput,
-  setUrlInput,
-  songInput,
-  setSongInput,
-  urlLoading,
-  songLoading,
   onFileSelect,
-  onUrlAnalyze,
-  onSongSearch,
   fileInputRef,
   cameraInputRef,
   imageInputRef,
@@ -44,194 +45,352 @@ export function MotsSauvagesSource({
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 bg-white">
+    <div className="mx-auto max-w-3xl" style={{ background: "#F8F7FF" }}>
       <button
         type="button"
         onClick={() => router.back()}
-        className="mb-6 text-sm font-medium text-slate-500 transition hover:text-slate-700"
+        className="mb-5 text-sm font-medium text-slate-500 transition hover:text-slate-700"
       >
         ← Retour
       </button>
 
       {/* Header */}
-      <header>
-        <h1 className="bg-gradient-to-r from-[#6C3FC8] via-[#8B5CF6] to-[#F5A623] bg-clip-text text-3xl font-bold text-transparent md:text-4xl">
-          Mots Sauvages 🌿
-        </h1>
-        <p className="mt-2 text-sm text-slate-600 md:text-base">
-          Découvre des mots depuis tes vraies lectures, musiques et vidéos
+      <header className="mb-6">
+        <div className="flex items-center gap-[10px]">
+          <div
+            className="flex items-center justify-center"
+            style={{
+              width: 32,
+              height: 32,
+              background: "#F0EDF8",
+              borderRadius: 8,
+            }}
+          >
+            <PawPrint size={18} stroke="#6C3FC8" />
+          </div>
+          <h1 style={{ fontSize: 20, fontWeight: 500, color: "#1a1a1a" }}>
+            Mots sauvages
+          </h1>
+        </div>
+        <p className="mt-2" style={{ fontSize: 13, color: "#71717a" }}>
+          Capture des mots depuis ton environnement réel — musique, articles,
+          photos, PDF.
         </p>
       </header>
 
-      {/* Cartes sources */}
-      <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-        {/* Carte 1 — PDF */}
-        <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-          style={{
-            backgroundColor: "#F3EEFF",
-            border: "1px solid #6C3FC8",
-          }}
-        >
-          <span className="text-[48px] leading-none" aria-hidden>
-            📄
-          </span>
-          <h2 className="mt-4 text-lg font-bold text-slate-900">PDF</h2>
-          <p className="mt-2 flex-1 text-sm text-slate-600">
-            Importe un fichier PDF
-          </p>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,application/pdf"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) onFileSelect(file);
-              e.target.value = "";
-            }}
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={extractLoading}
-            className="mt-4 w-fit rounded-full bg-[#6C3FC8] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#5b34b0] disabled:opacity-50"
-          >
-            Choisir un PDF
-          </button>
-        </div>
+      {/* Section label */}
+      <p
+        className="mb-3"
+        style={{
+          fontSize: 11,
+          fontWeight: 500,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          color: "#71717a",
+        }}
+      >
+        Choisir un mode
+      </p>
 
-        {/* Carte 2 — Prendre une photo */}
-        <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-          style={{
-            backgroundColor: "#FFF8EC",
-            border: "1px solid #F5A623",
-          }}
-        >
-          <span className="text-[48px] leading-none" aria-hidden>
-            📷
-          </span>
-          <h2 className="mt-4 text-lg font-bold text-slate-900">
-            Prendre une photo
-          </h2>
-          <p className="mt-2 flex-1 text-sm text-slate-600">
-            Ouvre l&apos;appareil photo
-          </p>
-          <input
-            ref={cameraInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            className="hidden"
-            onChange={onFileChange}
-          />
-          <button
-            type="button"
-            onClick={() => cameraInputRef.current?.click()}
-            disabled={extractLoading}
-            className="mt-4 w-fit rounded-full bg-[#F5A623] px-4 py-2.5 text-sm font-medium text-slate-900 shadow-sm transition hover:bg-[#F97316] disabled:opacity-50"
-          >
-            Prendre une photo
-          </button>
-        </div>
+      {/* 3 cartes actives */}
+      <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-3">
+        {/* PDF */}
+        <ActiveCard
+          bg="#F0EDF8"
+          border="#DDD6F5"
+          hoverBorder="#6C3FC8"
+          iconBg="#DDD6F5"
+          icon={<FileText size={18} stroke="#6C3FC8" />}
+          title="PDF"
+          description="Importe un livre, un cours ou un article en PDF."
+          btnBg="#6C3FC8"
+          btnLabel="Choisir"
+          btnIcon={<Upload size={13} stroke="white" />}
+          onClick={() => fileInputRef.current?.click()}
+          disabled={extractLoading}
+        />
 
-        {/* Carte 3 — Importer une image */}
-        <div
-          className="flex flex-col rounded-2xl p-7 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-          style={{
-            backgroundColor: "#EDFDF6",
-            border: "1px solid #10B981",
-          }}
-        >
-          <span className="text-[48px] leading-none" aria-hidden>
-            🖼️
-          </span>
-          <h2 className="mt-4 text-lg font-bold text-slate-900">
-            Importer une image
-          </h2>
-          <p className="mt-2 flex-1 text-sm text-slate-600">
-            Depuis ta galerie
-          </p>
-          <input
-            ref={imageInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={onFileChange}
-          />
-          <button
-            type="button"
-            onClick={() => imageInputRef.current?.click()}
-            disabled={extractLoading}
-            className="mt-4 w-fit rounded-full bg-[#10B981] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#059669] disabled:opacity-50"
-          >
-            Choisir une image
-          </button>
-        </div>
+        {/* Photo */}
+        <ActiveCard
+          bg="#FEF8EC"
+          border="#F5D08A"
+          hoverBorder="#F5A623"
+          iconBg="#FAE5B0"
+          icon={<Camera size={18} stroke="#C47D0A" />}
+          title="Photo"
+          description="Prends en photo une affiche, un menu, un livre."
+          btnBg="#F5A623"
+          btnLabel="Ouvrir"
+          btnIcon={<Camera size={13} stroke="white" />}
+          onClick={() => cameraInputRef.current?.click()}
+          disabled={extractLoading}
+        />
 
-        {/* Carte 4 — Lien URL (bientôt disponible) */}
-        <div
-          className="flex flex-col rounded-2xl p-7 opacity-60 cursor-default"
-          style={{
-            backgroundColor: "#EFF6FF",
-            border: "1px solid #3B82F6",
-          }}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-[48px] leading-none" aria-hidden>
-              🔗
-            </span>
-            <span className="rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-medium text-white">
-              Bientôt
-            </span>
-          </div>
-          <h2 className="mt-4 text-lg font-bold text-slate-900">Lien URL</h2>
-          <p className="mt-2 flex-1 text-sm text-slate-600">
-            Colle un lien d&apos;article
-          </p>
-          <p className="mt-4 text-sm italic text-slate-400">Prochainement</p>
-        </div>
-
-        {/* Carte 5 — Chanson (bientôt disponible) */}
-        <div
-          className="flex flex-col rounded-2xl p-7 opacity-60 cursor-default sm:col-span-2 lg:col-span-1"
-          style={{
-            backgroundColor: "#FDF2F8",
-            border: "1px solid #EC4899",
-          }}
-        >
-          <div className="flex items-start justify-between gap-2">
-            <span className="text-[48px] leading-none" aria-hidden>
-              🎵
-            </span>
-            <span className="rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-medium text-white">
-              Bientôt
-            </span>
-          </div>
-          <h2 className="mt-4 text-lg font-bold text-slate-900">
-            Rechercher une chanson
-          </h2>
-          <p className="mt-2 flex-1 text-sm text-slate-600">
-            Apprends depuis tes musiques préférées
-          </p>
-          <p className="mt-4 text-sm italic text-slate-400">Prochainement</p>
-        </div>
+        {/* Galerie */}
+        <ActiveCard
+          bg="#EAF4EF"
+          border="#C3E6D6"
+          hoverBorder="#1D9E75"
+          iconBg="#C3E6D6"
+          icon={<Image size={18} stroke="#1D9E75" />}
+          title="Galerie"
+          description="Importe une image depuis ta bibliothèque photo."
+          btnBg="#1D9E75"
+          btnLabel="Importer"
+          btnIcon={<Upload size={13} stroke="white" />}
+          onClick={() => imageInputRef.current?.click()}
+          disabled={extractLoading}
+        />
       </div>
 
+      {/* Hidden inputs */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,application/pdf"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onFileSelect(file);
+          e.target.value = "";
+        }}
+      />
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={onFileChange}
+      />
+      <input
+        ref={imageInputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={onFileChange}
+      />
+
+      {/* Section "Bientôt disponible" */}
+      <p
+        className="mb-3 mt-8"
+        style={{
+          fontSize: 11,
+          fontWeight: 500,
+          textTransform: "uppercase",
+          letterSpacing: "0.05em",
+          color: "#71717a",
+        }}
+      >
+        Bientôt disponible
+      </p>
+
+      <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-2">
+        <ComingSoonCard
+          icon={<Link2 size={18} stroke="#a1a1aa" />}
+          title="Lien URL"
+          description="Colle le lien d'un article de presse ou d'une page web."
+        />
+        <ComingSoonCard
+          icon={<Music size={18} stroke="#a1a1aa" />}
+          title="Chanson"
+          description="Apprends depuis les paroles de tes musiques préférées."
+        />
+      </div>
+
+      {/* Tip */}
+      <div
+        className="mt-8 flex items-start gap-3"
+        style={{
+          background: "#FEF8EC",
+          border: "0.5px solid #F5D08A",
+          borderRadius: 10,
+          padding: "11px 14px",
+        }}
+      >
+        <PawPrint size={15} stroke="#F5A623" className="mt-0.5 shrink-0" />
+        <p style={{ fontSize: 12, color: "#92640A", lineHeight: 1.5 }}>
+          Touche n&apos;importe quel mot que tu ne connais pas — la traduction
+          apparaît instantanément et tu peux l&apos;ajouter à ta liste en un
+          tap.
+        </p>
+      </div>
+
+      {/* Loading / Error */}
       {extractLoading && (
-        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
-          <p className="font-medium text-slate-800">
+        <div
+          className="mt-6"
+          style={{
+            background: "#FEF8EC",
+            border: "0.5px solid #F5D08A",
+            borderRadius: 10,
+            padding: "12px 14px",
+          }}
+        >
+          <p style={{ fontSize: 13, fontWeight: 500, color: "#92640A" }}>
             Reconnaissance du texte en cours…
           </p>
-          <p className="mt-1 text-sm text-slate-600">
-            Compte 30 secondes à 1–2 minutes (surtout la première fois : chargement du moteur OCR).
+          <p className="mt-1" style={{ fontSize: 11, color: "#C47D0A" }}>
+            Compte 30 secondes à 1–2 minutes (surtout la première fois :
+            chargement du moteur OCR).
           </p>
         </div>
       )}
       {extractError && (
-        <p className="mt-4 text-sm text-red-600">{extractError}</p>
+        <p className="mt-4" style={{ fontSize: 13, color: "#ef4444" }}>
+          {extractError}
+        </p>
       )}
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+
+function ActiveCard({
+  bg,
+  border,
+  hoverBorder,
+  iconBg,
+  icon,
+  title,
+  description,
+  btnBg,
+  btnLabel,
+  btnIcon,
+  onClick,
+  disabled,
+}: {
+  bg: string;
+  border: string;
+  hoverBorder: string;
+  iconBg: string;
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  btnBg: string;
+  btnLabel: string;
+  btnIcon: React.ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <div
+      className="card-hover group relative flex flex-col overflow-hidden transition-all duration-150 hover:-translate-y-[2px]"
+      style={{
+        background: bg,
+        border: `0.5px solid ${border}`,
+        borderRadius: 16,
+        padding: "16px 14px",
+      }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.borderColor = hoverBorder)
+      }
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.borderColor = border)
+      }
+    >
+      <div
+        className="flex items-center justify-center"
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          background: iconBg,
+          marginBottom: 10,
+        }}
+      >
+        {icon}
+      </div>
+      <p style={{ fontSize: 13, fontWeight: 500, color: "#1a1a1a", marginBottom: 4 }}>
+        {title}
+      </p>
+      <p style={{ fontSize: 11, color: "#71717a", flex: 1, marginBottom: 12 }}>
+        {description}
+      </p>
+      <button
+        type="button"
+        onClick={onClick}
+        disabled={disabled}
+        className="self-start transition hover:brightness-95 disabled:opacity-50"
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 5,
+          background: btnBg,
+          color: "white",
+          borderRadius: 20,
+          border: "none",
+          padding: "7px 14px",
+          fontSize: 12,
+          fontWeight: 500,
+          cursor: "pointer",
+        }}
+      >
+        {btnIcon}
+        {btnLabel}
+      </button>
+    </div>
+  );
+}
+
+function ComingSoonCard({
+  icon,
+  title,
+  description,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+}) {
+  return (
+    <div
+      className="relative flex flex-col"
+      style={{
+        background: "white",
+        border: "0.5px dashed #d4d4d8",
+        borderRadius: 16,
+        padding: "16px 14px",
+        opacity: 0.75,
+        cursor: "default",
+      }}
+    >
+      <span
+        className="absolute"
+        style={{
+          top: 12,
+          right: 12,
+          background: "#F0EDF8",
+          color: "#6C3FC8",
+          fontSize: 10,
+          fontWeight: 500,
+          padding: "2px 8px",
+          borderRadius: 8,
+        }}
+      >
+        Bientôt
+      </span>
+      <div
+        className="flex items-center justify-center"
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: "50%",
+          background: "#f4f4f5",
+          marginBottom: 10,
+        }}
+      >
+        {icon}
+      </div>
+      <p style={{ fontSize: 13, fontWeight: 500, color: "#71717a", marginBottom: 4 }}>
+        {title}
+      </p>
+      <p style={{ fontSize: 11, color: "#a1a1aa", flex: 1, marginBottom: 12 }}>
+        {description}
+      </p>
+      <p style={{ fontSize: 12, color: "#a1a1aa", fontStyle: "italic" }}>
+        Prochainement
+      </p>
     </div>
   );
 }

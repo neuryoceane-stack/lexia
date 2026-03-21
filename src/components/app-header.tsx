@@ -5,6 +5,20 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
+import { useTheme } from "@/components/theme-provider";
+import { Star, User, Settings, LogOut, ChevronRight } from "lucide-react";
+
+const LEVEL_NAMES: Record<number, string> = {
+  1: "Graine",
+  2: "Pousse",
+  3: "Explorateur",
+  4: "Apprenti",
+  5: "Maître",
+};
+function getLevelName(level: number): string {
+  if (level >= 6) return "Légende";
+  return LEVEL_NAMES[level] ?? "Graine";
+}
 
 async function handleLogout() {
   await fetch("/api/auth/logout", { method: "POST" });
@@ -53,6 +67,8 @@ function AvatarDropdown({
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const [userLevel, setUserLevel] = useState(1);
+  const [userXP, setUserXP] = useState(0);
 
   useEffect(() => {
     if (!open) return;
@@ -72,14 +88,22 @@ function AvatarDropdown({
     };
   }, [open]);
 
-  const initials = name
-    ? name
-        .split(/\s+/)
-        .map((s) => s[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2)
-    : "?";
+  useEffect(() => {
+    fetch("/api/synthese?period=all")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (!d) return;
+        const entries = Object.values(d.sessionsByDay ?? {}) as Array<{ count?: number }>;
+        const sessions = entries.reduce((a, x) => a + (x.count ?? 0), 0);
+        const xp = (d.wordsRetained ?? 0) * 5 + sessions * 20 + (d.wordsWritten ?? 0) * 3;
+        setUserXP(xp);
+        setUserLevel(Math.max(1, Math.min(6, Math.floor(xp / 1000) + 1)));
+      })
+      .catch(() => {});
+  }, []);
+
+  const initial = name ? name.trim()[0]?.toUpperCase() ?? "?" : "?";
+  const xpInLevel = userXP % 1000;
 
   return (
     <div ref={containerRef} className="relative">
@@ -103,90 +127,116 @@ function AvatarDropdown({
             top: "calc(100% + 8px)",
             right: 0,
             zIndex: 9999,
-            width: "280px",
+            width: 230,
             backgroundColor: "white",
-            borderRadius: "16px",
-            boxShadow: "0 25px 50px rgba(0,0,0,0.25)",
-            border: "1px solid #e2e8f0",
+            borderRadius: 16,
+            boxShadow: "0 4px 24px rgba(108,63,200,0.10)",
+            border: "0.5px solid rgba(108,63,200,0.15)",
             overflow: "hidden",
           }}
         >
-          {/* Carte de profil */}
+          {/* Header violet */}
           <div
-            className="rounded-t-2xl bg-[#6C3FC8]/5 p-4 dark:bg-[#6C3FC8]/10"
-            style={{ backgroundColor: "rgba(108, 63, 200, 0.05)" }}
+            className="flex items-center gap-3"
+            style={{ background: "#6C3FC8", padding: "14px 16px" }}
           >
-            <div className="flex items-center gap-3">
+            <div
+              className="flex shrink-0 items-center justify-center"
+              style={{
+                width: 40,
+                height: 40,
+                borderRadius: "50%",
+                background: "rgba(255,255,255,0.2)",
+                border: "2px solid rgba(255,255,255,0.3)",
+                color: "white",
+                fontSize: 16,
+                fontWeight: 500,
+              }}
+            >
+              {initial}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p style={{ fontSize: 14, fontWeight: 500, color: "white", marginBottom: 2 }} className="truncate">
+                {name}
+              </p>
               <span
-                className="flex h-[52px] w-[52px] flex-shrink-0 items-center justify-center rounded-full bg-[#6C3FC8] text-base font-semibold text-white"
-                aria-hidden
+                className="inline-flex items-center gap-1"
+                style={{
+                  background: "rgba(255,255,255,0.15)",
+                  color: "white",
+                  fontSize: 10,
+                  fontWeight: 500,
+                  padding: "2px 8px",
+                  borderRadius: 8,
+                }}
               >
-                {initials}
+                <Star size={9} stroke="white" />
+                Niveau {userLevel} — {getLevelName(userLevel)}
               </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-base font-bold text-vocab-gray dark:text-slate-100">
-                  {name}
-                </p>
-                <p className="text-xs text-slate-400">
-                  {isProfesseur ? "Professeur" : "Élève"}
+              <div style={{ marginTop: 8 }}>
+                <div style={{ height: 3, background: "rgba(255,255,255,0.2)", borderRadius: 2 }}>
+                  <div style={{ height: "100%", width: `${(xpInLevel / 1000) * 100}%`, background: "white", borderRadius: 2 }} />
+                </div>
+                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 3 }}>
+                  {xpInLevel} / 1000 XP
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Séparateur */}
-          <div className="h-px bg-slate-200 dark:bg-slate-700" />
-
-          {/* Paramètres et Profil */}
-          <div className="space-y-0.5 px-2 py-2">
-            <a
+          {/* Items */}
+          <div style={{ padding: "6px 0" }}>
+            <Link
               href="/app/parametres/information-personnelle"
               onClick={() => setOpen(false)}
-              style={{
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-                touchAction: "manipulation",
-              }}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+              className="flex items-center gap-[10px] no-underline transition"
+              style={{ padding: "10px 16px", cursor: "pointer" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDF8")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              <span className="text-base" aria-hidden>👤</span>
-              <span>Informations personnelles</span>
-            </a>
-            <a
+              <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#F0EDF8" }}>
+                <User size={13} stroke="#6C3FC8" />
+              </div>
+              <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Mon profil</span>
+              <ChevronRight size={12} stroke="#a1a1aa" />
+            </Link>
+
+            <Link
               href="/app/parametres"
               onClick={() => setOpen(false)}
-              style={{
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-                touchAction: "manipulation",
-              }}
-              className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-vocab-gray transition hover:bg-primary/10 hover:text-primary dark:text-slate-200 dark:hover:bg-primary/10 dark:hover:text-primary-light"
+              className="flex items-center gap-[10px] no-underline transition"
+              style={{ padding: "10px 16px", cursor: "pointer" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDF8")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              <span className="text-base" aria-hidden>⚙️</span>
-              <span>Paramètres</span>
-            </a>
+              <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#f4f4f5" }}>
+                <Settings size={13} stroke="#71717a" />
+              </div>
+              <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Paramètres</span>
+              <ChevronRight size={12} stroke="#a1a1aa" />
+            </Link>
           </div>
 
           {/* Séparateur */}
-          <div className="h-px bg-slate-200 dark:bg-slate-700" />
+          <div style={{ borderTop: "0.5px solid #e4e4e7", margin: "4px 0" }} />
 
           {/* Déconnexion */}
-          <div className="p-2">
+          <div style={{ padding: "6px 0" }}>
             <button
               type="button"
               onClick={() => {
                 setOpen(false);
                 void handleLogout();
               }}
-              style={{
-                cursor: "pointer",
-                WebkitTapHighlightColor: "transparent",
-                touchAction: "manipulation",
-              }}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm font-medium text-red-600 transition hover:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/10"
+              className="flex w-full items-center gap-[10px] transition"
+              style={{ padding: "10px 16px", background: "none", border: "none", cursor: "pointer" }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#FCEBEB")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
             >
-              <span className="text-base" aria-hidden>🔴</span>
-              <span>Déconnexion</span>
+              <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#FCEBEB" }}>
+                <LogOut size={13} stroke="#E24B4A" />
+              </div>
+              <span style={{ fontSize: 13, color: "#E24B4A" }}>Déconnexion</span>
             </button>
           </div>
         </div>
@@ -275,8 +325,9 @@ export function AppHeader({
           ))}
         </nav>
 
-        {/* Right: notifications + avatar + burger */}
+        {/* Right: theme toggle + notifications + avatar + burger */}
         <div className="flex flex-shrink-0 flex-row items-center gap-3">
+          <ThemeToggle />
           <div className="hidden md:block">
             <NotificationsBell />
           </div>
@@ -403,5 +454,58 @@ export function AppHeader({
         )}
       </div>
     </header>
+  );
+}
+
+function ThemeToggle() {
+  const { theme, setTheme, isDark } = useTheme();
+
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        const next = isDark ? "light" : "dark";
+        setTheme(next);
+        fetch("/api/user/preferences", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ themePreference: next }),
+        }).catch(() => {});
+      }}
+      className="hidden items-center gap-1.5 md:inline-flex"
+      style={{
+        padding: "4px 10px",
+        borderRadius: 16,
+        border: "0.5px solid #d4d4d8",
+        background: isDark ? "#1e1b2e" : "#f4f4f5",
+        cursor: "pointer",
+      }}
+      aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
+    >
+      <div
+        className="relative"
+        style={{
+          width: 28,
+          height: 16,
+          borderRadius: 8,
+          background: isDark ? "#6C3FC8" : "#F5A623",
+        }}
+      >
+        <div
+          className="absolute transition-all duration-200"
+          style={{
+            width: 12,
+            height: 12,
+            borderRadius: "50%",
+            background: "white",
+            top: 2,
+            left: isDark ? 2 : 14,
+          }}
+        />
+      </div>
+      <span style={{ fontSize: 11, fontWeight: 500, color: isDark ? "#a1a1aa" : "#71717a" }}>
+        {isDark ? "Sombre" : "Clair"}
+      </span>
+    </button>
   );
 }
