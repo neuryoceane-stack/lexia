@@ -105,8 +105,10 @@ export function toIso6391(code: string): string {
  * Utilisé pour les images drapeaux dans public/flags (ex. fra → fr, eng → gb).
  */
 export function getFlagCountryCode(langOrCountry: string): string {
-  if (langOrCountry.length === 2) return langOrCountry.toUpperCase();
-  return (LANG_TO_COUNTRY[langOrCountry] ?? langOrCountry.slice(0, 2).toUpperCase()).toUpperCase();
+  const raw = (langOrCountry ?? "").trim();
+  if (raw.length === 2) return raw.toUpperCase();
+  const norm = raw.toLowerCase();
+  return (LANG_TO_COUNTRY[norm] ?? norm.slice(0, 2).toUpperCase()).toUpperCase();
 }
 
 /**
@@ -127,11 +129,13 @@ export function getFlagImagePath(langOrCountry: string): string {
  * Les regional indicators vont de U+1F1E6 (A) à U+1F1FF (Z).
  */
 export function getFlagEmoji(langOrCountry: string): string {
-  const norm = langOrCountry?.toLowerCase().trim();
+  const norm = (langOrCountry ?? "").toLowerCase().trim();
+  if (!norm) return "";
   if (norm === "eng" || norm === "en") return FLAG_GB_EMOJI;
-  const code = langOrCountry.length === 3
-    ? (LANG_TO_COUNTRY[langOrCountry] ?? langOrCountry.slice(0, 2).toUpperCase())
-    : langOrCountry.slice(0, 2).toUpperCase();
+  const code =
+    norm.length === 3
+      ? (LANG_TO_COUNTRY[norm] ?? norm.slice(0, 2).toUpperCase())
+      : norm.slice(0, 2).toUpperCase();
   if (code.length < 2) return "";
   return [...code]
     .map((c) => String.fromCodePoint(0x1f1e6 - 65 + c.charCodeAt(0)))
@@ -158,6 +162,19 @@ export function detectLanguage(text: string): string {
     lang = "eng";
   }
   return lang;
+}
+
+/**
+ * Pour les écrans où seules les langues « préférées » sont proposées (ex. Mots sauvages) :
+ * détecte la langue du texte et retourne le code ISO 639-3 si elle est dans la liste, sinon `fallback`.
+ */
+export function resolvePreferredSourceLangFromText(
+  text: string,
+  fallback: string = "eng"
+): string {
+  const detected = detectLanguage(text);
+  if (detected && KNOWN_LANGUAGE_CODES.has(detected)) return detected;
+  return fallback;
 }
 
 export type DetectedLanguages = {

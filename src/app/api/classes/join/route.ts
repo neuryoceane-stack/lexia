@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { classes, classMembers } from "@/lib/db/schema";
+import { classes, classMembers, notifications, users } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -22,7 +22,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Corps invalide" }, { status: 400 });
   }
 
-  const identifier = body.identifier?.trim().toUpperCase();
+  const raw = body.identifier?.trim().toUpperCase() ?? "";
+  const identifier = raw.startsWith("LX-") ? raw.slice(3) : raw;
   if (!identifier) {
     return NextResponse.json(
       { error: "Identifiant de classe requis" },
@@ -69,6 +70,26 @@ export async function POST(request: Request) {
     userId: user.id,
     status: "pending",
     joinedAt: new Date(),
+  });
+
+  const [studentRow] = await db
+    .select({ name: users.name })
+    .from(users)
+    .where(eq(users.id, user.id))
+    .limit(1);
+  const studentName =
+    studentRow?.name?.trim() ||
+    user.email?.split("@")[0] ||
+    "Un élève";
+
+  await db.insert(notifications).values({
+    id: nanoid(),
+    userId: cls.teacherId,
+    type: "class_join_request",
+    message: `${studentName} demande à rejoindre ta classe "${cls.title}".`,
+    read: false,
+    link: `/app/professeur/classes/${cls.id}?tab=eleves`,
+    createdAt: new Date(),
   });
 
   return NextResponse.json({

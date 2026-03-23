@@ -2,7 +2,11 @@
 
 import { useState, useRef, useCallback } from "react";
 import { MotsSauvagesSource } from "./mots-sauvages-source";
-import { PREFERRED_LANGUAGE_OPTIONS, toIso6391 } from "@/lib/language";
+import {
+  PREFERRED_LANGUAGE_OPTIONS,
+  resolvePreferredSourceLangFromText,
+  toIso6391,
+} from "@/lib/language";
 
 type Step = "source" | "langs" | "select" | "reading";
 
@@ -66,7 +70,9 @@ export default function MotsSauvagesPage() {
           setExtractLoading(false);
           return;
         }
-        setRawText(typeof data.text === "string" ? data.text : "");
+        const nextText = typeof data.text === "string" ? data.text : "";
+        setRawText(nextText);
+        setSourceLang(resolvePreferredSourceLangFromText(nextText, "eng"));
         setStep("langs");
       } catch {
         setExtractError("Erreur réseau");
@@ -74,7 +80,7 @@ export default function MotsSauvagesPage() {
         setExtractLoading(false);
       }
     },
-    [sourceLang]
+    []
   );
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -242,7 +248,9 @@ export default function MotsSauvagesPage() {
         setExtractError(data.error ?? "Erreur analyse URL");
         return;
       }
-      setRawText(typeof data.text === "string" ? data.text : "");
+      const nextText = typeof data.text === "string" ? data.text : "";
+      setRawText(nextText);
+      setSourceLang(resolvePreferredSourceLangFromText(nextText, "eng"));
       setStep("langs");
     } catch {
       setExtractError("Erreur réseau");
@@ -267,7 +275,9 @@ export default function MotsSauvagesPage() {
         setExtractError(data.error ?? "Erreur recherche chanson");
         return;
       }
-      setRawText(typeof data.text === "string" ? data.text : "");
+      const nextText = typeof data.text === "string" ? data.text : "";
+      setRawText(nextText);
+      setSourceLang(resolvePreferredSourceLangFromText(nextText, "eng"));
       setStep("langs");
     } catch {
       setExtractError("Erreur réseau");
@@ -394,6 +404,7 @@ export default function MotsSauvagesPage() {
                 const selection = typeof window !== "undefined" ? window.getSelection()?.toString().trim() ?? "" : "";
                 if (selection) {
                   setRawText(selection);
+                  setSourceLang(resolvePreferredSourceLangFromText(selection, "eng"));
                   setStep("reading");
                 } else {
                   alert("Surligne d'abord une partie du texte");

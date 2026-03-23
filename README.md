@@ -30,6 +30,8 @@ Les couleurs neutres utilisent des variables CSS (`--background`, `--background-
 
 **Détail classe (prof)** : `src/app/(app)/app/professeur/classes/[id]/page.tsx` — stats et onglets Lexiva ; agrégations révisions / listes dans `src/lib/class-detail-analytics.ts`. **DELETE** `/api/classes/[id]/lists/[listId]` retire l’assignation d’une liste (bouton « Retirer »). Copie du **code d’accès** : identifiant brut (compatible `POST /api/classes/join`), affichage avec préfixe `LX-`.
 
+**Langues et drapeaux :** source unique `src/lib/language.ts` (`getFlagEmoji`, `getFlagImagePath`, `getFlagCountryCode`, `PREFERRED_LANGUAGE_OPTIONS`, `KNOWN_LANGUAGE_CODES`). Composant `FlagDisplay` (PNG + emoji) ; en-tête classe prof : emoji via `getFlagEmoji` + libellé via `PREFERRED_LANGUAGE_OPTIONS`. **Mots sauvages** : après import (PDF, image, URL, paroles) ou après « Utiliser ma sélection », la langue source est pré-remplie via `franc` + `resolvePreferredSourceLangFromText` (uniquement si la langue détectée figure dans les options préférées).
+
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
 ## Learn More

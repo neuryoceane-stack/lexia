@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { classes, classMembers } from "@/lib/db/schema";
+import { classes, classMembers, notifications } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 /**
  * PATCH /api/classes/[id]/members/[userId]
@@ -46,6 +47,18 @@ export async function PATCH(
     return NextResponse.json({ error: "status requis: accepted ou rejected" }, { status: 400 });
   }
 
+  const [member] = await db
+    .select({ status: classMembers.status })
+    .from(classMembers)
+    .where(
+      and(eq(classMembers.classId, classId), eq(classMembers.userId, userId))
+    )
+    .limit(1);
+
+  if (!member) {
+    return NextResponse.json({ error: "Membre introuvable" }, { status: 404 });
+  }
+
   await db
     .update(classMembers)
     .set({ status })
@@ -55,6 +68,19 @@ export async function PATCH(
         eq(classMembers.userId, userId)
       )
     );
+
+  if (status === "accepted" && member.status !== "accepted") {
+    const className = cls.title;
+    await db.insert(notifications).values({
+      id: nanoid(),
+      userId,
+      type: "class_accepted",
+      message: `Tu as été accepté dans la classe "${className}" ! Retrouve tes listes dans ta bibliothèque.`,
+      read: false,
+      link: "/app/familles",
+      createdAt: new Date(),
+    });
+  }
 
   return NextResponse.json({ ok: true, status });
 }

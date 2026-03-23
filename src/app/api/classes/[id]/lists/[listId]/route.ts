@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { classes, classLists } from "@/lib/db/schema";
+import {
+  classes,
+  classLists,
+  classMembers,
+  lists,
+  notifications,
+} from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { nanoid } from "nanoid";
 
 /**
  * DELETE /api/classes/[id]/lists/[listId]
@@ -92,6 +99,23 @@ export async function PATCH(
 
   const isVisible = body.isVisible === true;
 
+  const [linkRow] = await db
+    .select({ isVisible: classLists.isVisible })
+    .from(classLists)
+    .where(
+      and(eq(classLists.classId, classId), eq(classLists.listId, listId))
+    )
+    .limit(1);
+
+  if (!linkRow) {
+    return NextResponse.json(
+      { error: "Liste non assignée à cette classe" },
+      { status: 404 }
+    );
+  }
+
+  const wasVisible = linkRow.isVisible === true;
+
   await db
     .update(classLists)
     .set({ isVisible })
@@ -101,6 +125,39 @@ export async function PATCH(
         eq(classLists.listId, listId)
       )
     );
+
+  if (isVisible && !wasVisible) {
+    const [listRow] = await db
+      .select({ name: lists.name })
+      .from(lists)
+      .where(eq(lists.id, listId))
+      .limit(1);
+    const listName = listRow?.name?.trim() || "Liste";
+
+    const acceptedMembers = await db
+      .select({ userId: classMembers.userId })
+      .from(classMembers)
+      .where(
+        and(
+          eq(classMembers.classId, classId),
+          eq(classMembers.status, "accepted")
+        )
+      );
+
+    const message = `Nouvelle liste disponible dans ta classe : "${listName}". Va réviser dès maintenant !`;
+
+    for (const membre of acceptedMembers) {
+      await db.insert(notifications).values({
+        id: nanoid(),
+        userId: membre.userId,
+        type: "new_list_available",
+        message,
+        read: false,
+        link: "/app/familles",
+        createdAt: new Date(),
+      });
+    }
+  }
 
   return NextResponse.json({ ok: true, isVisible });
 }

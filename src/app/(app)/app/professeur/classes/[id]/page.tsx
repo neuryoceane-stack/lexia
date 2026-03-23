@@ -14,7 +14,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, inArray, sql, asc } from "drizzle-orm";
 import { getClassDetailAnalytics } from "@/lib/class-detail-analytics";
-import { getLanguageDisplay } from "@/lib/language-display";
+import { getFlagEmoji, PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { OngletsClasse, type TabId } from "./onglets-classe";
 import { ClasseHeader } from "./classe-header";
 import { ClassAccessCodeBanner } from "./class-access-code-banner";
@@ -188,6 +188,17 @@ export default async function ClasseDetailPage({
   const nbListes = classListsData.length;
   const mc = statMasteryColor(analytics.globalMasteryPct);
 
+  const langNorm = cls.language?.trim().toLowerCase() ?? "";
+  const languageDisplay =
+    langNorm.length > 0
+      ? {
+          flag: getFlagEmoji(langNorm) || "🌐",
+          label:
+            PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === langNorm)?.label ??
+            langNorm.toUpperCase(),
+        }
+      : null;
+
   return (
     <div
       className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
@@ -211,7 +222,7 @@ export default async function ClasseDetailPage({
         <ClasseHeader
           classId={id}
           initialTitle={cls.title}
-          languageDisplay={getLanguageDisplay(cls.language)}
+          languageDisplay={languageDisplay}
           schoolLevel={cls.schoolLevel ?? null}
         />
 

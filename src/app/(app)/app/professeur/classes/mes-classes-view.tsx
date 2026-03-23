@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Activity, ChevronLeft, FileText, Plus, Users } from "lucide-react";
 import { ClasseCardMenu } from "./classe-card-menu";
 import { CreerClasseModal } from "./creer-classe-modal";
@@ -27,6 +27,27 @@ export function MesClassesView({
   const router = useRouter();
   const [modalOpen, setModalOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [levelFilter, setLevelFilter] = useState<"tous" | string>("tous");
+
+  const levelOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const r of rows) {
+      const s = r.schoolLevel?.trim();
+      if (s) set.add(s);
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "fr"));
+  }, [rows]);
+
+  const filteredRows =
+    levelFilter === "tous"
+      ? rows
+      : rows.filter((r) => (r.schoolLevel?.trim() ?? "") === levelFilter);
+
+  useEffect(() => {
+    if (levelFilter !== "tous" && !levelOptions.includes(levelFilter)) {
+      setLevelFilter("tous");
+    }
+  }, [levelFilter, levelOptions]);
 
   useEffect(() => {
     if (initialOpenCreerModal) {
@@ -116,6 +137,76 @@ export function MesClassesView({
             </button>
           </header>
 
+          {hasClasses ? (
+            <div
+              className="mb-5 sm:mb-6"
+              style={{
+                maxWidth: "100%",
+              }}
+            >
+              <div
+                className="flex gap-2 overflow-x-auto pb-1"
+                style={{
+                  WebkitOverflowScrolling: "touch",
+                  flexWrap: "nowrap",
+                }}
+                role="tablist"
+                aria-label="Filtrer par niveau scolaire"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={levelFilter === "tous"}
+                  onClick={() => setLevelFilter("tous")}
+                  className="shrink-0 border-solid transition-colors"
+                  style={{
+                    borderRadius: 20,
+                    padding: "6px 14px",
+                    fontSize: 12,
+                    fontWeight: 500,
+                    cursor: "pointer",
+                    border:
+                      levelFilter === "tous" ? "1px solid #6C3FC8" : "1px solid var(--border)",
+                    background: levelFilter === "tous" ? "#6C3FC8" : "white",
+                    color: levelFilter === "tous" ? "white" : "var(--foreground)",
+                  }}
+                >
+                  Tous
+                </button>
+                {levelOptions.map((level) => {
+                  const selected = levelFilter === level;
+                  return (
+                    <button
+                      key={level}
+                      type="button"
+                      role="tab"
+                      aria-selected={selected}
+                      onClick={() => setLevelFilter(level)}
+                      className="shrink-0 border-solid transition-colors"
+                      style={{
+                        borderRadius: 20,
+                        padding: "6px 14px",
+                        fontSize: 12,
+                        fontWeight: 500,
+                        cursor: "pointer",
+                        border: selected ? "1px solid #6C3FC8" : "1px solid var(--border)",
+                        background: selected ? "#6C3FC8" : "white",
+                        color: selected ? "white" : "var(--foreground)",
+                        maxWidth: "min(100%, 220px)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                      title={level}
+                    >
+                      {shortBadgeLabel(level, 24)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : null}
+
           {!hasClasses ? (
             <div
               style={{
@@ -178,11 +269,23 @@ export function MesClassesView({
               </button>
             </div>
           ) : (
-            <ul
-              className="grid grid-cols-1 sm:grid-cols-2"
-              style={{ gap: 12, listStyle: "none", padding: 0, margin: 0 }}
-            >
-              {rows.map((cls, index) => {
+            <>
+              {filteredRows.length === 0 ? (
+                <p
+                  style={{
+                    fontSize: 13,
+                    color: "var(--foreground-muted)",
+                    margin: "0 0 16px",
+                  }}
+                >
+                  Aucune classe pour ce niveau.
+                </p>
+              ) : null}
+              <ul
+                className="grid grid-cols-1 sm:grid-cols-2"
+                style={{ gap: 12, listStyle: "none", padding: 0, margin: 0 }}
+              >
+                {filteredRows.map((cls, index) => {
                 const badge = badgePalette(index);
                 const mc = masteryColors(cls.masteryPct);
                 const levelLabel = cls.schoolLevel?.trim() ?? "";
@@ -422,6 +525,7 @@ export function MesClassesView({
                 </button>
               </li>
             </ul>
+            </>
           )}
         </div>
       </div>
