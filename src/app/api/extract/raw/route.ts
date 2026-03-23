@@ -2,24 +2,16 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import OpenAI from "openai";
 
-/** Texte PDF jugé trop court : probable scan image → OCR Vision. */
+/** Texte PDF jugé trop court : probable scan image → envoi PDF à Claude (document). */
 const MIN_PDF_TEXT_CHARS = 20;
 
-type ClaudeImageMime = "image/png" | "image/jpeg" | "image/gif" | "image/webp";
-
-function parseDataUrlBase64(dataUrl: string): { mediaType: ClaudeImageMime; base64: string } | null {
-  const m = dataUrl.match(/^data:(image\/(?:png|jpeg|jpg|gif|webp));base64,(.+)$/i);
-  if (!m) return null;
-  const rawMime = m[1].toLowerCase();
-  const mediaType: ClaudeImageMime =
-    rawMime === "image/jpg" ? "image/jpeg" : (rawMime as ClaudeImageMime);
-  return { mediaType, base64: m[2] };
-}
-
-async function claudeExtractDocumentText(
+/**
+ * Extraction du texte via Claude à partir du PDF brut (base64), sans canvas natif.
+ * @see https://docs.anthropic.com/en/docs/build-with-claude/pdf-support
+ */
+async function claudeExtractTextFromPdfBase64(
   anthropicKey: string,
-  base64: string,
-  mediaType: ClaudeImageMime
+  base64Pdf: string
 ): Promise<string> {
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
   const anthropic = new Anthropic({ apiKey: anthropicKey });
@@ -27,17 +19,17 @@ async function claudeExtractDocumentText(
     model: "claude-sonnet-4-20250514",
     max_tokens: 4096,
     system:
-      "Tu es un assistant OCR. Réponds uniquement avec le texte extrait du document, fidèle à l’original, en conservant les retours à ligne quand c’est pertinent. Aucun commentaire ni préambule.",
+      "Tu es un assistant OCR. Réponds uniquement avec le texte extrait du document, fidèle à l’original, en conservant les retours à la ligne quand c’est pertinent. Aucun commentaire ni préambule.",
     messages: [
       {
         role: "user",
         content: [
           {
-            type: "image",
+            type: "document",
             source: {
               type: "base64",
-              media_type: mediaType,
-              data: base64,
+              media_type: "application/pdf",
+              data: base64Pdf,
             },
           },
           {
@@ -56,7 +48,7 @@ async function claudeExtractDocumentText(
  * POST /api/extract/raw
  * Body: FormData { file: File, type: "pdf" | "image" }
  * Returns { text: string, usedVisionOcr?: boolean } — texte brut pour Mots sauvages.
- * PDF : unpdf ; si texte &lt; 20 car. → 1re page rendue en image + Claude Vision (si ANTHROPIC_API_KEY).
+ * PDF : unpdf ; si texte &lt; 20 car. → PDF envoyé tel quel à Claude (document base64) si ANTHROPIC_API_KEY.
  * Image : Claude en priorité, OpenAI gpt-4o en fallback.
  */
 export async function POST(request: Request) {
@@ -86,7 +78,7 @@ export async function POST(request: Request) {
   if (type === "pdf") {
     const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
     try {
-      const { getDocumentProxy, extractText, renderPageAsImage } = await import("unpdf");
+      const { getDocumentProxy, extractText } = await import("unpdf");
       const buffer = new Uint8Array(await file.arrayBuffer());
       const pdf = await getDocumentProxy(buffer);
       let usedVisionOcr = false;
@@ -109,40 +101,27 @@ export async function POST(request: Request) {
             });
           }
           try {
-            const dataUrl = await renderPageAsImage(pdf, 1, {
-              canvasImport: () => import("@napi-rs/canvas"),
-              scale: 2,
-              toDataURL: true,
-            });
-            const parsed = parseDataUrlBase64(dataUrl);
-            if (!parsed) {
-              console.error("Extract raw PDF: data URL image page 1 invalide");
-              return NextResponse.json(
-                { error: "Impossible de convertir la première page du PDF en image" },
-                { status: 500 }
-              );
-            }
-            const ocrText = await claudeExtractDocumentText(
+            const base64Pdf = Buffer.from(buffer).toString("base64");
+            const ocrText = await claudeExtractTextFromPdfBase64(
               anthropicKey,
-              parsed.base64,
-              parsed.mediaType
+              base64Pdf
             );
             if (!ocrText) {
               return NextResponse.json(
-                { error: "Réponse vide du service OCR (document scanné)" },
+                { error: "Réponse vide du service OCR (document PDF)" },
                 { status: 502 }
               );
             }
             text = ocrText;
             usedVisionOcr = true;
           } catch (ocrErr) {
-            console.error("Extract raw PDF vision OCR error:", ocrErr);
+            console.error("Extract raw PDF Claude document error:", ocrErr);
             return NextResponse.json(
               {
                 error:
                   ocrErr instanceof Error
                     ? ocrErr.message
-                    : "Erreur OCR Claude (PDF scanné)",
+                    : "Erreur OCR Claude (PDF)",
               },
               { status: 502 }
             );
