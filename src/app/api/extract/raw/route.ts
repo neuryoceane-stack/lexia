@@ -79,8 +79,11 @@ export async function POST(request: Request) {
     const anthropicKey = process.env.ANTHROPIC_API_KEY?.trim();
     try {
       const { getDocumentProxy, extractText } = await import("unpdf");
-      const buffer = new Uint8Array(await file.arrayBuffer());
-      const pdf = await getDocumentProxy(buffer);
+      const fileBuffer = await file.arrayBuffer();
+      const base64Pdf = Buffer.from(fileBuffer).toString("base64");
+      const pdfBytes = new Uint8Array(fileBuffer.byteLength);
+      pdfBytes.set(new Uint8Array(fileBuffer));
+      const pdf = await getDocumentProxy(pdfBytes);
       let usedVisionOcr = false;
       try {
         const result = await extractText(pdf, { mergePages: true });
@@ -101,7 +104,6 @@ export async function POST(request: Request) {
             });
           }
           try {
-            const base64Pdf = Buffer.from(buffer).toString("base64");
             const ocrText = await claudeExtractTextFromPdfBase64(
               anthropicKey,
               base64Pdf
