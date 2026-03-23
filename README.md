@@ -32,6 +32,8 @@ Les couleurs neutres utilisent des variables CSS (`--background`, `--background-
 
 **Langues et drapeaux :** source unique `src/lib/language.ts` (`getFlagEmoji`, `getFlagImagePath`, `getFlagCountryCode`, `PREFERRED_LANGUAGE_OPTIONS`, `KNOWN_LANGUAGE_CODES`). Composant `FlagDisplay` (PNG + emoji) ; en-tête classe prof : emoji via `getFlagEmoji` + libellé via `PREFERRED_LANGUAGE_OPTIONS`. **Mots sauvages** : après import (PDF, image, URL, paroles) ou après « Utiliser ma sélection », la langue source est pré-remplie via `franc` + `resolvePreferredSourceLangFromText` (uniquement si la langue détectée figure dans les options préférées).
 
+**Traduction Claude / définitions corrompues :** exécuter depuis `projet-vocab` : `npm run db:clean-definitions` (charge `.env.local`). Le script nettoie le JSON / markdown Claude, et les définitions du type `terme : traduction` lorsque `terme` = mot de la ligne (insensible à la casse). La route `POST /api/translate` parse le JSON Claude avant réponse.
+
 **PDF scannés (Mots sauvages) :** `POST /api/extract/raw` avec `type=pdf` utilise `unpdf` pour la couche texte ; si le résultat fait moins de 20 caractères, le fichier PDF est envoyé tel quel à **Claude** en bloc `type: "document"` / `media_type: "application/pdf"` (`ANTHROPIC_API_KEY`). Pas de binaire natif — adapté à Vercel serverless.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

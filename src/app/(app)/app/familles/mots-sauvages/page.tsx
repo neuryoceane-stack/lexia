@@ -7,6 +7,7 @@ import {
   resolvePreferredSourceLangFromText,
   toIso6391,
 } from "@/lib/language";
+import { parseClaudeTranslationResponse } from "@/lib/parse-claude-translation";
 
 type Step = "source" | "langs" | "select" | "reading";
 
@@ -115,12 +116,16 @@ export default function MotsSauvagesPage() {
           setBubble({ word: w, translation: "(erreur)", example: "", x: 0, y: 0 });
           return;
         }
-        const translation = (data.translation as string) || "(—)";
-        const example = (data.example as string) ?? "";
+        const rawT = typeof data.translation === "string" ? data.translation : "";
+        const rawE = typeof data.example === "string" ? data.example.trim() : "";
+        const parsed = parseClaudeTranslationResponse(rawT);
+        const translation =
+          parsed.translation.trim() || (rawT.trim() ? rawT.trim() : "(—)");
+        const example = rawE || parsed.example.trim();
         setBubble({
           word: w,
           translation,
-          example: typeof example === "string" ? example.trim() : "",
+          example,
           x: 0,
           y: 0,
         });
@@ -479,14 +484,22 @@ export default function MotsSauvagesPage() {
                 <p className="text-sm text-[var(--foreground-muted)]">
                   <strong className="text-[var(--foreground)]">
                     {bubble.word}
-                  </strong>{" "}
-                  → {bubble.translation}
+                  </strong>
                 </p>
-                {bubble.example && (
-                  <p className="mt-1 text-sm italic text-[var(--foreground-muted)]">
-                    {bubble.example}
+                <p
+                  className="mt-3 text-base font-bold leading-snug"
+                  style={{ color: "#6C3FC8" }}
+                >
+                  {bubble.translation}
+                </p>
+                {bubble.example ? (
+                  <p
+                    className="mt-3 border-t border-[var(--border)] pt-3 text-sm italic leading-relaxed"
+                    style={{ color: "#94a3b8" }}
+                  >
+                    — « {bubble.example} »
                   </p>
-                )}
+                ) : null}
                 <div className="mt-2 flex flex-wrap gap-2">
                   <button
                     type="button"

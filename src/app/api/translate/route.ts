@@ -1,5 +1,9 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import {
+  parseClaudeTranslationResponse,
+  stripLeadingTermColonTranslation,
+} from "@/lib/parse-claude-translation";
 
 /**
  * POST /api/translate
@@ -67,17 +71,28 @@ Réponds UNIQUEMENT en JSON valide sans markdown :
           { status: 502 }
         );
       }
-      try {
-        const parsed = JSON.parse(raw) as {
-          translation?: string;
-          example?: string;
-        };
-        const translation = (parsed.translation ?? raw).trim();
-        const example = (parsed.example ?? "").trim();
-        return NextResponse.json({ translation, example });
-      } catch {
-        return NextResponse.json({ translation: raw, example: "" });
+      const { translation, example } = parseClaudeTranslationResponse(raw);
+      const translationTrim = translation.trim();
+      if (!translationTrim) {
+        return NextResponse.json(
+          { error: "Réponse IA sans traduction exploitable" },
+          { status: 502 }
+        );
       }
+      const withoutSourcePrefix =
+        stripLeadingTermColonTranslation(text, translationTrim) ??
+        translationTrim;
+      const translationOut = withoutSourcePrefix.trim();
+      if (!translationOut) {
+        return NextResponse.json(
+          { error: "Réponse IA sans traduction exploitable" },
+          { status: 502 }
+        );
+      }
+      return NextResponse.json({
+        translation: translationOut,
+        example: example.trim(),
+      });
     } catch (err) {
       console.error("Claude translate error:", err);
     }

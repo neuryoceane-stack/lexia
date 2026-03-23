@@ -318,6 +318,27 @@ html {
   animation: pulse-soft 3s ease-in-out infinite;
 }
 
+/* Mots sauvages — barre d’extraction PDF / image (indéterminée) */
+@keyframes lexiva-extract-shimmer {
+  0% {
+    left: -42%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.lexiva-extract-shimmer-bar {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 42%;
+  border-radius: 9999px;
+  background: #6c3fc8;
+  box-shadow: 0 0 14px rgba(108, 63, 200, 0.35);
+  animation: lexiva-extract-shimmer 1.35s ease-in-out infinite;
+}
+
 /* ========== Accessibilité — reduced motion ========== */
 
 @media (prefers-reduced-motion: reduce) {
