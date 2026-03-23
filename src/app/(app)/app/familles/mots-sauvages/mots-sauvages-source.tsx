@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   PawPrint,
@@ -13,6 +14,8 @@ import {
 
 type MotsSauvagesSourceProps = {
   extractLoading: boolean;
+  /** PDF vs image — pour afficher le message OCR scanné après un court délai */
+  extractKind: "pdf" | "image" | null;
   extractError: string;
   urlInput: string;
   setUrlInput: (v: string) => void;
@@ -28,8 +31,11 @@ type MotsSauvagesSourceProps = {
   imageInputRef: React.RefObject<HTMLInputElement | null>;
 };
 
+const PDF_SCAN_OCR_HINT_MS = 1800;
+
 export function MotsSauvagesSource({
   extractLoading,
+  extractKind,
   extractError,
   onFileSelect,
   fileInputRef,
@@ -37,6 +43,21 @@ export function MotsSauvagesSource({
   imageInputRef,
 }: MotsSauvagesSourceProps) {
   const router = useRouter();
+  const [showPdfScanOcrMessage, setShowPdfScanOcrMessage] = useState(false);
+
+  useEffect(() => {
+    if (!extractLoading || extractKind !== "pdf") {
+      setShowPdfScanOcrMessage(false);
+      return;
+    }
+    const id = window.setTimeout(() => {
+      setShowPdfScanOcrMessage(true);
+    }, PDF_SCAN_OCR_HINT_MS);
+    return () => {
+      window.clearTimeout(id);
+      setShowPdfScanOcrMessage(false);
+    };
+  }, [extractLoading, extractKind]);
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -230,11 +251,22 @@ export function MotsSauvagesSource({
           }}
         >
           <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
-            Reconnaissance du texte en cours…
+            {extractKind === "pdf"
+              ? "Extraction du PDF en cours…"
+              : "Reconnaissance du texte en cours…"}
           </p>
+          {extractKind === "pdf" && showPdfScanOcrMessage && (
+            <p
+              className="mt-2"
+              style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}
+            >
+              PDF scanné détecté — extraction via IA en cours…
+            </p>
+          )}
           <p className="mt-1" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-            Compte 30 secondes à 1–2 minutes (surtout la première fois :
-            chargement du moteur OCR).
+            {extractKind === "pdf"
+              ? "Les PDF numériques sont instantanés ; un scan peut prendre quelques secondes (lecture de la page par l’IA)."
+              : "Compte 30 secondes à 1–2 minutes (surtout la première fois : chargement du moteur OCR)."}
           </p>
         </div>
       )}

@@ -16,6 +16,7 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",
     "@libsql/client": "^0.14.0",
+    "@napi-rs/canvas": "^0.1.97",
     "bcryptjs": "^3.0.3",
     "drizzle-orm": "^0.45.1",
     "franc": "^6.2.0",

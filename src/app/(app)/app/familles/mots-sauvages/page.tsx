@@ -45,6 +45,8 @@ export default function MotsSauvagesPage() {
   const [songInput, setSongInput] = useState("");
   const [urlLoading, setUrlLoading] = useState(false);
   const [songLoading, setSongLoading] = useState(false);
+  /** Fichier en cours d'extraction (PDF vs image) — pour le libellé de chargement */
+  const [extractKind, setExtractKind] = useState<"pdf" | "image" | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -55,6 +57,7 @@ export default function MotsSauvagesPage() {
   const handleFile = useCallback(
     async (file: File) => {
       setExtractError("");
+      setExtractKind(isPdf(file) ? "pdf" : "image");
       setExtractLoading(true);
       try {
         const formData = new FormData();
@@ -68,6 +71,7 @@ export default function MotsSauvagesPage() {
         if (!res.ok) {
           setExtractError(data.error ?? "Erreur extraction");
           setExtractLoading(false);
+          setExtractKind(null);
           return;
         }
         const nextText = typeof data.text === "string" ? data.text : "";
@@ -78,6 +82,7 @@ export default function MotsSauvagesPage() {
         setExtractError("Erreur réseau");
       } finally {
         setExtractLoading(false);
+        setExtractKind(null);
       }
     },
     []
@@ -291,6 +296,7 @@ export default function MotsSauvagesPage() {
       {step === "source" && (
         <MotsSauvagesSource
           extractLoading={extractLoading}
+          extractKind={extractKind}
           extractError={extractError}
           urlInput={urlInput}
           setUrlInput={setUrlInput}
