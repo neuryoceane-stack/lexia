@@ -115,7 +115,7 @@ export function MesClassesView({
               >
                 {hasClasses
                   ? `${rows.length} classe${rows.length > 1 ? "s" : ""} · ${totalDistinctStudents} élève${totalDistinctStudents > 1 ? "s" : ""} au total`
-                  : "Crée et gère tes classes de vocabulaire."}
+                  : "Créez et gérez vos classes de vocabulaire."}
               </p>
             </div>
             <button
@@ -248,8 +248,8 @@ export function MesClassesView({
                   margin: "0 auto 20px",
                 }}
               >
-                Crée ta première classe pour commencer. Tu obtiendras un
-                identifiant unique à partager avec tes élèves.
+                Créez votre première classe pour commencer. Vous obtiendrez un
+                identifiant unique à partager avec vos élèves.
               </p>
               <button
                 type="button"

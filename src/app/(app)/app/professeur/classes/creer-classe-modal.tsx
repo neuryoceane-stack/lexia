@@ -186,7 +186,7 @@ export function CreerClasseModal({
                 margin: "4px 0 0",
               }}
             >
-              Tu recevras un code à partager avec tes élèves
+              Vous recevrez un code à partager avec vos élèves
             </p>
           </div>
           <button
@@ -256,7 +256,7 @@ export function CreerClasseModal({
               marginBottom: 0,
             }}
           >
-            Un nom clair aide tes élèves à identifier leur classe.
+            Un nom clair aide vos élèves à identifier leur classe.
           </p>
 
           <div style={{ marginTop: 18 }}>

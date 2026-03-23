@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
+import SessionEndScreen from "@/components/student/SessionEndScreen";
 import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
 import {
@@ -21,8 +22,6 @@ type BibliothequeList = {
 };
 
 type DueWord = { id: string; listId: string; term: string; definition: string };
-
-type Step = "mode" | "lists" | "direction" | "session";
 
 type Mode = "flashcard" | "dictee";
 type Direction = "term_to_def" | "def_to_term";
@@ -52,19 +51,24 @@ function speakWord(text: string, lang: string) {
 }
 
 export function RevisionClient({
-  initialMode = null,
-  initialStep = "mode",
-  backHref = "/app",
+  initialMode,
+  initialListIds = [],
+  initialDirection = "term_to_def",
+  /** Page de sélection (sans `?session=1`) pour retour / fin de session */
+  pickerPath,
 }: {
-  initialMode?: Mode | null;
-  initialStep?: Step;
-  backHref?: string;
-} = {}) {
-  const [step, setStep] = useState<Step>(initialStep);
-  const [mode, setMode] = useState<Mode | null>(initialMode);
+  initialMode: Mode;
+  initialListIds?: string[];
+  initialDirection?: Direction;
+  pickerPath: string;
+}) {
+  const router = useRouter();
+  const [mode] = useState<Mode>(initialMode);
   const [lists, setLists] = useState<BibliothequeList[]>([]);
-  const [selectedListIds, setSelectedListIds] = useState<Set<string>>(new Set());
-  const [direction, setDirection] = useState<Direction | null>(null);
+  const [selectedListIds, setSelectedListIds] = useState<Set<string>>(
+    () => new Set(initialListIds)
+  );
+  const [direction] = useState<Direction>(initialDirection);
 
   const [words, setWords] = useState<DueWord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -87,9 +91,6 @@ export function RevisionClient({
     termLang: string;
     defLang: string;
   } | null>(null);
-  /** Mots préchargés sur l'écran direction pour afficher la session sans attente au clic. */
-  const [prefetchedSessionWords, setPrefetchedSessionWords] = useState<DueWord[] | null>(null);
-
   const touchStartX = useRef(0);
   const hasSavedEndOfSession = useRef(false);
   /** Évite de déclencher « révéler » au clic quand on vient de faire un swipe (flashcard). */
@@ -119,30 +120,24 @@ export function RevisionClient({
       : current.definition
     : "";
 
-  const loadLists = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await fetch("/api/bibliotheque");
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error ?? "Erreur chargement listes");
-        setLists([]);
-        return;
+  const goToPicker = useCallback(
+    (preserveListIds = true) => {
+      const params = new URLSearchParams();
+      if (preserveListIds && selectedListIds.size > 0) {
+        params.set("listIds", [...selectedListIds].join(","));
       }
-      setLists(data.lists ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      const qs = params.toString();
+      router.push(qs ? `${pickerPath}?${qs}` : pickerPath);
+    },
+    [pickerPath, router, selectedListIds]
+  );
 
   useEffect(() => {
-    if (step === "lists") loadLists();
-  }, [step, loadLists]);
+    if (!initialListIds?.length) return;
+    setSelectedListIds(new Set(initialListIds));
+  }, [initialListIds.join(",")]);
 
-  /** Précharger les préférences dès l'écran mode pour que listes et direction soient prêts. */
   useEffect(() => {
-    if (step !== "mode" && step !== "lists" && step !== "direction") return;
     fetch("/api/user/preferences")
       .then((r) => r.json())
       .then((data) => {
@@ -151,30 +146,20 @@ export function RevisionClient({
           setPreferredLanguages([data.preferredLanguage, data.preferredLanguage2].filter(Boolean) as string[]);
       })
       .catch(() => {});
-  }, [step]);
+  }, []);
 
   useEffect(() => {
-    if (step !== "direction") return;
-    setDirectionLanguages(null);
-    setPrefetchedSessionWords(null);
-  }, [step]);
-
-  /** Précharger les mots de la session dès l'écran « Sens de la dictée » pour transition instantanée au clic. */
-  useEffect(() => {
-    if (step !== "direction" || selectedListIds.size === 0) return;
-    const listIds = Array.from(selectedListIds);
-    const q = listIds.map(encodeURIComponent).join(",");
-    fetch(`/api/revision?listIds=${q}&all=1`)
+    if (selectedListIds.size === 0) return;
+    fetch("/api/bibliotheque")
       .then((r) => r.json())
       .then((data) => {
-        const w = data.words ?? [];
-        if (Array.isArray(w)) setPrefetchedSessionWords(w as DueWord[]);
+        if (Array.isArray(data.lists)) setLists(data.lists as BibliothequeList[]);
       })
       .catch(() => {});
-  }, [step, selectedListIds]);
+  }, [selectedListIds]);
 
   useEffect(() => {
-    if (!current?.id || step !== "session") {
+    if (!current?.id) {
       setMemoTip("");
       setShowMemoInput(false);
       return;
@@ -183,20 +168,20 @@ export function RevisionClient({
       .then((r) => r.json())
       .then((data) => setMemoTip(data.tip ?? ""))
       .catch(() => setMemoTip(""));
-  }, [current?.id, step]);
+  }, [current?.id]);
 
   /** En dictée : remettre le focus sur le champ de saisie après validation (mot suivant) ou après « Réessayer ». */
   useEffect(() => {
-    if (step !== "session" || mode !== "dictee" || !current || writeResult !== null) return;
+    if (mode !== "dictee" || !current || writeResult !== null) return;
     const t = requestAnimationFrame(() => {
       dicteeInputRef.current?.focus();
     });
     return () => cancelAnimationFrame(t);
-  }, [step, mode, current?.id, writeResult]);
+  }, [mode, current?.id, writeResult]);
 
   /** Détecte les langues réelles (term / definition) de la première liste sélectionnée pour afficher les bons drapeaux. */
   useEffect(() => {
-    if (step !== "direction" || selectedListIds.size === 0) return;
+    if (selectedListIds.size === 0) return;
     const firstListId = [...selectedListIds][0];
     const firstList = lists.find((l) => l.id === firstListId);
     fetch(`/api/listes/${firstListId}/mots`)
@@ -247,24 +232,17 @@ export function RevisionClient({
           (listLang === "fra" ? "ita" : "fra");
         setDirectionLanguages({ termLang: listLang, defLang: other });
       });
-  }, [step, selectedListIds, lists, preferredLanguages]);
+  }, [selectedListIds, lists, preferredLanguages]);
+
+  useEffect(() => {
+    if (mode !== "dictee" || words.length > 0 || laterWords.length === 0) return;
+    setWords([...laterWords]);
+    setLaterWords([]);
+    setIndex(0);
+  }, [mode, words.length, laterWords.length]);
 
   useEffect(() => {
     if (
-      step === "session" &&
-      mode === "dictee" &&
-      words.length === 0 &&
-      laterWords.length > 0
-    ) {
-      setWords([...laterWords]);
-      setLaterWords([]);
-      setIndex(0);
-    }
-  }, [step, mode, words.length, laterWords.length]);
-
-  useEffect(() => {
-    if (
-      step !== "session" ||
       words.length > 0 ||
       laterWords.length > 0 ||
       sessionTotalWords === 0 ||
@@ -282,8 +260,8 @@ export function RevisionClient({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        mode: mode ?? "flashcard",
-        direction: direction ?? "term_to_def",
+        mode,
+        direction,
         language: lang ?? undefined,
         startedAt: new Date(sessionStart).toISOString(),
         endedAt: new Date(endedAt).toISOString(),
@@ -294,7 +272,6 @@ export function RevisionClient({
       }),
     }).finally(() => setShowEndRecap(true));
   }, [
-    step,
     words.length,
     laterWords.length,
     sessionTotalWords,
@@ -344,6 +321,14 @@ export function RevisionClient({
       setLoading(false);
     }
   }, [selectedListIds, applySessionWords]);
+
+  const didStartSessionLoad = useRef(false);
+  useEffect(() => {
+    if (selectedListIds.size === 0) return;
+    if (didStartSessionLoad.current) return;
+    didStartSessionLoad.current = true;
+    loadSessionWords();
+  }, [selectedListIds, loadSessionWords]);
 
   /** En dictée : envoie { wordId, success }. Utilisé uniquement en mode dictée. */
   async function recordReview(success: boolean) {
@@ -424,36 +409,7 @@ export function RevisionClient({
     }
   }
 
-  async function saveSessionAndExit() {
-    if (!sessionStart) return;
-    const endedAt = Date.now();
-    const durationSeconds = Math.round((endedAt - sessionStart) / 1000);
-    const lang =
-      lists.find((l) => selectedListIds.has(l.id))?.language ?? null;
-    await fetch("/api/revision/session", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        mode: mode ?? "flashcard",
-        direction: direction ?? "term_to_def",
-        language: lang ?? undefined,
-        startedAt: new Date(sessionStart).toISOString(),
-        endedAt: new Date(endedAt).toISOString(),
-        durationSeconds,
-        wordsSeen,
-        wordsRetained,
-        wordsWritten,
-      }),
-    });
-    setStep("mode");
-    setMode(null);
-    setSelectedListIds(new Set());
-    setDirection(null);
-    setWords([]);
-    setSessionStart(null);
-  }
-
-  /** Sauvegarde la session en cours puis revient à l’écran « Sens de la traduction » (page précédente). */
+  /** Sauvegarde la session en cours puis retourne à l’écran de sélection des listes. */
   async function saveSessionAndGoBack() {
     if (sessionStart) {
       const endedAt = Date.now();
@@ -464,8 +420,8 @@ export function RevisionClient({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mode: mode ?? "flashcard",
-          direction: direction ?? "term_to_def",
+          mode,
+          direction,
           language: lang ?? undefined,
           startedAt: new Date(sessionStart).toISOString(),
           endedAt: new Date(endedAt).toISOString(),
@@ -478,302 +434,74 @@ export function RevisionClient({
     }
     setWords([]);
     setSessionStart(null);
-    setStep("direction");
-  }
-
-  function toggleList(id: string) {
-    const list = lists.find((l) => l.id === id);
-    if (!list) return;
-    setSelectedListIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else {
-        const lang = list.language;
-        const others = lists.filter((l) => next.has(l.id));
-        if (others.length > 0 && others.some((l) => l.language !== lang)) return prev;
-        next.add(id);
-      }
-      return next;
-    });
+    goToPicker(true);
   }
 
   const selectedLang = selectedListIds.size > 0
     ? lists.find((l) => selectedListIds.has(l.id))?.language ?? null
     : null;
-  const canAddList = (list: BibliothequeList) =>
-    selectedListIds.size === 0 || list.language === selectedLang;
 
-  if (step === "mode") {
+  if (loading && words.length === 0) {
     return (
-      <div className="space-y-6">
-        <BackLink href="/app" />
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">
-          Choisis un mode
-        </h2>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => {
-              setMode("flashcard");
-              setStep("lists");
-            }}
-            className="btn-relief rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 text-left transition hover:border-primary hover:shadow-md dark:hover:border-primary-light"
-          >
-            <span className="text-2xl" aria-hidden>🃏</span>
-            <h3 className="mt-2 font-semibold text-[var(--foreground)]">
-              Flashcards
-            </h3>
-            <p className="mt-1 text-sm text-[var(--foreground-muted)]">
-              Carte avec le mot · Révéler la traduction · Swipe droite = appris, gauche = raté (reviendra en fin de liste).
-            </p>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setMode("dictee");
-              setStep("lists");
-            }}
-            className="btn-relief rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 text-left transition hover:border-primary hover:shadow-md dark:hover:border-primary-light"
-          >
-            <span className="text-2xl" aria-hidden>✏️</span>
-            <h3 className="mt-2 font-semibold text-[var(--foreground)]">
-              Dictée / Écriture active
-            </h3>
-            <p className="mt-1 text-sm text-[var(--foreground-muted)]">
-              Écris la traduction, validation et feedback immédiat.
-            </p>
-          </button>
-        </div>
+      <div className="space-y-4">
+        <BackLink href={pickerPath} />
+        <p className="text-[var(--foreground-muted)]">Chargement des mots…</p>
       </div>
     );
   }
-
-  if (step === "lists") {
+  if (error && words.length === 0) {
     return (
-      <div className="space-y-6">
-        <BackLink href={backHref} onClick={initialMode ? undefined : () => setStep("mode")} />
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">
-          Sélectionne une ou plusieurs listes (même langue)
-        </h2>
-        {error && (
-          <p className="rounded-lg bg-red-50 p-2 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-300">
-            {error}
-          </p>
-        )}
-        {loading ? (
-          <p className="text-[var(--foreground-muted)]">Chargement…</p>
-        ) : lists.length === 0 ? (
-          <p className="text-[var(--foreground-muted)]">
-            Aucune liste. Crée des listes dans la Bibliothèque.
-          </p>
-        ) : (
-          <ul className="space-y-2">
-            {lists.map((list) => {
-              const selected = selectedListIds.has(list.id);
-              const disabled = !canAddList(list);
-              return (
-                <li key={list.id}>
-                  <label
-                    className={`btn-relief flex cursor-pointer items-center gap-3 rounded-lg border p-3 transition ${
-                      selected
-                        ? "border-primary bg-primary/5 dark:bg-primary/10"
-                        : disabled
-                          ? "border-[var(--border)] opacity-60"
-                          : "border-[var(--border)] hover:border-primary/35"
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected}
-                      onChange={() => toggleList(list.id)}
-                      disabled={disabled}
-                      className="h-4 w-4 rounded border-[var(--input-border)] text-primary"
-                    />
-                    <span className="font-medium text-[var(--foreground)]">
-                      {list.name}
-                    </span>
-                    <span className="text-sm text-[var(--foreground-muted)]">
-                      {list.familyName} · {list.wordCount} mots
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        )}
-        {selectedListIds.size > 0 && (
-          <button
-            type="button"
-            onClick={() => setStep("direction")}
-            className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark"
-          >
-            Continuer
-          </button>
-        )}
-      </div>
-    );
-  }
-
-  if (step === "direction") {
-    const langTerm =
-      directionLanguages?.termLang ?? selectedLang ?? "fra";
-    const langDef =
-      directionLanguages?.defLang ??
-      preferredLanguages.find((l) => l !== selectedLang) ??
-      preferredLanguages[0] ??
-      (selectedLang === "fra" ? "ita" : "fra");
-    const labelTerm = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === langTerm)?.label ?? langTerm;
-    const labelDef = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === langDef)?.label ?? langDef;
-
-    return (
-      <div className="space-y-6">
-        <BackLink href="/app" onClick={() => setStep("lists")} />
-        <h2 className="text-lg font-semibold text-[var(--foreground)]">
-          Sens de la dictée
-        </h2>
-        <p className="text-sm text-[var(--foreground-muted)]">
-          Choisis dans quel sens tu veux écrire : on t’affiche un côté, tu écris l’autre.
+      <div className="space-y-4">
+        <BackLink href={pickerPath} />
+        <p className="rounded-lg bg-red-50 p-3 text-red-700 dark:bg-red-900/20 dark:text-red-300">
+          {error}
         </p>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <button
-            type="button"
-            onClick={() => {
-              setDirection("term_to_def");
-              setStep("session");
-              if (prefetchedSessionWords && prefetchedSessionWords.length > 0) {
-                applySessionWords(prefetchedSessionWords);
-              } else {
-                loadSessionWords();
-              }
-            }}
-            className="btn-relief flex flex-col items-center gap-3 rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 transition hover:border-primary dark:hover:border-primary-light"
-          >
-            <div className="flex items-center gap-2">
-              <FlagDisplay langCode={langTerm} size={32} />
-              <span className="text-lg font-medium text-[var(--foreground-disabled)]">→</span>
-              <FlagDisplay langCode={langDef} size={32} />
-            </div>
-            <p className="text-center text-sm font-medium text-[var(--foreground-muted)]">
-              {labelTerm} → {labelDef}
-            </p>
-            <p className="text-center text-xs text-[var(--foreground-muted)]">
-              On affiche le mot, tu écris la traduction.
-            </p>
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              setDirection("def_to_term");
-              setStep("session");
-              if (prefetchedSessionWords && prefetchedSessionWords.length > 0) {
-                applySessionWords(prefetchedSessionWords);
-              } else {
-                loadSessionWords();
-              }
-            }}
-            className="btn-relief flex flex-col items-center gap-3 rounded-xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 transition hover:border-primary dark:hover:border-primary-light"
-          >
-            <div className="flex items-center gap-2">
-              <FlagDisplay langCode={langDef} size={32} />
-              <span className="text-lg font-medium text-[var(--foreground-disabled)]">→</span>
-              <FlagDisplay langCode={langTerm} size={32} />
-            </div>
-            <p className="text-center text-sm font-medium text-[var(--foreground-muted)]">
-              {labelDef} → {labelTerm}
-            </p>
-            <p className="text-center text-xs text-[var(--foreground-muted)]">
-              On affiche la traduction, tu écris le mot.
-            </p>
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => goToPicker(true)}
+          className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
+        >
+          Changer de listes ou sens
+        </button>
       </div>
     );
   }
-
-  if (step === "session") {
-    if (loading && words.length === 0) {
-      return (
-        <div className="space-y-4">
-          <BackLink href="/app" />
-          <p className="text-[var(--foreground-muted)]">Chargement des mots…</p>
-        </div>
-      );
-    }
-    if (error && words.length === 0) {
-      return (
-        <div className="space-y-4">
-          <BackLink href="/app" />
-          <p className="rounded-lg bg-red-50 p-3 text-red-700 dark:bg-red-900/20 dark:text-red-300">
-            {error}
-          </p>
-          <button
-            type="button"
-            onClick={() => setStep("direction")}
-            className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
-          >
-            Changer de listes ou sens
-          </button>
-        </div>
-      );
-    }
     if (words.length === 0 && laterWords.length === 0) {
       if (showEndRecap) {
         const durationMin = Math.floor(endSessionDurationSeconds / 60);
         const durationSec = endSessionDurationSeconds % 60;
         const durationStr =
-          durationMin > 0 ? `${durationMin} min` : `${durationSec} s`;
+          durationMin > 0 && durationSec > 0
+            ? `${durationMin} min ${durationSec} s`
+            : durationMin > 0
+              ? `${durationMin} min`
+              : `${durationSec} s`;
         return (
-          <div className="space-y-6">
-            <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
-            <div className="rounded-2xl border border-[var(--border)] bg-[var(--background-card)] p-6">
-              <h2 className="text-xl font-semibold text-[var(--foreground)]">
-                Session terminée
-              </h2>
-              <ul className="mt-4 space-y-2 text-[var(--foreground-muted)]">
-                <li>Temps : {durationStr}</li>
-                <li>Mots vus : {wordsSeen}</li>
-                <li>Retenus : {wordsRetained}</li>
-                {mode === "dictee" && <li>Mots écrits : {wordsWritten}</li>}
-              </ul>
-              <button
-                type="button"
-                onClick={() => {
-                  hasSavedEndOfSession.current = false;
-                  setShowEndRecap(false);
-                  setStep("mode");
-                  setMode(null);
-                  setSelectedListIds(new Set());
-                  setDirection(null);
-                  setWords([]);
-                  setSessionStart(null);
-                  setSessionTotalWords(0);
-                  setWordsSeen(0);
-                  setWordsRetained(0);
-                  setWordsWritten(0);
-                  setEndSessionDurationSeconds(0);
-                }}
-                className="btn-relief mt-6 rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
-              >
-                Nouvelle session
-              </button>
-            </div>
-          </div>
+          <SessionEndScreen
+            wordsSeen={wordsSeen}
+            wordsRetained={wordsRetained}
+            wordsWritten={mode === "dictee" ? wordsWritten : undefined}
+            durationStr={durationStr}
+            mode={mode}
+            onNewSession={() => goToPicker(false)}
+            onHome={() => router.push("/app")}
+          />
         );
       }
       return (
         <div className="space-y-4">
-          <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
+          <BackLink
+            href={pickerPath}
+            onClick={() => {
+              void saveSessionAndGoBack();
+            }}
+          />
           <p className="text-[var(--foreground-muted)]">
             Aucun mot à réviser pour les listes choisies. Reviens plus tard.
           </p>
           <button
             type="button"
-            onClick={() => {
-              setStep("mode");
-              setMode(null);
-              setSelectedListIds(new Set());
-              setDirection(null);
-            }}
+            onClick={() => goToPicker(false)}
             className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
           >
             Nouvelle session
@@ -851,7 +579,12 @@ export function RevisionClient({
       return (
         <div className="flex min-h-[50vh] flex-col">
           <div className="mb-4 flex items-center justify-between">
-            <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
+            <BackLink
+              href={pickerPath}
+              onClick={() => {
+                void saveSessionAndGoBack();
+              }}
+            />
             <span className="text-sm text-[var(--foreground-muted)]">
               {progressLabel}
             </span>
@@ -1145,7 +878,12 @@ export function RevisionClient({
     return (
       <div className="flex min-h-[50vh] flex-col">
         <div className="mb-4 flex items-center justify-between">
-          <BackLink href="/app" onClick={() => saveSessionAndGoBack()} />
+          <BackLink
+            href={pickerPath}
+            onClick={() => {
+              void saveSessionAndGoBack();
+            }}
+          />
           <span className="text-sm text-[var(--foreground-muted)]">
             {progressLabel}
           </span>
@@ -1236,7 +974,4 @@ export function RevisionClient({
         )}
       </div>
     );
-  }
-
-  return null;
 }

@@ -88,7 +88,7 @@ export function ClassAccessCodeBanner({ identifier }: Props) {
             margin: "2px 0 0",
           }}
         >
-          À partager avec tes élèves pour rejoindre la classe
+          À partager avec vos élèves pour rejoindre la classe
         </p>
       </div>
       <button

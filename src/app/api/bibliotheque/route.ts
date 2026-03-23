@@ -8,6 +8,7 @@ import {
   revisions,
 } from "@/lib/db/schema";
 import { eq, and, asc, desc, sql, or, like, inArray } from "drizzle-orm";
+import { classifyWordSm2Status } from "@/lib/list-word-sm2";
 
 export type BibliothequeList = {
   id: string;
@@ -17,6 +18,12 @@ export type BibliothequeList = {
   language: string | null;
   wordCount: number;
   progressPercent: number;
+  /** % de mots maîtrisés selon SM-2 (dernière révision utilisateur). */
+  sm2MasteryPct: number;
+  /** Nombre de mots classés « maîtrisés » SM-2 dans la liste. */
+  sm2MasteredCount: number;
+  /** Mots jamais révisés ou dont nextReviewAt ≤ maintenant. */
+  dueTodayCount: number;
   createdAt: Date;
 };
 
@@ -141,10 +148,64 @@ export async function GET(request: Request) {
     }
   }
 
+  const wordsByListId = new Map<string, string[]>();
+  for (const w of wordToList) {
+    const arr = wordsByListId.get(w.listId);
+    if (arr) arr.push(w.id);
+    else wordsByListId.set(w.listId, [w.id]);
+  }
+
+  const allWordIds = wordToList.map((w) => w.id);
+  const now = new Date();
+  const latestByWord = new Map<
+    string,
+    {
+      nextReviewAt: Date;
+      easeFactor: number | null;
+      repetitions: number | null;
+    }
+  >();
+
+  if (allWordIds.length > 0) {
+    const revRows = await db
+      .select({
+        wordId: revisions.wordId,
+        nextReviewAt: revisions.nextReviewAt,
+        easeFactor: revisions.easeFactor,
+        repetitions: revisions.repetitions,
+        createdAt: revisions.createdAt,
+      })
+      .from(revisions)
+      .where(
+        and(eq(revisions.userId, userId), inArray(revisions.wordId, allWordIds))
+      )
+      .orderBy(desc(revisions.createdAt));
+
+    for (const r of revRows) {
+      if (!latestByWord.has(r.wordId)) {
+        latestByWord.set(r.wordId, {
+          nextReviewAt: r.nextReviewAt,
+          easeFactor: r.easeFactor,
+          repetitions: r.repetitions,
+        });
+      }
+    }
+  }
+
   const listsWithStats: BibliothequeList[] = filtered.map((l) => {
     const total = countByList.get(l.id) ?? 0;
     const success = successByList.get(l.id) ?? 0;
     const progressPercent = total > 0 ? Math.round((success / total) * 100) : 0;
+    const wids = wordsByListId.get(l.id) ?? [];
+    let sm2Mastered = 0;
+    let dueToday = 0;
+    for (const wid of wids) {
+      const row = latestByWord.get(wid);
+      if (classifyWordSm2Status(row) === "mastered") sm2Mastered++;
+      if (!row || row.nextReviewAt <= now) dueToday++;
+    }
+    const sm2MasteryPct =
+      wids.length > 0 ? Math.round((sm2Mastered / wids.length) * 100) : 0;
     return {
       id: l.id,
       familyId: l.familyId,
@@ -153,6 +214,9 @@ export async function GET(request: Request) {
       language: l.language,
       wordCount: total,
       progressPercent,
+      sm2MasteryPct,
+      sm2MasteredCount: sm2Mastered,
+      dueTodayCount: dueToday,
       createdAt: l.createdAt,
     };
   });

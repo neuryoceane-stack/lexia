@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 import { getUser } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { db } from "@/lib/db";
@@ -9,13 +10,13 @@ import {
   classes,
   classMembers,
   classLists,
+  revisions,
 } from "@/lib/db/schema";
-import { eq, and, asc } from "drizzle-orm";
-import { detectListLanguages, KNOWN_LANGUAGE_CODES } from "@/lib/language";
-import { BackLink } from "@/components/back-link";
-import { FlagDisplay } from "@/components/flag-display";
+import { eq, and, asc, desc, inArray } from "drizzle-orm";
+import { classifyWordSm2Status } from "@/lib/list-word-sm2";
 import { MotsClient } from "./mots-client";
-import { ListLanguageEditor } from "./list-language-editor";
+
+const PAGE_BG = "#F8F7FF";
 
 export default async function ListeDetailPage({
   params,
@@ -50,7 +51,6 @@ export default async function ListeDetailPage({
     if (!family) notFound();
     isOwner = true;
   } else {
-    // Étudiant : autoriser si la liste appartient à l'utilisateur OU si elle est visible dans une classe où il est accepté.
     [family] = await db
       .select()
       .from(wordFamilies)
@@ -98,71 +98,85 @@ export default async function ListeDetailPage({
     .where(eq(words.listId, listId))
     .orderBy(asc(words.rank), asc(words.createdAt));
 
-  const { termLang, defLang } = detectListLanguages(
-    motsList.map((m) => m.term),
-    motsList.map((m) => m.definition)
-  );
+  const wordIds = motsList.map((w) => w.id);
+  const latestByWord = new Map<
+    string,
+    { easeFactor: number | null; repetitions: number | null }
+  >();
 
-  /** 1er drapeau = langue des termes (public/flags, ex. fr.png) ; 2e = définitions (ex. gb.png). */
-  const displayTermLang = termLang && KNOWN_LANGUAGE_CODES.has(termLang)
-    ? termLang
-    : (list.language && KNOWN_LANGUAGE_CODES.has(list.language) ? list.language : "fra");
-  const displayDefLang = defLang && KNOWN_LANGUAGE_CODES.has(defLang)
-    ? defLang
-    : "eng";
+  if (wordIds.length > 0) {
+    const revRows = await db
+      .select({
+        wordId: revisions.wordId,
+        easeFactor: revisions.easeFactor,
+        repetitions: revisions.repetitions,
+        createdAt: revisions.createdAt,
+      })
+      .from(revisions)
+      .where(
+        and(eq(revisions.userId, user.id), inArray(revisions.wordId, wordIds))
+      )
+      .orderBy(desc(revisions.createdAt));
+
+    for (const r of revRows) {
+      if (!latestByWord.has(r.wordId)) {
+        latestByWord.set(r.wordId, {
+          easeFactor: r.easeFactor,
+          repetitions: r.repetitions,
+        });
+      }
+    }
+  }
+
+  const motsWithSm2 = motsList.map((m) => {
+    const row = latestByWord.get(m.id);
+    const sm2Status = classifyWordSm2Status(row);
+    return {
+      id: m.id,
+      term: m.term,
+      definition: m.definition,
+      rank: m.rank,
+      sm2Status,
+    };
+  });
+
+  const stats = motsWithSm2.reduce(
+    (acc, m) => {
+      acc[m.sm2Status] += 1;
+      return acc;
+    },
+    { mastered: 0, progress: 0, new: 0 }
+  );
+  const masteryPct =
+    motsWithSm2.length === 0
+      ? 0
+      : Math.round((stats.mastered / motsWithSm2.length) * 100);
 
   return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <BackLink href={backHref}>Retour à la bibliothèque</BackLink>
-        <span className="text-slate-400 dark:text-slate-500">·</span>
+    <div
+      className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
+      style={{ backgroundColor: PAGE_BG }}
+    >
+      <div className="mx-auto max-w-3xl">
         <Link
-          href={langFromUrl ? `/app/familles/${familyId}?lang=${encodeURIComponent(langFromUrl)}` : `/app/familles/${familyId}`}
-          className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"
+          href={backHref}
+          className="mb-[14px] inline-flex w-fit items-center gap-1 no-underline"
+          style={{ fontSize: 12, color: "var(--foreground-muted)" }}
         >
-          {family.name}
+          <ChevronLeft size={14} strokeWidth={2} aria-hidden className="shrink-0" />
+          Retour à la bibliothèque
         </Link>
+
+        <MotsClient
+          listId={listId}
+          listName={list.name}
+          initialListLanguage={list.language}
+          initialMots={motsWithSm2}
+          masteryPct={masteryPct}
+          stats={stats}
+          canEdit={isOwner}
+        />
       </div>
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
-          {list.name}
-        </h1>
-        {(displayTermLang || displayDefLang) && (
-          <span className="flex items-center gap-1 text-2xl" title="Langues de la liste">
-            <FlagDisplay langCode={displayTermLang} size={28} />
-            {displayTermLang && displayDefLang && (
-              <span className="mx-1 text-slate-400" aria-hidden>→</span>
-            )}
-            <FlagDisplay langCode={displayDefLang} size={28} />
-          </span>
-        )}
-      </div>
-      <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
-        {list.source === "manual"
-          ? "Liste créée manuellement"
-          : list.source === "pdf"
-            ? "Liste extraite d’un PDF"
-            : "Liste extraite d’une image (OCR)"}
-      </p>
-      {isOwner ? (
-        <ListLanguageEditor listId={listId} currentLanguage={list.language} />
-      ) : (
-        <p className="mb-6 flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
-          <span>Langue de la liste (filtre Bibliothèque) :</span>
-          <span className="inline-flex" title="Langue de la liste (non modifiable)">
-            <FlagDisplay
-              langCode={list.language && KNOWN_LANGUAGE_CODES.has(list.language) ? list.language : "fra"}
-              size={20}
-            />
-          </span>
-        </p>
-      )}
-      <MotsClient
-        familyId={familyId}
-        listId={listId}
-        initialMots={motsList}
-        canEdit={isOwner}
-      />
     </div>
   );
 }

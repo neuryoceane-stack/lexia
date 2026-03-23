@@ -16,6 +16,9 @@ type BibliothequeList = {
   language: string | null;
   wordCount: number;
   progressPercent: number;
+  sm2MasteryPct?: number;
+  sm2MasteredCount?: number;
+  dueTodayCount?: number;
   createdAt: string;
 };
 

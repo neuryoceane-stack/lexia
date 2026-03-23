@@ -158,7 +158,7 @@ export function OngletsClasse({
           </p>
           {listProgress.length === 0 ? (
             <p style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
-              Aucune liste assignée. Ajoute des listes depuis l&apos;onglet
+              Aucune liste assignée. Ajoutez des listes depuis l&apos;onglet
               « Listes de vocabulaire ».
             </p>
           ) : (

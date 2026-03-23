@@ -22,7 +22,9 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 Les couleurs neutres utilisent des variables CSS (`--background`, `--background-card`, `--background-subtle`, `--foreground`, `--foreground-muted`, `--foreground-disabled`, `--border`, `--input-bg`, `--input-border`) définies dans les styles globaux. Les accents violet, or, vert et les états d’erreur restent explicites.
 
-**Routes utiles :** la synthèse / jardin correspond à `src/app/(app)/app/jardin/` ; l’évaluation / révision à `src/app/(app)/app/revision/` (landing, flashcards, dictée, express, `revision-client`).
+**Routes utiles :** la synthèse / jardin correspond à `src/app/(app)/app/jardin/` ; l’évaluation / révision à `src/app/(app)/app/revision/` (landing, express). **Flashcards / dictée :** écran de sélection `revision-list-selection.tsx` (fond `#F8F7FF`, filtres langue, verrouillage même langue, SM-2 via `GET /api/bibliotheque`) ; session avec `?session=1&listIds=…` et pour la dictée `direction=term_to_def|def_to_term`. **`/app/evaluation`** redirige vers `/app/revision` (lien « Retour » depuis la sélection).
+
+**Détail d’une liste (bibliothèque) :** `src/app/(app)/app/familles/[id]/listes/[listId]/page.tsx` (fond `#F8F7FF`) + client `mots-client.tsx` : titre éditable (`PATCH /api/listes/[listId]` `name`), chip langue + dropdown (`PREFERRED_LANGUAGE_OPTIONS`, `PATCH` `language`), barre de maîtrise SM-2 (`classifyWordSm2Status` côté serveur), liens révision `?listIds=` vers flashcards et dictée. L’ancien `list-language-editor.tsx` a été retiré (langue gérée dans le header).
 
 **Espace professeur :** l’accueil dashboard (`/app/professeur`) est dans `src/app/(app)/app/professeur/page.tsx` (fond `#F8F7FF`, cartes stats + bannière « classe la plus active »). Les agrégations SQL sont dans `src/lib/teacher-dashboard-stats.ts` (`getTeacherDashboardStats`). La bibliothèque de listes reste sur `/app/familles` (pas de route `/app/professeur/bibliotheque`).
 

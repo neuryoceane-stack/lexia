@@ -21,7 +21,7 @@ export default async function ProfesseurAccueilPage() {
   if (!user?.id) return null;
 
   const stats = await getTeacherDashboardStats(user.id);
-  const prenom = stats.firstName ?? "toi";
+  const prenom = stats.firstName ?? "";
   const deltaSigned =
     stats.topClassBanner && stats.topClassBanner.hasRevisionData
       ? `${stats.topClassBanner.masteryDeltaPct >= 0 ? "+" : ""}${stats.topClassBanner.masteryDeltaPct}%`
@@ -43,7 +43,7 @@ export default async function ProfesseurAccueilPage() {
               margin: 0,
             }}
           >
-            Bonjour {prenom} 👋
+            Bonjour{prenom ? ` ${prenom}` : ""} 👋
           </h1>
           <p
             style={{
@@ -255,7 +255,7 @@ export default async function ProfesseurAccueilPage() {
             margin: "0 0 10px",
           }}
         >
-          Tes espaces
+          Vos espaces
         </p>
 
         {/* Deux cartes */}
@@ -317,7 +317,7 @@ export default async function ProfesseurAccueilPage() {
                   lineHeight: 1.45,
                 }}
               >
-                Gère tes classes, suis la progression de tes élèves et assigne
+                Gérez vos classes, suivez la progression de vos élèves et assignez
                 des listes.
               </p>
             </div>
@@ -411,7 +411,7 @@ export default async function ProfesseurAccueilPage() {
                   lineHeight: 1.45,
                 }}
               >
-                Crée et importe tes listes de vocabulaire. Assigne-les à tes
+                Créez et importez vos listes de vocabulaire. Assignez-les à vos
                 classes.
               </p>
             </div>

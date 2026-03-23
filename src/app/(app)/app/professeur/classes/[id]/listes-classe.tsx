@@ -161,7 +161,7 @@ export function ListesClasse({
               margin: "0 0 12px",
             }}
           >
-            Aucune liste. Assigne des listes depuis ta bibliothèque.
+            Aucune liste. Assignez des listes depuis votre bibliothèque.
           </p>
         ) : (
           <ul className="m-0 list-none p-0">
@@ -329,7 +329,7 @@ export function ListesClasse({
                 margin: "2px 0 0",
               }}
             >
-              Depuis ta bibliothèque
+              Depuis votre bibliothèque
             </p>
           </div>
           <span
