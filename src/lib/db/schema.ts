@@ -22,6 +22,7 @@ export const users = sqliteTable("users", {
   subject: text("subject"),
   /** Nom de l'établissement (profil enseignant, optionnel). */
   schoolName: text("school_name"),
+  weeklyGoal: integer("weekly_goal").notNull().default(20),
 });
 
 export const wordFamilies = sqliteTable("word_families", {

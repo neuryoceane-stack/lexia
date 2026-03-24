@@ -13,6 +13,11 @@ import {
   Star,
   Plus,
   GraduationCap,
+  Clock,
+  Activity,
+  Calendar,
+  Zap,
+  Pencil,
 } from "lucide-react";
 
 type AvatarType = "arbre" | "phenix" | "koala";
@@ -37,11 +42,76 @@ type MaClasseRow = {
   status: "pending" | "accepted";
 };
 
+const WEEKLY_GOAL_MIN = 5;
+const WEEKLY_GOAL_MAX = 70;
+const WEEKLY_GOAL_STEP = 5;
+
+function snapWeeklyGoal(n: number): number {
+  const s = Math.round(n / WEEKLY_GOAL_STEP) * WEEKLY_GOAL_STEP;
+  return Math.min(WEEKLY_GOAL_MAX, Math.max(WEEKLY_GOAL_MIN, s));
+}
+
+function getLevelInfo(val: number) {
+  if (val <= 10) {
+    return {
+      label: "Découverte",
+      pillBg: "#F0EDF8",
+      pillColor: "#6C3FC8",
+      time: "~2 min / jour",
+    };
+  }
+  if (val <= 20) {
+    return {
+      label: "Régulier",
+      pillBg: "#FEF8EC",
+      pillColor: "#C47D0A",
+      time: "~4 min / jour",
+    };
+  }
+  if (val <= 35) {
+    return {
+      label: "Soutenu",
+      pillBg: "#EAF4EF",
+      pillColor: "#1D9E75",
+      time: "~7 min / jour",
+    };
+  }
+  return {
+    label: "Intensif",
+    pillBg: "#FCEBEB",
+    pillColor: "#E24B4A",
+    time: "~12 min / jour",
+  };
+}
+
+const SLIDER_MARKERS = [
+  { v: 10, sub: "Découverte" },
+  { v: 20, sub: "Régulier" },
+  { v: 35, sub: "Soutenu" },
+  { v: 50, sub: "Intensif" },
+] as const;
+
+const WEEK_PREVIEW = [
+  { label: "Lun", pct: 15, dow: 1 },
+  { label: "Mar", pct: 20, dow: 2 },
+  { label: "Mer", pct: 15, dow: 3 },
+  { label: "Jeu", pct: 15, dow: 4 },
+  { label: "Ven", pct: 15, dow: 5 },
+  { label: "Sam", pct: 10, dow: 6 },
+  { label: "Dim", pct: 10, dow: 0 },
+] as const;
+
+const BORDER_TERTIARY = "rgba(108, 63, 200, 0.14)";
+
 export function ParametresClient() {
   const router = useRouter();
   const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [weeklyGoal, setWeeklyGoal] = useState(20);
+  const [savedWeeklyGoal, setSavedWeeklyGoal] = useState(20);
+  const [goalLoaded, setGoalLoaded] = useState(false);
+  const [goalSaving, setGoalSaving] = useState(false);
 
   const [mesClasses, setMesClasses] = useState<MaClasseRow[]>([]);
   const [classesLoading, setClassesLoading] = useState(true);
@@ -89,6 +159,20 @@ export function ParametresClient() {
       .catch(() => setLoaded(true));
   }, []);
 
+  useEffect(() => {
+    fetch("/api/weekly-progress")
+      .then((r) => r.json())
+      .then((d) => {
+        const g =
+          typeof d.weeklyGoal === "number" ? d.weeklyGoal : 20;
+        const snapped = snapWeeklyGoal(g);
+        setWeeklyGoal(snapped);
+        setSavedWeeklyGoal(snapped);
+        setGoalLoaded(true);
+      })
+      .catch(() => setGoalLoaded(true));
+  }, []);
+
   const saveAvatarType = (value: AvatarType) => {
     setAvatarType(value);
     setSaving(true);
@@ -99,6 +183,23 @@ export function ParametresClient() {
     })
       .then(() => {})
       .finally(() => setSaving(false));
+  };
+
+  const persistWeeklyGoal = () => {
+    const v = weeklyGoal;
+    setGoalSaving(true);
+    fetch("/api/weekly-progress", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ weeklyGoal: v }),
+    })
+      .then(() => setSavedWeeklyGoal(v))
+      .catch(() => {})
+      .finally(() => setGoalSaving(false));
+  };
+
+  const cancelWeeklyGoalDraft = () => {
+    setWeeklyGoal(savedWeeklyGoal);
   };
 
   async function handleJoinClass(e: React.FormEvent) {
@@ -143,6 +244,11 @@ export function ParametresClient() {
       setJoinLoading(false);
     }
   }
+
+  const levelInfo = getLevelInfo(weeklyGoal);
+  const sliderFillPct =
+    ((weeklyGoal - WEEKLY_GOAL_MIN) / (WEEKLY_GOAL_MAX - WEEKLY_GOAL_MIN)) * 100;
+  const todayDow = new Date().getDay();
 
   return (
     <div className="mx-auto max-w-lg bg-[var(--background)]">
@@ -237,6 +343,601 @@ export function ParametresClient() {
               );
             })}
           </div>
+        )}
+      </div>
+
+      {/* -------- Section Objectif hebdomadaire -------- */}
+      <div
+        className="mb-3"
+        style={{
+          background: "#FFFFFF",
+          borderRadius: 20,
+          border: `0.5px solid ${BORDER_TERTIARY}`,
+          overflow: "hidden",
+        }}
+      >
+        <style>{`
+          .lexiva-weekly-range {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 26px;
+            background: transparent;
+            margin: 0;
+            cursor: pointer;
+          }
+          .lexiva-weekly-range:focus {
+            outline: none;
+          }
+          .lexiva-weekly-range::-webkit-slider-runnable-track {
+            height: 8px;
+            background: transparent;
+          }
+          .lexiva-weekly-range::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 26px;
+            height: 26px;
+            margin-top: -9px;
+            border-radius: 50%;
+            background: white;
+            border: 2.5px solid #6C3FC8;
+            box-shadow: 0 2px 8px rgba(108,63,200,0.25);
+          }
+          .lexiva-weekly-range:active::-webkit-slider-thumb {
+            transform: scale(1.15);
+            box-shadow: 0 4px 14px rgba(108,63,200,0.35);
+          }
+          .lexiva-weekly-range::-moz-range-track {
+            height: 8px;
+            background: transparent;
+          }
+          .lexiva-weekly-range::-moz-range-thumb {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: white;
+            border: 2.5px solid #6C3FC8;
+            box-shadow: 0 2px 8px rgba(108,63,200,0.25);
+          }
+          .lexiva-weekly-range:active::-moz-range-thumb {
+            transform: scale(1.15);
+            box-shadow: 0 4px 14px rgba(108,63,200,0.35);
+          }
+          .param-weekly-custom:focus-within {
+            border-color: #6C3FC8 !important;
+            background: #F8F7FF !important;
+          }
+        `}</style>
+
+        {!goalLoaded ? (
+          <div
+            style={{
+              padding: 28,
+              textAlign: "center",
+              fontSize: 13,
+              color: "var(--foreground-muted)",
+            }}
+          >
+            Chargement…
+          </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div
+              style={{
+                padding: "20px 22px 18px",
+                borderBottom: `0.5px solid ${BORDER_TERTIARY}`,
+                display: "flex",
+                alignItems: "center",
+                gap: 14,
+              }}
+            >
+              <div
+                className="flex shrink-0 items-center justify-center"
+                style={{
+                  width: 42,
+                  height: 42,
+                  borderRadius: 12,
+                  background: "#6C3FC8",
+                }}
+              >
+                <Clock size={20} stroke="white" strokeWidth={2} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p
+                  style={{
+                    fontSize: 15,
+                    fontWeight: 500,
+                    color: "var(--foreground)",
+                  }}
+                >
+                  Objectif hebdomadaire
+                </p>
+                <p
+                  style={{
+                    fontSize: 12,
+                    color: "var(--foreground-muted)",
+                    marginTop: 2,
+                    lineHeight: 1.35,
+                  }}
+                >
+                  Combien de mots veux-tu maîtriser cette semaine ?
+                </p>
+              </div>
+              <div
+                className="shrink-0"
+                style={{
+                  background: "#F0EDF8",
+                  borderRadius: 20,
+                  padding: "5px 12px",
+                  fontSize: 12,
+                  fontWeight: 500,
+                  color: "#6C3FC8",
+                }}
+              >
+                {weeklyGoal} mots / sem.
+              </div>
+            </div>
+
+            {/* Hero */}
+            <div
+              style={{
+                padding: "28px 22px 0",
+                display: "flex",
+                alignItems: "center",
+                gap: 20,
+              }}
+            >
+              <div className="min-w-0 flex-1">
+                <p
+                  style={{
+                    fontSize: 64,
+                    fontWeight: 500,
+                    color: "#6C3FC8",
+                    lineHeight: 1,
+                    letterSpacing: "-2px",
+                  }}
+                >
+                  {weeklyGoal}
+                </p>
+                <p
+                  style={{
+                    fontSize: 14,
+                    color: "var(--foreground-muted)",
+                    marginTop: 4,
+                  }}
+                >
+                  mots par semaine
+                </p>
+              </div>
+              <div
+                className="flex shrink-0 flex-col items-end"
+                style={{ gap: 8 }}
+              >
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    padding: "5px 14px",
+                    borderRadius: 20,
+                    background: levelInfo.pillBg,
+                    color: levelInfo.pillColor,
+                  }}
+                >
+                  {levelInfo.label}
+                </span>
+                <div
+                  className="flex items-center gap-1"
+                  style={{ color: "var(--foreground-muted)", fontSize: 12 }}
+                >
+                  <Clock size={11} stroke="currentColor" strokeWidth={2} />
+                  <span>{levelInfo.time}</span>
+                </div>
+                <div className="flex items-center gap-1" style={{ color: "#1D9E75" }}>
+                  <Activity size={11} stroke="#1D9E75" strokeWidth={2} />
+                  <span style={{ fontSize: 11, fontWeight: 500 }}>
+                    ~{(weeklyGoal * 52).toLocaleString("fr-FR")} mots / an
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Slider */}
+            <div style={{ padding: "24px 22px 8px" }}>
+              <div
+                style={{
+                  position: "relative",
+                  height: 26,
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    right: 0,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    height: 8,
+                    borderRadius: 4,
+                    background: "#F0EDF8",
+                  }}
+                />
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    height: 8,
+                    borderRadius: 4,
+                    width: `${sliderFillPct}%`,
+                    background: "linear-gradient(to right, #9B6EE8, #6C3FC8)",
+                    transition: "width 60ms ease",
+                    pointerEvents: "none",
+                  }}
+                />
+                <input
+                  type="range"
+                  className="lexiva-weekly-range"
+                  min={WEEKLY_GOAL_MIN}
+                  max={WEEKLY_GOAL_MAX}
+                  step={WEEKLY_GOAL_STEP}
+                  value={weeklyGoal}
+                  onChange={(e) =>
+                    setWeeklyGoal(snapWeeklyGoal(Number(e.target.value)))
+                  }
+                  aria-label="Objectif hebdomadaire en mots"
+                  style={{ position: "relative", zIndex: 1 }}
+                />
+              </div>
+
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: 12,
+                  marginBottom: 4,
+                }}
+              >
+                {SLIDER_MARKERS.map(({ v, sub }) => {
+                  const active = weeklyGoal >= v;
+                  return (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setWeeklyGoal(v)}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        cursor: "pointer",
+                        padding: 0,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 4,
+                        flex: 1,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 1,
+                          height: active ? 10 : 8,
+                          background: active ? "#6C3FC8" : "var(--border)",
+                          borderRadius: 1,
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: active ? 13 : 12,
+                          fontWeight: active ? 500 : 400,
+                          color: active ? "#6C3FC8" : "var(--foreground-muted)",
+                        }}
+                      >
+                        {v}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: 10,
+                          color: "var(--foreground-muted)",
+                        }}
+                      >
+                        {sub}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Stats */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 10,
+                padding: "20px 22px 0",
+              }}
+            >
+              <div
+                style={{
+                  background: "#F8F7FF",
+                  borderRadius: 12,
+                  padding: 12,
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  className="mx-auto mb-2 flex items-center justify-center"
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 7,
+                    background: "#F0EDF8",
+                  }}
+                >
+                  <Calendar size={14} stroke="#6C3FC8" strokeWidth={2} />
+                </div>
+                <p
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 500,
+                    color: "var(--foreground)",
+                  }}
+                >
+                  {Math.ceil(weeklyGoal / 7)}
+                </p>
+                <p
+                  style={{
+                    fontSize: 10,
+                    color: "var(--foreground-muted)",
+                    marginTop: 2,
+                  }}
+                >
+                  mots par jour
+                </p>
+              </div>
+              <div
+                style={{
+                  background: "#F8F7FF",
+                  borderRadius: 12,
+                  padding: 12,
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  className="mx-auto mb-2 flex items-center justify-center"
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 7,
+                    background: "#FEF3DC",
+                  }}
+                >
+                  <Zap size={14} stroke="#F5A623" strokeWidth={2} />
+                </div>
+                <p
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 500,
+                    color: "var(--foreground)",
+                  }}
+                >
+                  {Math.ceil((weeklyGoal / 7) * 1.5)} min
+                </p>
+                <p
+                  style={{
+                    fontSize: 10,
+                    color: "var(--foreground-muted)",
+                    marginTop: 2,
+                  }}
+                >
+                  min estimées / jour
+                </p>
+              </div>
+              <div
+                style={{
+                  background: "#F8F7FF",
+                  borderRadius: 12,
+                  padding: 12,
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  className="mx-auto mb-2 flex items-center justify-center"
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: 7,
+                    background: "#EAF4EF",
+                  }}
+                >
+                  <Activity size={14} stroke="#1D9E75" strokeWidth={2} />
+                </div>
+                <p
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 500,
+                    color: "var(--foreground)",
+                  }}
+                >
+                  {(weeklyGoal * 52).toLocaleString("fr-FR")}
+                </p>
+                <p
+                  style={{
+                    fontSize: 10,
+                    color: "var(--foreground-muted)",
+                    marginTop: 2,
+                  }}
+                >
+                  mots maîtrisés / an
+                </p>
+              </div>
+            </div>
+
+            {/* Aperçu semaine */}
+            <div style={{ padding: "20px 22px 0" }}>
+              <p
+                style={{
+                  fontSize: 11,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.04em",
+                  color: "var(--foreground-muted)",
+                  marginBottom: 10,
+                }}
+              >
+                Répartition suggérée
+              </p>
+              <div
+                style={{
+                  height: 52,
+                  display: "flex",
+                  alignItems: "flex-end",
+                  gap: 8,
+                }}
+              >
+                {WEEK_PREVIEW.map(({ label, pct, dow }) => {
+                  const isToday = todayDow === dow;
+                  const h = Math.max(
+                    3,
+                    (weeklyGoal / WEEKLY_GOAL_MAX) * 52 * (pct / 20)
+                  );
+                  return (
+                    <div
+                      key={label}
+                      className="flex min-w-0 flex-1 flex-col items-center justify-end"
+                      style={{ height: 52 }}
+                    >
+                      <div
+                        style={{
+                          width: "100%",
+                          maxWidth: 40,
+                          height: h,
+                          borderRadius: "5px 5px 0 0",
+                          background: isToday ? "#6C3FC8" : "#DDD6F5",
+                          transition:
+                            "height 350ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 9,
+                          color: "var(--foreground-muted)",
+                          marginTop: 4,
+                        }}
+                      >
+                        {label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Personnalisé */}
+            <div style={{ padding: "16px 22px 0" }}>
+              <div
+                className="param-weekly-custom flex items-center gap-3"
+                style={{
+                  border: `1.5px solid ${BORDER_TERTIARY}`,
+                  borderRadius: 12,
+                  padding: "11px 14px",
+                }}
+              >
+                <div
+                  className="flex shrink-0 items-center justify-center"
+                  style={{
+                    width: 30,
+                    height: 30,
+                    background: "#F0EDF8",
+                    borderRadius: 8,
+                  }}
+                >
+                  <Pencil size={14} stroke="#6C3FC8" strokeWidth={2} />
+                </div>
+                <span
+                  className="min-w-0 flex-1"
+                  style={{ fontSize: 12, color: "var(--foreground-muted)" }}
+                >
+                  Valeur personnalisée
+                </span>
+                <input
+                  type="number"
+                  min={WEEKLY_GOAL_MIN}
+                  max={WEEKLY_GOAL_MAX}
+                  step={WEEKLY_GOAL_STEP}
+                  value={weeklyGoal}
+                  onChange={(e) => {
+                    const n = Number(e.target.value);
+                    if (Number.isNaN(n)) return;
+                    setWeeklyGoal(snapWeeklyGoal(n));
+                  }}
+                  style={{
+                    width: 52,
+                    fontSize: 16,
+                    fontWeight: 500,
+                    color: "#6C3FC8",
+                    textAlign: "center",
+                    border: "none",
+                    background: "transparent",
+                    padding: 0,
+                  }}
+                  aria-label="Valeur personnalisée mots par semaine"
+                />
+                <span
+                  className="shrink-0"
+                  style={{ fontSize: 11, color: "var(--foreground-muted)" }}
+                >
+                  mots / sem.
+                </span>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div
+              style={{
+                padding: "20px 22px",
+                display: "flex",
+                gap: 10,
+              }}
+            >
+              <button
+                type="button"
+                onClick={cancelWeeklyGoalDraft}
+                disabled={goalSaving}
+                className="flex-1"
+                style={{
+                  border: "1.5px solid var(--border)",
+                  background: "transparent",
+                  color: "var(--foreground-muted)",
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 13,
+                  cursor: "pointer",
+                }}
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                onClick={persistWeeklyGoal}
+                disabled={goalSaving}
+                className="flex flex-[2] items-center justify-center gap-2 border-0 text-white"
+                style={{
+                  background: "#6C3FC8",
+                  borderRadius: 12,
+                  padding: 12,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  cursor: "pointer",
+                }}
+              >
+                <Check size={13} stroke="white" strokeWidth={2.5} />
+                Enregistrer l&apos;objectif
+              </button>
+            </div>
+          </>
         )}
       </div>
 

@@ -2,7 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { Zap, ArrowRight } from "lucide-react";
 import { ProfesseurSM2Modal } from "@/components/professeur-sm2-modal";
+import WeeklyGoal from "@/components/WeeklyGoal";
 
 type StreakData = { currentStreak: number; longestStreak: number };
 type Stats = {
@@ -83,59 +85,141 @@ export function DashboardClient() {
         ? "Tu progresses — continue comme ça."
         : "Tu es dans le rythme — ne lâche pas.";
 
+  const streakBorderTertiary = "rgba(108, 63, 200, 0.14)";
+
   return (
     <div className="flex flex-col gap-[10px] bg-[var(--background)]">
-      {/* Bannière Streak */}
-      <section className="rounded-[10px] border border-[var(--border)] bg-[var(--background-card)] p-4">
-        <div className="mb-3 flex items-start gap-4">
-          <div className="shrink-0">
-            <p className="text-[38px] font-medium leading-none text-[var(--foreground)]">
-              {displayStreak}
-            </p>
-            <p className="mt-0.5 text-[11px] text-[var(--foreground)]">
-              jour{s !== 1 ? "s" : ""} d&apos;affilée
-            </p>
-          </div>
-
-          <div className="flex-1 pt-1">
-            <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
-              {streakMessage}
-            </p>
-            <p className="mt-0.5 text-[12px] text-[var(--foreground-muted)]">
-              {dueCount} mot{dueCount !== 1 ? "s" : ""} à revoir
-              aujourd&apos;hui
-            </p>
-          </div>
-        </div>
-
-        <Link
-          href="/app/revision/express"
-          onClick={() => { if (navigator.vibrate) navigator.vibrate(10); }}
-          className="flex items-center justify-between revision-express-text no-underline transition hover:brightness-95"
+      <div
+        className="grid grid-cols-1 md:grid-cols-2"
+        style={{ gap: 12, marginBottom: 12 }}
+      >
+        {/* Carte streak */}
+        <section
+          className="relative flex min-h-0 min-w-0 flex-col overflow-hidden"
           style={{
-            background: "#F5A623",
-            borderRadius: 8,
-            padding: "11px 16px",
+            gap: 10,
+            background: "#FFFFFF",
+            borderRadius: 14,
+            border: `0.5px solid ${streakBorderTertiary}`,
+            padding: 16,
           }}
         >
-          <div className="flex items-center gap-2.5">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-            </svg>
+          <div
+            aria-hidden
+            style={{
+              position: "absolute",
+              bottom: -18,
+              right: -18,
+              width: 70,
+              height: 70,
+              borderRadius: "50%",
+              background: "#F5A623",
+              opacity: 0.07,
+            }}
+          />
+
+          <div
+            className="relative z-[1] flex justify-between"
+            style={{ alignItems: "flex-start" }}
+          >
             <div>
-              <p className="leading-tight text-[13px] font-medium revision-express-text">
-                Révision express
+              <p
+                style={{
+                  fontSize: 42,
+                  fontWeight: 500,
+                  color: "#F5A623",
+                  lineHeight: 1,
+                }}
+              >
+                {displayStreak}
               </p>
-              <p className="leading-tight text-[11px] revision-express-text opacity-80">
-                5 min · 10 mots · basé sur SM-2
+              <p
+                style={{
+                  fontSize: 11,
+                  color: "var(--foreground-muted)",
+                  marginTop: 4,
+                }}
+              >
+                jour{s !== 1 ? "s" : ""} d&apos;affilée
               </p>
             </div>
+            <span style={{ fontSize: 22 }} aria-hidden>
+              🔥
+            </span>
           </div>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M9 18l6-6-6-6" />
-          </svg>
-        </Link>
-      </section>
+
+          <div className="relative z-[1] space-y-1">
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--foreground-muted)",
+                lineHeight: 1.5,
+              }}
+            >
+              {streakMessage}
+            </p>
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--foreground-muted)",
+                lineHeight: 1.5,
+              }}
+            >
+              {dueCount} mot{dueCount !== 1 ? "s" : ""} à revoir aujourd&apos;hui
+            </p>
+          </div>
+
+          <Link
+            href="/app/revision/express"
+            onClick={() => {
+              if (navigator.vibrate) navigator.vibrate(10);
+            }}
+            className="relative z-[1] flex cursor-pointer items-center justify-between no-underline transition hover:brightness-95"
+            style={{
+              background: "#F5A623",
+              borderRadius: 10,
+              padding: "8px 12px",
+            }}
+          >
+            <div className="flex flex-col gap-0.5">
+              <div className="flex items-center gap-1.5" style={{ gap: 6 }}>
+                <Zap
+                  className="h-[11px] w-[11px] shrink-0 text-white"
+                  strokeWidth={2.2}
+                  aria-hidden
+                />
+                <span
+                  style={{
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: "#FFFFFF",
+                  }}
+                >
+                  Révision express
+                </span>
+              </div>
+              <p
+                style={{
+                  fontSize: 10,
+                  color: "rgba(255,255,255,0.8)",
+                  paddingLeft: 17,
+                }}
+              >
+                5 min · 10 mots · SM-2
+              </p>
+            </div>
+            <ArrowRight
+              className="h-[13px] w-[13px] shrink-0 text-white"
+              strokeWidth={2.2}
+              aria-hidden
+            />
+          </Link>
+        </section>
+
+        <div className="min-h-0 min-w-0">
+          <WeeklyGoal />
+        </div>
+      </div>
 
       <button
         type="button"
