@@ -4,11 +4,12 @@ import { DashboardClient } from "./dashboard-client";
 export default async function AppDashboardPage() {
   const user = await getUser();
   const role = user?.role;
-  const isStudent = role === "etudiant";
+  const canSeeDashboard =
+    role === "etudiant" || role === "student" || role === "creator";
 
   return (
     <div className="mx-auto max-w-[1100px] bg-[var(--background)]">
-      {isStudent && <DashboardClient />}
+      {canSeeDashboard && <DashboardClient />}
     </div>
   );
 }
