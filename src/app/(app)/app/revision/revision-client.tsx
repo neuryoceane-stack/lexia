@@ -2,6 +2,16 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import {
+  X,
+  Check,
+  RotateCcw,
+  ArrowRight,
+  ChevronDown,
+  Volume2,
+  RefreshCw,
+  Clock,
+} from "lucide-react";
 import SessionEndScreen from "@/components/student/SessionEndScreen";
 import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
@@ -25,6 +35,9 @@ type DueWord = { id: string; listId: string; term: string; definition: string };
 
 type Mode = "flashcard" | "dictee";
 type Direction = "term_to_def" | "def_to_term";
+
+/** Flux dictée : saisie → erreur (réessai / révéler) → révélé (Continuer) ou correct (Mot suivant). */
+type DicteePhase = "typing" | "wrong_unrevealed" | "revealed_fail" | "correct_feedback";
 
 function normalizeForCompare(s: string): string {
   return s
@@ -80,21 +93,21 @@ export function RevisionClient({
   const [sessionTotalWords, setSessionTotalWords] = useState(0);
   const [wordsSeen, setWordsSeen] = useState(0);
   const [wordsRetained, setWordsRetained] = useState(0);
+  /** Compteur « Oui ! » (lexivaFlash 5) pour la barre de session flashcards. */
+  const [flashOuiCount, setFlashOuiCount] = useState(0);
   const [wordsWritten, setWordsWritten] = useState(0);
   const [laterWords, setLaterWords] = useState<DueWord[]>([]);
   const [writeAnswer, setWriteAnswer] = useState("");
-  const [writeResult, setWriteResult] = useState<"correct" | "wrong" | null>(null);
-  const [writeRevealed, setWriteRevealed] = useState(false);
+  const [dicteePhase, setDicteePhase] = useState<DicteePhase>("typing");
+  const [dicteeHadRetry, setDicteeHadRetry] = useState(false);
+  const [lastWrongAnswer, setLastWrongAnswer] = useState("");
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   /** Langues détectées sur la liste (term / definition) pour l’écran « Sens de la dictée ». */
   const [directionLanguages, setDirectionLanguages] = useState<{
     termLang: string;
     defLang: string;
   } | null>(null);
-  const touchStartX = useRef(0);
   const hasSavedEndOfSession = useRef(false);
-  /** Évite de déclencher « révéler » au clic quand on vient de faire un swipe (flashcard). */
-  const didSwipeRef = useRef(false);
   /** Champ de saisie dictée : focus automatique après validation ou « Réessayer ». */
   const dicteeInputRef = useRef<HTMLInputElement>(null);
   const [showEndRecap, setShowEndRecap] = useState(false);
@@ -170,14 +183,23 @@ export function RevisionClient({
       .catch(() => setMemoTip(""));
   }, [current?.id]);
 
-  /** En dictée : remettre le focus sur le champ de saisie après validation (mot suivant) ou après « Réessayer ». */
+  /** En dictée : focus sur le champ en phase saisie (y compris après « Réessayer »). */
   useEffect(() => {
-    if (mode !== "dictee" || !current || writeResult !== null) return;
+    if (mode !== "dictee" || !current || dicteePhase !== "typing") return;
     const t = requestAnimationFrame(() => {
       dicteeInputRef.current?.focus();
     });
     return () => cancelAnimationFrame(t);
-  }, [mode, current?.id, writeResult]);
+  }, [mode, current?.id, dicteePhase]);
+
+  /** Nouveau mot dictée : réinitialiser le flux local. */
+  useEffect(() => {
+    if (mode !== "dictee" || !current?.id) return;
+    setDicteePhase("typing");
+    setDicteeHadRetry(false);
+    setLastWrongAnswer("");
+    setWriteAnswer("");
+  }, [mode, current?.id]);
 
   /** Détecte les langues réelles (term / definition) de la première liste sélectionnée pour afficher les bons drapeaux. */
   useEffect(() => {
@@ -292,10 +314,12 @@ export function RevisionClient({
     setSessionStart(Date.now());
     setWordsSeen(0);
     setWordsRetained(0);
+    setFlashOuiCount(0);
     setWordsWritten(0);
     setWriteAnswer("");
-    setWriteResult(null);
-    setWriteRevealed(false);
+    setDicteePhase("typing");
+    setDicteeHadRetry(false);
+    setLastWrongAnswer("");
     hasSavedEndOfSession.current = false;
     setShowEndRecap(false);
   }, []);
@@ -330,43 +354,11 @@ export function RevisionClient({
     loadSessionWords();
   }, [selectedListIds, loadSessionWords]);
 
-  /** En dictée : envoie { wordId, success }. Utilisé uniquement en mode dictée. */
-  async function recordReview(success: boolean) {
-    if (!current || sending) return;
-    const isFlashcard = mode === "flashcard";
-    setSending(true);
-    setError("");
-    try {
-      const res = await fetch("/api/revision", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wordId: current.id, success }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(data.error ?? "Erreur enregistrement");
-        setSending(false);
-        return;
-      }
-      setWordsSeen((n) => n + 1);
-      if (success) setWordsRetained((n) => n + 1);
-      if (isFlashcard && !success) {
-        setWords((prev) => {
-          const rest = prev.filter((w) => w.id !== current.id);
-          return [...rest, current];
-        });
-      } else {
-        setWords((prev) => prev.filter((w) => w.id !== current.id));
-      }
-      setRevealed(false);
-      setIndex(0);
-    } finally {
-      setSending(false);
-    }
-  }
-
-  /** En flashcard : envoie { wordId, rating } (SM-2). 0=oublié, 1=difficile, 2=bien, 3=parfait. */
-  async function recordReviewRating(rating: 0 | 1 | 2 | 3) {
+  /**
+   * Dictée : SM-2 via rating API (0–3). Premier essai réussi → 3 (parfait) ;
+   * après réessai → 2 (bien) ; échec / révélé / « je ne sais pas » → 0.
+   */
+  async function recordDicteeCompletion(rating: 0 | 2 | 3) {
     if (!current || sending) return;
     const success = rating >= 2;
     setSending(true);
@@ -385,8 +377,44 @@ export function RevisionClient({
       }
       setWordsSeen((n) => n + 1);
       if (success) setWordsRetained((n) => n + 1);
+      setWordsWritten((n) => n + 1);
+      setWords((prev) => prev.filter((w) => w.id !== current.id));
+      setWriteAnswer("");
+      setDicteePhase("typing");
+      setDicteeHadRetry(false);
+      setLastWrongAnswer("");
+      setIndex(0);
+    } finally {
+      setSending(false);
+    }
+  }
 
-      if (rating === 0 || rating === 1) {
+  /**
+   * Flashcards Lexiva : échelle affichée 1 / 3 / 5 → API `lexivaFlash` → SM-2 (1, 2, 3).
+   */
+  async function recordFlashcardLexivaRating(lexivaFlash: 1 | 3 | 5) {
+    if (!current || sending) return;
+    const sm2Rating = lexivaFlash === 5 ? 3 : lexivaFlash === 3 ? 2 : 1;
+    const success = sm2Rating >= 2;
+    setSending(true);
+    setError("");
+    try {
+      const res = await fetch("/api/revision", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wordId: current.id, lexivaFlash }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Erreur enregistrement");
+        setSending(false);
+        return;
+      }
+      setWordsSeen((n) => n + 1);
+      if (success) setWordsRetained((n) => n + 1);
+      if (lexivaFlash === 5) setFlashOuiCount((n) => n + 1);
+
+      if (lexivaFlash === 1) {
         setMemoWordId(current.id);
         setMemoInput(memoTip);
         setShowMemoInput(true);
@@ -435,6 +463,34 @@ export function RevisionClient({
     setWords([]);
     setSessionStart(null);
     goToPicker(true);
+  }
+
+  /** Sauvegarde la session puis navigation vers l’évaluation (sans modifier les autres routes). */
+  async function saveSessionAndNavigateToEvaluation() {
+    if (sessionStart) {
+      const endedAt = Date.now();
+      const durationSeconds = Math.round((endedAt - sessionStart) / 1000);
+      const lang =
+        lists.find((l) => selectedListIds.has(l.id))?.language ?? null;
+      await fetch("/api/revision/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode,
+          direction,
+          language: lang ?? undefined,
+          startedAt: new Date(sessionStart).toISOString(),
+          endedAt: new Date(endedAt).toISOString(),
+          durationSeconds,
+          wordsSeen,
+          wordsRetained,
+          wordsWritten,
+        }),
+      });
+    }
+    setWords([]);
+    setSessionStart(null);
+    router.push("/app/evaluation");
   }
 
   const selectedLang = selectedListIds.size > 0
@@ -510,9 +566,6 @@ export function RevisionClient({
       );
     }
 
-    const doneCount = sessionTotalWords - words.length;
-    const progressLabel = `${Math.min(doneCount + 1, sessionTotalWords)} / ${sessionTotalWords}`;
-
     const sessionLangTerm =
       directionLanguages?.termLang ?? selectedLang ?? preferredLanguages[0] ?? "en";
     const sessionLangDef =
@@ -550,428 +603,844 @@ export function RevisionClient({
     );
 
     if (mode === "flashcard") {
-      const handleSwipe = (success: boolean) => {
-        if (!current || sending) return;
-        didSwipeRef.current = true;
-        recordReviewRating(success ? 2 : 0);
-      };
+      const flashWordsDone = sessionTotalWords - words.length;
+      const flashProgressPct =
+        sessionTotalWords > 0
+          ? Math.min(100, (flashWordsDone / sessionTotalWords) * 100)
+          : 0;
+      const flashSlotLabel = `${Math.min(flashWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
 
-      const handlePointerDown = (e: React.PointerEvent) => {
-        touchStartX.current = e.clientX;
-        didSwipeRef.current = false;
-      };
+      const revealHint =
+        direction === "term_to_def"
+          ? "Appuie pour révéler la traduction"
+          : "Appuie pour révéler le mot";
 
-      const handlePointerUp = (e: React.PointerEvent) => {
-        const diff = e.clientX - touchStartX.current;
-        if (Math.abs(diff) < 10) return;
-        if (diff < -60) {
-          handleSwipe(false);
-        } else if (diff > 60) {
-          handleSwipe(true);
-        }
-      };
+      const borderTertiaryFlash = "rgba(108, 63, 200, 0.14)";
 
-      const onCardClick = () => {
-        if (didSwipeRef.current) return;
-        setRevealed((r) => !r);
+      const flipCard = () => {
+        if (!sending) setRevealed(true);
       };
 
       return (
-        <div className="flex min-h-[50vh] flex-col">
-          <div className="mb-4 flex items-center justify-between">
-            <BackLink
-              href={pickerPath}
-              onClick={() => {
-                void saveSessionAndGoBack();
-              }}
-            />
-            <span className="text-sm text-[var(--foreground-muted)]">
-              {progressLabel}
-            </span>
-          </div>
+        <div
+          className="flex min-h-[50vh] flex-col"
+          style={{ background: "#F8F7FF" }}
+        >
+          {error ? (
+            <p
+              className="mb-3 rounded-xl px-3 py-2 text-sm text-red-700"
+              style={{ background: "#FCEBEB" }}
+              role="alert"
+            >
+              {error}
+            </p>
+          ) : null}
 
-          {/* Carte : mot puis traduction au tap / bouton Révéler */}
-          <div className="flex flex-1 flex-col">
-            {current && (
+          <div className="flex items-center" style={{ marginBottom: 24, gap: 12 }}>
+            <button
+              type="button"
+              onClick={() => {
+                void saveSessionAndNavigateToEvaluation();
+              }}
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0"
+              style={{
+                fontSize: 12,
+                color: "var(--foreground-muted)",
+              }}
+            >
+              <X className="h-3 w-3 shrink-0" aria-hidden />
+              Quitter
+            </button>
+
+            <div className="min-w-0 flex-1">
               <div
-                className="touch-pan-y select-none rounded-2xl border-2 border-[var(--border)] bg-[var(--background-card)] p-8 shadow-lg"
-                style={{ touchAction: "pan-y" }}
-                onClick={(e) => {
-                  if (e.target === e.currentTarget) {
-                    onCardClick();
-                  }
-                }}
-                onPointerDown={handlePointerDown}
-                onPointerUp={handlePointerUp}
-                onKeyDown={(e) => {
-                  if (e.key === " ") {
-                    e.preventDefault();
-                    setRevealed((r) => !r);
-                  }
-                  if (e.key === "ArrowRight") handleSwipe(true);
-                  if (e.key === "ArrowLeft") handleSwipe(false);
+                className="overflow-hidden"
+                style={{
+                  height: 6,
+                  background: "var(--background-subtle)",
+                  borderRadius: 3,
                 }}
               >
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onCardClick();
+                <div
+                  style={{
+                    height: "100%",
+                    width: `${flashProgressPct}%`,
+                    background: "#6C3FC8",
+                    borderRadius: 3,
+                    transition: "width 400ms ease",
                   }}
-                  className="block w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded-xl"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <p className="text-center text-2xl font-semibold text-[var(--foreground)]">
+                />
+              </div>
+              <p
+                className="mt-1 text-right"
+                style={{
+                  fontSize: 11,
+                  color: "var(--foreground-muted)",
+                  marginTop: 4,
+                }}
+              >
+                {flashSlotLabel}
+              </p>
+            </div>
+
+            <div
+              className="flex shrink-0 items-center gap-[5px]"
+              style={{
+                background: "#EAF4EF",
+                borderRadius: 10,
+                padding: "5px 10px",
+              }}
+            >
+              <Check
+                className="h-3 w-3 shrink-0"
+                stroke="#1D9E75"
+                aria-hidden
+              />
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#1D9E75" }}>
+                {flashOuiCount}
+              </span>
+              <span style={{ fontSize: 11, color: "#1D9E75" }}>bons</span>
+            </div>
+          </div>
+
+          {current ? (
+            <div className="flex flex-1 flex-col">
+              {!revealed ? (
+                <>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={flipCard}
+                    onKeyDown={(e) => {
+                      if (e.key === " " || e.key === "Enter") {
+                        e.preventDefault();
+                        flipCard();
+                      }
+                    }}
+                    className="relative cursor-pointer transition-transform duration-150 ease-out hover:-translate-y-0.5"
+                    style={{
+                      background: "#FFFFFF",
+                      borderRadius: 20,
+                      borderWidth: 0.5,
+                      borderStyle: "solid",
+                      borderColor: borderTertiaryFlash,
+                      padding: "48px 24px",
+                      marginBottom: 20,
+                      textAlign: "center",
+                      minHeight: 200,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 12,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        speakWord(displayText, displayLang);
+                      }}
+                      className="absolute flex items-center justify-center rounded-full"
+                      style={{
+                        top: 12,
+                        right: 12,
+                        width: 32,
+                        height: 32,
+                        background: "#F0EDF8",
+                        border: "0.5px solid #DDD6F5",
+                      }}
+                      aria-label="Écouter le mot affiché"
+                    >
+                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#6C3FC8]" />
+                    </button>
+                    {memoTip ? (
+                      <div
+                        className="max-w-full rounded-lg px-3 py-2"
+                        style={{
+                          border: "1px solid rgba(245, 166, 35, 0.35)",
+                          background: "rgba(245, 166, 35, 0.1)",
+                        }}
+                      >
+                        <p
+                          className="text-left text-xs"
+                          style={{ color: "#b8750f" }}
+                        >
+                          💡 <span className="font-medium">Astuce :</span>{" "}
+                          {memoTip}
+                        </p>
+                      </div>
+                    ) : null}
+                    <p
+                      style={{
+                        fontSize: 40,
+                        fontWeight: 500,
+                        color: "var(--foreground)",
+                        lineHeight: 1.2,
+                      }}
+                    >
                       {displayText}
                     </p>
-                    <SpeakButton
-                      text={displayText}
-                      lang={displayLang}
-                      className="self-center"
-                      stopPropagation
-                    />
+                    <div
+                      className="flex items-center justify-center gap-[5px]"
+                      style={{
+                        fontSize: 12,
+                        color: "var(--foreground-muted)",
+                      }}
+                    >
+                      <ChevronDown
+                        className="h-[11px] w-[11px] shrink-0 opacity-80"
+                        aria-hidden
+                      />
+                      {revealHint}
+                    </div>
                   </div>
-                </button>
-                {memoTip && (
-                  <div className="mt-3 rounded-lg border border-[#F5A623]/30 bg-[#F5A623]/10 px-3 py-2 dark:border-[#F5A623]/40 dark:bg-[#F5A623]/15">
-                    <p className="text-xs text-[#b8750f] dark:text-[#f0c060]">
-                      💡 <span className="font-medium">Astuce :</span> {memoTip}
+                  <button
+                    type="button"
+                    onClick={flipCard}
+                    disabled={sending}
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 border-0 text-white disabled:opacity-50"
+                    style={{
+                      background: "#6C3FC8",
+                      borderRadius: 12,
+                      padding: 13,
+                      fontSize: 14,
+                      fontWeight: 500,
+                      gap: 8,
+                    }}
+                  >
+                    <RefreshCw className="h-3.5 w-3.5 shrink-0 text-white" />
+                    Retourner la carte
+                  </button>
+                </>
+              ) : (
+                <>
+                  <div
+                    className="relative"
+                    style={{
+                      background: "#F0EDF8",
+                      borderRadius: 20,
+                      borderWidth: 1.5,
+                      borderStyle: "solid",
+                      borderColor: "#DDD6F5",
+                      padding: "32px 24px",
+                      marginBottom: 20,
+                      textAlign: "center",
+                      minHeight: 200,
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        speakWord(answerText || "", answerLang);
+                      }}
+                      className="absolute flex items-center justify-center rounded-full"
+                      style={{
+                        top: 12,
+                        right: 12,
+                        width: 32,
+                        height: 32,
+                        background: "rgba(108,63,200,0.12)",
+                        border: "0.5px solid rgba(108,63,200,0.2)",
+                      }}
+                      aria-label="Écouter la traduction"
+                    >
+                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#6C3FC8]" />
+                    </button>
+                    <p
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 500,
+                        color: "#6C3FC8",
+                      }}
+                    >
+                      {displayText}
                     </p>
-                  </div>
-                )}
-                {revealed ? (
-                  <div className="mt-6 flex items-center justify-center gap-2 border-t border-[var(--border)] pt-6">
-                    <p className="text-center text-lg text-[var(--foreground-muted)]">
+                    <div
+                      style={{
+                        width: 40,
+                        height: 1,
+                        background: "#DDD6F5",
+                        margin: "4px auto",
+                      }}
+                    />
+                    <p
+                      style={{
+                        fontSize: 32,
+                        fontWeight: 500,
+                        color: "var(--foreground)",
+                      }}
+                    >
                       {answerText || "—"}
                     </p>
-                    <SpeakButton text={answerText || ""} lang={answerLang} />
                   </div>
-                ) : (
-                  <div className="mt-6 flex justify-center">
+
+                  <div className="flex w-full" style={{ gap: 10 }}>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setRevealed(true);
+                      disabled={sending}
+                      onClick={() => void recordFlashcardLexivaRating(1)}
+                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 bg-transparent disabled:opacity-50"
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        padding: 13,
+                        borderRadius: 12,
+                        border: "1.5px solid #F09595",
+                        color: "#E24B4A",
                       }}
-                      style={{ touchAction: "manipulation", cursor: "pointer" }}
-                      className="rounded-xl border-2 border-dashed border-[var(--input-border)] bg-[var(--background-subtle)] px-4 py-2 text-sm font-medium text-[var(--foreground-muted)] hover:border-primary hover:bg-primary/5 hover:text-primary dark:hover:border-primary-light dark:hover:bg-primary/10"
                     >
-                      Révéler la traduction
+                      <X className="h-3 w-3 shrink-0 text-[#E24B4A]" />
+                      Non
+                    </button>
+                    <button
+                      type="button"
+                      disabled={sending}
+                      onClick={() => void recordFlashcardLexivaRating(3)}
+                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 bg-transparent disabled:opacity-50"
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        padding: 13,
+                        borderRadius: 12,
+                        border: "1.5px solid #F5D08A",
+                        color: "#C47D0A",
+                      }}
+                    >
+                      <Clock className="h-3 w-3 shrink-0 text-[#C47D0A]" />
+                      Presque
+                    </button>
+                    <button
+                      type="button"
+                      disabled={sending}
+                      onClick={() => void recordFlashcardLexivaRating(5)}
+                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 border-0 text-white disabled:opacity-50"
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        padding: 13,
+                        borderRadius: 12,
+                        background: "#1D9E75",
+                      }}
+                    >
+                      <Check className="h-3 w-3 shrink-0 text-white" />
+                      Oui !
                     </button>
                   </div>
-                )}
-              </div>
-            )}
+                </>
+              )}
 
-            {/* En bas : 4 boutons SM-2 quand révélé, sinon swipe hint ; swipe droite=2, gauche=0 */}
-            {current && (
-              <div className="mt-6 flex flex-wrap items-center gap-3">
-                <span className="text-xs text-[var(--foreground-disabled)] sm:mr-auto">
-                  {revealed
-                    ? "Comment s'est passée la révision ?"
-                    : "Swipe droite = bien · gauche = oublié"}
-                </span>
-                {revealed ? (
-                  <>
+              {showMemoInput && (
+                <div className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 p-4 dark:border-[#6C3FC8]/30 dark:bg-[#6C3FC8]/10">
+                  <p className="mb-2 text-sm font-medium text-[#6C3FC8] dark:text-[#a78bfa]">
+                    💡 Ajoute une astuce mémo{" "}
+                    <span className="font-normal text-[var(--foreground-muted)]">
+                      (optionnel)
+                    </span>
+                  </p>
+                  <textarea
+                    value={memoInput}
+                    onChange={(e) => setMemoInput(e.target.value)}
+                    placeholder="Une image mentale, une association, un moyen mnémotechnique…"
+                    rows={2}
+                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)] focus:border-[#6C3FC8] focus:outline-none focus:ring-1 focus:ring-[#6C3FC8]"
+                  />
+                  <div className="mt-2 flex gap-2">
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(0);
+                      onClick={async () => {
+                        setMemoLoading(true);
+                        await fetch("/api/memo-tip", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            wordId: memoWordId,
+                            tip: memoInput.trim(),
+                          }),
+                        }).catch(() => {});
+                        setMemoTip(memoInput.trim());
+                        setMemoLoading(false);
+                        setShowMemoInput(false);
                       }}
-                      disabled={sending}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(0);
-                      }}
-                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
-                      className="flex items-center gap-2 rounded-lg border-2 border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 dark:border-red-800 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/30"
-                      aria-label="Oublié"
+                      disabled={memoLoading}
+                      className="rounded-lg bg-[#6C3FC8] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#5b34b0] disabled:opacity-50"
                     >
-                      <span aria-hidden>😰</span> Oublié
+                      {memoLoading ? "Sauvegarde…" : "Sauvegarder"}
                     </button>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(1);
-                      }}
-                      disabled={sending}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(1);
-                      }}
-                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
-                      className="flex items-center gap-2 rounded-lg border-2 border-amber-200 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 hover:bg-amber-100 disabled:opacity-50 dark:border-amber-800 dark:bg-amber-900/20 dark:text-amber-200 dark:hover:bg-amber-900/30"
-                      aria-label="Difficile"
+                      onClick={() => setShowMemoInput(false)}
+                      className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--foreground-muted)] hover:bg-[var(--background-subtle)]"
                     >
-                      <span aria-hidden>😓</span> Difficile
+                      Passer
                     </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(2);
-                      }}
-                      disabled={sending}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(2);
-                      }}
-                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
-                      className="flex items-center gap-2 rounded-lg border-2 border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100 disabled:opacity-50 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/30"
-                      aria-label="Bien"
-                    >
-                      <span aria-hidden>🙂</span> Bien
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(3);
-                      }}
-                      disabled={sending}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        recordReviewRating(3);
-                      }}
-                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
-                      className="flex items-center gap-2 rounded-lg border-2 border-green-200 bg-green-50 px-3 py-2 text-sm font-medium text-green-700 hover:bg-green-100 disabled:opacity-50 dark:border-green-800 dark:bg-green-900/20 dark:text-green-300 dark:hover:bg-green-900/30"
-                      aria-label="Parfait"
-                    >
-                      <span aria-hidden>😎</span> Parfait
-                    </button>
-                  </>
-                ) : (
-                  <>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSwipe(false);
-                      }}
-                      disabled={sending}
-                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        handleSwipe(false);
-                      }}
-                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-red-200 bg-[var(--background-card)] text-red-500 shadow hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:hover:bg-red-900/20"
-                      aria-label="Oublié"
-                    >
-                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSwipe(true);
-                      }}
-                      disabled={sending}
-                      style={{ touchAction: "manipulation", WebkitTapHighlightColor: "transparent", cursor: "pointer" }}
-                      onTouchEnd={(e) => {
-                        e.stopPropagation();
-                        handleSwipe(true);
-                      }}
-                      className="flex h-12 w-12 items-center justify-center rounded-full border-2 border-green-200 bg-[var(--background-card)] text-green-600 shadow hover:bg-green-50 disabled:opacity-50 dark:border-green-800 dark:hover:bg-green-900/20"
-                      aria-label="Bien"
-                    >
-                      <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </button>
-                  </>
-                )}
-              </div>
-            )}
-
-            {showMemoInput && (
-              <div className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 p-4 dark:border-[#6C3FC8]/30 dark:bg-[#6C3FC8]/10">
-                <p className="mb-2 text-sm font-medium text-[#6C3FC8] dark:text-[#a78bfa]">
-                  💡 Ajoute une astuce mémo{" "}
-                  <span className="font-normal text-[var(--foreground-muted)]">(optionnel)</span>
-                </p>
-                <textarea
-                  value={memoInput}
-                  onChange={(e) => setMemoInput(e.target.value)}
-                  placeholder="Une image mentale, une association, un moyen mnémotechnique…"
-                  rows={2}
-                  className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)] focus:border-[#6C3FC8] focus:outline-none focus:ring-1 focus:ring-[#6C3FC8]"
-                />
-                <div className="mt-2 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={async () => {
-                      setMemoLoading(true);
-                      await fetch("/api/memo-tip", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ wordId: memoWordId, tip: memoInput.trim() }),
-                      }).catch(() => {});
-                      setMemoTip(memoInput.trim());
-                      setMemoLoading(false);
-                      setShowMemoInput(false);
-                    }}
-                    disabled={memoLoading}
-                    className="rounded-lg bg-[#6C3FC8] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#5b34b0] disabled:opacity-50"
-                  >
-                    {memoLoading ? "Sauvegarde…" : "Sauvegarder"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setShowMemoInput(false)}
-                    className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--foreground-muted)] hover:bg-[var(--background-subtle)]"
-                  >
-                    Passer
-                  </button>
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          ) : null}
         </div>
       );
     }
 
-    const submitDictee = () => {
-      if (!current) return;
-      const ok = normalizeForCompare(writeAnswer) === normalizeForCompare(answerText);
-      setWriteResult(ok ? "correct" : "wrong");
-      setWordsWritten((n) => n + 1);
-      if (ok) {
-        setWordsSeen((n) => n + 1);
-        setWordsRetained((n) => n + 1);
-        recordReview(true);
-        setWriteAnswer("");
-        setWriteResult(null);
-      } else {
-        setWriteRevealed(false);
-      }
-    };
+    const dicteeWordsDone = sessionTotalWords - words.length;
+    const dicteeProgressPct =
+      sessionTotalWords > 0
+        ? Math.min(100, (dicteeWordsDone / sessionTotalWords) * 100)
+        : 0;
+    const dicteeSlotLabel = `${Math.min(dicteeWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
 
-    const onWrongReveal = () => setWriteRevealed(true);
-    const onWrongNext = () => {
-      if (!current) return;
-      recordReview(false);
-      setWriteAnswer("");
-      setWriteResult(null);
-      setWriteRevealed(false);
-      setIndex(0);
-    };
-    const onWrongLater = () => {
-      if (!current) return;
-      setLaterWords((prev) => [...prev, current]);
-      setWords((prev) => prev.filter((w) => w.id !== current.id));
-      setWriteAnswer("");
-      setWriteResult(null);
-      setWriteRevealed(false);
-      setIndex(0);
-    };
-    const onWrongRetry = () => {
-      setWriteResult(null);
-      setWriteRevealed(false);
-      setWriteAnswer("");
-    };
+    const dicteeAnswerLabel =
+      direction === "term_to_def"
+        ? "Traduction en français"
+        : "Mot dans la langue étudiée";
+
+    const borderTertiary = "rgba(108, 63, 200, 0.14)";
+
+    function validateDictee() {
+      if (!current || sending || dicteePhase !== "typing") return;
+      const ok =
+        normalizeForCompare(writeAnswer) === normalizeForCompare(answerText);
+      if (ok) {
+        setDicteePhase("correct_feedback");
+      } else {
+        setLastWrongAnswer(writeAnswer.trim());
+        setDicteePhase("wrong_unrevealed");
+      }
+    }
+
+    const wordCardColors =
+      dicteePhase === "correct_feedback"
+        ? {
+            background: "#EAF4EF",
+            borderColor: "#C3E6D6",
+            wordColor: "#1D9E75",
+          }
+        : dicteePhase === "wrong_unrevealed" || dicteePhase === "revealed_fail"
+          ? {
+              background: "#FCEBEB",
+              borderColor: "#F7C1C1",
+              wordColor: "#E24B4A",
+            }
+          : {
+              background: "#FFFFFF",
+              borderColor: borderTertiary,
+              wordColor: "var(--foreground)",
+            };
 
     return (
-      <div className="flex min-h-[50vh] flex-col">
-        <div className="mb-4 flex items-center justify-between">
-          <BackLink
-            href={pickerPath}
+      <div
+        className="flex min-h-[50vh] flex-col"
+        style={{ background: "#F8F7FF" }}
+      >
+        {error ? (
+          <p
+            className="mb-3 rounded-xl px-3 py-2 text-sm text-red-700"
+            style={{ background: "#FCEBEB" }}
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
+
+        <div className="flex items-center" style={{ marginBottom: 24, gap: 12 }}>
+          <button
+            type="button"
             onClick={() => {
-              void saveSessionAndGoBack();
+              void saveSessionAndNavigateToEvaluation();
             }}
-          />
-          <span className="text-sm text-[var(--foreground-muted)]">
-            {progressLabel}
-          </span>
-        </div>
-        {current && (
-          <div className="rounded-2xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6">
-            <div className="flex items-center gap-2">
-              <p className="text-xl font-semibold text-[var(--foreground)]">
-                {displayText}
-              </p>
-              <SpeakButton text={displayText} lang={displayLang} />
-            </div>
-            <div className="mt-4">
-              <input
-                ref={dicteeInputRef}
-                type="text"
-                value={writeAnswer}
-                onChange={(e) => setWriteAnswer(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && submitDictee()}
-                placeholder="Écris la traduction…"
-                disabled={sending}
-                className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-4 py-3 text-[var(--foreground)]"
-                autoFocus
+            className="flex shrink-0 cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0"
+            style={{
+              fontSize: 12,
+              color: "var(--foreground-muted)",
+            }}
+          >
+            <X className="h-3 w-3 shrink-0" aria-hidden />
+            Quitter
+          </button>
+
+          <div className="min-w-0 flex-1">
+            <div
+              className="overflow-hidden"
+              style={{
+                height: 6,
+                background: "var(--background-subtle)",
+                borderRadius: 3,
+              }}
+            >
+              <div
+                style={{
+                  height: "100%",
+                  width: `${dicteeProgressPct}%`,
+                  background: "#6C3FC8",
+                  borderRadius: 3,
+                  transition: "width 400ms ease",
+                }}
               />
             </div>
-            {writeResult === "correct" && (
-              <p className="mt-3 text-sm font-medium text-primary dark:text-primary-light">
-                Correct.
-              </p>
-            )}
-            {writeResult === "wrong" && (
-              <div className="mt-3">
-                <p className="text-sm font-medium text-red-600 dark:text-red-400">
-                  Faux.
+            <p
+              className="mt-1 text-right"
+              style={{
+                fontSize: 11,
+                color: "var(--foreground-muted)",
+                marginTop: 4,
+              }}
+            >
+              {dicteeSlotLabel}
+            </p>
+          </div>
+
+          <div
+            className="flex shrink-0 items-center gap-[5px]"
+            style={{
+              background: "#EAF4EF",
+              borderRadius: 10,
+              padding: "5px 10px",
+            }}
+          >
+            <Check
+              className="h-3 w-3 shrink-0"
+              stroke="#1D9E75"
+              aria-hidden
+            />
+            <span style={{ fontSize: 13, fontWeight: 500, color: "#1D9E75" }}>
+              {wordsRetained}
+            </span>
+            <span style={{ fontSize: 11, color: "#1D9E75" }}>bons</span>
+          </div>
+        </div>
+
+        {current ? (
+          <>
+            <div
+              className="text-center"
+              style={{
+                background: wordCardColors.background,
+                borderRadius: 16,
+                borderWidth: 0.5,
+                borderStyle: "solid",
+                borderColor: wordCardColors.borderColor,
+                padding: "36px 20px 32px",
+                marginBottom: 20,
+              }}
+            >
+              <div className="flex items-center justify-center gap-2">
+                <p
+                  style={{
+                    fontSize: 36,
+                    fontWeight: 500,
+                    color: wordCardColors.wordColor,
+                  }}
+                >
+                  {displayText}
                 </p>
-                {writeRevealed && (
-                  <p className="mt-1 text-sm text-[var(--foreground-muted)]">
-                    Réponse : <strong>{answerText || "—"}</strong>
-                  </p>
-                )}
-                <div className="mt-3 flex flex-wrap gap-2">
+                <SpeakButton text={displayText} lang={displayLang} />
+              </div>
+            </div>
+
+            {dicteePhase === "typing" && (
+              <>
+                <label
+                  className="mb-2 block text-center"
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 500,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.05em",
+                    color: "var(--foreground-muted)",
+                    marginBottom: 8,
+                  }}
+                >
+                  {dicteeAnswerLabel}
+                </label>
+                <input
+                  ref={dicteeInputRef}
+                  type="text"
+                  value={writeAnswer}
+                  onChange={(e) => setWriteAnswer(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") validateDictee();
+                  }}
+                  disabled={sending}
+                  className="w-full bg-white text-center outline-none focus:ring-0"
+                  style={{
+                    fontSize: 20,
+                    fontWeight: 500,
+                    padding: "14px 16px",
+                    borderRadius: 12,
+                    border: "2px solid #6C3FC8",
+                    marginBottom: 14,
+                  }}
+                />
+                <div className="flex gap-[10px]" style={{ gap: 10 }}>
                   <button
                     type="button"
-                    onClick={onWrongRetry}
-                    className="btn-relief rounded-lg bg-primary/20 px-3 py-2 text-sm font-medium text-primary-dark dark:bg-primary/30 dark:text-primary-light"
+                    disabled={sending}
+                    onClick={() => {
+                      setLastWrongAnswer(writeAnswer.trim());
+                      setDicteePhase("revealed_fail");
+                    }}
+                    className="flex-1 bg-transparent"
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      padding: 13,
+                      borderRadius: 12,
+                      border: "1.5px solid var(--border)",
+                      color: "var(--foreground-muted)",
+                    }}
                   >
+                    Je ne sais pas
+                  </button>
+                  <button
+                    type="button"
+                    disabled={sending || !writeAnswer.trim()}
+                    onClick={validateDictee}
+                    className="flex flex-[2] items-center justify-center gap-2 border-0 text-white"
+                    style={{
+                      fontSize: 13,
+                      fontWeight: 500,
+                      padding: 13,
+                      borderRadius: 12,
+                      background: "#6C3FC8",
+                    }}
+                  >
+                    <Check
+                      className="h-3.5 w-3.5 shrink-0 text-white"
+                      aria-hidden
+                    />
+                    Valider
+                  </button>
+                </div>
+              </>
+            )}
+
+            {dicteePhase === "wrong_unrevealed" && (
+              <>
+                <div
+                  className="mb-[14px] flex items-center gap-3"
+                  style={{
+                    background: "#FCEBEB",
+                    borderRadius: 14,
+                    padding: "14px 16px",
+                    marginBottom: 14,
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    className="flex shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      width: 34,
+                      height: 34,
+                      background: "#E24B4A",
+                    }}
+                  >
+                    <X className="h-4 w-4 text-white" aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: "#A32D2D",
+                      }}
+                    >
+                      Pas tout à fait…
+                    </p>
+                    <p
+                      className="mt-0.5 line-through"
+                      style={{ fontSize: 12, color: "#A32D2D" }}
+                    >
+                      {lastWrongAnswer || "—"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2" style={{ gap: 8 }}>
+                  <button
+                    type="button"
+                    disabled={sending}
+                    onClick={() => {
+                      setDicteeHadRetry(true);
+                      setWriteAnswer("");
+                      setDicteePhase("typing");
+                    }}
+                    className="flex flex-1 items-center justify-center gap-2 bg-transparent"
+                    style={{
+                      border: "1.5px solid #E24B4A",
+                      color: "#E24B4A",
+                      borderRadius: 12,
+                      padding: 11,
+                      fontSize: 13,
+                    }}
+                  >
+                    <RotateCcw className="h-3 w-3 shrink-0 stroke-[#E24B4A]" />
                     Réessayer
                   </button>
-                  {!writeRevealed && (
-                    <button
-                      type="button"
-                      onClick={onWrongReveal}
-                      className="btn-relief rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground-muted)]"
-                    >
-                      Révéler
-                    </button>
-                  )}
                   <button
                     type="button"
-                    onClick={onWrongLater}
-                    className="btn-relief rounded-lg bg-amber-100 px-3 py-2 text-sm font-medium text-amber-800 dark:bg-amber-900/30 dark:text-amber-200"
+                    disabled={sending}
+                    onClick={() => setDicteePhase("revealed_fail")}
+                    className="flex-1 border-0 text-white"
+                    style={{
+                      background: "#E24B4A",
+                      borderRadius: 12,
+                      padding: 11,
+                      fontSize: 13,
+                    }}
                   >
-                    Plus tard
+                    Voir la réponse
                   </button>
-                  {writeRevealed && (
-                    <button
-                      type="button"
-                      onClick={onWrongNext}
-                      className="btn-relief rounded-lg bg-[var(--foreground-muted)] px-3 py-2 text-sm text-[var(--background)]"
-                    >
-                      Suivant
-                    </button>
-                  )}
                 </div>
-              </div>
+              </>
             )}
-            {writeResult === null && (
-              <button
-                type="button"
-                onClick={submitDictee}
-                disabled={sending || !writeAnswer.trim()}
-                className="btn-relief mt-4 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
-              >
-                Valider
-              </button>
+
+            {dicteePhase === "revealed_fail" && (
+              <>
+                <div
+                  className="mb-[14px] flex items-center gap-3"
+                  style={{
+                    background: "#FCEBEB",
+                    borderRadius: 14,
+                    padding: "14px 16px",
+                    marginBottom: 14,
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    className="flex shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      width: 34,
+                      height: 34,
+                      background: "#E24B4A",
+                    }}
+                  >
+                    <X className="h-4 w-4 text-white" aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: "#A32D2D",
+                      }}
+                    >
+                      La bonne réponse
+                    </p>
+                    <p
+                      className="mt-0.5"
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "#791F1F",
+                      }}
+                    >
+                      {answerText || "—"}
+                    </p>
+                    <p
+                      className="mt-1 line-through"
+                      style={{ fontSize: 12, color: "#A32D2D" }}
+                    >
+                      {lastWrongAnswer || "—"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={() => void recordDicteeCompletion(0)}
+                  className="flex w-full items-center justify-center gap-2 border-0 text-white"
+                  style={{
+                    background: "#E24B4A",
+                    borderRadius: 12,
+                    padding: 13,
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
+                  Continuer
+                  <ArrowRight
+                    className="h-3.5 w-3.5 shrink-0 text-white"
+                    aria-hidden
+                  />
+                </button>
+              </>
             )}
-          </div>
-        )}
+
+            {dicteePhase === "correct_feedback" && (
+              <>
+                <div
+                  className="mb-[14px] flex items-center gap-3"
+                  style={{
+                    background: "#EAF4EF",
+                    borderRadius: 14,
+                    padding: "14px 16px",
+                    marginBottom: 14,
+                    gap: 12,
+                  }}
+                >
+                  <div
+                    className="flex shrink-0 items-center justify-center rounded-full"
+                    style={{
+                      width: 34,
+                      height: 34,
+                      background: "#1D9E75",
+                    }}
+                  >
+                    <Check className="h-4 w-4 text-white" aria-hidden />
+                  </div>
+                  <div className="min-w-0 flex-1 text-left">
+                    <p
+                      style={{
+                        fontSize: 13,
+                        fontWeight: 500,
+                        color: "#1A6645",
+                      }}
+                    >
+                      Bonne réponse !
+                    </p>
+                    <p
+                      className="mt-0.5"
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 500,
+                        color: "#27500A",
+                      }}
+                    >
+                      {answerText || "—"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  disabled={sending}
+                  onClick={() =>
+                    void recordDicteeCompletion(dicteeHadRetry ? 2 : 3)
+                  }
+                  className="flex w-full items-center justify-center gap-2 border-0 text-white"
+                  style={{
+                    background: "#1D9E75",
+                    borderRadius: 12,
+                    padding: 13,
+                    fontSize: 14,
+                    fontWeight: 500,
+                  }}
+                >
+                  Mot suivant
+                  <ArrowRight
+                    className="h-3.5 w-3.5 shrink-0 text-white"
+                    aria-hidden
+                  />
+                </button>
+              </>
+            )}
+          </>
+        ) : null}
       </div>
     );
 }

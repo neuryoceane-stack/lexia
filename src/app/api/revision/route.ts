@@ -151,8 +151,9 @@ export async function GET(request: Request) {
 /**
  * POST /api/revision
  * Enregistre une révision pour un mot (SM-2) et calcule la prochaine date.
- * Body: { wordId: string, rating?: 0|1|2|3, success?: boolean }
+ * Body: { wordId: string, rating?: 0|1|2|3, success?: boolean, lexivaFlash?: 1|3|5 }
  * rating: 0=oublié, 1=difficile, 2=bien, 3=parfait
+ * lexivaFlash (flashcards Lexiva) : 1→SM-2 rating 1, 3→2 (Presque), 5→3 (Oui !)
  * Compatibilité : success=true → rating=2, success=false → rating=0
  */
 export async function POST(request: Request) {
@@ -162,7 +163,12 @@ export async function POST(request: Request) {
   }
   const userId = user.id;
 
-  let body: { wordId?: string; rating?: number; success?: boolean };
+  let body: {
+    wordId?: string;
+    rating?: number;
+    success?: boolean;
+    lexivaFlash?: number;
+  };
   try {
     body = await request.json();
   } catch {
@@ -174,7 +180,21 @@ export async function POST(request: Request) {
 
   const wordId = body.wordId?.trim();
   let rating: number;
-  if (typeof body.rating === "number" && body.rating >= 0 && body.rating <= 3) {
+  if (typeof body.lexivaFlash === "number") {
+    const f = Math.round(body.lexivaFlash);
+    if (f === 1) {
+      rating = 1;
+    } else if (f === 3) {
+      rating = 2;
+    } else if (f === 5) {
+      rating = 3;
+    } else {
+      return NextResponse.json(
+        { error: "lexivaFlash doit être 1, 3 ou 5" },
+        { status: 400 }
+      );
+    }
+  } else if (typeof body.rating === "number" && body.rating >= 0 && body.rating <= 3) {
     rating = Math.round(body.rating);
   } else if (body.success === true) {
     rating = 2;
@@ -182,7 +202,7 @@ export async function POST(request: Request) {
     rating = 0;
   } else {
     return NextResponse.json(
-      { error: "rating (0-3) ou success requis" },
+      { error: "rating (0-3), lexivaFlash (1|3|5) ou success requis" },
       { status: 400 }
     );
   }
