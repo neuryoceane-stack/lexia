@@ -88,6 +88,8 @@ export function RevisionClient({
   const [error, setError] = useState("");
   const [index, setIndex] = useState(0);
   const [revealed, setRevealed] = useState(false);
+  const [hintsUsed, setHintsUsed] = useState(0);
+  const [hintPenalty, setHintPenalty] = useState(0);
   const [sending, setSending] = useState(false);
   const [sessionStart, setSessionStart] = useState<number | null>(null);
   const [sessionTotalWords, setSessionTotalWords] = useState(0);
@@ -402,7 +404,11 @@ export function RevisionClient({
       const res = await fetch("/api/revision", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ wordId: current.id, lexivaFlash }),
+        body: JSON.stringify({
+          wordId: current.id,
+          lexivaFlash,
+          hintPenalty,
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -432,6 +438,8 @@ export function RevisionClient({
       }
       setRevealed(false);
       setIndex(0);
+      setHintsUsed(0);
+      setHintPenalty(0);
     } finally {
       setSending(false);
     }
@@ -601,6 +609,18 @@ export function RevisionClient({
         <span aria-hidden>🔊</span>
       </button>
     );
+
+    function getHintDisplay(word: string, hintsUsed: number): string {
+      if (hintsUsed === 0) return "";
+      return word
+        .split("")
+        .map((char, i) => {
+          if (char === " ") return "   ";
+          if (i < hintsUsed) return char;
+          return "_";
+        })
+        .join(" ");
+    }
 
     if (mode === "flashcard") {
       const flashWordsDone = sessionTotalWords - words.length;
@@ -795,6 +815,81 @@ export function RevisionClient({
                       {revealHint}
                     </div>
                   </div>
+
+                  {hintsUsed > 0 && (
+                    <p
+                      style={{
+                        fontFamily: "DM Sans, var(--font-sans), sans-serif",
+                        fontSize: 18,
+                        fontWeight: 500,
+                        color: "#6C3FC8",
+                        letterSpacing: "4px",
+                        textAlign: "center",
+                        marginBottom: 12,
+                        minHeight: 28,
+                      }}
+                    >
+                      {getHintDisplay(answerText, hintsUsed)}
+                    </p>
+                  )}
+
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      justifyContent: "center",
+                      marginBottom: 12,
+                    }}
+                  >
+                    {(
+                      [
+                        { label: "1ère lettre", index: 1 },
+                        { label: "2ème lettre", index: 2 },
+                        { label: "3ème lettre", index: 3 },
+                      ] as const
+                    ).map(({ label, index: hintIndex }) => {
+                      const isUnlocked = hintsUsed >= hintIndex - 1;
+                      const isUsed = hintsUsed >= hintIndex;
+                      return (
+                        <button
+                          key={hintIndex}
+                          type="button"
+                          disabled={!isUnlocked || isUsed}
+                          onClick={() => {
+                            setHintsUsed(hintIndex);
+                            setHintPenalty(
+                              (prev) => Math.round((prev + 0.1) * 10) / 10
+                            );
+                          }}
+                          style={{
+                            padding: "4px 10px",
+                            fontSize: 11,
+                            fontFamily: "DM Sans, var(--font-sans), sans-serif",
+                            fontWeight: 500,
+                            borderRadius: 20,
+                            border: "1px solid",
+                            borderColor: isUsed
+                              ? "#6C3FC8"
+                              : isUnlocked
+                                ? "#D1C8F0"
+                                : "#E8E8E8",
+                            backgroundColor: isUsed ? "#EDE8FB" : "white",
+                            color: isUsed
+                              ? "#6C3FC8"
+                              : isUnlocked
+                                ? "#9B8EC4"
+                                : "#D0D0D0",
+                            cursor:
+                              isUnlocked && !isUsed ? "pointer" : "default",
+                            transition: "all 0.15s",
+                          }}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
                   <button
                     type="button"
                     onClick={flipCard}

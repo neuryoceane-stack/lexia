@@ -168,6 +168,7 @@ export async function POST(request: Request) {
     rating?: number;
     success?: boolean;
     lexivaFlash?: number;
+    hintPenalty?: number;
   };
   try {
     body = await request.json();
@@ -177,6 +178,11 @@ export async function POST(request: Request) {
       { status: 400 }
     );
   }
+
+  const hintPenalty =
+    typeof body.hintPenalty === "number"
+      ? Math.max(0, Math.min(0.3, body.hintPenalty))
+      : 0;
 
   const wordId = body.wordId?.trim();
   let rating: number;
@@ -251,8 +257,13 @@ export async function POST(request: Request) {
   const interval = lastRevision?.interval ?? 1;
   const repetitions = lastRevision?.repetitions ?? 0;
 
+  const penalizedEaseFactor = Math.max(
+    1.3,
+    (typeof easeFactor === "number" ? easeFactor : 2.5) - hintPenalty
+  );
+
   const result = computeSM2({
-    easeFactor: typeof easeFactor === "number" ? easeFactor : 2.5,
+    easeFactor: penalizedEaseFactor,
     interval: typeof interval === "number" ? interval : 1,
     repetitions: typeof repetitions === "number" ? repetitions : 0,
     rating,
