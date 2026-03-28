@@ -23,6 +23,9 @@ export const users = sqliteTable("users", {
   /** Nom de l'établissement (profil enseignant, optionnel). */
   schoolName: text("school_name"),
   weeklyGoal: integer("weekly_goal").notNull().default(20),
+  plan: text("plan", { enum: ["free", "monthly", "annual"] })
+    .notNull()
+    .default("free"),
 });
 
 export const wordFamilies = sqliteTable("word_families", {
@@ -141,6 +144,9 @@ export const userProfiles = sqliteTable("user_profiles", {
   onboardingCompleted: integer("onboarding_completed", { mode: "boolean" })
     .notNull()
     .default(false),
+  acquisitionSource: text("acquisition_source"),
+  streakGoal: integer("streak_goal"),
+  institutionCode: text("institution_code"),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
