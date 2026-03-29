@@ -5,9 +5,11 @@ import { shopPacks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getUser } from "@/lib/auth";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-02-25.clover",
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY manquante");
+  return new Stripe(key, { apiVersion: "2026-02-25.clover" as any });
+}
 
 export async function POST(req: Request) {
   const user = await getUser();
@@ -26,7 +28,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Pack not found" }, { status: 404 });
   }
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     payment_method_types: ["card"],
     mode: "payment",
     customer_email: user.email,

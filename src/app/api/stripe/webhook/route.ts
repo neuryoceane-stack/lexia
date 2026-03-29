@@ -4,9 +4,11 @@ import { db } from "@/lib/db";
 import { shopPacks, userPurchases, wordFamilies, lists, words } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2026-02-25.clover" as any,
-});
+function getStripe() {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY manquante");
+  return new Stripe(key, { apiVersion: "2026-02-25.clover" as any });
+}
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -15,7 +17,7 @@ export async function POST(req: Request) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       sig,
       process.env.STRIPE_WEBHOOK_SECRET!
