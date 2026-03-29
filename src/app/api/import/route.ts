@@ -291,6 +291,7 @@ export async function POST(request: Request) {
         term: toInsert[i].term,
         definition: toInsert[i].definition,
         rank: i,
+        isExpression: false,
       });
       inserted.push({
         id,
@@ -298,6 +299,7 @@ export async function POST(request: Request) {
         term: toInsert[i].term,
         definition: toInsert[i].definition,
         rank: i,
+        isExpression: false,
         createdAt: new Date(),
       });
     }

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { useTheme } from "@/components/theme-provider";
-import { Star, User, Settings, LogOut, ChevronRight } from "lucide-react";
+import { Star, User, Settings, LogOut, ChevronRight, ShoppingBag } from "lucide-react";
 
 const LEVEL_NAMES: Record<number, string> = {
   1: "Graine",
@@ -200,6 +200,23 @@ function AvatarDropdown({
               <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Mon profil</span>
               <ChevronRight size={12} stroke="#a1a1aa" />
             </Link>
+
+            {!isProfesseur && (
+              <Link
+                href="/app/shop"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-[10px] no-underline transition"
+                style={{ padding: "10px 16px", cursor: "pointer" }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDF8")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#F0EDF8" }}>
+                  <ShoppingBag size={13} stroke="#6C3FC8" />
+                </div>
+                <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Lexi Shop</span>
+                <ChevronRight size={12} stroke="#a1a1aa" />
+              </Link>
+            )}
 
             <Link
               href="/app/parametres"

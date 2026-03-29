@@ -85,6 +85,7 @@ export async function POST(
     term,
     definition,
     rank,
+    isExpression: false,
   });
   const [created] = await db
     .select()

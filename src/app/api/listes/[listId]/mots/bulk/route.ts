@@ -65,6 +65,7 @@ export async function POST(
       term: toInsert[i].term,
       definition: toInsert[i].definition,
       rank: i,
+      isExpression: false,
     });
     inserted.push({ id, ...toInsert[i], rank: i });
   }

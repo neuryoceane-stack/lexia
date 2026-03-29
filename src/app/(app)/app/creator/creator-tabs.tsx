@@ -10,6 +10,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { CreatorShopTab } from "./creator-shop-tab";
 
 type FeedbackStatus = "pending" | "in_progress" | "done";
 type FeedbackWithUser = {
@@ -87,7 +88,7 @@ const ROLE_LABELS: Record<string, { label: string; color: string }> = {
 };
 
 export function CreatorTabs() {
-  const [tab, setTab] = useState<"analytics" | "feedbacks" | "finance">("analytics");
+  const [tab, setTab] = useState<"analytics" | "feedbacks" | "finance" | "shop">("analytics");
   const [feedbacks, setFeedbacks] = useState<FeedbackWithUser[]>([]);
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
   const [loading, setLoading] = useState(false);
@@ -225,6 +226,17 @@ export function CreatorTabs() {
           }`}
         >
           Finance 💰
+        </button>
+        <button
+          type="button"
+          onClick={() => setTab("shop")}
+          className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
+            tab === "shop"
+              ? "border-primary text-primary dark:border-primary-light dark:text-primary-light"
+              : "border-transparent text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+          }`}
+        >
+          Shop 🛍️
         </button>
       </div>
 
@@ -696,6 +708,8 @@ export function CreatorTabs() {
           )}
         </div>
       )}
+
+      {tab === "shop" && <CreatorShopTab />}
     </>
   );
 }

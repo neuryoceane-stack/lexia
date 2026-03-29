@@ -46,7 +46,7 @@ export const lists = sqliteTable("lists", {
     .notNull()
     .references(() => wordFamilies.id, { onDelete: "cascade" }),
   name: text("name").notNull(),
-  source: text("source", { enum: ["manual", "ocr", "pdf"] }).notNull().default("manual"),
+  source: text("source", { enum: ["manual", "ocr", "pdf", "shop"] }).notNull().default("manual"),
   /** Code langue ISO 639-3 (ex. eng, fra) pour filtrer la bibliothèque par langue. */
   language: text("language"),
   createdAt: integer("created_at", { mode: "timestamp" })
@@ -62,6 +62,7 @@ export const words = sqliteTable("words", {
   term: text("term").notNull(),
   definition: text("definition").notNull(),
   rank: integer("rank").notNull().default(0),
+  isExpression: integer("is_expression", { mode: "boolean" }).default(false),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
@@ -298,6 +299,43 @@ export const memoTips = sqliteTable("memo_tips", {
     .$defaultFn(() => new Date()),
 });
 
+export const shopPacks = sqliteTable("shop_packs", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  emoji: text("emoji").notNull().default("📦"),
+  wordCount: integer("word_count").notNull().default(60),
+  expressionCount: integer("expression_count").notNull().default(20),
+  price: integer("price").notNull().default(400),
+  bundlePrice: integer("bundle_price").notNull().default(1600),
+  type: text("type", { enum: ["thematique", "bundle"] }).notNull().default("thematique"),
+  language: text("language").notNull().default("eng"),
+  level: text("level").notNull().default(""),
+  isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
+  stripeProductId: text("stripe_product_id"),
+  stripePriceId: text("stripe_price_id"),
+  wordsJson: text("words_json"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+export const userPurchases = sqliteTable("user_purchases", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  userId: text("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  packId: text("pack_id")
+    .notNull()
+    .references(() => shopPacks.id, { onDelete: "cascade" }),
+  stripeSessionId: text("stripe_session_id"),
+  stripePaymentId: text("stripe_payment_id"),
+  amountPaid: integer("amount_paid").notNull(),
+  purchasedAt: integer("purchased_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 export type MemoTip = typeof memoTips.$inferSelect;
 
 export type User = typeof users.$inferSelect;
@@ -315,3 +353,7 @@ export type UserPreferences = typeof userPreferences.$inferSelect;
 export type Feedback = typeof feedbacks.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
+export type ShopPack = typeof shopPacks.$inferSelect;
+export type NewShopPack = typeof shopPacks.$inferInsert;
+export type UserPurchase = typeof userPurchases.$inferSelect;
+export type NewUserPurchase = typeof userPurchases.$inferInsert;
