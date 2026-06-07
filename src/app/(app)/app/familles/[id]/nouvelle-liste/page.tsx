@@ -334,7 +334,7 @@ export default function NouvelleListePage() {
               </div>
             )}
             <span
-              className="inline-block h-8 w-8 flex-shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent dark:border-primary-light dark:border-t-transparent"
+              className="inline-block h-8 w-8 flex-shrink-0 animate-spin rounded-full border-2 border-primary border-t-transparent"
               aria-hidden
             />
             <div className="min-w-0">
@@ -355,7 +355,7 @@ export default function NouvelleListePage() {
         </div>
       )}
       {extractError && (
-        <p className="mt-4 text-sm text-red-600 dark:text-red-400">
+        <p className="mt-4 text-sm text-red-600">
           {extractError}
         </p>
       )}
@@ -516,7 +516,7 @@ function FormManuel({
           <button
             type="button"
             onClick={addRow}
-            className="btn-relief rounded px-2 py-1 text-sm text-primary hover:bg-primary/10 dark:text-primary-light dark:hover:bg-primary/20"
+            className="btn-relief rounded px-2 py-1 text-sm text-primary hover:bg-primary/10"
           >
             + Ajouter une ligne
           </button>
@@ -541,7 +541,7 @@ function FormManuel({
               <button
                 type="button"
                 onClick={() => removeRow(i)}
-                className="btn-relief rounded p-2 text-[var(--foreground-disabled)] hover:bg-[var(--background-subtle)] hover:text-red-600 dark:hover:text-red-400"
+                className="btn-relief rounded p-2 text-[var(--foreground-disabled)] hover:bg-[var(--background-subtle)] hover:text-red-600"
                 aria-label="Supprimer la ligne"
               >
                 ✕
@@ -551,7 +551,7 @@ function FormManuel({
         </div>
       </div>
       {error && (
-        <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="text-sm text-red-600">{error}</p>
       )}
       <div className="flex gap-2">
         <button

@@ -1,9 +1,6 @@
 @import "tailwindcss";
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap");
 
-/* Mode sombre piloté par la classe .dark sur <html> (choix utilisateur en paramètres) */
-@custom-variant dark (&:where(.dark, .dark *));
-
 /* ========== Variables sémantiques ========== */
 :root {
   /* Primaire : violet */
@@ -31,30 +28,6 @@
   --active-bg: rgba(108, 63, 200, 0.12);
   --shadow-card: 0 2px 12px rgba(108, 63, 200, 0.08);
   --shadow-elevated: 0 8px 32px rgba(108, 63, 200, 0.15);
-}
-
-html.dark {
-  --background: #0F0A1E;
-  --background-card: #1A1035;
-  --background-subtle: #150D2E;
-  --foreground: #F1EEFF;
-  --foreground-muted: #9B8EC4;
-  --foreground-disabled: #5C4E8A;
-  --border: #2D1F5E;
-  --border-subtle: #1F1545;
-  --input-bg: #1A1035;
-  --input-border: #2D1F5E;
-  --input-focus: #6C3FC8;
-  --hover-bg: rgba(108, 63, 200, 0.12);
-  --active-bg: rgba(108, 63, 200, 0.20);
-  --primary: #C084FC;
-  --primary-dark: #5529A0;
-  --primary-light: #9D7BE8;
-  --accent: #F5A623;
-  --on-accent: #FFFFFF;
-  --on-accent: #1A1035;
-  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.4);
-  --shadow-elevated: 0 8px 32px rgba(0, 0, 0, 0.6);
 }
 
 /* ========== Thème Tailwind ========== */
@@ -90,14 +63,8 @@ h1, h2, h3 {
 .card-dictee-bg {
   background: #FEF8EC;
 }
-html.dark .card-dictee-bg {
-  background: var(--background-card);
-}
 .card-prononciation-bg {
   background: #EAF4EF;
-}
-html.dark .card-prononciation-bg {
-  background: var(--background-card);
 }
 
 /* Boutons en relief (effet 3D marqué) */
@@ -356,7 +323,4 @@ html {
 
 .revision-express-text {
   color: #FFFFFF;
-}
-html.dark .revision-express-text {
-  color: #1A1035;
 }

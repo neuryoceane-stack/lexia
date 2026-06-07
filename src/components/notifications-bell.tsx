@@ -14,7 +14,7 @@ type NotificationItem = {
 };
 
 const bellIconClass =
-  "h-5 w-5 flex-shrink-0 text-slate-600 transition-colors group-hover:text-primary dark:text-slate-300 dark:group-hover:text-primary-light";
+  "h-5 w-5 flex-shrink-0 text-slate-600 transition-colors group-hover:text-primary";
 
 function IconBell() {
   return (
@@ -137,7 +137,7 @@ export function NotificationsBell() {
           setOpen((o) => !o);
           if (!open) fetchNotifications();
         }}
-        className="group btn-relief relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-slate-300 dark:hover:bg-slate-800"
+        className="group btn-relief relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} non lues)` : ""}`}
         aria-expanded={open}
       >
@@ -151,21 +151,21 @@ export function NotificationsBell() {
 
       {open && (
         <div
-          className="absolute right-0 top-full z-50 mt-2 w-80 origin-top-right rounded-xl border border-slate-200 bg-white shadow-xl dark:border-slate-700 dark:bg-slate-800"
+          className="absolute right-0 top-full z-50 mt-2 w-80 origin-top-right rounded-xl border border-slate-200 bg-white shadow-xl"
           role="menu"
         >
-          <div className="border-b border-slate-200 px-4 py-3 dark:border-slate-700">
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+          <div className="border-b border-slate-200 px-4 py-3">
+            <h3 className="text-sm font-semibold text-slate-800">
               Notifications
             </h3>
           </div>
           <div className="max-h-80 overflow-y-auto">
             {loading ? (
-              <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+              <p className="px-4 py-6 text-center text-sm text-slate-500">
                 Chargement…
               </p>
             ) : notifications.length === 0 ? (
-              <p className="px-4 py-6 text-center text-sm text-slate-500 dark:text-slate-400">
+              <p className="px-4 py-6 text-center text-sm text-slate-500">
                 Aucune notification
               </p>
             ) : (
@@ -173,23 +173,23 @@ export function NotificationsBell() {
                 {notifications.map((item) => (
                   <li key={item.id}>
                     {item.type === "feedback_resolved" ? (
-                      <div className="border-b border-slate-100 px-4 py-3 dark:border-slate-700/50">
+                      <div className="border-b border-slate-100 px-4 py-3">
                         {(() => {
                           const [line1, line2] = (item.message ?? "").split("\n");
                           return (
                             <>
-                              <p className="text-sm text-slate-800 dark:text-slate-100">
+                              <p className="text-sm text-slate-800">
                                 {line1}
                               </p>
                               {line2 && (
-                                <p className="mt-0.5 line-clamp-2 text-xs italic text-slate-400 dark:text-slate-500">
+                                <p className="mt-0.5 line-clamp-2 text-xs italic text-slate-400">
                                   {line2}
                                 </p>
                               )}
                             </>
                           );
                         })()}
-                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-0.5 text-xs text-slate-500">
                           {new Date(item.createdAt).toLocaleString("fr-FR", {
                             dateStyle: "short",
                             timeStyle: "short",
@@ -200,7 +200,7 @@ export function NotificationsBell() {
                             type="button"
                             onClick={() => handleSatisfaction(item, "up")}
                             disabled={satisfyingId === item.id}
-                            className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm transition hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-700 dark:hover:bg-slate-600"
+                            className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm transition hover:bg-slate-200 disabled:opacity-50"
                           >
                             👍
                           </button>
@@ -208,7 +208,7 @@ export function NotificationsBell() {
                             type="button"
                             onClick={() => handleSatisfaction(item, "down")}
                             disabled={satisfyingId === item.id}
-                            className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm transition hover:bg-slate-200 disabled:opacity-50 dark:bg-slate-700 dark:hover:bg-slate-600"
+                            className="rounded-lg bg-slate-100 px-3 py-1.5 text-sm transition hover:bg-slate-200 disabled:opacity-50"
                           >
                             👎
                           </button>
@@ -218,19 +218,19 @@ export function NotificationsBell() {
                       <button
                         type="button"
                         onClick={() => markAsReadAndNavigate(item)}
-                        className="w-full px-4 py-3 text-left transition hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                        className="w-full px-4 py-3 text-left transition hover:bg-slate-50"
                       >
-                        <p className="text-sm text-slate-800 dark:text-slate-100">
+                        <p className="text-sm text-slate-800">
                           {item.message}
                         </p>
-                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mt-0.5 text-xs text-slate-500">
                           {new Date(item.createdAt).toLocaleString("fr-FR", {
                             dateStyle: "short",
                             timeStyle: "short",
                           })}
                         </p>
                         {item.link && (
-                          <p className="mt-0.5 text-xs text-primary dark:text-primary-light">
+                          <p className="mt-0.5 text-xs text-primary">
                             Voir →
                           </p>
                         )}
@@ -242,11 +242,11 @@ export function NotificationsBell() {
             )}
           </div>
           {notifications.length > 0 && (
-            <div className="border-t border-slate-200 px-2 py-2 dark:border-slate-700">
+            <div className="border-t border-slate-200 px-2 py-2">
               <button
                 type="button"
                 onClick={markAllAsRead}
-                className="w-full rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
+                className="w-full rounded-lg px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
               >
                 Tout marquer comme lu
               </button>

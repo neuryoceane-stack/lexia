@@ -36,17 +36,17 @@ export default async function FamilleDetailPage({
     <div>
       <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-800 dark:text-slate-100">
+        <h1 className="text-2xl font-semibold text-slate-800">
           {family.name}
         </h1>
         <ListesClient familyId={familyId} familyName={family.name} />
       </div>
-      <p className="mb-6 text-slate-600 dark:text-slate-400">
+      <p className="mb-6 text-slate-600">
         Listes de vocabulaire dans cette famille. Ajoute des mots à la main, depuis un PDF ou une image.
       </p>
       {listesList.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center dark:border-slate-600 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">
+        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
+          <p className="text-slate-600">
             Aucune liste. Crée-en une (manuel, PDF ou image).
           </p>
         </div>
@@ -56,12 +56,12 @@ export default async function FamilleDetailPage({
             <li key={list.id}>
               <Link
                 href={`/app/familles/${familyId}/listes/${list.id}`}
-                className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary hover:shadow dark:border-slate-700 dark:bg-slate-800 dark:hover:border-primary-light"
+                className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary hover:shadow"
               >
-                <span className="font-medium text-slate-800 dark:text-slate-100">
+                <span className="font-medium text-slate-800">
                   {list.name}
                 </span>
-                <span className="mt-1 block text-xs text-slate-500 dark:text-slate-400">
+                <span className="mt-1 block text-xs text-slate-500">
                   {list.source === "manual"
                     ? "Manuel"
                     : list.source === "pdf"

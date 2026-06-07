@@ -517,7 +517,7 @@ export function RevisionClient({
     return (
       <div className="space-y-4">
         <BackLink href={pickerPath} />
-        <p className="rounded-lg bg-red-50 p-3 text-red-700 dark:bg-red-900/20 dark:text-red-300">
+        <p className="rounded-lg bg-red-50 p-3 text-red-700">
           {error}
         </p>
         <button
@@ -1032,8 +1032,8 @@ export function RevisionClient({
               )}
 
               {showMemoInput && (
-                <div className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 p-4 dark:border-[#6C3FC8]/30 dark:bg-[#6C3FC8]/10">
-                  <p className="mb-2 text-sm font-medium text-[#6C3FC8] dark:text-[#a78bfa]">
+                <div className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 p-4">
+                  <p className="mb-2 text-sm font-medium text-[#6C3FC8]">
                     💡 Ajoute une astuce mémo{" "}
                     <span className="font-normal text-[var(--foreground-muted)]">
                       (optionnel)

@@ -65,31 +65,31 @@ export function FeedbackWidget() {
           role="dialog"
           aria-labelledby="feedback-title"
         >
-          <div className="relative rounded-xl rounded-br-sm bg-white p-6 shadow-2xl dark:bg-slate-800">
+          <div className="relative rounded-xl rounded-br-sm bg-white p-6 shadow-2xl">
             {/* Flèche pointant vers le bouton */}
             <div
-              className="absolute -bottom-2 right-6 h-0 w-0 border-l-8 border-r-8 border-t-[10px] border-l-transparent border-r-transparent border-t-white dark:border-t-slate-800"
+              className="absolute -bottom-2 right-6 h-0 w-0 border-l-8 border-r-8 border-t-[10px] border-l-transparent border-r-transparent border-t-white"
               aria-hidden
             />
-            <h2 id="feedback-title" className="mb-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+            <h2 id="feedback-title" className="mb-4 text-lg font-semibold text-slate-800">
               Un problème ou une idée ?
             </h2>
 
             {sent ? (
-              <p className="py-8 text-center text-green-600 dark:text-green-400">
+              <p className="py-8 text-center text-green-600">
                 ✓ Merci !
               </p>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
-                  <label htmlFor="feedback-type" className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <label htmlFor="feedback-type" className="mb-1 block text-sm font-medium text-slate-600">
                     Type
                   </label>
                   <select
                     id="feedback-type"
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     {FEEDBACK_TYPES.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -100,7 +100,7 @@ export function FeedbackWidget() {
                 </div>
 
                 <div>
-                  <label htmlFor="feedback-desc" className="mb-1 block text-sm font-medium text-slate-600 dark:text-slate-400">
+                  <label htmlFor="feedback-desc" className="mb-1 block text-sm font-medium text-slate-600">
                     Description <span className="text-red-500">*</span>
                   </label>
                   <textarea
@@ -110,7 +110,7 @@ export function FeedbackWidget() {
                     required
                     rows={4}
                     placeholder="Décris ton retour..."
-                    className="w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100 dark:placeholder:text-slate-500"
+                    className="w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -118,7 +118,7 @@ export function FeedbackWidget() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="flex-1 rounded-lg border border-slate-300 bg-white py-2 font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-200 dark:hover:bg-slate-600"
+                    className="flex-1 rounded-lg border border-slate-300 bg-white py-2 font-medium text-slate-700 hover:bg-slate-50"
                   >
                     Annuler
                   </button>

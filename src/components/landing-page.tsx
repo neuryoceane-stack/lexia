@@ -314,36 +314,36 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 5 — POUR LES PROFS */}
-      <section className="bg-[#E8E0F5] px-4 py-20 dark:bg-[#1A1535]">
+      <section className="bg-[#E8E0F5] px-4 py-20">
         <div className="mx-auto max-w-4xl text-center">
           <span className="inline-block rounded-full bg-[#6C3FC8]/20 px-4 py-1.5 text-sm font-medium text-[#6C3FC8]">
             🏫 Espace enseignant
           </span>
-          <h2 className="mt-4 font-heading text-2xl font-bold text-slate-800 dark:text-white sm:text-3xl">
+          <h2 className="mt-4 font-heading text-2xl font-bold text-slate-800 sm:text-3xl">
             Pour les professeurs aussi
           </h2>
           <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-              <p className="font-semibold text-slate-800 dark:text-white">
+            <div className="rounded-xl border border-slate-200 bg-white p-6">
+              <p className="font-semibold text-slate-800">
                 Créer des classes
               </p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              <p className="mt-1 text-sm text-slate-600">
                 Identifiant court pour que les élèves rejoignent
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-              <p className="font-semibold text-slate-800 dark:text-white">
+            <div className="rounded-xl border border-slate-200 bg-white p-6">
+              <p className="font-semibold text-slate-800">
                 Assigner des listes
               </p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              <p className="mt-1 text-sm text-slate-600">
                 Depuis ta bibliothèque personnelle
               </p>
             </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-              <p className="font-semibold text-slate-800 dark:text-white">
+            <div className="rounded-xl border border-slate-200 bg-white p-6">
+              <p className="font-semibold text-slate-800">
                 Suivre les progrès
               </p>
-              <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+              <p className="mt-1 text-sm text-slate-600">
                 Voir l&apos;avancement de chaque élève
               </p>
             </div>

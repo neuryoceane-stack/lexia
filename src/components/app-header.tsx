@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { useTheme } from "@/components/theme-provider";
 import { Star, User, Settings, LogOut, ChevronRight, ShoppingBag } from "lucide-react";
 
 const LEVEL_NAMES: Record<number, string> = {
@@ -50,7 +49,7 @@ function Avatar({ name, className }: { name: string; className?: string }) {
 
   return (
     <span
-      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary dark:bg-primary/20 dark:text-primary-light ${className ?? ""}`}
+      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary ${className ?? ""}`}
       aria-hidden
     >
       {initials}
@@ -111,7 +110,7 @@ function AvatarDropdown({
         type="button"
         onClick={() => setOpen((o) => !o)}
         className={`btn-relief flex rounded-full outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-          open ? "ring-2 ring-primary/30 ring-offset-2 dark:ring-primary-light/30" : ""
+          open ? "ring-2 ring-primary/30 ring-offset-2" : ""
         }`}
         aria-expanded={open}
         aria-haspopup="true"
@@ -297,13 +296,13 @@ export function AppHeader({
   const homeHref = isProfesseur ? "/app/professeur" : "/app";
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm dark:border-slate-700/80 dark:bg-slate-900/95 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.05)]">
+    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm">
       <div className="mx-auto flex h-14 max-w-[1200px] flex-row items-center justify-between px-4 sm:px-6">
         {/* Logo + nom — gauche */}
         <div className="flex flex-shrink-0 flex-row items-center">
           <Link
             href={homeHref}
-            className="relative inline-flex flex-row items-center gap-2.5 pb-1 text-vocab-gray no-underline outline-none transition hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 dark:text-slate-100 dark:hover:text-primary-light"
+            className="relative inline-flex flex-row items-center gap-2.5 pb-1 text-vocab-gray no-underline outline-none transition hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             aria-label="LEXIVA — Accueil"
           >
             <span className="flex-shrink-0">
@@ -316,7 +315,7 @@ export function AppHeader({
               />
             </span>
             <span className="text-lg font-semibold">LEXIVA</span>
-            <span className="absolute bottom-0 right-0 text-[10px] italic leading-none text-slate-400 dark:text-slate-500">
+            <span className="absolute bottom-0 right-0 text-[10px] italic leading-none text-slate-400">
               {isProfesseur ? "teacher" : "student"}
             </span>
           </Link>
@@ -333,8 +332,8 @@ export function AppHeader({
               href={href}
               className={`btn-relief rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
                 pathname === href || pathname.startsWith(href + "/")
-                  ? "text-primary dark:text-primary-light"
-                  : "text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
+                  ? "text-primary"
+                  : "text-vocab-gray hover:text-primary"
               }`}
             >
               {label}
@@ -342,9 +341,8 @@ export function AppHeader({
           ))}
         </nav>
 
-        {/* Right: theme toggle + notifications + avatar + burger */}
+        {/* Right: notifications + avatar + burger */}
         <div className="flex flex-shrink-0 flex-row items-center gap-3">
-          <ThemeToggle />
           <div className="hidden md:block">
             <NotificationsBell />
           </div>
@@ -358,7 +356,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={() => setBurgerOpen((o) => !o)}
-            className="btn-relief flex h-9 w-9 items-center justify-center rounded-lg text-vocab-gray hover:bg-slate-100 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:hidden dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-primary-light"
+            className="btn-relief flex h-9 w-9 items-center justify-center rounded-lg text-vocab-gray hover:bg-slate-100 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:hidden"
             aria-expanded={burgerOpen}
             aria-controls="mobile-menu"
             aria-label="Ouvrir le menu"
@@ -411,21 +409,21 @@ export function AppHeader({
               }}
             >
           {/* Header : logo Lexiva + LEXIVA + croix fermeture */}
-          <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200/80 px-4 py-4 dark:border-slate-700/80">
+          <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200/80 px-4 py-4">
             <Link
               href={homeHref}
               onClick={() => setBurgerOpen(false)}
               className="flex items-center gap-2.5 no-underline"
             >
               <Image src="/logo.png" alt="" width={32} height={32} />
-              <span className="text-lg font-semibold text-vocab-gray dark:text-slate-100">
+              <span className="text-lg font-semibold text-vocab-gray">
                 LEXIVA
               </span>
             </Link>
             <button
               type="button"
               onClick={() => setBurgerOpen(false)}
-              className="btn-relief rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-700"
+              className="btn-relief rounded-lg p-2 text-slate-500 hover:bg-slate-100"
               aria-label="Fermer le menu"
             >
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -458,7 +456,7 @@ export function AppHeader({
                   background: isActive ? "#6C3FC8" : "transparent",
                   textDecoration: "none",
                 }}
-                className={!isActive ? "text-slate-800 dark:text-slate-200" : ""}
+                className={!isActive ? "text-slate-800" : ""}
               >
                 <span>{item.icon}</span>
                 <span>{item.label}</span>
@@ -471,58 +469,5 @@ export function AppHeader({
         )}
       </div>
     </header>
-  );
-}
-
-function ThemeToggle() {
-  const { theme, setTheme, isDark } = useTheme();
-
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        const next = isDark ? "light" : "dark";
-        setTheme(next);
-        fetch("/api/user/preferences", {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ themePreference: next }),
-        }).catch(() => {});
-      }}
-      className="hidden items-center gap-1.5 md:inline-flex"
-      style={{
-        padding: "4px 10px",
-        borderRadius: 16,
-        border: "0.5px solid #d4d4d8",
-        background: isDark ? "#1e1b2e" : "#f4f4f5",
-        cursor: "pointer",
-      }}
-      aria-label={isDark ? "Passer en mode clair" : "Passer en mode sombre"}
-    >
-      <div
-        className="relative"
-        style={{
-          width: 28,
-          height: 16,
-          borderRadius: 8,
-          background: isDark ? "#6C3FC8" : "#F5A623",
-        }}
-      >
-        <div
-          className="absolute transition-all duration-200"
-          style={{
-            width: 12,
-            height: 12,
-            borderRadius: "50%",
-            background: "white",
-            top: 2,
-            left: isDark ? 2 : 14,
-          }}
-        />
-      </div>
-      <span style={{ fontSize: 11, fontWeight: 500, color: isDark ? "#a1a1aa" : "#71717a" }}>
-        {isDark ? "Sombre" : "Clair"}
-      </span>
-    </button>
   );
 }

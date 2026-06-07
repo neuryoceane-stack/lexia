@@ -464,10 +464,10 @@ export default function MotsSauvagesPage() {
                         key={i}
                         type="button"
                         onClick={() => onWordClick(token)}
-                        className={`rounded px-0.5 py-0.5 font-medium underline decoration-dotted hover:bg-primary/10 dark:hover:bg-primary/20 ${
+                        className={`rounded px-0.5 py-0.5 font-medium underline decoration-dotted hover:bg-primary/10 ${
                           isSelected
-                            ? "bg-green-200 text-green-900 dark:bg-green-900/40 dark:text-green-200"
-                            : "text-primary dark:text-primary-light"
+                            ? "bg-green-200 text-green-900"
+                            : "text-primary"
                         }`}
                       >
                         {token}
@@ -480,7 +480,7 @@ export default function MotsSauvagesPage() {
             </div>
 
             {bubble && (
-              <div className="mt-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-4 dark:border-primary/50 dark:bg-primary/10">
+              <div className="mt-4 rounded-xl border-2 border-primary/30 bg-primary/5 p-4">
                 <p className="text-sm text-[var(--foreground-muted)]">
                   <strong className="text-[var(--foreground)]">
                     {bubble.word}
@@ -510,7 +510,7 @@ export default function MotsSauvagesPage() {
                       ]);
                       setBubble(null);
                     }}
-                    className="btn-relief rounded-lg border border-primary px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10 dark:border-primary-light dark:text-primary-light dark:hover:bg-primary/20"
+                    className="btn-relief rounded-lg border border-primary px-3 py-2 text-sm font-medium text-primary hover:bg-primary/10"
                   >
                     ＋ Sélectionner
                   </button>
@@ -531,7 +531,7 @@ export default function MotsSauvagesPage() {
               <button
                 type="button"
                 onClick={() => openAddModal(true)}
-                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white hover:bg-primary-dark dark:bg-primary-light dark:text-[var(--background)] dark:hover:bg-primary/90"
+                className="flex w-full items-center justify-center gap-2 rounded-lg bg-primary py-3 font-medium text-white hover:bg-primary-dark"
               >
                 <span>{selectedWords.length} mot{selectedWords.length > 1 ? "s" : ""} sélectionné{selectedWords.length > 1 ? "s" : ""}</span>
                 <span>—</span>
@@ -554,7 +554,7 @@ export default function MotsSauvagesPage() {
                   Ajouter à un groupe de vocabulaire
                 </h2>
                 {addSuccess ? (
-                  <p className="text-primary dark:text-primary-light">
+                  <p className="text-primary">
                     ✓ {addSuccessCount > 1 ? `${addSuccessCount} mots ajoutés` : "Mot ajouté à la liste"}.
                   </p>
                 ) : showCreateForm ? (
@@ -653,7 +653,7 @@ export default function MotsSauvagesPage() {
                       setCreateListName("");
                       setShowCreateForm(true);
                     }}
-                    className="btn-relief rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10 dark:border-primary-light dark:text-primary-light dark:hover:bg-primary/20"
+                    className="btn-relief rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
                   >
                     ＋ Créer une nouvelle liste
                   </button>

@@ -193,14 +193,14 @@ export function CreatorTabs() {
 
   return (
     <>
-      <div className="mb-6 flex gap-2 border-b border-slate-200 dark:border-slate-700">
+      <div className="mb-6 flex gap-2 border-b border-slate-200">
         <button
           type="button"
           onClick={() => setTab("analytics")}
           className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
             tab === "analytics"
-              ? "border-primary text-primary dark:border-primary-light dark:text-primary-light"
-              : "border-transparent text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+              ? "border-primary text-primary"
+              : "border-transparent text-slate-600 hover:text-slate-800"
           }`}
         >
           Analytics
@@ -210,8 +210,8 @@ export function CreatorTabs() {
           onClick={() => setTab("feedbacks")}
           className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
             tab === "feedbacks"
-              ? "border-primary text-primary dark:border-primary-light dark:text-primary-light"
-              : "border-transparent text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+              ? "border-primary text-primary"
+              : "border-transparent text-slate-600 hover:text-slate-800"
           }`}
         >
           Feedbacks
@@ -221,8 +221,8 @@ export function CreatorTabs() {
           onClick={() => setTab("finance")}
           className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
             tab === "finance"
-              ? "border-primary text-primary dark:border-primary-light dark:text-primary-light"
-              : "border-transparent text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+              ? "border-primary text-primary"
+              : "border-transparent text-slate-600 hover:text-slate-800"
           }`}
         >
           Finance 💰
@@ -232,8 +232,8 @@ export function CreatorTabs() {
           onClick={() => setTab("shop")}
           className={`border-b-2 px-4 py-2 text-sm font-medium transition ${
             tab === "shop"
-              ? "border-primary text-primary dark:border-primary-light dark:text-primary-light"
-              : "border-transparent text-slate-600 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+              ? "border-primary text-primary"
+              : "border-transparent text-slate-600 hover:text-slate-800"
           }`}
         >
           Shop 🛍️
@@ -243,58 +243,58 @@ export function CreatorTabs() {
       {tab === "analytics" && (
         <div className="space-y-6">
           {analyticsLoading ? (
-            <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+            <p className="text-slate-500">Chargement…</p>
           ) : analytics ? (
             <>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">
                     👥 Utilisateurs
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  <p className="mt-1 text-2xl font-bold text-slate-800">
                     {analytics.totalUsers}
                   </p>
                   {analytics.newUsersThisWeek > 0 && (
-                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                    <p className="mt-1 text-sm text-green-600">
                       +{analytics.newUsersThisWeek} cette semaine
                     </p>
                   )}
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">
                     📚 Mots ajoutés
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  <p className="mt-1 text-2xl font-bold text-slate-800">
                     {analytics.totalWords}
                   </p>
                   {analytics.wordsThisWeek > 0 && (
-                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                    <p className="mt-1 text-sm text-green-600">
                       +{analytics.wordsThisWeek} cette semaine
                     </p>
                   )}
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">
                     🔄 Sessions
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  <p className="mt-1 text-2xl font-bold text-slate-800">
                     {analytics.totalSessions}
                   </p>
                   {analytics.sessionsThisWeek > 0 && (
-                    <p className="mt-1 text-sm text-green-600 dark:text-green-400">
+                    <p className="mt-1 text-sm text-green-600">
                       +{analytics.sessionsThisWeek} cette semaine
                     </p>
                   )}
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">
                     💬 Feedbacks en attente
                   </p>
                   <p
                     className={`mt-1 text-2xl font-bold ${
                       analytics.pendingFeedbacks > 0
-                        ? "text-amber-600 dark:text-amber-400"
-                        : "text-slate-800 dark:text-slate-100"
+                        ? "text-amber-600"
+                        : "text-slate-800"
                     }`}
                   >
                     {analytics.pendingFeedbacks}
@@ -303,7 +303,7 @@ export function CreatorTabs() {
               </div>
 
               <div>
-                <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <h3 className="mb-3 text-sm font-semibold text-slate-700">
                   Répartition par rôle
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -318,17 +318,17 @@ export function CreatorTabs() {
                     return (
                       <div
                         key={role}
-                        className="flex flex-1 min-w-[120px] flex-col gap-1 rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-700 dark:bg-slate-800/50"
+                        className="flex flex-1 min-w-[120px] flex-col gap-1 rounded-lg border border-slate-200 bg-slate-50 p-3"
                       >
                         <div className="flex justify-between text-sm">
-                          <span className="font-medium text-slate-700 dark:text-slate-300">
+                          <span className="font-medium text-slate-700">
                             {label}
                           </span>
-                          <span className="text-slate-500 dark:text-slate-400">
+                          <span className="text-slate-500">
                             {count}
                           </span>
                         </div>
-                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
                           <div
                             className={`h-full ${color} transition-all`}
                             style={{ width: `${pct}%` }}
@@ -341,7 +341,7 @@ export function CreatorTabs() {
               </div>
             </>
           ) : (
-            <p className="text-slate-500 dark:text-slate-400">
+            <p className="text-slate-500">
               Impossible de charger les analytics.
             </p>
           )}
@@ -351,14 +351,14 @@ export function CreatorTabs() {
       {tab === "finance" && (
         <div className="space-y-6">
           {financeLoading ? (
-            <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+            <p className="text-slate-500">Chargement…</p>
           ) : finance?.stripeNotConfigured ? (
-            <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-12 text-center dark:border-slate-700 dark:bg-slate-800/50">
+            <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-slate-50 p-12 text-center">
               <span className="text-5xl">💳</span>
-              <h3 className="mt-4 text-lg font-semibold text-slate-800 dark:text-slate-100">
+              <h3 className="mt-4 text-lg font-semibold text-slate-800">
                 Stripe non configuré
               </h3>
-              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+              <p className="mt-2 text-sm text-slate-500">
                 Revenez après l'intégration Stripe (Semaine 4)
               </p>
             </div>
@@ -366,37 +366,37 @@ export function CreatorTabs() {
             <>
               {/* Metric cards */}
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">
                     💰 MRR
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  <p className="mt-1 text-2xl font-bold text-slate-800">
                     {finance.mrr.toFixed(2)} €
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">
                     👥 Abonnés actifs
                   </p>
-                  <p className="mt-1 text-2xl font-bold text-slate-800 dark:text-slate-100">
+                  <p className="mt-1 text-2xl font-bold text-slate-800">
                     {finance.activeSubscribers}
                   </p>
                 </div>
-                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                  <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                  <p className="text-sm font-medium text-slate-500">
                     📈 Variation mois
                   </p>
                   <p
                     className={`mt-1 text-2xl font-bold ${
                       finance.monthVariation >= 0
-                        ? "text-green-600 dark:text-green-400"
-                        : "text-red-600 dark:text-red-400"
+                        ? "text-green-600"
+                        : "text-red-600"
                     }`}
                   >
                     {finance.monthVariation >= 0 ? "+" : ""}
                     {finance.monthVariation}%
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-400 dark:text-slate-500">
+                  <p className="mt-0.5 text-xs text-slate-400">
                     {finance.revenueThisMonth.toFixed(2)} € vs{" "}
                     {finance.revenuePrevMonth.toFixed(2)} €
                   </p>
@@ -404,8 +404,8 @@ export function CreatorTabs() {
               </div>
 
               {/* Graphique MRR 12 mois */}
-              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                <h3 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+                <h3 className="mb-4 text-sm font-semibold text-slate-700">
                   Revenus — 12 derniers mois
                 </h3>
                 <ResponsiveContainer width="100%" height={260}>
@@ -442,8 +442,8 @@ export function CreatorTabs() {
                       key={i}
                       className={`rounded-lg border p-3 text-sm font-medium ${
                         alert.type === "churn"
-                          ? "border-red-200 bg-red-50 text-red-800 dark:border-red-500/30 dark:bg-red-900/20 dark:text-red-300"
-                          : "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-500/30 dark:bg-amber-900/20 dark:text-amber-300"
+                          ? "border-red-200 bg-red-50 text-red-800"
+                          : "border-amber-200 bg-amber-50 text-amber-800"
                       }`}
                     >
                       {alert.type === "churn" ? "🔴" : "🟡"} {alert.message}
@@ -453,15 +453,15 @@ export function CreatorTabs() {
               )}
 
               {/* Tableau paiements */}
-              <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
-                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3 dark:border-slate-700">
-                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <div className="rounded-xl border border-slate-200 bg-white shadow-sm">
+                <div className="flex items-center justify-between border-b border-slate-100 px-4 py-3">
+                  <h3 className="text-sm font-semibold text-slate-700">
                     Derniers paiements
                   </h3>
                   <button
                     type="button"
                     onClick={exportPaymentsCsv}
-                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50 dark:border-slate-600 dark:text-slate-400 dark:hover:bg-slate-700"
+                    className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:bg-slate-50"
                   >
                     Exporter CSV
                   </button>
@@ -469,17 +469,17 @@ export function CreatorTabs() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-slate-100 text-left dark:border-slate-700">
-                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                      <tr className="border-b border-slate-100 text-left">
+                        <th className="px-4 py-2 font-medium text-slate-500">
                           Date
                         </th>
-                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                        <th className="px-4 py-2 font-medium text-slate-500">
                           Email
                         </th>
-                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                        <th className="px-4 py-2 font-medium text-slate-500">
                           Montant
                         </th>
-                        <th className="px-4 py-2 font-medium text-slate-500 dark:text-slate-400">
+                        <th className="px-4 py-2 font-medium text-slate-500">
                           Statut
                         </th>
                       </tr>
@@ -490,28 +490,28 @@ export function CreatorTabs() {
                         .map((p, i) => (
                           <tr
                             key={i}
-                            className="border-b border-slate-50 last:border-b-0 dark:border-slate-700/50"
+                            className="border-b border-slate-50 last:border-b-0"
                           >
-                            <td className="px-4 py-2 text-slate-700 dark:text-slate-300">
+                            <td className="px-4 py-2 text-slate-700">
                               {new Date(p.date).toLocaleDateString("fr-FR", {
                                 day: "numeric",
                                 month: "short",
                               })}
                             </td>
-                            <td className="px-4 py-2 text-slate-600 dark:text-slate-400">
+                            <td className="px-4 py-2 text-slate-600">
                               {p.email}
                             </td>
-                            <td className="px-4 py-2 font-medium text-slate-800 dark:text-slate-100">
+                            <td className="px-4 py-2 font-medium text-slate-800">
                               {p.amount.toFixed(2)} €
                             </td>
                             <td className="px-4 py-2">
                               <span
                                 className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                                   p.status === "paid"
-                                    ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                                    ? "bg-green-100 text-green-800"
                                     : p.status === "failed"
-                                      ? "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
-                                      : "bg-orange-100 text-orange-800 dark:bg-orange-900/40 dark:text-orange-300"
+                                      ? "bg-red-100 text-red-800"
+                                      : "bg-orange-100 text-orange-800"
                                 }`}
                               >
                                 {p.status === "paid"
@@ -527,12 +527,12 @@ export function CreatorTabs() {
                   </table>
                 </div>
                 {finance.recentPayments.length > 5 && (
-                  <div className="flex justify-center gap-2 border-t border-slate-100 px-4 py-2 dark:border-slate-700">
+                  <div className="flex justify-center gap-2 border-t border-slate-100 px-4 py-2">
                     <button
                       type="button"
                       disabled={paymentPage === 0}
                       onClick={() => setPaymentPage((p) => p - 1)}
-                      className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-700"
+                      className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 disabled:opacity-40"
                     >
                       ← Précédent
                     </button>
@@ -542,7 +542,7 @@ export function CreatorTabs() {
                         (paymentPage + 1) * 5 >= finance.recentPayments.length
                       }
                       onClick={() => setPaymentPage((p) => p + 1)}
-                      className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 disabled:opacity-40 dark:text-slate-400 dark:hover:bg-slate-700"
+                      className="rounded px-2 py-1 text-xs text-slate-500 hover:bg-slate-100 disabled:opacity-40"
                     >
                       Suivant →
                     </button>
@@ -551,7 +551,7 @@ export function CreatorTabs() {
               </div>
             </>
           ) : (
-            <p className="text-slate-500 dark:text-slate-400">
+            <p className="text-slate-500">
               Impossible de charger les données financières.
             </p>
           )}
@@ -568,8 +568,8 @@ export function CreatorTabs() {
                 onClick={() => setStatusFilter(f)}
                 className={`rounded-lg px-3 py-1.5 text-sm font-medium transition ${
                   statusFilter === f
-                    ? "bg-primary/15 text-primary dark:bg-primary/25 dark:text-primary-light"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600"
+                    ? "bg-primary/15 text-primary"
+                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
                 }`}
               >
                 {f === "all" ? "Tous" : STATUS_LABELS[f]}
@@ -578,13 +578,13 @@ export function CreatorTabs() {
           </div>
 
           {loading ? (
-            <p className="text-slate-500 dark:text-slate-400">Chargement…</p>
+            <p className="text-slate-500">Chargement…</p>
           ) : filteredFeedbacks.length === 0 ? (
-            <p className="text-slate-500 dark:text-slate-400">
+            <p className="text-slate-500">
               Aucun feedback pour ce filtre.
             </p>
           ) : (
-            <div className="space-y-1 overflow-hidden rounded-xl border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800">
+            <div className="space-y-1 overflow-hidden rounded-xl border border-slate-200 bg-white">
               {filteredFeedbacks.map((fb) => {
                 const isExpanded = expandedId === fb.id;
                 const descShort =
@@ -594,23 +594,23 @@ export function CreatorTabs() {
                 return (
                   <div
                     key={fb.id}
-                    className="border-b border-slate-100 last:border-b-0 dark:border-slate-700/50"
+                    className="border-b border-slate-100 last:border-b-0"
                   >
                     <button
                       type="button"
                       onClick={() => toggleExpanded(fb.id)}
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      className="flex w-full items-center gap-2 px-3 py-2 text-left transition hover:bg-slate-50"
                     >
-                      <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700 dark:bg-slate-700 dark:text-slate-300">
+                      <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-medium text-slate-700">
                         {TYPE_LABELS[fb.type] ?? fb.type}
                       </span>
                       <span
                         className={`shrink-0 rounded px-1.5 py-0.5 text-xs font-medium ${
                           fb.status === "pending"
-                            ? "bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300"
+                            ? "bg-amber-100 text-amber-800"
                             : fb.status === "in_progress"
-                              ? "bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-300"
-                              : "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300"
+                              ? "bg-blue-100 text-blue-800"
+                              : "bg-green-100 text-green-800"
                         }`}
                       >
                         {STATUS_LABELS[fb.status]}
@@ -619,29 +619,29 @@ export function CreatorTabs() {
                         <span
                           className={`shrink-0 text-sm ${
                             fb.satisfaction === "up"
-                              ? "text-green-600 dark:text-green-400"
-                              : "text-red-600 dark:text-red-400"
+                              ? "text-green-600"
+                              : "text-red-600"
                           }`}
                         >
                           {fb.satisfaction === "up" ? "👍" : "👎"}
                         </span>
                       )}
-                      <span className="min-w-0 flex-1 truncate text-sm text-slate-600 dark:text-slate-400">
+                      <span className="min-w-0 flex-1 truncate text-sm text-slate-600">
                         {descShort}
                       </span>
                       {fb.page && (
-                        <code className="hidden shrink-0 rounded bg-slate-100 px-1 text-xs dark:bg-slate-700 sm:inline">
+                        <code className="hidden shrink-0 rounded bg-slate-100 px-1 text-xs sm:inline">
                           {fb.page}
                         </code>
                       )}
-                      <span className="shrink-0 text-xs text-slate-400 dark:text-slate-500">
+                      <span className="shrink-0 text-xs text-slate-400">
                         {new Date(fb.createdAt).toLocaleDateString("fr-FR", {
                           day: "numeric",
                           month: "short",
                         })}
                       </span>
                       <span
-                        className={`shrink-0 text-xs text-slate-400 transition-transform dark:text-slate-500 ${
+                        className={`shrink-0 text-xs text-slate-400 transition-transform ${
                           isExpanded ? "rotate-180" : ""
                         }`}
                       >
@@ -649,27 +649,27 @@ export function CreatorTabs() {
                       </span>
                     </button>
                     {isExpanded && (
-                      <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-3 dark:border-slate-700/50 dark:bg-slate-800/50">
-                        <p className="mb-2 text-sm text-slate-800 dark:text-slate-100">
+                      <div className="border-t border-slate-100 bg-slate-50/50 px-3 py-3">
+                        <p className="mb-2 text-sm text-slate-800">
                           {fb.description}
                         </p>
                         {fb.page && (
-                          <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                          <p className="mb-2 text-xs text-slate-500">
                             Page :{" "}
-                            <code className="rounded bg-slate-200 px-1 dark:bg-slate-700">
+                            <code className="rounded bg-slate-200 px-1">
                               {fb.page}
                             </code>
                           </p>
                         )}
-                        <p className="mb-2 text-xs text-slate-500 dark:text-slate-400">
+                        <p className="mb-2 text-xs text-slate-500">
                           {[fb.firstName, fb.email].filter(Boolean).join(" — ")}
                         </p>
                         {fb.satisfaction && (
                           <p
                             className={`mb-3 text-xs font-medium ${
                               fb.satisfaction === "up"
-                                ? "text-green-600 dark:text-green-400"
-                                : "text-red-600 dark:text-red-400"
+                                ? "text-green-600"
+                                : "text-red-600"
                             }`}
                           >
                             {fb.satisfaction === "up"
@@ -691,8 +691,8 @@ export function CreatorTabs() {
                               }
                               className={`rounded-lg px-3 py-1.5 text-xs font-medium transition disabled:opacity-50 ${
                                 fb.status === opt.value
-                                  ? "bg-primary/20 text-primary dark:bg-primary/30 dark:text-primary-light"
-                                  : "bg-white text-slate-600 hover:bg-slate-100 dark:bg-slate-700 dark:text-slate-400 dark:hover:bg-slate-600"
+                                  ? "bg-primary/20 text-primary"
+                                  : "bg-white text-slate-600 hover:bg-slate-100"
                               }`}
                             >
                               {opt.label}

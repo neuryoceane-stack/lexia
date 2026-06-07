@@ -367,7 +367,7 @@ export function BibliothequeClient() {
             Choisissez une langue dans la liste ci-dessous.
           </p>
           {preferredLangError && (
-            <p className="mb-3 text-sm text-red-600 dark:text-red-400" role="alert">
+            <p className="mb-3 text-sm text-red-600" role="alert">
               {preferredLangError}
             </p>
           )}
@@ -401,10 +401,10 @@ export function BibliothequeClient() {
         <div className="space-y-6">
       {searchParams.get("saved") === "1" && !savedBannerDismissed && (
         <div
-          className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3 dark:border-green-800 dark:bg-green-900/30"
+          className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3"
           role="status"
         >
-          <p className="text-sm font-medium text-green-800 dark:text-green-200">
+          <p className="text-sm font-medium text-green-800">
             Liste sauvegardée avec succès.
           </p>
           <button
@@ -416,7 +416,7 @@ export function BibliothequeClient() {
               const q = p.toString();
               router.replace(q ? `${pathname}?${q}` : pathname);
             }}
-            className="rounded p-1.5 text-green-700 hover:bg-green-200 dark:text-green-300 dark:hover:bg-green-800/50"
+            className="rounded p-1.5 text-green-700 hover:bg-green-200"
             aria-label="Fermer"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -769,7 +769,7 @@ export function BibliothequeClient() {
                       type="button"
                       onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
                       disabled={deletingFamilyId === list.familyId}
-                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
+                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
                       Supprimer la famille
                     </button>
@@ -852,7 +852,7 @@ export function BibliothequeClient() {
                       type="button"
                       onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
                       disabled={deletingFamilyId === list.familyId}
-                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20 disabled:opacity-50"
+                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
                       Supprimer la famille
                     </button>
@@ -1026,7 +1026,7 @@ export function BibliothequeClient() {
                     <button
                       type="button"
                       onClick={() => setLangToRemove(code)}
-                      className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30"
+                      className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded text-red-600 hover:bg-red-100"
                       title="Supprimer cette langue"
                       aria-label={`Supprimer ${PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code}`}
                     >
@@ -1090,7 +1090,7 @@ export function BibliothequeClient() {
             <h2 id="confirm-remove-lang-title" className="mb-3 text-lg font-semibold text-[var(--foreground)]">
               Êtes-vous sûr de supprimer cette langue ?
             </h2>
-            <p className="mb-6 text-sm text-red-600 dark:text-red-400">
+            <p className="mb-6 text-sm text-red-600">
               Tous les mots de vocabulaire enregistrés seront supprimés définitivement.
             </p>
             <div className="flex justify-end gap-2">

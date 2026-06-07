@@ -125,10 +125,10 @@ export default function RevisionExpressPage() {
     const pct = score.total > 0 ? score.correct / score.total : 0;
     const scoreColor =
       pct >= 0.7
-        ? "text-green-600 dark:text-green-400"
+        ? "text-green-600"
         : pct >= 0.5
-          ? "text-amber-500 dark:text-amber-400"
-          : "text-red-600 dark:text-red-400";
+          ? "text-amber-500"
+          : "text-red-600";
 
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center bg-[var(--background)] text-center">
@@ -216,14 +216,14 @@ export default function RevisionExpressPage() {
           <button
             type="button"
             onClick={handleDidNotKnow}
-            className="flex-1 rounded-xl border-2 border-red-400 py-3 text-center font-semibold text-red-600 transition hover:bg-red-50 dark:border-red-500 dark:text-red-400 dark:hover:bg-red-900/20"
+            className="flex-1 rounded-xl border-2 border-red-400 py-3 text-center font-semibold text-red-600 transition hover:bg-red-50"
           >
             ✗ Je ne savais pas
           </button>
           <button
             type="button"
             onClick={handleKnew}
-            className="flex-1 rounded-xl border-2 border-green-400 py-3 text-center font-semibold text-green-600 transition hover:bg-green-50 dark:border-green-500 dark:text-green-400 dark:hover:bg-green-900/20"
+            className="flex-1 rounded-xl border-2 border-green-400 py-3 text-center font-semibold text-green-600 transition hover:bg-green-50"
           >
             ✓ Je savais
           </button>

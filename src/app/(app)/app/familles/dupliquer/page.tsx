@@ -181,8 +181,8 @@ export default function DupliquerPage() {
     return (
       <div className="space-y-6">
         <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800">
-          <p className="text-slate-600 dark:text-slate-400">
+        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+          <p className="text-slate-600">
             Aucune liste sélectionnée. Choisissez une liste depuis la bibliothèque, puis « Dupliquer dans une autre langue ».
           </p>
         </div>
@@ -195,13 +195,13 @@ export default function DupliquerPage() {
       <div className="space-y-6">
         <Link
           href="/app/familles"
-          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary dark:text-slate-400 dark:hover:text-primary-light"
+          className="inline-flex items-center gap-1.5 text-sm font-medium text-vocab-gray hover:text-primary"
         >
           <span aria-hidden>←</span>
           Retour à la bibliothèque
         </Link>
-        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-800">
-          <p className="text-slate-600 dark:text-slate-400">Chargement de la liste…</p>
+        <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+          <p className="text-slate-600">Chargement de la liste…</p>
         </div>
       </div>
     );
@@ -213,13 +213,13 @@ export default function DupliquerPage() {
     <div className="space-y-6">
       <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 dark:border-slate-700 dark:bg-slate-800">
-        <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+      <div className="rounded-xl border border-slate-200 bg-white p-6">
+        <h1 className="text-xl font-semibold text-slate-800">
           Nouvelle liste : {toLabel}
         </h1>
 
         <div className="mt-4">
-          <label htmlFor="new-list-title" className="block text-sm font-medium text-slate-600 dark:text-slate-400">
+          <label htmlFor="new-list-title" className="block text-sm font-medium text-slate-600">
             Titre de la nouvelle liste
           </label>
           <input
@@ -227,24 +227,24 @@ export default function DupliquerPage() {
             type="text"
             value={newTitle}
             onChange={(e) => setNewTitle(e.target.value)}
-            className="mt-1 w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+            className="mt-1 w-full max-w-md rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800"
             placeholder="Nom de la liste"
           />
         </div>
 
         {translating && (
-          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-4 text-sm text-slate-500">
             Traduction en cours… {translateProgress}
           </p>
         )}
         {translateError && (
-          <p className="mt-2 text-sm text-red-600 dark:text-red-400" role="alert">
+          <p className="mt-2 text-sm text-red-600" role="alert">
             {translateError}
           </p>
         )}
 
         {!translating && words.length === 0 && (
-          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
+          <p className="mt-4 text-sm text-slate-500">
             Cette liste ne contient aucun mot. Ajoutez des mots à la liste source puis réessayez.
           </p>
         )}
@@ -253,27 +253,27 @@ export default function DupliquerPage() {
           <div className="mt-6 overflow-x-auto">
             <table className="w-full min-w-[480px] border-collapse text-sm">
               <thead>
-                <tr className="border-b border-slate-200 dark:border-slate-600">
-                  <th className="pb-2 pr-2 text-left font-medium text-slate-600 dark:text-slate-400">
+                <tr className="border-b border-slate-200">
+                  <th className="pb-2 pr-2 text-left font-medium text-slate-600">
                     Terme ({toLabel})
                   </th>
-                  <th className="pb-2 pr-2 text-left font-medium text-slate-600 dark:text-slate-400">
+                  <th className="pb-2 pr-2 text-left font-medium text-slate-600">
                     Définition ({toLabel})
                   </th>
-                  <th className="w-10 pb-2 text-right font-medium text-slate-600 dark:text-slate-400">
+                  <th className="w-10 pb-2 text-right font-medium text-slate-600">
                     <span className="sr-only">Supprimer</span>
                   </th>
                 </tr>
               </thead>
               <tbody>
                 {items.map((row) => (
-                  <tr key={row.id} className="border-b border-slate-100 dark:border-slate-700">
+                  <tr key={row.id} className="border-b border-slate-100">
                     <td className="py-2 pr-2 align-top">
                       <input
                         type="text"
                         value={row.termTranslated}
                         onChange={(e) => updateRow(row.id, "termTranslated", e.target.value)}
-                        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-slate-800"
                       />
                     </td>
                     <td className="py-2 pr-2 align-top">
@@ -281,14 +281,14 @@ export default function DupliquerPage() {
                         type="text"
                         value={row.definitionTranslated}
                         onChange={(e) => updateRow(row.id, "definitionTranslated", e.target.value)}
-                        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-slate-800 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-100"
+                        className="w-full rounded border border-slate-200 bg-white px-2 py-1.5 text-slate-800"
                       />
                     </td>
                     <td className="py-2 text-right align-top">
                       <button
                         type="button"
                         onClick={() => removeRow(row.id)}
-                        className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400"
+                        className="rounded p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
                         aria-label="Supprimer cette ligne"
                       >
                         <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -314,7 +314,7 @@ export default function DupliquerPage() {
               {saving ? "Sauvegarde…" : "Sauvegarder la nouvelle liste"}
             </button>
             {saveError && (
-              <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+              <p className="text-sm text-red-600" role="alert">
                 {saveError}
               </p>
             )}

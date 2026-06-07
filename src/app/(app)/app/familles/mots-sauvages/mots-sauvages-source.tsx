@@ -122,7 +122,7 @@ export function MotsSauvagesSource({
 
       {extractLoading && (
         <div
-          className={`${dmSans.className} mb-6 rounded-[12px] border-2 bg-white p-4 shadow-sm dark:bg-[var(--background-card)]`}
+          className={`${dmSans.className} mb-6 rounded-[12px] border-2 bg-white p-4 shadow-sm`}
           style={{ borderColor: "#6C3FC8" }}
           role="status"
           aria-live="polite"
