@@ -153,6 +153,17 @@ export const userProfiles = sqliteTable("user_profiles", {
     .$defaultFn(() => new Date()),
 });
 
+/** Liste d'attente des professeurs intéressés (espace prof à venir). */
+export const teacherWaitlist = sqliteTable("teacher_waitlist", {
+  id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  institution: text("institution"),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
 /** Classes créées par les professeurs. */
 export const classes = sqliteTable("classes", {
   id: text("id").primaryKey(),
@@ -340,6 +351,8 @@ export type MemoTip = typeof memoTips.$inferSelect;
 
 export type User = typeof users.$inferSelect;
 export type UserProfile = typeof userProfiles.$inferSelect;
+export type TeacherWaitlist = typeof teacherWaitlist.$inferSelect;
+export type NewTeacherWaitlist = typeof teacherWaitlist.$inferInsert;
 export type Class = typeof classes.$inferSelect;
 export type ClassMember = typeof classMembers.$inferSelect;
 export type ClassList = typeof classLists.$inferSelect;
