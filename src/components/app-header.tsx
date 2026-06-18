@@ -213,6 +213,19 @@ function AvatarDropdown({
                   <ShoppingBag size={13} stroke="#6C3FC8" />
                 </div>
                 <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Lexi Shop</span>
+                <span
+                  style={{
+                    background: "#F5A623",
+                    color: "white",
+                    fontSize: 10,
+                    fontWeight: 500,
+                    padding: "2px 7px",
+                    borderRadius: 10,
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Bientôt
+                </span>
                 <ChevronRight size={12} stroke="#a1a1aa" />
               </Link>
             )}

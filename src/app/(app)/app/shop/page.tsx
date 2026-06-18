@@ -1,8 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShoppingBag, BookOpen, X, Eye, EyeOff } from "lucide-react";
+import { ShoppingBag, BookOpen, X, Eye, EyeOff, CheckCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+
+// Passer à true pour réactiver le Lexi Shop (mode étudiant : désactivé au lancement).
+const SHOP_ENABLED = false;
 
 type Pack = {
   id: string;
@@ -97,6 +101,13 @@ const DEMO_PACKS: Pack[] = [
 ];
 
 export default function ShopPage() {
+  // Mode étudiant : la boutique est désactivée au lancement. On affiche un écran
+  // teasing et on n'exécute aucun hook de fetch tant que SHOP_ENABLED est false.
+  if (!SHOP_ENABLED) return <ShopComingSoon />;
+  return <ShopContent />;
+}
+
+function ShopContent() {
   const router = useRouter();
   const [packs, setPacks] = useState<Pack[]>(DEMO_PACKS);
   const [selectedLang, setSelectedLang] = useState("all");
@@ -480,6 +491,113 @@ export default function ShopPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function ShopComingSoon() {
+  const ARGUMENTS = [
+    "Packs thématiques prêts à l'emploi",
+    "Spécial collège, lycée et prépa",
+    "Ajoutés directement à votre bibliothèque",
+  ];
+
+  return (
+    <div
+      style={{
+        minHeight: "100%",
+        background: "#F8F7FF",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "64px 16px",
+        fontFamily: "DM Sans, sans-serif",
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 460,
+          background: "white",
+          borderRadius: 16,
+          border: "1px solid rgba(108,63,200,0.18)",
+          boxShadow: "0 8px 40px rgba(108,63,200,0.1)",
+          padding: "44px 36px",
+          textAlign: "center",
+        }}
+      >
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
+          <div style={{ position: "relative" }}>
+            <div
+              style={{
+                width: 76,
+                height: 76,
+                borderRadius: 20,
+                background: "#EEEDFE",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <ShoppingBag size={36} color="#6C3FC8" />
+            </div>
+            <span
+              style={{
+                position: "absolute",
+                top: -8,
+                right: -14,
+                background: "#F5A623",
+                color: "white",
+                fontSize: 11,
+                fontWeight: 500,
+                borderRadius: 12,
+                padding: "3px 9px",
+              }}
+            >
+              Bientôt
+            </span>
+          </div>
+        </div>
+
+        <p style={{ fontSize: 22, fontWeight: 500, color: "#2C2C2A", marginBottom: 12 }}>
+          Le Lexi Shop arrive bientôt
+        </p>
+        <p style={{ fontSize: 15, fontWeight: 400, color: "#6b6b6b", lineHeight: 1.6, marginBottom: 28 }}>
+          Des listes de vocabulaire prêtes à réviser, conçues par des experts :
+          philosophie, littérature, prépa, et bien plus. Préparez vos révisions, la
+          boutique ouvre très prochainement.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32, textAlign: "left" }}>
+          {ARGUMENTS.map((arg) => (
+            <div key={arg} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <CheckCircle size={18} color="#1D9E75" style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 14, fontWeight: 400, color: "#2C2C2A" }}>{arg}</span>
+            </div>
+          ))}
+        </div>
+
+        <Link
+          href="/app"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: "100%",
+            height: 50,
+            borderRadius: 20,
+            background: "#6C3FC8",
+            color: "white",
+            fontSize: 14,
+            fontWeight: 500,
+            textDecoration: "none",
+            fontFamily: "DM Sans, sans-serif",
+          }}
+        >
+          Retour à mon tableau de bord
+        </Link>
+      </div>
     </div>
   );
 }
