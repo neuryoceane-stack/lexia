@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import OpenAI from "openai";
 
+// 60 s = plafond du plan Vercel Hobby. Laisse l'OCR (Claude/PDF scanné) aller au
+// bout sans être coupé par le délai par défaut, plus court, de la plateforme.
+export const maxDuration = 60;
+
 /** Texte PDF jugé trop court : probable scan image → envoi PDF à Claude (document). */
 const MIN_PDF_TEXT_CHARS = 20;
 

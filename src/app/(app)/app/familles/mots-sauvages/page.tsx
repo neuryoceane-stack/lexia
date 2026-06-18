@@ -8,6 +8,7 @@ import {
   toIso6391,
 } from "@/lib/language";
 import { parseClaudeTranslationResponse } from "@/lib/parse-claude-translation";
+import { compressImage } from "@/lib/image-compression";
 
 type Step = "source" | "langs" | "select" | "reading";
 
@@ -60,13 +61,17 @@ export default function MotsSauvagesPage() {
       setExtractError("");
       setExtractKind(isPdf(file) ? "pdf" : "image");
       setExtractLoading(true);
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 45000);
       try {
+        const fileToSend = isPdf(file) ? file : await compressImage(file);
         const formData = new FormData();
-        formData.append("file", file);
+        formData.append("file", fileToSend);
         formData.append("type", isPdf(file) ? "pdf" : "image");
         const res = await fetch("/api/extract/raw", {
           method: "POST",
           body: formData,
+          signal: controller.signal,
         });
         const data = await res.json().catch(() => ({}));
         if (!res.ok) {
@@ -79,9 +84,16 @@ export default function MotsSauvagesPage() {
         setRawText(nextText);
         setSourceLang(resolvePreferredSourceLangFromText(nextText, "eng"));
         setStep("langs");
-      } catch {
-        setExtractError("Erreur réseau");
+      } catch (err) {
+        if (err instanceof Error && err.name === "AbortError") {
+          setExtractError(
+            "La reconnaissance a pris trop de temps. Réessayez avec une photo plus nette ou mieux cadrée."
+          );
+        } else {
+          setExtractError("Erreur réseau");
+        }
       } finally {
+        clearTimeout(timeout);
         setExtractLoading(false);
         setExtractKind(null);
       }
