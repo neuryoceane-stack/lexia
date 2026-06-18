@@ -377,7 +377,7 @@ export default function SignupPage() {
             </button>
 
             <button type="button"
-              onClick={() => { setRole("professeur"); setProfStep("identity"); }}
+              onClick={() => router.push("/signup/professeur")}
               style={{
                 background: "linear-gradient(160deg,#E2F5EE 0%,#D8F0E7 100%)",
                 border: "2px solid rgba(29,158,117,0.15)", borderRadius: 22,

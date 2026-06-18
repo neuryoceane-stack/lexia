@@ -157,7 +157,7 @@ export const userProfiles = sqliteTable("user_profiles", {
 export const teacherWaitlist = sqliteTable("teacher_waitlist", {
   id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
   email: text("email").notNull().unique(),
-  name: text("name"),
+  name: text("name").notNull(),
   institution: text("institution"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
