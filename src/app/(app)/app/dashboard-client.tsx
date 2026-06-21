@@ -88,7 +88,7 @@ export function DashboardClient() {
   const streakBorderTertiary = "rgba(108, 63, 200, 0.14)";
 
   return (
-    <div className="flex flex-col gap-[10px] bg-[var(--background)]">
+    <div className="flex flex-col gap-[10px]">
       <div
         className="grid grid-cols-1 md:grid-cols-2"
         style={{ gap: 12, marginBottom: 12 }}

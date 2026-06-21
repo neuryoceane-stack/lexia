@@ -2,7 +2,7 @@ import { EvaluationLanding } from "./evaluation-landing";
 
 export default function RevisionPage() {
   return (
-    <div className="bg-[var(--background)]">
+    <div>
       <EvaluationLanding />
     </div>
   );

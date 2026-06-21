@@ -45,7 +45,10 @@
 }
 
 body {
-  background: var(--background);
+  background-color: var(--background);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='26' viewBox='0 0 30 26'%3E%3Cpath fill='none' stroke='%236C3FC8' stroke-opacity='0.05' stroke-width='1' d='M15 1 L28.48 8.5 L28.48 17.5 L15 25 L1.52 17.5 L1.52 8.5 Z'/%3E%3Cpath fill='none' stroke='%236C3FC8' stroke-opacity='0.05' stroke-width='1' d='M15 1 L28.48 8.5 L28.48 17.5 L15 25 L1.52 17.5 L1.52 8.5 Z' transform='translate(15,13)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   font-weight: 400;

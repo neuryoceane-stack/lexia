@@ -346,7 +346,7 @@ export function BibliothequeClient() {
   });
 
   return (
-    <div className="space-y-6 bg-[var(--background)]">
+    <div className="space-y-6">
       <BackLink href="/app" ariaLabel="Retour au tableau de bord" />
 
       {!prefsLoaded && lists.length === 0 && (

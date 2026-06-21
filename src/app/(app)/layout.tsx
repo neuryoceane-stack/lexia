@@ -33,7 +33,7 @@ export default async function AppLayout({
   const userRole = role === "professeur" ? "professeur" : "etudiant";
 
   return (
-    <div className="min-h-screen bg-[var(--background)]">
+    <div className="min-h-screen">
       <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
       <main className="page-fade-in mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
       <FeedbackWidget />
