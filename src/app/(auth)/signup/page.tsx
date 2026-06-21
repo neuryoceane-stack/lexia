@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { CSSProperties, FocusEvent, ReactNode } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ChevronLeft } from "lucide-react";
 
@@ -348,6 +349,13 @@ export default function SignupPage() {
           <div style={{ position: "absolute", bottom: 90, right: 18, fontSize: 11, color: GOLD, opacity: 0.5 }}>✦</div>
 
           <div style={{ textAlign: "center" }}>
+            <Image
+              src="/logo-mark.png"
+              alt="Lexiva"
+              width={52}
+              height={52}
+              style={{ objectFit: "contain", display: "block", margin: "0 auto 8px" }}
+            />
             <p style={{ fontSize: 28, fontWeight: 500, color: V, letterSpacing: "-1px" }}>LEXIVA</p>
             <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "6px 0 4px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: V }} />

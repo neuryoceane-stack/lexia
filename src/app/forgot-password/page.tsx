@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -54,6 +55,13 @@ export default function ForgotPasswordPage() {
         boxShadow: "0 4px 24px rgba(108, 63, 200, 0.1)",
       }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
+          <Image
+            src="/logo-mark.png"
+            alt="Lexiva"
+            width={52}
+            height={52}
+            style={{ objectFit: "contain", display: "block", margin: "0 auto 12px" }}
+          />
           <h1 style={{ color: "#6C3FC8", fontSize: "28px", margin: "0 0 8px" }}>Lexiva</h1>
           <h2 style={{ color: "#1a1a1a", fontSize: "20px", fontWeight: 600, margin: 0 }}>
             Mot de passe oublié

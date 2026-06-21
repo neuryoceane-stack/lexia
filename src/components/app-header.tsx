@@ -320,7 +320,7 @@ export function AppHeader({
           >
             <span className="flex-shrink-0">
               <Image
-                src="/logo.png"
+                src="/logo-mark.png"
                 alt="Lexiva"
                 width={40}
                 height={40}
@@ -428,7 +428,7 @@ export function AppHeader({
               onClick={() => setBurgerOpen(false)}
               className="flex items-center gap-2.5 no-underline"
             >
-              <Image src="/logo.png" alt="" width={32} height={32} />
+              <Image src="/logo-mark.png" alt="" width={32} height={32} />
               <span className="text-lg font-semibold text-vocab-gray">
                 LEXIVA
               </span>

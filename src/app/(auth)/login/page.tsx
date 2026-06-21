@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { BookOpen, Eye, EyeOff, LogIn } from "lucide-react";
+import Image from "next/image";
+import { Eye, EyeOff, LogIn } from "lucide-react";
 
 function GoogleIcon() {
   return (
@@ -72,18 +73,14 @@ export default function LoginPage() {
       {/* Logo */}
       <div className="mb-[18px] text-center">
         <Link href="/" className="inline-block no-underline">
-          <div
-            className="mx-auto mb-2 flex items-center justify-center"
-            style={{
-              width: 52,
-              height: 52,
-              borderRadius: 14,
-              background: "#F0EDF8",
-              border: "1.5px solid #DDD6F5",
-            }}
-          >
-            <BookOpen size={26} stroke="#6C3FC8" />
-          </div>
+          <Image
+            src="/logo-mark.png"
+            alt="Lexiva"
+            width={52}
+            height={52}
+            className="mx-auto mb-2"
+            style={{ objectFit: "contain" }}
+          />
           <p style={{ fontSize: 17, fontWeight: 500, color: "#6C3FC8", marginBottom: 2 }}>
             LEXIVA
           </p>
