@@ -11,6 +11,7 @@ import {
   Volume2,
   RefreshCw,
   Clock,
+  Lightbulb,
 } from "lucide-react";
 import SessionEndScreen from "@/components/student/SessionEndScreen";
 import { BackLink } from "@/components/back-link";
@@ -118,8 +119,7 @@ export function RevisionClient({
 
   const [memoTip, setMemoTip] = useState<string>("");
   const [memoInput, setMemoInput] = useState<string>("");
-  const [showMemoInput, setShowMemoInput] = useState<boolean>(false);
-  const [memoWordId, setMemoWordId] = useState<string | null>(null);
+  const [showMemoPopover, setShowMemoPopover] = useState<boolean>(false);
   const [memoLoading, setMemoLoading] = useState<boolean>(false);
 
   const displaySide = direction === "term_to_def" ? "term" : "definition";
@@ -174,15 +174,23 @@ export function RevisionClient({
   }, [selectedListIds]);
 
   useEffect(() => {
+    setShowMemoPopover(false);
     if (!current?.id) {
       setMemoTip("");
-      setShowMemoInput(false);
+      setMemoInput("");
       return;
     }
     fetch(`/api/memo-tip?wordId=${encodeURIComponent(current.id)}`)
       .then((r) => r.json())
-      .then((data) => setMemoTip(data.tip ?? ""))
-      .catch(() => setMemoTip(""));
+      .then((data) => {
+        const tip = typeof data.tip === "string" ? data.tip : "";
+        setMemoTip(tip);
+        setMemoInput(tip);
+      })
+      .catch(() => {
+        setMemoTip("");
+        setMemoInput("");
+      });
   }, [current?.id]);
 
   /** En dictée : focus sur le champ en phase saisie (y compris après « Réessayer »). */
@@ -420,14 +428,6 @@ export function RevisionClient({
       if (success) setWordsRetained((n) => n + 1);
       if (lexivaFlash === 5) setFlashOuiCount((n) => n + 1);
 
-      if (lexivaFlash === 1) {
-        setMemoWordId(current.id);
-        setMemoInput(memoTip);
-        setShowMemoInput(true);
-      } else {
-        setShowMemoInput(false);
-      }
-
       if (!success) {
         setWords((prev) => {
           const rest = prev.filter((w) => w.id !== current.id);
@@ -442,6 +442,26 @@ export function RevisionClient({
       setHintPenalty(0);
     } finally {
       setSending(false);
+    }
+  }
+
+  /** Sauvegarde l’astuce mémo du mot courant (POST /api/memo-tip) puis ferme le popover. */
+  async function saveMemoTip() {
+    if (!current) return;
+    const tip = memoInput.trim();
+    setMemoLoading(true);
+    try {
+      await fetch("/api/memo-tip", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ wordId: current.id, tip }),
+      });
+      setMemoTip(tip);
+    } catch {
+      /* échec silencieux : ne pas casser la révision */
+    } finally {
+      setMemoLoading(false);
+      setShowMemoPopover(false);
     }
   }
 
@@ -610,6 +630,110 @@ export function RevisionClient({
       </button>
     );
 
+    /**
+     * Bouton « ampoule » + popover d’astuce mémo, positionné en absolu dans le
+     * coin haut-droit de la carte. Rendu via appel de fonction (et non `<Comp/>`)
+     * pour conserver le focus du textarea entre les rendus.
+     * @param right décalage horizontal (px) pour ne pas chevaucher le bouton audio.
+     */
+    const renderMemoTipButton = (right = 12) => (
+      <div
+        style={{ position: "absolute", top: 12, right, zIndex: 40 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMemoPopover((o) => !o);
+          }}
+          aria-label="Astuce mémo"
+          className="flex items-center justify-center rounded-full transition"
+          style={{
+            width: 32,
+            height: 32,
+            background: showMemoPopover ? "#6C3FC8" : "#FCEFD6",
+            border: `0.5px solid ${showMemoPopover ? "#6C3FC8" : "#F3D8A0"}`,
+          }}
+        >
+          <Lightbulb
+            className="h-3.5 w-3.5 shrink-0"
+            style={{ color: showMemoPopover ? "#FFFFFF" : "#B9791A" }}
+            aria-hidden
+          />
+        </button>
+
+        {showMemoPopover && (
+          <div
+            onClick={(e) => e.stopPropagation()}
+            style={{
+              position: "absolute",
+              top: 40,
+              right: 0,
+              width: 230,
+              background: "#FFFFFF",
+              border: "0.5px solid #E2DAF2",
+              borderRadius: 14,
+              boxShadow: "0 8px 24px rgba(108,63,200,0.15)",
+              padding: 14,
+              zIndex: 50,
+              textAlign: "left",
+            }}
+          >
+            <p
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#6C3FC8",
+                marginBottom: 8,
+              }}
+            >
+              💡 Astuce mémo
+            </p>
+            <textarea
+              value={memoInput}
+              onChange={(e) => setMemoInput(e.target.value)}
+              placeholder="Écris un moyen mnémotechnique pour retenir ce mot…"
+              rows={3}
+              className="w-full"
+              style={{
+                fontSize: 12,
+                padding: "8px 10px",
+                borderRadius: 10,
+                border: "1px solid #E2DAF2",
+                background: "#F8F7FF",
+                color: "var(--foreground)",
+                outline: "none",
+                resize: "none",
+                marginBottom: 8,
+              }}
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                void saveMemoTip();
+              }}
+              disabled={memoLoading}
+              className="w-full disabled:opacity-50"
+              style={{
+                fontSize: 12,
+                fontWeight: 500,
+                padding: "8px 0",
+                borderRadius: 12,
+                border: "none",
+                background: "#6C3FC8",
+                color: "#FFFFFF",
+                cursor: "pointer",
+              }}
+            >
+              {memoLoading ? "Enregistrement…" : "Enregistrer"}
+            </button>
+          </div>
+        )}
+      </div>
+    );
+
     function getHintDisplay(word: string, hintsUsed: number): string {
       if (hintsUsed === 0) return "";
       return word
@@ -724,7 +848,8 @@ export function RevisionClient({
           </div>
 
           {current ? (
-            <div className="flex flex-1 flex-col">
+            <div className="relative flex flex-1 flex-col">
+              {renderMemoTipButton(52)}
               {!revealed ? (
                 <>
                   <div
@@ -774,23 +899,6 @@ export function RevisionClient({
                     >
                       <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#6C3FC8]" />
                     </button>
-                    {memoTip ? (
-                      <div
-                        className="max-w-full rounded-lg px-3 py-2"
-                        style={{
-                          border: "1px solid rgba(245, 166, 35, 0.35)",
-                          background: "rgba(245, 166, 35, 0.1)",
-                        }}
-                      >
-                        <p
-                          className="text-left text-xs"
-                          style={{ color: "#b8750f" }}
-                        >
-                          💡 <span className="font-medium">Astuce :</span>{" "}
-                          {memoTip}
-                        </p>
-                      </div>
-                    ) : null}
                     <p
                       style={{
                         fontSize: 40,
@@ -1031,53 +1139,6 @@ export function RevisionClient({
                 </>
               )}
 
-              {showMemoInput && (
-                <div className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 p-4">
-                  <p className="mb-2 text-sm font-medium text-[#6C3FC8]">
-                    💡 Ajoute une astuce mémo{" "}
-                    <span className="font-normal text-[var(--foreground-muted)]">
-                      (optionnel)
-                    </span>
-                  </p>
-                  <textarea
-                    value={memoInput}
-                    onChange={(e) => setMemoInput(e.target.value)}
-                    placeholder="Une image mentale, une association, un moyen mnémotechnique…"
-                    rows={2}
-                    className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)] focus:border-[#6C3FC8] focus:outline-none focus:ring-1 focus:ring-[#6C3FC8]"
-                  />
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        setMemoLoading(true);
-                        await fetch("/api/memo-tip", {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({
-                            wordId: memoWordId,
-                            tip: memoInput.trim(),
-                          }),
-                        }).catch(() => {});
-                        setMemoTip(memoInput.trim());
-                        setMemoLoading(false);
-                        setShowMemoInput(false);
-                      }}
-                      disabled={memoLoading}
-                      className="rounded-lg bg-[#6C3FC8] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#5b34b0] disabled:opacity-50"
-                    >
-                      {memoLoading ? "Sauvegarde…" : "Sauvegarder"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setShowMemoInput(false)}
-                      className="rounded-lg border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--foreground-muted)] hover:bg-[var(--background-subtle)]"
-                    >
-                      Passer
-                    </button>
-                  </div>
-                </div>
-              )}
             </div>
           ) : null}
         </div>
@@ -1214,7 +1275,7 @@ export function RevisionClient({
         {current ? (
           <>
             <div
-              className="text-center"
+              className="relative text-center"
               style={{
                 background: wordCardColors.background,
                 borderRadius: 16,
@@ -1225,6 +1286,7 @@ export function RevisionClient({
                 marginBottom: 20,
               }}
             >
+              {renderMemoTipButton(12)}
               <div className="flex items-center justify-center gap-2">
                 <p
                   style={{
