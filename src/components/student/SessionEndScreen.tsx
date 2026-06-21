@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { DM_Sans } from "next/font/google";
 
 const dmSans = DM_Sans({
@@ -57,46 +58,6 @@ function performanceBadge(percent: number): {
     text: "#D97706",
     border: "#FDE68A",
   };
-}
-
-function TargetIcon() {
-  return (
-    <svg
-      width={80}
-      height={80}
-      viewBox="0 0 80 80"
-      xmlns="http://www.w3.org/2000/svg"
-      className="mx-auto block"
-      aria-hidden
-    >
-      <circle
-        cx={40}
-        cy={40}
-        r={36}
-        fill="none"
-        stroke={VIOLET}
-        strokeWidth={3}
-      />
-      <circle
-        cx={40}
-        cy={40}
-        r={22}
-        fill="none"
-        stroke={GOLD}
-        strokeWidth={3}
-      />
-      <circle cx={40} cy={40} r={9} fill={VIOLET} />
-      {/* Flèche (diagonale + pointe en V vers le centre) */}
-      <path
-        d="M 10 10 L 30 30 M 24 26 L 30 30 M 26 24 L 30 30"
-        fill="none"
-        stroke={GREEN}
-        strokeWidth={3}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
 }
 
 function ConfettiLayer({ show }: { show: boolean }) {
@@ -186,7 +147,13 @@ export default function SessionEndScreen({
         <ConfettiLayer show={showConfetti} />
 
         <div className="relative z-[1] flex flex-col items-center text-center">
-          <TargetIcon />
+          <Image
+            src="/bee-celebrate.png"
+            alt=""
+            width={96}
+            height={96}
+            className="mx-auto"
+          />
 
           <h1
             className="mt-5 text-center font-medium"

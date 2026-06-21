@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
@@ -677,6 +678,13 @@ export function BibliothequeClient() {
 
           {lists.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--background-subtle)] p-8 text-center">
+              <Image
+                src="/bee-search.png"
+                alt=""
+                width={88}
+                height={88}
+                className="mx-auto mb-3"
+              />
               <p className="text-[var(--foreground-muted)]">
                 Aucune liste pour cette langue. Crée une liste de mots ou importe un PDF / une photo.
               </p>
