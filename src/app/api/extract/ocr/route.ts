@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import Anthropic from "@anthropic-ai/sdk";
+import { CLAUDE_MODEL } from "@/lib/ai-model";
 import { parseLinesToItems } from "@/lib/extract";
 
 const CLAUDE_SYSTEM_PROMPT = `Tu es un assistant OCR pour des listes de vocabulaire bilingues.
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
   try {
     const anthropic = new Anthropic({ apiKey });
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 4096,
       system: CLAUDE_SYSTEM_PROMPT,
       messages: [

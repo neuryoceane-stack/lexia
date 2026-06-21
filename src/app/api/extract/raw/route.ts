@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import { CLAUDE_MODEL } from "@/lib/ai-model";
 import OpenAI from "openai";
 
 // 60 s = plafond du plan Vercel Hobby. Laisse l'OCR (Claude/PDF scanné) aller au
@@ -20,7 +21,7 @@ async function claudeExtractTextFromPdfBase64(
   const Anthropic = (await import("@anthropic-ai/sdk")).default;
   const anthropic = new Anthropic({ apiKey: anthropicKey });
   const response = await anthropic.messages.create({
-    model: "claude-sonnet-4-20250514",
+    model: CLAUDE_MODEL,
     max_tokens: 4096,
     system:
       "Tu es un assistant OCR. Réponds uniquement avec le texte extrait du document, fidèle à l’original, en conservant les retours à la ligne quand c’est pertinent. Aucun commentaire ni préambule.",
@@ -160,7 +161,7 @@ export async function POST(request: Request) {
       const Anthropic = (await import("@anthropic-ai/sdk")).default;
       const anthropic = new Anthropic({ apiKey: anthropicKey });
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: CLAUDE_MODEL,
         max_tokens: 4096,
         system: "Tu es un assistant OCR. Retranscris uniquement le texte de l'image, ligne par ligne, sans traduction ni commentaires.",
         messages: [

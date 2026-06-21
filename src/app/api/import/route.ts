@@ -7,6 +7,7 @@ import { eq, and } from "drizzle-orm";
 import { franc } from "franc";
 import { parseLinesToItems } from "@/lib/extract";
 import { toIso6391 } from "@/lib/language";
+import { CLAUDE_MODEL } from "@/lib/ai-model";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import type { Word } from "@/lib/db/schema";
@@ -199,7 +200,7 @@ export async function POST(request: Request) {
 
       const anthropic = new Anthropic({ apiKey: anthropicKey });
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: CLAUDE_MODEL,
         max_tokens: 4096,
         system: CLAUDE_SYSTEM_PROMPT,
         messages: [

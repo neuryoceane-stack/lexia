@@ -4,6 +4,7 @@ import {
   parseClaudeTranslationResponse,
   stripLeadingTermColonTranslation,
 } from "@/lib/parse-claude-translation";
+import { CLAUDE_MODEL } from "@/lib/ai-model";
 
 /**
  * POST /api/translate
@@ -53,7 +54,7 @@ Réponds UNIQUEMENT en JSON valide sans markdown :
       const Anthropic = (await import("@anthropic-ai/sdk")).default;
       const anthropic = new Anthropic({ apiKey: anthropicKey });
       const response = await anthropic.messages.create({
-        model: "claude-sonnet-4-20250514",
+        model: CLAUDE_MODEL,
         max_tokens: 200,
         system: CLAUDE_SYSTEM,
         messages: [

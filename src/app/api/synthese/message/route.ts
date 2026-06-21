@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import { CLAUDE_MODEL } from "@/lib/ai-model";
 
 const CLAUDE_SYSTEM = `Tu es un coach motivant pour une app d'apprentissage de vocabulaire en langues étrangères.
 Tu dois écrire 2 à 3 phrases courtes, chaleureuses et personnalisées pour encourager l'utilisateur.
@@ -66,7 +67,7 @@ export async function POST(request: Request) {
     const Anthropic = (await import("@anthropic-ai/sdk")).default;
     const anthropic = new Anthropic({ apiKey: anthropicKey });
     const response = await anthropic.messages.create({
-      model: "claude-sonnet-4-20250514",
+      model: CLAUDE_MODEL,
       max_tokens: 150,
       system: CLAUDE_SYSTEM,
       messages: [{ role: "user", content: userPrompt }],
