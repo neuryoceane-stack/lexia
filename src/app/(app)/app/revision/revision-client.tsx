@@ -48,6 +48,21 @@ function normalizeForCompare(s: string): string {
     .replace(/[\u0300-\u036f]/g, "");
 }
 
+function isDicteeAnswerCorrect(userAnswer: string, expected: string): boolean {
+  const alternatives: string[] = [expected];
+  if (expected.includes("/")) {
+    for (const part of expected.split(/\s*\/\s*/)) {
+      alternatives.push(part);
+    }
+  }
+  const normalizedUser = normalizeForCompare(userAnswer);
+  if (!normalizedUser) return false;
+  return alternatives.some((alt) => {
+    const normalized = normalizeForCompare(alt);
+    return normalized.length > 0 && normalizedUser === normalized;
+  });
+}
+
 /** ISO 639-3 (fra, eng) → BCP 47 pour Web Speech API (fr, en) */
 function toSpeechLang(code: string): string {
   const c = code?.trim().toLowerCase() || "en";
@@ -1161,8 +1176,7 @@ export function RevisionClient({
 
     function validateDictee() {
       if (!current || sending || dicteePhase !== "typing") return;
-      const ok =
-        normalizeForCompare(writeAnswer) === normalizeForCompare(answerText);
+      const ok = isDicteeAnswerCorrect(writeAnswer, answerText);
       if (ok) {
         setDicteePhase("correct_feedback");
       } else {
