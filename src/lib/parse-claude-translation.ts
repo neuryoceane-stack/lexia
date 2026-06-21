@@ -1,3 +1,5 @@
+import type { ExtractedItem } from "@/lib/extract";
+
 /**
  * Normalise la réponse Claude traduction + exemple (JSON, parfois dans un bloc markdown).
  * Utilisé par /api/translate, l’UI Mots sauvages (défense en profondeur) et les scripts de nettoyage BDD.
@@ -62,6 +64,46 @@ export function parseClaudeTranslationResponse(raw: string): {
   }
 
   return { translation: input, example: "" };
+}
+
+/**
+ * Parse un tableau JSON de paires vocabulaire `{ term, definition }` renvoyé par Claude
+ * (OCR bibliothèque, import image). Retire les fences markdown et extrait le tableau si besoin.
+ * Retourne un tableau vide si le JSON est invalide ou ne contient aucune paire valide.
+ */
+export function parseClaudeVocabularyJson(raw: string): ExtractedItem[] {
+  const input = (raw ?? "").trim();
+  if (!input) return [];
+
+  const stripped = stripMarkdownFences(input);
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(stripped);
+  } catch {
+    try {
+      const start = stripped.indexOf("[");
+      const end = stripped.lastIndexOf("]");
+      if (start === -1 || end <= start) return [];
+      parsed = JSON.parse(stripped.slice(start, end + 1));
+    } catch {
+      return [];
+    }
+  }
+
+  if (!Array.isArray(parsed)) return [];
+
+  const items: ExtractedItem[] = [];
+  for (const x of parsed) {
+    if (typeof x !== "object" || x === null) continue;
+    const o = x as { term?: unknown; definition?: unknown };
+    const term = String(o.term ?? "").trim();
+    const definition = String(o.definition ?? "").trim();
+    if (term.length > 0 && definition.length > 0) {
+      items.push({ term, definition });
+    }
+  }
+  return items;
 }
 
 /**

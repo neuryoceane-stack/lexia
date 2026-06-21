@@ -2,13 +2,34 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import Anthropic from "@anthropic-ai/sdk";
 import { CLAUDE_MODEL } from "@/lib/ai-model";
-import { parseLinesToItems } from "@/lib/extract";
+import { parseLinesToItems, type ExtractedItem } from "@/lib/extract";
+import { parseClaudeVocabularyJson } from "@/lib/parse-claude-translation";
 
-const CLAUDE_SYSTEM_PROMPT = `Tu es un assistant OCR pour des listes de vocabulaire bilingues.
-L'image contient du texte sous forme de listes : mot ou expression dans une langue et sa traduction ou définition dans une autre.
+const CLAUDE_SYSTEM_PROMPT = `Tu es un assistant spécialisé dans l'extraction de vocabulaire bilingue à partir de photos de livres et de cahiers. L'image contient une liste de vocabulaire : des mots/expressions dans une langue étrangère avec leur traduction.
 
-Transcris fidèlement tout le texte lisible. Garde les séparateurs (deux-points, tirets, etc.) et les retours à la ligne.
-Réponds uniquement avec le texte brut, sans JSON, sans traduction supplémentaire.`;
+Ta mission : produire des paires propres { term, definition }, en distinguant le vocabulaire utile du superflu typographique.
+
+GARDE : le mot/expression étranger (term) et sa traduction (definition). Les précisions de sens entre parenthèses (ex. « un pôle (poteau) »). Les synonymes proches reliés par « / » dans un même terme (voir règle SYNONYMES).
+
+RETIRE : la prononciation phonétique entre crochets (ex. [hemisfɪə], [ɜːθ]) — ce sont des symboles de l'alphabet phonétique, jamais du vocabulaire. Les numéros de page et numéros isolés en marge. Les titres de section/chapitre. Les symboles décoratifs (•, ⚠).
+
+SÉPARE EN PLUSIEURS PAIRES (dérivés) : quand une ligne contient un mot ET un mot dérivé reliés par une flèche → (ex. « a pole → polar » avec « un pôle → polaire »), crée deux paires distinctes : { term: a pole, definition: un pôle } ET { term: polar, definition: polaire }.
+
+SÉPARE EN PLUSIEURS PAIRES (variantes factorisées) : quand un « / » relie des variantes qui partagent un mot commun factorisé (ex. « the Arctic / Antarctic Ocean » = « l'Océan arctique / antarctique »), déplie chaque variante en reconstituant le terme complet : { term: the Arctic Ocean, definition: l'Océan arctique } ET { term: the Antarctic Ocean, definition: l'Océan antarctique }.
+
+GARDE GROUPÉ (synonymes) : quand un « / » relie de vrais synonymes interchangeables (ex. « a marsh / a bog / a swamp » = « un marécage »), garde-les dans UNE SEULE paire : { term: a marsh / a bog / a swamp, definition: un marécage }. Ne les sépare pas.
+
+Réponds UNIQUEMENT avec un tableau JSON : [{ "term": "...", "definition": "..." }]. Aucun texte avant ou après, pas de bloc de code markdown.`;
+
+function itemsFromClaudeResponse(rawText: string): ExtractedItem[] {
+  try {
+    const fromJson = parseClaudeVocabularyJson(rawText);
+    if (fromJson.length > 0) return fromJson;
+  } catch {
+    /* fallback parseLinesToItems ci-dessous */
+  }
+  return parseLinesToItems(rawText);
+}
 
 export async function POST(request: Request) {
   const user = await getUser();
@@ -68,7 +89,7 @@ export async function POST(request: Request) {
             },
             {
               type: "text",
-              text: "Transcris fidèlement tout le texte lisible de cette image. Garde les séparateurs et les retours à la ligne.",
+              text: "Analyse cette image de vocabulaire et renvoie le tableau JSON des paires { term, definition }, en suivant les règles.",
             },
           ],
         },
@@ -85,7 +106,7 @@ export async function POST(request: Request) {
       );
     }
 
-    const items = parseLinesToItems(rawText);
+    const items = itemsFromClaudeResponse(rawText);
     return NextResponse.json({ items });
   } catch (err) {
     const message =
