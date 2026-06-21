@@ -45,7 +45,7 @@ const LANG_LABELS: Record<string, string> = {
   pol: "Polonais",
   rus: "Russe",
   jpn: "Japonais",
-  zho: "Chinois",
+  zho: "Mandarin",
   ell: "Grec",
 };
 

@@ -50,7 +50,7 @@ export const PREFERRED_LANGUAGE_OPTIONS: { value: string; label: string }[] = [
   { value: "pol", label: "Polonais" },
   { value: "rus", label: "Russe" },
   { value: "jpn", label: "Japonais" },
-  { value: "zho", label: "Chinois" },
+  { value: "zho", label: "Mandarin" },
   { value: "ell", label: "Grec" },
 ];
 

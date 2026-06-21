@@ -51,7 +51,7 @@ export async function POST(request: Request) {
     pol: "polonais",
     rus: "russe",
     jpn: "japonais",
-    zho: "chinois",
+    zho: "mandarin",
     ell: "grec",
   };
   const langLabel = mainLanguage ? (langLabels[mainLanguage] ?? mainLanguage) : "";
