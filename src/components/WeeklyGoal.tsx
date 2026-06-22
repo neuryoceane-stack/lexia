@@ -165,21 +165,71 @@ export default function WeeklyGoal() {
       <div
         className="relative z-[1]"
         style={{
-          height: 7,
-          background: "#F0EDF8",
-          borderRadius: 4,
-          overflow: "hidden",
+          height: 14,
+          background: "#F3EDDF",
+          borderRadius: 8,
+          position: "relative",
+          overflow: "visible",
         }}
       >
-        <div
-          style={{
-            height: "100%",
-            width: `${progress * 100}%`,
-            background: "#6C3FC8",
-            borderRadius: 4,
-            transition: "width 0.5s cubic-bezier(0.4,0,0.2,1)",
-          }}
-        />
+        {progress > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              left: 0,
+              top: 0,
+              width: `${progress * 100}%`,
+              height: "100%",
+              background: "#F5A623",
+              borderRadius: 8,
+              transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
+              overflow: "visible",
+            }}
+          >
+            <div
+              className="honey-shimmer"
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 10px, rgba(255,255,255,0.18) 10px 20px)",
+                animation: "honeyShimmer 2.5s linear infinite",
+                borderRadius: 8,
+                pointerEvents: "none",
+              }}
+            />
+            <div
+              className="honey-drip"
+              style={{
+                position: "absolute",
+                right: 6,
+                top: 11,
+                width: 8,
+                height: 10,
+                background: "#E89512",
+                borderRadius: "50% 50% 50% 0",
+                transform: "rotate(45deg)",
+                animation: "honeyDrip 2.8s ease-in infinite",
+                pointerEvents: "none",
+              }}
+            />
+            <div
+              className="honey-drip"
+              style={{
+                position: "absolute",
+                right: 20,
+                top: 12,
+                width: 8,
+                height: 10,
+                background: "#E89512",
+                borderRadius: "50% 50% 50% 0",
+                transform: "rotate(45deg)",
+                animation: "honeyDrip 2.8s ease-in 1.2s infinite",
+                pointerEvents: "none",
+              }}
+            />
+          </div>
+        )}
       </div>
 
       <div
