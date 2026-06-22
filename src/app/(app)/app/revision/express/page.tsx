@@ -93,7 +93,7 @@ export default function RevisionExpressPage() {
 
   if (step === "loading") {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-[var(--background)]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <p className="text-[var(--foreground-muted)]">Chargement…</p>
       </div>
     );
@@ -101,7 +101,7 @@ export default function RevisionExpressPage() {
 
   if (step === "empty") {
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-[var(--background)] text-center">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         <span className="text-6xl">🎉</span>
         <h1 className="mt-4 text-2xl font-bold text-[var(--foreground)]">
           Tout est à jour !
@@ -131,7 +131,7 @@ export default function RevisionExpressPage() {
           : "text-red-600";
 
     return (
-      <div className="flex min-h-[60vh] flex-col items-center justify-center bg-[var(--background)] text-center">
+      <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
         <h1 className="text-2xl font-bold text-[var(--foreground)]">
           Session terminée ⚡
         </h1>

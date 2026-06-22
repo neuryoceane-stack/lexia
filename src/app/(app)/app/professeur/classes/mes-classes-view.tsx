@@ -8,7 +8,6 @@ import { ClasseCardMenu } from "./classe-card-menu";
 import { CreerClasseModal } from "./creer-classe-modal";
 import type { MesClassesViewProps } from "./mes-classes-utils";
 import {
-  PAGE_BG,
   PRIMARY,
   BORDER_TERTIARY,
   GOLD,
@@ -77,7 +76,6 @@ export function MesClassesView({
     <>
       <div
         className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
-        style={{ backgroundColor: PAGE_BG }}
       >
         <div className="mx-auto max-w-[1100px]">
           <Link

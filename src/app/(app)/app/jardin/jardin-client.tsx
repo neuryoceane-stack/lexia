@@ -176,7 +176,7 @@ export function JardinClient() {
   const maxMots = Math.max(1, ...chartData.map((d) => d.mots));
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 bg-[var(--background)]">
+    <div className="mx-auto max-w-3xl space-y-6">
       <BackLink href="/app" />
 
       {loading && !data ? (

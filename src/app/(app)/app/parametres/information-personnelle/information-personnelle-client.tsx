@@ -137,7 +137,7 @@ export function InformationPersonnelleClient({
   const inputEdit = `${inputBase}` as const;
 
   return (
-    <div className="mx-auto max-w-lg bg-[var(--background)]">
+    <div className="mx-auto max-w-lg">
       {/* Bouton retour */}
       <button
         type="button"

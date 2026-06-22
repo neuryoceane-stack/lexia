@@ -217,7 +217,7 @@ export default function NouvelleListePage() {
 
   if (extractedItems.length > 0) {
     return (
-      <div className="bg-[var(--background)]">
+      <div>
         <BackLink href={`/app/familles/${familyId}`} />
         <RevueImport
           familyId={familyId}
@@ -233,7 +233,7 @@ export default function NouvelleListePage() {
   }
 
   return (
-    <div className="bg-[var(--background)]">
+    <div>
       {/* Header */}
       <button
         type="button"

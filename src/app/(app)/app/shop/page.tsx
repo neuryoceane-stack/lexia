@@ -151,7 +151,7 @@ function ShopContent() {
     : [];
 
   return (
-    <div style={{ background: "#F8F7FF", minHeight: "100vh", fontFamily: "DM Sans, sans-serif" }}>
+    <div style={{ minHeight: "100vh", fontFamily: "DM Sans, sans-serif" }}>
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px 80px" }}>
 
         {/* Header violet */}
@@ -506,7 +506,6 @@ function ShopComingSoon() {
     <div
       style={{
         minHeight: "100%",
-        background: "#F8F7FF",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",

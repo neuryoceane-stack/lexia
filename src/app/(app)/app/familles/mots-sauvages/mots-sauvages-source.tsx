@@ -87,7 +87,7 @@ export function MotsSauvagesSource({
   };
 
   return (
-    <div className="mx-auto max-w-3xl bg-[var(--background)]">
+    <div className="mx-auto max-w-3xl">
       <button
         type="button"
         onClick={() => router.back()}

@@ -251,7 +251,7 @@ export function ParametresClient() {
   const todayDow = new Date().getDay();
 
   return (
-    <div className="mx-auto max-w-lg bg-[var(--background)]">
+    <div className="mx-auto max-w-lg">
       {/* Bouton retour */}
       <button
         type="button"

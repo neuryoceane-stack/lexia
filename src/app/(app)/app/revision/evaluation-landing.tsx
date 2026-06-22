@@ -83,7 +83,7 @@ function ArrowIcon({ color }: { color: string }) {
 
 export function EvaluationLanding() {
   return (
-    <div className="space-y-6 bg-[var(--background)]">
+    <div className="space-y-6">
       {/* Titre */}
       <div>
         <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>

@@ -13,7 +13,6 @@ const VIOLET = "#6C3FC8";
 const GOLD = "#F5A623";
 const BORDER_TERTIARY = "#DDD6F5";
 const BORDER_SECONDARY = "#E2DCF5";
-const PAGE_BG = "#F8F7FF";
 
 type RevisionListRow = {
   id: string;
@@ -163,7 +162,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   return (
     <div
       className="min-h-full w-full -mx-4 -my-8 py-8 pb-32 sm:-mx-6 sm:-my-10 sm:py-10 sm:pb-36"
-      style={{ backgroundColor: PAGE_BG, maxWidth: "100%" }}
+      style={{ maxWidth: "100%" }}
     >
       <div
         className="mx-auto w-full max-w-2xl"

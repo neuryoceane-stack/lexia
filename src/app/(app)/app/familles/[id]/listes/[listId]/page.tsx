@@ -16,8 +16,6 @@ import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { classifyWordSm2Status } from "@/lib/list-word-sm2";
 import { MotsClient } from "./mots-client";
 
-const PAGE_BG = "#F8F7FF";
-
 export default async function ListeDetailPage({
   params,
   searchParams,
@@ -155,7 +153,6 @@ export default async function ListeDetailPage({
   return (
     <div
       className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
-      style={{ backgroundColor: PAGE_BG }}
     >
       <div className="mx-auto max-w-3xl">
         <Link

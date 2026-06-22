@@ -19,7 +19,6 @@ import { OngletsClasse, type TabId } from "./onglets-classe";
 import { ClasseHeader } from "./classe-header";
 import { ClassAccessCodeBanner } from "./class-access-code-banner";
 
-const PAGE_BG = "#F8F7FF";
 const PRIMARY = "#6C3FC8";
 const GOLD = "#F5A623";
 const GREEN = "#1D9E75";
@@ -202,7 +201,6 @@ export default async function ClasseDetailPage({
   return (
     <div
       className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
-      style={{ backgroundColor: PAGE_BG }}
     >
       <div className="mx-auto max-w-[900px]">
         <Link

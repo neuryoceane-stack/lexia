@@ -785,6 +785,11 @@ export function RevisionClient({
           className="flex min-h-[50vh] flex-col"
           style={{ background: "#F8F7FF" }}
         >
+          <div
+            aria-hidden="true"
+            className="fixed inset-0 -z-10"
+            style={{ background: "#F8F7FF" }}
+          />
           {error ? (
             <p
               className="mb-3 rounded-xl px-3 py-2 text-sm text-red-700"
@@ -1209,6 +1214,11 @@ export function RevisionClient({
         className="flex min-h-[50vh] flex-col"
         style={{ background: "#F8F7FF" }}
       >
+        <div
+          aria-hidden="true"
+          className="fixed inset-0 -z-10"
+          style={{ background: "#F8F7FF" }}
+        />
         {error ? (
           <p
             className="mb-3 rounded-xl px-3 py-2 text-sm text-red-700"

@@ -309,7 +309,7 @@ export default function MotsSauvagesPage() {
   }, [songInput]);
 
   return (
-    <div className="space-y-6 bg-[var(--background)]">
+    <div className="space-y-6">
       {step === "source" && (
         <MotsSauvagesSource
           extractLoading={extractLoading}
