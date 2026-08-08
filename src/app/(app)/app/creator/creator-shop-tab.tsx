@@ -13,7 +13,6 @@ type ShopPack = {
   expressionCount: number;
   price: number;
   language: string;
-  level: string;
   isActive: boolean;
   wordsJson?: string;
   sales: number;
@@ -34,7 +33,7 @@ export function CreatorShopTab() {
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
     title: "", description: "", emoji: "📦",
-    language: "fra", level: "", price: 400,
+    language: "fra", price: 400,
   });
   const [words, setWords] = useState<PackWord[]>([]);
   const [importError, setImportError] = useState("");
@@ -111,7 +110,7 @@ export function CreatorShopTab() {
         wordsJson: JSON.stringify(words),
       }),
     });
-    setForm({ title: "", description: "", emoji: "📦", language: "fra", level: "", price: 400 });
+    setForm({ title: "", description: "", emoji: "📦", language: "fra", price: 400 });
     setWords([]);
     setShowForm(false);
     setSaving(false);
@@ -189,12 +188,6 @@ export function CreatorShopTab() {
                   <option key={code} value={code}>{label}</option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Niveau</label>
-              <input value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })}
-                placeholder="Ex: A2→B2"
-                style={{ width: "100%", border: "1.5px solid #E0D8F5", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div>
               <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Prix (centimes)</label>
