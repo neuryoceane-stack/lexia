@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
+import { Brain, FileText, LineChart, ListPlus, Loader2, MousePointerClick, Users, type LucideIcon } from "lucide-react";
 
 const DEMO_CARDS = [
   { term: "distorto", def: "distorcere : déformer", lang: "it" },
@@ -12,31 +13,62 @@ const DEMO_CARDS = [
 ];
 
 const STATS = [
-  { value: 10000, suffix: "+", label: "mots appris" },
+  { value: 10000, suffix: "+", label: "mots à apprendre" },
   { value: 50, suffix: "+", label: "langues" },
   { value: "SM-2", suffix: "", label: "prouvé" },
 ];
 
-const STEPS = [
+const STEPS: {
+  num: string;
+  Icon: LucideIcon;
+  title: string;
+  desc: string;
+}[] = [
   {
     num: "01",
-    icon: "📄",
+    Icon: FileText,
     title: "Importe ton texte",
     desc: "PDF, photo ou texte brut. Lexiva extrait les mots pour toi.",
   },
   {
     num: "02",
-    icon: "💡",
+    Icon: MousePointerClick,
     title: "Clique sur un mot",
     desc: "Traduction instantanée avec forme canonique (infinitif, singulier). Exemple inclus.",
   },
   {
     num: "03",
-    icon: "🧠",
+    Icon: Brain,
     title: "Révise intelligemment",
     desc: "Algorithme SM-2 adapté à ton niveau. Mémorisation durable.",
   },
 ];
+
+const TEACHER_FEATURES: {
+  Icon: LucideIcon;
+  title: string;
+  desc: string;
+}[] = [
+  {
+    Icon: Users,
+    title: "Créer des classes",
+    desc: "Identifiant court pour que les élèves rejoignent",
+  },
+  {
+    Icon: ListPlus,
+    title: "Assigner des listes",
+    desc: "Depuis votre bibliothèque personnelle",
+  },
+  {
+    Icon: LineChart,
+    title: "Suivre les progrès",
+    desc: "Voir l'avancement de chaque élève",
+  },
+];
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type TeacherWaitlistStatus = "idle" | "invalid" | "loading" | "success" | "already" | "error";
 
 const SAMPLE_TEXT = `La tecnologia avanza rapidamente. El aprendizaje de idiomas se ha transformado con herramientas modernas. Los estudiantes pueden ahora practicar con materiales auténticos y recibir retroalimentación instantánea.`;
 
@@ -75,12 +107,53 @@ export function LandingPage() {
   const step2Ref = useInView();
   const step3Ref = useInView();
   const [hoverWord, setHoverWord] = useState<string | null>(null);
+  const [tappedWord, setTappedWord] = useState<string | null>(null);
 
   const searchParams = useSearchParams();
   const router = useRouter();
   const [showDeletedBanner, setShowDeletedBanner] = useState(false);
+  const [teacherEmail, setTeacherEmail] = useState("");
+  const [teacherWaitlistStatus, setTeacherWaitlistStatus] =
+    useState<TeacherWaitlistStatus>("idle");
 
   const dismissBanner = useCallback(() => setShowDeletedBanner(false), []);
+
+  const submitTeacherWaitlist = useCallback(async () => {
+    const email = teacherEmail.trim().toLowerCase();
+    if (!email) {
+      setTeacherWaitlistStatus("invalid");
+      return;
+    }
+    if (!EMAIL_REGEX.test(email)) {
+      setTeacherWaitlistStatus("invalid");
+      return;
+    }
+
+    setTeacherWaitlistStatus("loading");
+    try {
+      const res = await fetch("/api/teacher-waitlist", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        alreadyRegistered?: boolean;
+      };
+
+      if (!res.ok) {
+        setTeacherWaitlistStatus("error");
+        return;
+      }
+      if (data.alreadyRegistered) {
+        setTeacherWaitlistStatus("already");
+        return;
+      }
+      setTeacherWaitlistStatus("success");
+    } catch {
+      setTeacherWaitlistStatus("error");
+    }
+  }, [teacherEmail]);
 
   useEffect(() => {
     if (searchParams.get("deleted") === "true") {
@@ -160,9 +233,6 @@ export function LandingPage() {
               Se connecter
             </Link>
           </div>
-          <p className="mt-4 text-center text-sm text-[#9A95A8]">
-            🎓 Rejoins les premiers étudiants sur Lexiva
-          </p>
 
           <div className="relative mx-auto mt-16 h-32 w-full max-w-md">
             {DEMO_CARDS.map((card, i) => (
@@ -238,10 +308,16 @@ export function LandingPage() {
                         : "translate-x-12 opacity-0"
                   }`}
                 >
-                  <span className="font-heading text-7xl font-bold text-[#F5A623]/20">
-                    {step.num}
-                  </span>
-                  <span className="ml-2 text-4xl">{step.icon}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="font-heading text-7xl font-bold text-[#F5A623]/20">
+                      {step.num}
+                    </span>
+                    <step.Icon
+                      className="h-9 w-9 text-[#6C3FC8]"
+                      strokeWidth={1.75}
+                      aria-hidden
+                    />
+                  </div>
                   <h3 className="mt-2 font-heading text-xl font-semibold text-slate-800">
                     {step.title}
                   </h3>
@@ -267,7 +343,7 @@ export function LandingPage() {
             Tes textes deviennent tes cours
           </h2>
           <p className="mb-4 mt-12 text-center text-sm italic text-[#9A95A8]">
-            👆 Passe ta souris sur les mots surlignés
+            👆 Touche les mots surlignés pour voir la traduction
           </p>
           <div className="relative rounded-2xl border border-[#ECE7F8] bg-white p-6 shadow-[0_4px_20px_rgba(108,63,200,0.08)]">
             <p className="select-none text-lg leading-relaxed text-[#1F1235]">
@@ -277,20 +353,42 @@ export function LandingPage() {
                 );
                 const cleanWord = w.replace(/[.,!?]/g, "");
                 const def = match?.def ?? null;
-                const isHovered = hoverWord === cleanWord;
+                const isActive =
+                  hoverWord === cleanWord || tappedWord === cleanWord;
                 return (
                   <span
                     key={i}
-                    className={`relative inline ${
+                    role={def ? "button" : undefined}
+                    tabIndex={def ? 0 : undefined}
+                    aria-expanded={def ? isActive : undefined}
+                    aria-label={
+                      def ? `${cleanWord}, afficher la traduction` : undefined
+                    }
+                    className={`relative ${
                       def
-                        ? "cursor-pointer rounded px-0.5 underline decoration-[#F5A623] decoration-dotted underline-offset-2 hover:bg-[#6C3FC8]/10"
-                        : ""
+                        ? "inline-block cursor-pointer touch-manipulation rounded px-2.5 py-2.5 -my-1.5 underline decoration-[#F5A623] decoration-dotted underline-offset-2 hover:bg-[#6C3FC8]/10 active:bg-[#6C3FC8]/15"
+                        : "inline"
                     }`}
                     onMouseEnter={() => def && setHoverWord(cleanWord)}
                     onMouseLeave={() => setHoverWord(null)}
+                    onClick={() => {
+                      if (!def) return;
+                      setTappedWord((prev) =>
+                        prev === cleanWord ? null : cleanWord
+                      );
+                    }}
+                    onKeyDown={(e) => {
+                      if (!def) return;
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setTappedWord((prev) =>
+                          prev === cleanWord ? null : cleanWord
+                        );
+                      }
+                    }}
                   >
                     {w}{" "}
-                    {def && isHovered && (
+                    {def && isActive && (
                       <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[#ECE7F8] bg-white px-3 py-2 text-sm text-[#F5A623] shadow-xl">
                         {def}
                       </span>
@@ -308,39 +406,115 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 5 — POUR LES PROFS */}
-      <section className="bg-[#E8E0F5] px-4 py-20">
+      <section className="bg-[#E8E0F5] px-4 py-14">
         <div className="mx-auto max-w-4xl text-center">
           <span className="inline-block rounded-full bg-[#6C3FC8]/20 px-4 py-1.5 text-sm font-medium text-[#6C3FC8]">
             🏫 Espace enseignant
           </span>
-          <h2 className="mt-4 font-heading text-2xl font-bold text-slate-800 sm:text-3xl">
-            Pour les professeurs aussi
-          </h2>
-          <div className="mt-12 grid gap-6 sm:grid-cols-3">
-            <div className="rounded-xl border border-slate-200 bg-white p-6">
-              <p className="font-semibold text-slate-800">
-                Créer des classes
+          <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
+            <h2 className="font-heading text-2xl font-bold text-slate-800 sm:text-3xl">
+              Pour les professeurs aussi
+            </h2>
+            <span className="inline-flex shrink-0 items-center rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-semibold text-[#1A1035]">
+              Bientôt disponible
+            </span>
+          </div>
+
+          <div className="mt-5 grid gap-5 sm:grid-cols-3">
+            {TEACHER_FEATURES.map(({ Icon, title, desc }) => (
+              <div
+                key={title}
+                aria-disabled="true"
+                className="pointer-events-none rounded-xl border border-slate-200 bg-white p-6 opacity-85 select-none"
+              >
+                <Icon
+                  className="mx-auto h-9 w-9 text-[#6C3FC8]"
+                  strokeWidth={1.75}
+                  aria-hidden
+                />
+                <p className="mt-4 font-semibold text-slate-800">{title}</p>
+                <p className="mt-1 text-sm text-slate-600">{desc}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mx-auto mt-5 w-full max-w-[520px] rounded-2xl border border-[#ECE7F8] bg-white p-5 text-left shadow-[0_4px_20px_rgba(108,63,200,0.08)] sm:p-6">
+            <p className="text-sm leading-relaxed text-slate-700">
+              Vous êtes enseignant&nbsp;? Laissez votre email, nous vous prévenons dès
+              l&apos;ouverture de l&apos;espace enseignant.
+            </p>
+
+            {teacherWaitlistStatus === "success" ? (
+              <p
+                className="mt-4 rounded-xl border border-[#1D9E75]/30 bg-[#E1F5EE] px-4 py-3 text-sm font-medium text-[#1D9E75]"
+                role="status"
+              >
+                C&apos;est noté&nbsp;! On vous prévient dès l&apos;ouverture.
               </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Identifiant court pour que les élèves rejoignent
+            ) : teacherWaitlistStatus === "already" ? (
+              <p
+                className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 px-4 py-3 text-sm font-medium text-[#6C3FC8]"
+                role="status"
+              >
+                Vous êtes déjà sur la liste.
               </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6">
-              <p className="font-semibold text-slate-800">
-                Assigner des listes
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Depuis ta bibliothèque personnelle
-              </p>
-            </div>
-            <div className="rounded-xl border border-slate-200 bg-white p-6">
-              <p className="font-semibold text-slate-800">
-                Suivre les progrès
-              </p>
-              <p className="mt-1 text-sm text-slate-600">
-                Voir l&apos;avancement de chaque élève
-              </p>
-            </div>
+            ) : (
+              <form
+                className="mt-4"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  void submitTeacherWaitlist();
+                }}
+              >
+                <div className="flex flex-col overflow-hidden rounded-xl border-2 border-[#E2DCF5] focus-within:border-[#6C3FC8] sm:flex-row sm:items-stretch">
+                  <label htmlFor="teacher-waitlist-email" className="sr-only">
+                    Votre adresse email
+                  </label>
+                  <input
+                    id="teacher-waitlist-email"
+                    type="email"
+                    value={teacherEmail}
+                    onChange={(e) => {
+                      setTeacherEmail(e.target.value);
+                      if (
+                        teacherWaitlistStatus === "invalid" ||
+                        teacherWaitlistStatus === "error"
+                      ) {
+                        setTeacherWaitlistStatus("idle");
+                      }
+                    }}
+                    placeholder="vous@etablissement.fr"
+                    autoComplete="email"
+                    disabled={teacherWaitlistStatus === "loading"}
+                    className="min-h-[52px] min-w-0 flex-1 border-0 bg-white px-4 py-3.5 text-base text-[#1F1235] outline-none placeholder:text-[#9A95A8] disabled:opacity-60 sm:rounded-none"
+                  />
+                  <button
+                    type="submit"
+                    disabled={teacherWaitlistStatus === "loading"}
+                    className="inline-flex min-h-[52px] shrink-0 items-center justify-center gap-2 whitespace-nowrap border-t border-[#E2DCF5] bg-[#6C3FC8] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#5529A0] disabled:cursor-not-allowed disabled:opacity-60 sm:border-t-0 sm:border-l sm:border-[#5529A0]/20 sm:px-4"
+                  >
+                    {teacherWaitlistStatus === "loading" ? (
+                      <>
+                        <Loader2 className="h-5 w-5 animate-spin" aria-hidden />
+                        Envoi…
+                      </>
+                    ) : (
+                      "Prévenez-moi"
+                    )}
+                  </button>
+                </div>
+                {teacherWaitlistStatus === "invalid" && (
+                  <p className="mt-2 text-sm text-red-600" role="alert">
+                    Veuillez saisir une adresse email valide.
+                  </p>
+                )}
+                {teacherWaitlistStatus === "error" && (
+                  <p className="mt-2 text-sm text-red-600" role="alert">
+                    Une erreur est survenue. Veuillez réessayer.
+                  </p>
+                )}
+              </form>
+            )}
           </div>
         </div>
       </section>
@@ -349,7 +523,7 @@ export function LandingPage() {
       <section className="bg-[#F8F7FF] px-4 py-24">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-heading text-3xl font-bold text-[#1F1235] sm:text-4xl">
-            Prêt à apprendre autrement ?
+            Envie d&apos;apprendre autrement ?
           </h2>
           <Link
             href="/signup"
@@ -393,7 +567,27 @@ export function LandingPage() {
               </Link>
             </div>
           </div>
-          <p className="mt-6 text-center text-xs text-[#9A95A8]">
+          <nav
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-[#9A95A8]"
+            aria-label="Liens légaux"
+          >
+            <Link href="/mentions-legales" className="transition hover:text-[#6C3FC8]">
+              Mentions légales
+            </Link>
+            <span aria-hidden>·</span>
+            <Link href="/politique-de-confidentialite" className="transition hover:text-[#6C3FC8]">
+              Politique de confidentialité
+            </Link>
+            <span aria-hidden>·</span>
+            <Link href="/cgv" className="transition hover:text-[#6C3FC8]">
+              CGV
+            </Link>
+            <span aria-hidden>·</span>
+            <Link href="/contact" className="transition hover:text-[#6C3FC8]">
+              Contact
+            </Link>
+          </nav>
+          <p className="mt-4 text-center text-xs text-[#9A95A8]">
             Fait avec ❤️ à Paris
           </p>
         </div>

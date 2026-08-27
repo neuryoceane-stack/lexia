@@ -13,6 +13,8 @@ const TEXT = "#1A1033";
 const MUTED = "#7C6FA3";
 const V_BORDER = "rgba(108,63,200,0.18)";
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const inputStyle: CSSProperties = {
   fontSize: 14,
   padding: "11px 14px",
@@ -35,57 +37,50 @@ function handleBlur(e: FocusEvent<HTMLInputElement>) {
 }
 
 export default function TeacherWaitlistPage() {
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [institution, setInstitution] = useState("");
-
-  const [nameError, setNameError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [globalError, setGlobalError] = useState("");
-
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
+  const [alreadyRegistered, setAlreadyRegistered] = useState(false);
 
   async function handleSubmit() {
-    setNameError("");
     setEmailError("");
     setGlobalError("");
 
-    let hasError = false;
-    if (!name.trim()) {
-      setNameError("Veuillez indiquer votre nom.");
-      hasError = true;
-    }
-    if (!email.trim()) {
+    const normalized = email.trim().toLowerCase();
+    if (!normalized) {
       setEmailError("Veuillez saisir votre adresse email.");
-      hasError = true;
+      return;
     }
-    if (hasError) return;
+    if (!EMAIL_REGEX.test(normalized)) {
+      setEmailError("Veuillez saisir une adresse email valide.");
+      return;
+    }
 
     setLoading(true);
     try {
       const res = await fetch("/api/teacher-waitlist", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          name: name.trim(),
-          institution: institution.trim(),
-        }),
+        body: JSON.stringify({ email: normalized }),
       });
-      const data = await res.json().catch(() => ({}));
+      const data = (await res.json().catch(() => ({}))) as {
+        error?: string;
+        alreadyRegistered?: boolean;
+      };
+
       if (!res.ok) {
         setGlobalError(data.error ?? "Une erreur est survenue. Veuillez réessayer.");
         setLoading(false);
         return;
       }
-      setSuccessMessage(
-        typeof data.message === "string" && data.message
-          ? data.message
-          : "Merci ! Vous serez prévenu(e) dès l'ouverture de l'espace professeur."
-      );
-      setSuccess(true);
+
+      if (data.alreadyRegistered) {
+        setAlreadyRegistered(true);
+      } else {
+        setSuccess(true);
+      }
     } catch {
       setGlobalError("Une erreur est survenue. Veuillez réessayer.");
     } finally {
@@ -137,24 +132,37 @@ export default function TeacherWaitlistPage() {
             Bientôt disponible
           </p>
           <p style={{ fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
-            L&apos;espace dédié aux enseignants arrive très prochainement. Laissez-nous votre email
-            pour être prévenu(e) dès son ouverture.
+            L&apos;espace dédié aux enseignants arrive très prochainement. Laissez votre email,
+            on vous prévient dès son ouverture.
           </p>
         </div>
 
         <div style={{ padding: "28px 24px" }}>
-          {success ? (
+          {success || alreadyRegistered ? (
             <div
               style={{
-                background: GREEN_LIGHT,
+                background: alreadyRegistered ? "rgba(108,63,200,0.06)" : GREEN_LIGHT,
                 borderRadius: 16,
                 padding: "28px 20px",
                 textAlign: "center",
               }}
             >
-              <CheckCircle size={40} color={GREEN} style={{ margin: "0 auto 14px" }} />
-              <p style={{ fontSize: 15, fontWeight: 500, color: GREEN, lineHeight: 1.5 }}>
-                {successMessage}
+              <CheckCircle
+                size={40}
+                color={alreadyRegistered ? V : GREEN}
+                style={{ margin: "0 auto 14px" }}
+              />
+              <p
+                style={{
+                  fontSize: 15,
+                  fontWeight: 500,
+                  color: alreadyRegistered ? V : GREEN,
+                  lineHeight: 1.5,
+                }}
+              >
+                {alreadyRegistered
+                  ? "Vous êtes déjà sur la liste."
+                  : "C'est noté ! On vous prévient dès l'ouverture."}
               </p>
 
               <Link
@@ -195,27 +203,17 @@ export default function TeacherWaitlistPage() {
             </div>
           ) : (
             <>
-              <FieldLabel>Votre nom</FieldLabel>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Ex. Camille Dupont"
-                style={{ ...inputStyle, marginBottom: nameError ? 4 : 14 }}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-              />
-              {nameError && (
-                <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 14 }}>{nameError}</p>
-              )}
-
               <FieldLabel>Votre email</FieldLabel>
               <input
                 type="email"
                 value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError("");
+                  if (globalError) setGlobalError("");
+                }}
                 placeholder="vous@etablissement.fr"
-                style={{ ...inputStyle, marginBottom: emailError ? 4 : 14 }}
+                style={{ ...inputStyle, marginBottom: emailError ? 4 : 4 }}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
                 autoComplete="email"
@@ -223,17 +221,6 @@ export default function TeacherWaitlistPage() {
               {emailError && (
                 <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 14 }}>{emailError}</p>
               )}
-
-              <FieldLabel>Établissement (optionnel)</FieldLabel>
-              <input
-                type="text"
-                value={institution}
-                onChange={(e) => setInstitution(e.target.value)}
-                placeholder="Ex. Lycée Victor Hugo"
-                style={{ ...inputStyle, marginBottom: 4 }}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
-              />
 
               {globalError && (
                 <p style={{ fontSize: 12, color: "#dc2626", marginTop: 12 }}>{globalError}</p>
@@ -258,7 +245,7 @@ export default function TeacherWaitlistPage() {
                   opacity: loading ? 0.5 : 1,
                 }}
               >
-                {loading ? "Envoi…" : "Rejoindre la liste d'attente"}
+                {loading ? "Envoi…" : "Prévenez-moi au lancement"}
               </button>
 
               <Link

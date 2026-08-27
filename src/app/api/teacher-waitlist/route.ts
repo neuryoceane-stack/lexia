@@ -34,9 +34,6 @@ export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
-    const name = typeof body.name === "string" ? body.name.trim() : "";
-    const rawInstitution = typeof body.institution === "string" ? body.institution.trim() : "";
-    const institution = rawInstitution === "" ? null : rawInstitution;
 
     if (!email || !EMAIL_REGEX.test(email)) {
       return NextResponse.json(
@@ -45,19 +42,13 @@ export async function POST(req: Request) {
       );
     }
 
-    if (!name) {
-      return NextResponse.json(
-        { error: "Veuillez indiquer votre nom." },
-        { status: 400 }
-      );
-    }
-
     try {
-      await db.insert(teacherWaitlist).values({ email, name, institution });
+      await db.insert(teacherWaitlist).values({ email, name: "", institution: null });
     } catch (err) {
       if (isUniqueConstraintError(err)) {
         return NextResponse.json({
-          message: "Vous êtes déjà inscrit(e) à la liste d'attente.",
+          alreadyRegistered: true,
+          message: "Vous êtes déjà sur la liste.",
         });
       }
       throw err;
