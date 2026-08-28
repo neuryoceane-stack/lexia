@@ -183,7 +183,7 @@ export default function DupliquerPage() {
         <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
         <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
           <p className="text-slate-600">
-            Aucune liste sélectionnée. Choisissez une liste depuis la bibliothèque, puis « Dupliquer dans une autre langue ».
+            Aucune liste sélectionnée. Choisis une liste depuis la bibliothèque, puis « Dupliquer dans une autre langue ».
           </p>
         </div>
       </div>
@@ -245,7 +245,7 @@ export default function DupliquerPage() {
 
         {!translating && words.length === 0 && (
           <p className="mt-4 text-sm text-slate-500">
-            Cette liste ne contient aucun mot. Ajoutez des mots à la liste source puis réessayez.
+            Cette liste ne contient aucun mot. Ajoute des mots à la liste source puis réessaie.
           </p>
         )}
 

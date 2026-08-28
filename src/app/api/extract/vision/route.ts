@@ -45,7 +45,7 @@ export async function POST(request: Request) {
   const file = formData.get("file") ?? formData.get("image");
   if (!file || !(file instanceof File)) {
     return NextResponse.json(
-      { error: "Envoyez un fichier image (champ 'file' ou 'image')" },
+      { error: "Envoie un fichier image (champ 'file' ou 'image')" },
       { status: 400 }
     );
   }

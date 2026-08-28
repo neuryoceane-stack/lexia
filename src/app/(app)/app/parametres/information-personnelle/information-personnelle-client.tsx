@@ -478,12 +478,12 @@ export function InformationPersonnelleClient({
                 Supprimer mon compte
               </h2>
               <p style={{ fontSize: 13, color: "var(--foreground-muted)", lineHeight: 1.5, marginBottom: 16 }}>
-                Cette action est irréversible. Toutes vos données seront définitivement supprimées : listes, mots, révisions, progression.
+                Cette action est irréversible. Toutes tes données seront définitivement supprimées : listes, mots, révisions, progression.
               </p>
 
               <label className="block">
                 <span style={{ fontSize: 11, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 5, display: "block", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                  Pour confirmer, saisissez votre adresse email
+                  Pour confirmer, saisis ton adresse email
                 </span>
                 <input
                   type="email"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff, LogIn } from "lucide-react";
@@ -30,6 +30,11 @@ export default function LoginPage() {
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("email");
+    if (param?.trim()) setEmail(param.trim().toLowerCase());
+  }, []);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

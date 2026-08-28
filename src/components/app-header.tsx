@@ -109,8 +109,8 @@ function AvatarDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`btn-relief flex rounded-full outline-none transition-all focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 ${
-          open ? "ring-2 ring-primary/30 ring-offset-2" : ""
+        className={`flex rounded-full outline-none transition-all focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 ${
+          open ? "ring-2 ring-[#6C3FC8]/30 ring-offset-2" : ""
         }`}
         aria-expanded={open}
         aria-haspopup="true"
@@ -157,6 +157,9 @@ function AvatarDropdown({
             <div className="min-w-0 flex-1">
               <p style={{ fontSize: 14, fontWeight: 500, color: "white", marginBottom: 2 }} className="truncate">
                 {name}
+              </p>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
+                {isProfesseur ? "Professeur" : "Étudiant"}
               </p>
               <span
                 className="inline-flex items-center gap-1"
@@ -308,71 +311,85 @@ export function AppHeader({
   const navItems = isCreator ? [...baseNavItems, navItemCreator] : baseNavItems;
   const homeHref = isProfesseur ? "/app/professeur" : "/app";
 
-  return (
-    <header className="sticky top-0 z-20 border-b border-slate-200/80 bg-white/95 shadow-[0_1px_0_0_rgba(0,0,0,0.05)] backdrop-blur-sm">
-      <div className="mx-auto flex h-14 max-w-[1200px] flex-row items-center justify-between px-4 sm:px-6">
-        {/* Logo + nom — gauche */}
-        <div className="flex flex-shrink-0 flex-row items-center">
-          <Link
-            href={homeHref}
-            className="relative inline-flex flex-row items-center gap-2.5 pb-1 text-vocab-gray no-underline outline-none transition hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
-            aria-label="LEXIVA — Accueil"
-          >
-            <span className="flex-shrink-0">
-              <Image
-                src="/logo-mark.png"
-                alt="Lexiva"
-                width={40}
-                height={40}
-                style={{ objectFit: "contain", minWidth: "40px" }}
-              />
-            </span>
-            <span className="text-lg font-semibold">LEXIVA</span>
-            <span className="absolute bottom-0 right-0 text-[10px] italic leading-none text-slate-400">
-              {isProfesseur ? "teacher" : "student"}
-            </span>
-          </Link>
-        </div>
+  function isNavActive(href: string) {
+    return pathname === href || pathname.startsWith(href + "/");
+  }
 
-        {/* Desktop nav — centre */}
-        <nav
-          className="hidden flex-1 flex-row items-center justify-center gap-1 md:flex"
-          aria-label="Navigation principale"
+  return (
+    <header
+      className="sticky top-0 z-20 border-b border-[#E2DCF5]/90 bg-white/95 backdrop-blur-md"
+      style={{ boxShadow: "0 1px 0 rgba(108, 63, 200, 0.04)" }}
+    >
+      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 sm:gap-10 sm:px-6">
+        {/* Logo — gauche */}
+        <Link
+          href={homeHref}
+          className="inline-flex shrink-0 items-center gap-3 no-underline outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+          aria-label="Lexiva — Accueil"
+          style={{ fontFamily: "DM Sans, sans-serif" }}
         >
-          {navItems.map(({ href, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className={`btn-relief rounded-lg px-3 py-2 text-sm font-medium transition focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:outline-none ${
-                pathname === href || pathname.startsWith(href + "/")
-                  ? "text-primary"
-                  : "text-vocab-gray hover:text-primary"
-              }`}
-            >
-              {label}
-            </Link>
-          ))}
+          <Image
+            src="/logo-mark.png"
+            alt=""
+            width={36}
+            height={36}
+            style={{ objectFit: "contain" }}
+            priority
+          />
+          <span className="text-[17px] font-semibold tracking-[-0.01em] text-[#1A1033]">
+            Lexiva
+          </span>
+        </Link>
+
+        {/* Navigation — liens texte (desktop) */}
+        <nav
+          className="hidden flex-1 items-center gap-8 md:flex"
+          aria-label="Navigation principale"
+          style={{ fontFamily: "DM Sans, sans-serif" }}
+        >
+          {navItems.map(({ href, label }) => {
+            const active = isNavActive(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                className="relative py-1 text-[14px] font-medium no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+                style={{
+                  color: active ? "#6C3FC8" : "#7C6FA3",
+                }}
+                onMouseEnter={(e) => {
+                  if (!active) e.currentTarget.style.color = "#6C3FC8";
+                }}
+                onMouseLeave={(e) => {
+                  if (!active) e.currentTarget.style.color = "#7C6FA3";
+                }}
+              >
+                {label}
+                {active && (
+                  <span
+                    aria-hidden
+                    className="absolute -bottom-1 left-0 right-0 mx-auto h-0.5 rounded-full"
+                    style={{ background: "#6C3FC8", maxWidth: "100%" }}
+                  />
+                )}
+              </Link>
+            );
+          })}
         </nav>
 
-        {/* Right: notifications + avatar + burger */}
-        <div className="flex flex-shrink-0 flex-row items-center gap-3">
-          <div className="hidden md:block">
-            <NotificationsBell />
-          </div>
-          <div className="relative">
-            <AvatarDropdown name={displayName} isProfesseur={isProfesseur} />
-          </div>
+        <div className="flex-1 md:hidden" aria-hidden />
 
-          <div className="md:hidden">
-            <NotificationsBell />
-          </div>
+        {/* Droite : notifications + avatar + menu mobile */}
+        <div className="flex shrink-0 items-center gap-3 sm:gap-4">
+          <NotificationsBell />
+          <AvatarDropdown name={displayName} isProfesseur={isProfesseur} />
           <button
             type="button"
             onClick={() => setBurgerOpen((o) => !o)}
-            className="btn-relief flex h-9 w-9 items-center justify-center rounded-lg text-vocab-gray hover:bg-slate-100 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-[#7C6FA3] transition-colors hover:bg-[#F0EDF8] hover:text-[#6C3FC8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 md:hidden"
             aria-expanded={burgerOpen}
             aria-controls="mobile-menu"
-            aria-label="Ouvrir le menu"
+            aria-label={burgerOpen ? "Fermer le menu" : "Ouvrir le menu"}
           >
             {burgerOpen ? (
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -387,7 +404,7 @@ export function AppHeader({
         </div>
       </div>
 
-      {/* Mobile drawer — navigation uniquement */}
+      {/* Menu mobile */}
       <div
         id="mobile-menu"
         className={`fixed inset-0 z-[9997] md:hidden ${
@@ -397,87 +414,69 @@ export function AppHeader({
       >
         {burgerMounted && burgerOpen && (
           <>
-            {/* Overlay sombre — ferme au clic */}
             <div
-              className="absolute inset-0 bg-black/50 opacity-100 transition-opacity duration-300"
+              className="absolute inset-0 bg-black/40 opacity-100 transition-opacity duration-300"
               onClick={() => setBurgerOpen(false)}
               aria-hidden
             />
-            {/* Drawer slide-in depuis la droite (300ms) */}
             <div
               style={{
                 position: "fixed",
                 top: 0,
                 right: 0,
                 height: "100vh",
-                width: "280px",
+                width: "min(280px, 88vw)",
                 backgroundColor: "white",
                 zIndex: 9998,
-                boxShadow: "-4px 0 24px rgba(0,0,0,0.15)",
+                boxShadow: "-4px 0 24px rgba(108, 63, 200, 0.08)",
                 transform: "translateX(0)",
                 transition: "transform 300ms ease",
                 overflowY: "auto",
                 display: "flex",
                 flexDirection: "column",
+                fontFamily: "DM Sans, sans-serif",
               }}
             >
-          {/* Header : logo Lexiva + LEXIVA + croix fermeture */}
-          <div className="flex flex-shrink-0 items-center justify-between border-b border-slate-200/80 px-4 py-4">
-            <Link
-              href={homeHref}
-              onClick={() => setBurgerOpen(false)}
-              className="flex items-center gap-2.5 no-underline"
-            >
-              <Image src="/logo-mark.png" alt="" width={32} height={32} />
-              <span className="text-lg font-semibold text-vocab-gray">
-                LEXIVA
-              </span>
-            </Link>
-            <button
-              type="button"
-              onClick={() => setBurgerOpen(false)}
-              className="btn-relief rounded-lg p-2 text-slate-500 hover:bg-slate-100"
-              aria-label="Fermer le menu"
-            >
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-          {/* Navigation */}
-          <nav style={{ padding: "16px 0" }} aria-label="Navigation mobile">
-            {[
-              { href: "/app/familles", label: "Bibliothèque", icon: "📚" },
-              { href: "/app/revision", label: "Évaluation", icon: "⚡" },
-              { href: "/app/jardin", label: "Synthèse", icon: "📊" },
-              ...(isCreator ? [{ href: "/app/creator", label: "Créateur", icon: "⚡" }] : []),
-            ].map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
-              return (
-              <Link
-                key={item.href}
-                href={item.href}
-                onClick={() => setBurgerOpen(false)}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "12px",
-                  padding: "14px 24px",
-                  fontSize: "16px",
-                  fontWeight: "500",
-                  color: isActive ? "white" : undefined,
-                  background: isActive ? "#6C3FC8" : "transparent",
-                  textDecoration: "none",
-                }}
-                className={!isActive ? "text-slate-800" : ""}
-              >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
-              </Link>
-              );
-            })}
-          </nav>
-        </div>
+              <div className="flex shrink-0 items-center justify-between border-b border-[#E2DCF5]/90 px-4 py-4">
+                <Link
+                  href={homeHref}
+                  onClick={() => setBurgerOpen(false)}
+                  className="flex items-center gap-2.5 no-underline"
+                >
+                  <Image src="/logo-mark.png" alt="" width={32} height={32} />
+                  <span className="text-[17px] font-semibold text-[#1A1033]">Lexiva</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setBurgerOpen(false)}
+                  className="rounded-lg p-2 text-[#7C6FA3] transition-colors hover:bg-[#F0EDF8]"
+                  aria-label="Fermer le menu"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <nav className="px-2 py-3" aria-label="Navigation mobile">
+                {navItems.map(({ href, label }) => {
+                  const active = isNavActive(href);
+                  return (
+                    <Link
+                      key={href}
+                      href={href}
+                      onClick={() => setBurgerOpen(false)}
+                      className="block rounded-lg px-4 py-3 text-[15px] font-medium no-underline transition-colors"
+                      style={{
+                        color: active ? "#6C3FC8" : "#1A1033",
+                        background: active ? "rgba(108, 63, 200, 0.08)" : "transparent",
+                      }}
+                    >
+                      {label}
+                    </Link>
+                  );
+                })}
+              </nav>
+            </div>
           </>
         )}
       </div>

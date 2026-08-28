@@ -27,9 +27,12 @@ export async function GET() {
     .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
     .where(eq(wordFamilies.userId, userId));
 
-  if (userWords.length === 0) {
+  const wordsCount = userWords.length;
+
+  if (wordsCount === 0) {
     return NextResponse.json({
       listsCount,
+      wordsCount: 0,
       dueWordsCount: 0,
       masteredWordsCount: 0,
     });
@@ -76,5 +79,10 @@ export async function GET() {
     }
   }
 
-  return NextResponse.json({ listsCount, dueWordsCount, masteredWordsCount });
+  return NextResponse.json({
+    listsCount,
+    wordsCount,
+    dueWordsCount,
+    masteredWordsCount,
+  });
 }

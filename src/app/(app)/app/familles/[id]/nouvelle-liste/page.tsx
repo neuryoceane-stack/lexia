@@ -180,7 +180,7 @@ export default function NouvelleListePage() {
             setExtractedItems(items);
           } else {
             setExtractError(
-              "Aucune paire mot/traduction trouvée. Utilisez une photo avec une liste claire (ex. une ligne par paire : mot - traduction ou mot : traduction)."
+              "Aucune paire mot/traduction trouvée. Utilise une photo avec une liste claire (ex. une ligne par paire : mot - traduction ou mot : traduction)."
             );
           }
         } catch (err) {
@@ -192,7 +192,7 @@ export default function NouvelleListePage() {
             return null;
           });
           const msg = err instanceof Error
-            ? (err.name === "AbortError" ? "Délai dépassé. Réessayez avec une photo plus petite." : err.message)
+            ? (err.name === "AbortError" ? "Délai dépassé. Réessaie avec une photo plus petite." : err.message)
             : "Erreur réseau ou extraction.";
           setExtractError(msg);
         }

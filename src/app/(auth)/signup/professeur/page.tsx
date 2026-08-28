@@ -3,7 +3,7 @@
 import { useState } from "react";
 import type { CSSProperties, FocusEvent } from "react";
 import Link from "next/link";
-import { GraduationCap, CheckCircle } from "lucide-react";
+import { CheckCircle, Users } from "lucide-react";
 
 const V = "#6C3FC8";
 const GREEN = "#1D9E75";
@@ -123,7 +123,7 @@ export default function TeacherWaitlistPage() {
               marginBottom: 14,
             }}
           >
-            <GraduationCap size={15} color="white" />
+            <Users size={15} color="white" />
             <span style={{ fontSize: 11, fontWeight: 500, color: "white", letterSpacing: "0.02em" }}>
               Espace professeur
             </span>
@@ -132,7 +132,7 @@ export default function TeacherWaitlistPage() {
             Bientôt disponible
           </p>
           <p style={{ fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
-            L&apos;espace dédié aux enseignants arrive très prochainement. Laissez votre email,
+            L&apos;espace dédié aux professeurs arrive très prochainement. Laissez votre email,
             on vous prévient dès son ouverture.
           </p>
         </div>
@@ -245,7 +245,7 @@ export default function TeacherWaitlistPage() {
                   opacity: loading ? 0.5 : 1,
                 }}
               >
-                {loading ? "Envoi…" : "Prévenez-moi au lancement"}
+                {loading ? "Envoi…" : "Prévenez-moi"}
               </button>
 
               <Link

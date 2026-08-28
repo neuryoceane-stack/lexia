@@ -20,7 +20,7 @@ export async function POST(request: Request) {
   const file = formData.get("file") ?? formData.get("pdf");
   if (!file || !(file instanceof File)) {
     return NextResponse.json(
-      { error: "Envoyez un fichier PDF (champ 'file' ou 'pdf')" },
+      { error: "Envoie un fichier PDF (champ 'file' ou 'pdf')" },
       { status: 400 }
     );
   }

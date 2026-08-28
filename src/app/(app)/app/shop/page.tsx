@@ -499,7 +499,7 @@ function ShopComingSoon() {
   const ARGUMENTS = [
     "Packs thématiques prêts à l'emploi",
     "Spécial collège, lycée et prépa",
-    "Ajoutés directement à votre bibliothèque",
+    "Ajoutés directement à ta bibliothèque",
   ];
 
   return (
@@ -564,7 +564,7 @@ function ShopComingSoon() {
         </p>
         <p style={{ fontSize: 15, fontWeight: 400, color: "#6b6b6b", lineHeight: 1.6, marginBottom: 28 }}>
           Des listes de vocabulaire prêtes à réviser, conçues par des experts :
-          philosophie, littérature, prépa, et bien plus. Préparez vos révisions, la
+          philosophie, littérature, prépa, et bien plus. Prépare tes révisions, la
           boutique ouvre très prochainement.
         </p>
 

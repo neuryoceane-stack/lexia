@@ -1,6 +1,42 @@
 import { runRawSql } from "./index";
 
-export async function ensureClassTables() {
+async function addColumnIfMissing(sql: string): Promise<void> {
+  try {
+    await runRawSql(sql);
+  } catch {
+    /* colonne déjà présente ou table incompatible — ignoré */
+  }
+}
+
+/** Colonnes users alignées sur src/lib/db/schema.ts (users). */
+export async function ensureUsersTable(): Promise<void> {
+  await runRawSql(`
+    CREATE TABLE IF NOT EXISTS users (
+      id TEXT PRIMARY KEY NOT NULL,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT,
+      name TEXT,
+      role TEXT NOT NULL DEFAULT 'student',
+      created_at INTEGER NOT NULL,
+      subject TEXT,
+      school_name TEXT,
+      weekly_goal INTEGER NOT NULL DEFAULT 20,
+      plan TEXT NOT NULL DEFAULT 'free',
+      subscription_status TEXT NOT NULL DEFAULT 'inactive'
+    )
+  `);
+
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN role TEXT DEFAULT 'student'");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN subject TEXT");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN school_name TEXT");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN weekly_goal INTEGER DEFAULT 20");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT 'free'");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'inactive'");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN created_at INTEGER");
+}
+
+/** Colonnes user_profiles alignées sur src/lib/db/schema.ts (userProfiles). */
+async function ensureUserProfilesTable(): Promise<void> {
   await runRawSql(`
     CREATE TABLE IF NOT EXISTS user_profiles (
       user_id TEXT PRIMARY KEY,
@@ -12,14 +48,31 @@ export async function ensureClassTables() {
       status TEXT,
       institution_name TEXT,
       role TEXT,
+      onboarding_completed INTEGER NOT NULL DEFAULT 0,
+      acquisition_source TEXT,
+      streak_goal INTEGER,
+      institution_code TEXT,
       updated_at INTEGER NOT NULL
     )
   `);
-  try {
-    await runRawSql("ALTER TABLE user_profiles ADD COLUMN role TEXT");
-  } catch {
-    /* colonne déjà présente */
-  }
+
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN role TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN date_of_birth TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN city TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN phone TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN status TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN institution_name TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN onboarding_completed INTEGER DEFAULT 0");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN acquisition_source TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN streak_goal INTEGER");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN institution_code TEXT");
+  await addColumnIfMissing("ALTER TABLE user_profiles ADD COLUMN updated_at INTEGER");
+}
+
+export async function ensureClassTables() {
+  await ensureUsersTable();
+  await ensureUserProfilesTable();
+
   await runRawSql(`
     CREATE TABLE IF NOT EXISTS classes (
       id TEXT PRIMARY KEY,

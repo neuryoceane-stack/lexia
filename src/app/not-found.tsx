@@ -30,7 +30,7 @@ export default function NotFound() {
       </h1>
 
       <p className="mt-3" style={{ fontSize: 15, color: "#6B6B7B", lineHeight: 1.5 }}>
-        La page que vous cherchez n&apos;existe pas ou a été déplacée.
+        La page que tu cherches n&apos;existe pas ou a été déplacée.
       </p>
 
       <Link

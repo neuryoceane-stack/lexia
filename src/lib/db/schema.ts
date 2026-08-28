@@ -26,6 +26,12 @@ export const users = sqliteTable("users", {
   plan: text("plan", { enum: ["free", "monthly", "annual"] })
     .notNull()
     .default("free"),
+  /** Statut d'abonnement Lexiva (Stripe ou bypass test dev). */
+  subscriptionStatus: text("subscription_status", {
+    enum: ["inactive", "trialing", "active", "canceled", "past_due"],
+  })
+    .notNull()
+    .default("inactive"),
 });
 
 export const wordFamilies = sqliteTable("word_families", {

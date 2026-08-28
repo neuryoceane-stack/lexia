@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
   if (!file || !(file instanceof File)) {
     return NextResponse.json(
-      { error: "Envoyez un fichier (champ 'file')" },
+      { error: "Envoie un fichier (champ 'file')" },
       { status: 400 }
     );
   }

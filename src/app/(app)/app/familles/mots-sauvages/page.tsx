@@ -87,7 +87,7 @@ export default function MotsSauvagesPage() {
       } catch (err) {
         if (err instanceof Error && err.name === "AbortError") {
           setExtractError(
-            "La reconnaissance a pris trop de temps. Réessayez avec une photo plus nette ou mieux cadrée."
+            "La reconnaissance a pris trop de temps. Réessaie avec une photo plus nette ou mieux cadrée."
           );
         } else {
           setExtractError("Erreur réseau");

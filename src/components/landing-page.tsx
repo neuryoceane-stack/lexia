@@ -115,6 +115,8 @@ export function LandingPage() {
   const [teacherEmail, setTeacherEmail] = useState("");
   const [teacherWaitlistStatus, setTeacherWaitlistStatus] =
     useState<TeacherWaitlistStatus>("idle");
+  const heroRef = useRef<HTMLElement>(null);
+  const [headerVisible, setHeaderVisible] = useState(false);
 
   const dismissBanner = useCallback(() => setShowDeletedBanner(false), []);
 
@@ -164,6 +166,18 @@ export function LandingPage() {
     }
   }, [searchParams, router, dismissBanner]);
 
+  useEffect(() => {
+    const hero = heroRef.current;
+    if (!hero) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeaderVisible(!entry.isIntersecting),
+      { threshold: 0 }
+    );
+    observer.observe(hero);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       {showDeletedBanner && (
@@ -179,8 +193,49 @@ export function LandingPage() {
           </button>
         </div>
       )}
+      <header
+        aria-hidden={!headerVisible}
+        className={`fixed inset-x-0 top-0 z-50 border-b border-[#E2DCF5]/70 bg-[#F8F7FF]/85 backdrop-blur-md transition-all duration-300 ease-out ${
+          headerVisible
+            ? "pointer-events-auto translate-y-0 opacity-100"
+            : "pointer-events-none -translate-y-full opacity-0"
+        }`}
+      >
+        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:h-16 sm:px-6">
+          <Link href="/" className="flex items-center gap-2.5">
+            <Image
+              src="/logo-mark.png"
+              alt=""
+              width={36}
+              height={36}
+              style={{ objectFit: "contain" }}
+              className="h-9 w-9 shrink-0"
+            />
+            <span className="font-heading text-lg font-semibold text-[#1F1235]">
+              Lexiva
+            </span>
+          </Link>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/login"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-[#6B6B7B] transition hover:text-[#6C3FC8] sm:px-4"
+            >
+              Se connecter
+            </Link>
+            <Link
+              href="/signup"
+              className="rounded-xl bg-[#6C3FC8] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#5529A0] sm:px-5 sm:py-2.5"
+            >
+              Commencer
+            </Link>
+          </div>
+        </div>
+      </header>
       {/* SECTION 1 — HERO */}
-      <section className="relative min-h-screen overflow-hidden bg-[#F8F7FF] px-4 pt-16 pb-20">
+      <section
+        ref={heroRef}
+        className="relative overflow-hidden bg-[#F8F7FF] px-4 pb-10 pt-8 sm:pb-12 sm:pt-10"
+      >
         <div className="absolute inset-0 overflow-hidden">
           {/* Orbe 1 : grand cercle violet foncé */}
           <div
@@ -206,25 +261,27 @@ export function LandingPage() {
             width={260}
             height={260}
             style={{ objectFit: "contain" }}
-            className="mx-auto mb-6"
+            className="mx-auto mb-4"
           />
           <h1 className="font-heading text-4xl font-bold leading-tight text-[#1F1235] sm:text-5xl md:text-6xl lg:text-7xl">
             Le vocabulaire{" "}
-            <span className="animate-gradient-text">vivant</span>,
+            <span className="bg-gradient-to-r from-[#6C3FC8] to-[#F5A623] bg-clip-text text-transparent">
+              vivant
+            </span>,
             <br />
             depuis tes vraies lectures
           </h1>
-          <p className="mx-auto mt-6 max-w-2xl text-lg text-[#6B6B7B]">
+          <p className="mx-auto mt-5 max-w-2xl text-xl text-[#4A4560]">
             Importe n&apos;importe quel texte. Clique sur les mots inconnus.
             Lexiva s&apos;occupe du reste.
           </p>
 
-          <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
+          <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
               href="/signup"
               className="group w-full rounded-xl bg-[#6C3FC8] px-8 py-3.5 text-center font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_rgba(108,63,200,0.25)] sm:w-auto"
             >
-              Commencer gratuitement →
+              Commencer →
             </Link>
             <Link
               href="/login"
@@ -234,7 +291,7 @@ export function LandingPage() {
             </Link>
           </div>
 
-          <div className="relative mx-auto mt-16 h-32 w-full max-w-md">
+          <div className="relative mx-auto mt-10 h-28 w-full max-w-md sm:h-32">
             {DEMO_CARDS.map((card, i) => (
               <div
                 key={i}
@@ -255,7 +312,7 @@ export function LandingPage() {
       {/* SECTION 2 — STATS */}
       <section
         ref={statsRef.ref}
-        className="bg-white px-4 py-16"
+        className="bg-white px-4 py-8 sm:py-10"
       >
         <div className="mx-auto flex max-w-4xl flex-col items-center justify-center gap-8 sm:flex-row sm:gap-12">
           {STATS.map((s, i) => (
@@ -283,47 +340,37 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 3 — COMMENT ÇA MARCHE */}
-      <section className="bg-white px-4 py-20">
+      <section className="bg-white px-4 py-10 sm:py-12">
         <h2 className="font-heading text-center text-2xl font-bold text-slate-800 sm:text-3xl">
           Comment ça marche
         </h2>
-        <div className="mx-auto max-w-4xl pt-16">
+        <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 pt-8 md:grid-cols-3 md:gap-6 md:pt-10">
           {STEPS.map((step, i) => {
             const ref = i === 0 ? step1Ref : i === 1 ? step2Ref : step3Ref;
-            const isLeft = i % 2 === 0;
             return (
               <div
                 key={i}
                 ref={ref.ref}
-                className={`flex flex-col gap-6 py-12 sm:flex-row sm:items-center ${
-                  isLeft ? "" : "sm:flex-row-reverse"
+                className={`transition-all duration-700 ${
+                  ref.inView
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-6 opacity-0"
                 }`}
               >
-                <div
-                  className={`flex-1 transition-all duration-700 ${
-                    ref.inView
-                      ? "translate-x-0 opacity-100"
-                      : isLeft
-                        ? "-translate-x-12 opacity-0"
-                        : "translate-x-12 opacity-0"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="font-heading text-7xl font-bold text-[#F5A623]/20">
-                      {step.num}
-                    </span>
-                    <step.Icon
-                      className="h-9 w-9 text-[#6C3FC8]"
-                      strokeWidth={1.75}
-                      aria-hidden
-                    />
-                  </div>
-                  <h3 className="mt-2 font-heading text-xl font-semibold text-slate-800">
-                    {step.title}
-                  </h3>
-                  <p className="mt-2 text-slate-600">{step.desc}</p>
+                <div className="flex items-center justify-center gap-3 md:justify-start">
+                  <span className="font-heading text-6xl font-bold text-[#F5A623]/20 sm:text-7xl">
+                    {step.num}
+                  </span>
+                  <step.Icon
+                    className="h-9 w-9 text-[#6C3FC8]"
+                    strokeWidth={1.75}
+                    aria-hidden
+                  />
                 </div>
-                <div className="flex-1" />
+                <h3 className="mt-2 text-center font-heading text-xl font-semibold text-slate-800 md:text-left">
+                  {step.title}
+                </h3>
+                <p className="mt-2 text-center text-slate-600 md:text-left">{step.desc}</p>
               </div>
             );
           })}
@@ -331,7 +378,7 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 4 — MOTS SAUVAGES */}
-      <section className="relative overflow-hidden bg-white px-4 py-20">
+      <section className="relative overflow-hidden bg-white px-4 py-10 sm:py-12">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.02]"
           style={{
@@ -342,7 +389,7 @@ export function LandingPage() {
           <h2 className="font-heading text-center text-2xl font-bold text-[#1F1235] sm:text-3xl">
             Tes textes deviennent tes cours
           </h2>
-          <p className="mb-4 mt-12 text-center text-sm italic text-[#9A95A8]">
+          <p className="mb-3 mt-6 text-center text-sm italic text-[#9A95A8]">
             👆 Touche les mots surlignés pour voir la traduction
           </p>
           <div className="relative rounded-2xl border border-[#ECE7F8] bg-white p-6 shadow-[0_4px_20px_rgba(108,63,200,0.08)]">
@@ -398,7 +445,7 @@ export function LandingPage() {
               })}
             </p>
           </div>
-          <p className="mt-6 text-center text-sm text-[#9A95A8]">
+          <p className="mt-4 text-center text-sm text-[#9A95A8]">
             Fonctionne avec n&apos;importe quel texte — article de presse,
             roman, affiche, menu
           </p>
@@ -406,10 +453,10 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 5 — POUR LES PROFS */}
-      <section className="bg-[#E8E0F5] px-4 py-14">
+      <section className="bg-[#E8E0F5] px-4 py-10 sm:py-12">
         <div className="mx-auto max-w-4xl text-center">
           <span className="inline-block rounded-full bg-[#6C3FC8]/20 px-4 py-1.5 text-sm font-medium text-[#6C3FC8]">
-            🏫 Espace enseignant
+            🏫 Espace professeur
           </span>
           <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
             <h2 className="font-heading text-2xl font-bold text-slate-800 sm:text-3xl">
@@ -440,8 +487,8 @@ export function LandingPage() {
 
           <div className="mx-auto mt-5 w-full max-w-[520px] rounded-2xl border border-[#ECE7F8] bg-white p-5 text-left shadow-[0_4px_20px_rgba(108,63,200,0.08)] sm:p-6">
             <p className="text-sm leading-relaxed text-slate-700">
-              Vous êtes enseignant&nbsp;? Laissez votre email, nous vous prévenons dès
-              l&apos;ouverture de l&apos;espace enseignant.
+              Vous êtes professeur&nbsp;? Laissez votre email, nous vous prévenons dès
+              l&apos;ouverture de l&apos;espace professeur.
             </p>
 
             {teacherWaitlistStatus === "success" ? (
@@ -520,29 +567,36 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 6 — CTA FINAL */}
-      <section className="bg-[#F8F7FF] px-4 py-24">
+      <section className="bg-[#F8F7FF] px-4 py-12 sm:py-14">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="font-heading text-3xl font-bold text-[#1F1235] sm:text-4xl">
             Envie d&apos;apprendre autrement ?
           </h2>
           <Link
             href="/signup"
-            className="mt-8 inline-block rounded-xl bg-[#6C3FC8] px-12 py-4 text-xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_rgba(108,63,200,0.25)]"
+            className="mt-6 inline-block rounded-xl bg-[#6C3FC8] px-12 py-4 text-xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_rgba(108,63,200,0.25)]"
           >
-            Créer mon compte gratuitement
+            Créer mon compte
           </Link>
-          <p className="mt-6 text-sm text-[#9A95A8]">
-            Gratuit · Sans carte bancaire · En 30 secondes
+          <p className="mt-4 text-sm text-[#9A95A8]">
+            15 jours offerts · En 30 secondes
           </p>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#F0EDF8] px-4 py-12">
+      <footer className="bg-[#F0EDF8] px-4 py-8">
         <div className="mx-auto max-w-5xl">
-          <div className="flex flex-col items-center justify-between gap-6 border-b border-[#E2DAF2] pb-8 sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-5 border-b border-[#E2DAF2] pb-6 sm:flex-row">
             <div className="flex items-center gap-3">
-              <Image src="/logo-mark.png" alt="" width={32} height={32} style={{ objectFit: "contain" }} className="flex-shrink-0" />
+              <Image
+                src="/logo-mark.png"
+                alt=""
+                width={48}
+                height={48}
+                style={{ objectFit: "contain" }}
+                className="h-12 w-12 shrink-0"
+              />
               <div>
                 <p className="font-heading text-lg font-semibold text-[#1F1235]">
                   Lexiva

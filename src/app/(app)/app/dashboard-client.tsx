@@ -2,13 +2,14 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Zap, ArrowRight } from "lucide-react";
+import { Zap, ArrowRight, Plus } from "lucide-react";
 import { ProfesseurSM2Modal } from "@/components/professeur-sm2-modal";
 import WeeklyGoal from "@/components/WeeklyGoal";
 
 type StreakData = { currentStreak: number; longestStreak: number };
 type Stats = {
   listsCount: number;
+  wordsCount: number;
   dueWordsCount: number;
   masteredWordsCount: number;
 };
@@ -33,6 +34,7 @@ export function DashboardClient() {
         });
         setStats({
           listsCount: st.listsCount ?? 0,
+          wordsCount: st.wordsCount ?? 0,
           dueWordsCount: st.dueWordsCount ?? 0,
           masteredWordsCount: st.masteredWordsCount ?? 0,
         });
@@ -76,7 +78,9 @@ export function DashboardClient() {
   const s = streak?.currentStreak ?? 0;
   const dueCount = stats?.dueWordsCount ?? 0;
   const listsCount = stats?.listsCount ?? 0;
+  const wordsCount = stats?.wordsCount ?? 0;
   const masteredCount = stats?.masteredWordsCount ?? 0;
+  const libraryEmpty = listsCount === 0 || wordsCount === 0;
 
   const streakMessage =
     s === 0
@@ -170,7 +174,7 @@ export function DashboardClient() {
           </div>
 
           <Link
-            href="/app/revision/express"
+            href={libraryEmpty ? "/app/familles?ajouter=liste" : "/app/revision/express"}
             onClick={() => {
               if (navigator.vibrate) navigator.vibrate(10);
             }}
@@ -183,11 +187,19 @@ export function DashboardClient() {
           >
             <div className="flex flex-col gap-0.5">
               <div className="flex items-center gap-1.5" style={{ gap: 6 }}>
-                <Zap
-                  className="h-[11px] w-[11px] shrink-0 text-white"
-                  strokeWidth={2.2}
-                  aria-hidden
-                />
+                {libraryEmpty ? (
+                  <Plus
+                    className="h-[11px] w-[11px] shrink-0 text-white"
+                    strokeWidth={2.2}
+                    aria-hidden
+                  />
+                ) : (
+                  <Zap
+                    className="h-[11px] w-[11px] shrink-0 text-white"
+                    strokeWidth={2.2}
+                    aria-hidden
+                  />
+                )}
                 <span
                   style={{
                     fontSize: 12,
@@ -195,7 +207,7 @@ export function DashboardClient() {
                     color: "#FFFFFF",
                   }}
                 >
-                  Révision express
+                  {libraryEmpty ? "Crée ta première liste →" : "Révision express"}
                 </span>
               </div>
               <p
@@ -205,7 +217,9 @@ export function DashboardClient() {
                   paddingLeft: 17,
                 }}
               >
-                5 min · 10 mots · SM-2
+                {libraryEmpty
+                  ? "Importe un texte ou crée une liste pour commencer."
+                  : "5 min · 10 mots · SM-2"}
               </p>
             </div>
             <ArrowRight

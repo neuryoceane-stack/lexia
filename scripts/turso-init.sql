@@ -6,7 +6,13 @@ CREATE TABLE IF NOT EXISTS users (
   email text NOT NULL UNIQUE,
   password_hash text,
   name text,
-  created_at integer NOT NULL
+  role text NOT NULL DEFAULT 'student',
+  created_at integer NOT NULL,
+  subject text,
+  school_name text,
+  weekly_goal integer NOT NULL DEFAULT 20,
+  plan text NOT NULL DEFAULT 'free',
+  subscription_status text NOT NULL DEFAULT 'inactive'
 );
 
 CREATE TABLE IF NOT EXISTS word_families (

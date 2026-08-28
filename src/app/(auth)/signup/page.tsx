@@ -5,7 +5,8 @@ import type { CSSProperties, FocusEvent, ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, ChevronLeft } from "lucide-react";
+import { Eye, EyeOff, ChevronLeft, GraduationCap, KeyRound, MessageCircle, Rocket, Search, Share2, Smile, Sparkles, Users, type LucideIcon } from "lucide-react";
+import { validateEmail, validatePassword } from "@/lib/validation";
 
 type Role = "eleve" | "professeur";
 type Plan = "free" | "monthly" | "annual";
@@ -14,7 +15,6 @@ type EleveStep =
   | "role"
   | "source"
   | "goal"
-  | "streak"
   | "identity"
   | "account"
   | "projection"
@@ -28,12 +28,12 @@ type ProfStep =
   | "institution"
   | "promise";
 
-const ACQUISITION_OPTIONS = [
-  { value: "prof", label: "Recommandation d'un professeur", icon: "👩‍🏫" },
-  { value: "social", label: "Réseaux sociaux", icon: "📱" },
-  { value: "google", label: "Recherche Google", icon: "🔍" },
-  { value: "bouche_a_oreille", label: "Bouche à oreille", icon: "💬" },
-  { value: "autre", label: "Autre", icon: "✦" },
+const ACQUISITION_OPTIONS: { value: string; label: string; Icon: LucideIcon }[] = [
+  { value: "prof", label: "Recommandation d'un professeur", Icon: Users },
+  { value: "social", label: "Réseaux sociaux", Icon: Share2 },
+  { value: "google", label: "Recherche Google", Icon: Search },
+  { value: "bouche_a_oreille", label: "Bouche à oreille", Icon: MessageCircle },
+  { value: "autre", label: "Autre", Icon: Sparkles },
 ];
 
 const GOAL_OPTIONS = [
@@ -41,13 +41,6 @@ const GOAL_OPTIONS = [
   { value: 10, label: "10 mots", sub: "Régulier et efficace" },
   { value: 20, label: "20 mots", sub: "Ambitieux" },
   { value: 50, label: "50 mots", sub: "Mode champion" },
-];
-
-const STREAK_OPTIONS = [
-  { value: 7, label: "7 jours", sub: "Un bon début" },
-  { value: 14, label: "14 jours", sub: "Régulier" },
-  { value: 30, label: "30 jours", sub: "Ambitieux" },
-  { value: 50, label: "50 jours", sub: "Champion !" },
 ];
 
 const V = "#6C3FC8";
@@ -82,10 +75,78 @@ function handleBlur(e: FocusEvent<HTMLInputElement>) {
   e.currentTarget.style.background = FOND;
 }
 
-function FieldLabel({ children }: { children: ReactNode }) {
+function todayDateInputMax(): string {
+  const t = new Date();
+  const m = String(t.getMonth() + 1).padStart(2, "0");
+  const d = String(t.getDate()).padStart(2, "0");
+  return `${t.getFullYear()}-${m}-${d}`;
+}
+
+function validateBirthDate(value: string): { valid: boolean; error?: string } {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return { valid: false, error: "La date de naissance est requise." };
+  }
+  const parts = trimmed.split("-");
+  if (parts.length !== 3) {
+    return { valid: false, error: "Date invalide." };
+  }
+  const [year, month, day] = parts.map(Number);
+  const date = new Date(trimmed + "T00:00:00");
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() + 1 !== month ||
+    date.getDate() !== day
+  ) {
+    return { valid: false, error: "Date invalide." };
+  }
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (date > today) {
+    return { valid: false, error: "La date ne peut pas être dans le futur." };
+  }
+  const ageYears = (today.getTime() - date.getTime()) / (365.25 * 24 * 60 * 60 * 1000);
+  if (ageYears < 5) {
+    return { valid: false, error: "Tu dois avoir au moins 5 ans pour t'inscrire." };
+  }
+  if (ageYears > 120) {
+    return { valid: false, error: "Date de naissance invalide." };
+  }
+  return { valid: true };
+}
+
+function validateIdentityStep(
+  firstName: string,
+  lastName: string,
+  birthDate: string
+): { valid: boolean; error?: string } {
+  if (!firstName.trim()) {
+    return { valid: false, error: "Le prénom est requis." };
+  }
+  if (!lastName.trim()) {
+    return { valid: false, error: "Le nom est requis." };
+  }
+  return validateBirthDate(birthDate);
+}
+
+function FieldLabel({ children, required }: { children: ReactNode; required?: boolean }) {
   return (
     <p style={{ fontSize: 11, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: MUTED, marginBottom: 6 }}>
       {children}
+      {required && <span style={{ color: "#dc2626" }}> *</span>}
+    </p>
+  );
+}
+
+function EmailTakenNotice({ email }: { email: string }) {
+  const loginHref = `/login?email=${encodeURIComponent(email.trim().toLowerCase())}`;
+  return (
+    <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 14, lineHeight: 1.45 }}>
+      Cette adresse est déjà utilisée.{" "}
+      <Link href={loginHref} style={{ color: V, fontWeight: 500, textDecoration: "underline" }}>
+        Connecte-toi
+      </Link>
     </p>
   );
 }
@@ -144,104 +205,6 @@ function Card({ children, selected, onClick, accent }: { children: ReactNode; se
   );
 }
 
-function SorcierEleve() {
-  return (
-    <svg viewBox="0 0 130 180" width="100%" style={{ maxWidth: 110, display: "block", margin: "0 auto 10px" }} xmlns="http://www.w3.org/2000/svg">
-      <text x="4" y="30" fontSize="10" fill="#F5A623" opacity="0.8">✦</text>
-      <text x="110" y="45" fontSize="8" fill="#6C3FC8" opacity="0.7">✦</text>
-      <text x="8" y="90" fontSize="7" fill="#1D9E75" opacity="0.6">✦</text>
-      <polygon points="65,8 30,65 100,65" fill="#6C3FC8"/>
-      <polygon points="65,8 30,65 65,45 100,65" fill="#5030A8" opacity="0.3"/>
-      <rect x="22" y="62" width="86" height="11" rx="5.5" fill="#5030A8"/>
-      <polygon points="65,22 68,32 78,32 70,38 73,48 65,42 57,48 60,38 52,32 62,32" fill="#F5A623"/>
-      <rect x="58" y="103" width="14" height="10" rx="3" fill="#FDDBB4"/>
-      <ellipse cx="65" cy="90" rx="27" ry="27" fill="#FDDBB4"/>
-      <ellipse cx="38" cy="90" rx="5" ry="7" fill="#F5C8A0"/>
-      <ellipse cx="92" cy="90" rx="5" ry="7" fill="#F5C8A0"/>
-      <ellipse cx="38" cy="90" rx="3" ry="5" fill="#FDDBB4"/>
-      <ellipse cx="92" cy="90" rx="3" ry="5" fill="#FDDBB4"/>
-      <path d="M38 78 Q65 60 92 78 Q90 63 65 58 Q40 63 38 78Z" fill="#4A3728"/>
-      <path d="M38 78 Q35 72 36 66 Q42 58 50 60" fill="#4A3728"/>
-      <path d="M92 78 Q95 72 94 66 Q88 58 80 60" fill="#4A3728"/>
-      <ellipse cx="54" cy="88" rx="5.5" ry="6" fill="white"/>
-      <ellipse cx="76" cy="88" rx="5.5" ry="6" fill="white"/>
-      <ellipse cx="55" cy="89" rx="4" ry="4.5" fill="#2D1B69"/>
-      <ellipse cx="77" cy="89" rx="4" ry="4.5" fill="#2D1B69"/>
-      <ellipse cx="56" cy="87" rx="1.5" ry="2" fill="white"/>
-      <ellipse cx="78" cy="87" rx="1.5" ry="2" fill="white"/>
-      <path d="M48 81 Q54 78 60 80" stroke="#4A3728" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-      <path d="M70 80 Q76 78 82 81" stroke="#4A3728" strokeWidth="1.8" fill="none" strokeLinecap="round"/>
-      <ellipse cx="65" cy="95" rx="3" ry="2" fill="#F5C8A0"/>
-      <path d="M53 101 Q65 111 77 101" stroke="#4A3728" strokeWidth="2.2" fill="none" strokeLinecap="round"/>
-      <ellipse cx="45" cy="97" rx="7" ry="5" fill="#F9A8A8" opacity="0.5"/>
-      <ellipse cx="85" cy="97" rx="7" ry="5" fill="#F9A8A8" opacity="0.5"/>
-      <path d="M38 113 Q42 107 65 105 Q88 107 92 113 L98 175 Q65 180 32 175Z" fill="#6C3FC8"/>
-      <rect x="44" y="122" width="38" height="28" rx="5" fill="#F5A623"/>
-      <rect x="44" y="122" width="6" height="28" rx="4" fill="#D4881A"/>
-      <line x1="56" y1="130" x2="78" y2="130" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="56" y1="135" x2="78" y2="135" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="56" y1="140" x2="72" y2="140" stroke="white" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M38 115 Q28 125 24 135" stroke="#6C3FC8" strokeWidth="10" strokeLinecap="round" fill="none"/>
-      <ellipse cx="23" cy="137" rx="5" ry="5" fill="#FDDBB4"/>
-      <path d="M92 115 Q102 118 108 112" stroke="#6C3FC8" strokeWidth="10" strokeLinecap="round" fill="none"/>
-      <ellipse cx="109" cy="110" rx="5" ry="5" fill="#FDDBB4"/>
-      <line x1="112" y1="108" x2="124" y2="90" stroke="#8B6914" strokeWidth="3.5" strokeLinecap="round"/>
-      <polygon points="124,90 119,80 129,83" fill="#F5A623"/>
-    </svg>
-  );
-}
-
-function SorcierProf() {
-  return (
-    <svg viewBox="0 0 130 180" width="100%" style={{ maxWidth: 110, display: "block", margin: "0 auto 10px" }} xmlns="http://www.w3.org/2000/svg">
-      <text x="4" y="30" fontSize="10" fill="#1D9E75" opacity="0.8">✦</text>
-      <text x="110" y="45" fontSize="8" fill="#F5A623" opacity="0.7">✦</text>
-      <text x="8" y="90" fontSize="7" fill="#6C3FC8" opacity="0.6">✦</text>
-      <polygon points="65,5 28,65 102,65" fill="#1D9E75"/>
-      <polygon points="65,5 28,65 65,42 102,65" fill="#16805F" opacity="0.3"/>
-      <rect x="20" y="62" width="90" height="11" rx="5.5" fill="#16805F"/>
-      <polygon points="65,20 68,30 78,30 70,36 73,46 65,40 57,46 60,36 52,30 62,30" fill="#F5A623"/>
-      <rect x="58" y="103" width="14" height="10" rx="3" fill="#FDDBB4"/>
-      <ellipse cx="65" cy="90" rx="27" ry="27" fill="#FDDBB4"/>
-      <ellipse cx="38" cy="90" rx="5" ry="7" fill="#F5C8A0"/>
-      <ellipse cx="92" cy="90" rx="5" ry="7" fill="#F5C8A0"/>
-      <ellipse cx="38" cy="90" rx="3" ry="5" fill="#FDDBB4"/>
-      <ellipse cx="92" cy="90" rx="3" ry="5" fill="#FDDBB4"/>
-      <path d="M38 78 Q65 62 92 78 Q90 64 65 59 Q40 64 38 78Z" fill="#8A7A6A"/>
-      <path d="M38 78 Q35 72 36 66 Q42 58 50 60" fill="#8A7A6A"/>
-      <path d="M92 78 Q95 72 94 66 Q88 58 80 60" fill="#8A7A6A"/>
-      <circle cx="54" cy="87" r="10" fill="white" opacity="0.9"/>
-      <circle cx="76" cy="87" r="10" fill="white" opacity="0.9"/>
-      <circle cx="54" cy="87" r="10" fill="none" stroke="#4A3728" strokeWidth="2"/>
-      <circle cx="76" cy="87" r="10" fill="none" stroke="#4A3728" strokeWidth="2"/>
-      <line x1="44" y1="84" x2="38" y2="82" stroke="#4A3728" strokeWidth="2" strokeLinecap="round"/>
-      <line x1="86" y1="84" x2="92" y2="82" stroke="#4A3728" strokeWidth="2" strokeLinecap="round"/>
-      <path d="M64 86 Q65 85 66 86" stroke="#4A3728" strokeWidth="1.5" fill="none"/>
-      <ellipse cx="54" cy="88" rx="4" ry="4.5" fill="#2D1B69"/>
-      <ellipse cx="76" cy="88" rx="4" ry="4.5" fill="#2D1B69"/>
-      <ellipse cx="55" cy="86.5" rx="1.5" ry="1.8" fill="white"/>
-      <ellipse cx="77" cy="86.5" rx="1.5" ry="1.8" fill="white"/>
-      <path d="M44 77 Q54 73 63 76" stroke="#4A3728" strokeWidth="2" fill="none" strokeLinecap="round"/>
-      <path d="M67 76 Q76 73 86 77" stroke="#4A3728" strokeWidth="2" fill="none" strokeLinecap="round"/>
-      <ellipse cx="65" cy="95" rx="3" ry="2" fill="#F5C8A0"/>
-      <path d="M52 101 Q58 106 65 103 Q72 106 78 101" stroke="#8A7A6A" strokeWidth="2" fill="none" strokeLinecap="round"/>
-      <path d="M56 106 Q65 112 74 106" stroke="#4A3728" strokeWidth="2" fill="none" strokeLinecap="round"/>
-      <path d="M38 113 Q42 107 65 105 Q88 107 92 113 L98 175 Q65 180 32 175Z" fill="#1D9E75"/>
-      <rect x="42" y="118" width="42" height="32" rx="5" fill="white" stroke="#E4E4E7" strokeWidth="1.5"/>
-      <rect x="42" y="118" width="42" height="9" rx="5" fill="#E4F5EE"/>
-      <line x1="48" y1="133" x2="78" y2="133" stroke="#6C3FC8" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="48" y1="138" x2="74" y2="138" stroke="#6C3FC8" strokeWidth="1.5" strokeLinecap="round"/>
-      <line x1="48" y1="143" x2="76" y2="143" stroke="#1D9E75" strokeWidth="1.5" strokeLinecap="round"/>
-      <path d="M38 115 Q28 125 24 135" stroke="#1D9E75" strokeWidth="10" strokeLinecap="round" fill="none"/>
-      <ellipse cx="23" cy="137" rx="5" ry="5" fill="#FDDBB4"/>
-      <path d="M92 115 Q102 118 108 112" stroke="#1D9E75" strokeWidth="10" strokeLinecap="round" fill="none"/>
-      <ellipse cx="109" cy="110" rx="5" ry="5" fill="#FDDBB4"/>
-      <line x1="112" y1="108" x2="124" y2="90" stroke="#8B6914" strokeWidth="3.5" strokeLinecap="round"/>
-      <polygon points="124,90 119,80 129,83" fill="#F5A623"/>
-    </svg>
-  );
-}
-
 export default function SignupPage() {
   const router = useRouter();
 
@@ -251,22 +214,73 @@ export default function SignupPage() {
 
   const [acquisitionSource, setAcquisitionSource] = useState("");
   const [weeklyGoal, setWeeklyGoal] = useState<number | null>(null);
-  const [streakGoal, setStreakGoal] = useState<number | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [birthDate, setBirthDate] = useState("");
+  const [identityError, setIdentityError] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [plan, setPlan] = useState<Plan>("free");
+  const [plan, setPlan] = useState<Plan>("annual");
+  const [showPromoCode, setShowPromoCode] = useState(false);
+  const [promoCode, setPromoCode] = useState("");
   const [teacherSubject, setTeacherSubject] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [institutionCode, setInstitutionCode] = useState("");
   const [error, setError] = useState("");
+  const [emailTaken, setEmailTaken] = useState(false);
+  const [accountChecking, setAccountChecking] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  async function handleAccountContinue() {
+    if (!email.trim()) {
+      setError("L'adresse email est requise.");
+      return;
+    }
+    const emailCheck = validateEmail(email.trim());
+    if (!emailCheck.valid) {
+      setError(emailCheck.error ?? "Format d'email invalide.");
+      return;
+    }
+    if (!password) {
+      setError("Le mot de passe est requis.");
+      return;
+    }
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.valid) {
+      setError(passwordCheck.error ?? "Mot de passe invalide.");
+      return;
+    }
+
+    setError("");
+    setEmailTaken(false);
+    setAccountChecking(true);
+    try {
+      const res = await fetch("/api/auth/check-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setError(data.error ?? "Impossible de vérifier l'adresse email.");
+        return;
+      }
+      if (!data.available) {
+        setEmailTaken(true);
+        return;
+      }
+      setEleveStep("projection");
+    } catch {
+      setError("Une erreur est survenue.");
+    } finally {
+      setAccountChecking(false);
+    }
+  }
 
   async function handleRegister() {
     setError("");
+    setEmailTaken(false);
     setLoading(true);
     try {
       const isProf = role === "professeur";
@@ -285,13 +299,19 @@ export default function SignupPage() {
           institution_code: isProf ? institutionCode.trim() || undefined : undefined,
           acquisition_source: !isProf ? acquisitionSource || undefined : undefined,
           weekly_goal: !isProf ? weeklyGoal ?? undefined : undefined,
-          streak_goal: !isProf ? streakGoal ?? undefined : undefined,
+          promo_code: !isProf ? promoCode.trim() || undefined : undefined,
           plan,
         }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        setError(data.error ?? "Inscription impossible.");
+        if (res.status === 409 && role === "eleve") {
+          setEmailTaken(true);
+          setError("");
+        } else {
+          setEmailTaken(false);
+          setError(data.error ?? "Inscription impossible.");
+        }
         setLoading(false);
         return;
       }
@@ -301,7 +321,11 @@ export default function SignupPage() {
         body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
       if (!loginRes.ok) {
-        setError("Compte créé. Connectez-vous avec votre email et mot de passe.");
+        setError(
+          isProf
+            ? "Compte créé. Connectez-vous avec votre email et mot de passe."
+            : "Compte créé. Connecte-toi avec ton email et ton mot de passe."
+        );
         setLoading(false);
         return;
       }
@@ -336,51 +360,113 @@ export default function SignupPage() {
 
   if (eleveStep === "role" && profStep === "role") {
     return (
-      <div style={{ width: "100%", maxWidth: 420, margin: "0 auto", padding: "0 16px" }}>
-        <div style={{
-          background: "white", borderRadius: 28, padding: "36px 24px 28px",
-          border: "1.5px solid rgba(108,63,200,0.1)",
-          boxShadow: "0 8px 40px rgba(108,63,200,0.1)",
+      <div
+        style={{
           position: "relative",
-        }}>
-          <div style={{ position: "absolute", top: 14, left: 20, fontSize: 14, color: GOLD, opacity: 0.6 }}>✦</div>
-          <div style={{ position: "absolute", top: 10, right: 24, fontSize: 10, color: V, opacity: 0.5 }}>✦</div>
-          <div style={{ position: "absolute", bottom: 80, left: 16, fontSize: 9, color: GREEN, opacity: 0.5 }}>✦</div>
-          <div style={{ position: "absolute", bottom: 90, right: 18, fontSize: 11, color: GOLD, opacity: 0.5 }}>✦</div>
+          width: "min(520px, calc(100vw - 32px))",
+          marginLeft: "50%",
+          transform: "translateX(-50%)",
+        }}
+      >
+        <div
+          aria-hidden
+          style={{
+            pointerEvents: "none",
+            position: "absolute",
+            inset: "-48px -32px",
+            overflow: "hidden",
+            zIndex: 0,
+          }}
+        >
+          <div
+            style={{
+              position: "absolute",
+              left: "-12%",
+              top: "8%",
+              width: 180,
+              height: 180,
+              borderRadius: "50%",
+              background: V,
+              opacity: 0.07,
+              filter: "blur(40px)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              right: "-8%",
+              top: "18%",
+              width: 140,
+              height: 140,
+              borderRadius: "50%",
+              background: V,
+              opacity: 0.06,
+              filter: "blur(32px)",
+            }}
+          />
+          <div
+            style={{
+              position: "absolute",
+              left: "20%",
+              bottom: "6%",
+              width: 120,
+              height: 120,
+              borderRadius: "50%",
+              background: GOLD,
+              opacity: 0.08,
+              filter: "blur(28px)",
+            }}
+          />
+        </div>
+
+        <div
+          style={{
+            position: "relative",
+            zIndex: 1,
+            background: "white",
+            borderRadius: 24,
+            padding: "32px 28px 24px",
+            border: `1px solid ${V_BORDER}`,
+            boxShadow: "0 8px 32px rgba(108,63,200,0.1)",
+          }}
+        >
+          <div style={{ position: "absolute", top: 16, left: 22, fontSize: 12, color: GOLD, opacity: 0.45 }}>✦</div>
+          <div style={{ position: "absolute", top: 14, right: 26, fontSize: 10, color: V, opacity: 0.35 }}>✦</div>
+          <div style={{ position: "absolute", bottom: 88, left: 18, fontSize: 9, color: V, opacity: 0.28 }}>✦</div>
+          <div style={{ position: "absolute", bottom: 96, right: 20, fontSize: 11, color: GOLD, opacity: 0.32 }}>✦</div>
 
           <div style={{ textAlign: "center" }}>
             <Image
               src="/logo-mark.png"
               alt="Lexiva"
-              width={52}
-              height={52}
-              style={{ objectFit: "contain", display: "block", margin: "0 auto 8px" }}
+              width={64}
+              height={64}
+              style={{ objectFit: "contain", display: "block", margin: "0 auto 10px" }}
             />
-            <p style={{ fontSize: 28, fontWeight: 500, color: V, letterSpacing: "-1px" }}>LEXIVA</p>
-            <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "6px 0 4px" }}>
+            <p style={{ fontSize: 28, fontWeight: 600, color: "#1F1235", letterSpacing: "-0.02em" }}>Lexiva</p>
+            <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "8px 0 4px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: V }} />
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD }} />
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: GREEN }} />
             </div>
-            <p style={{ fontSize: 12, color: "#9B8EC4", letterSpacing: "0.02em", marginBottom: 28 }}>Apprends le vocabulaire autrement</p>
+            <p style={{ fontSize: 12, color: "#6B6B7B", letterSpacing: "0.02em", marginBottom: 24 }}>Apprends le vocabulaire autrement</p>
           </div>
 
-          <p style={{ fontSize: 20, fontWeight: 500, color: TEXT, textAlign: "center", marginBottom: 6 }}>Qui êtes-vous ?</p>
-          <p style={{ fontSize: 13, color: MUTED, textAlign: "center", marginBottom: 24 }}>Choisissez votre rôle pour commencer</p>
+          <p style={{ fontSize: 20, fontWeight: 600, color: "#1F1235", textAlign: "center", marginBottom: 6 }}>Qui êtes-vous ?</p>
+          <p style={{ fontSize: 13, color: MUTED, textAlign: "center", marginBottom: 22 }}>Choisissez votre rôle pour commencer</p>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
             <button type="button"
               onClick={() => { setRole("eleve"); setEleveStep("source"); }}
               style={{
-                background: "linear-gradient(160deg,#EDE8FA 0%,#E8E2F8 100%)",
-                border: "2px solid rgba(108,63,200,0.15)", borderRadius: 22,
-                padding: "20px 10px 16px", cursor: "pointer", textAlign: "center",
+                background: "linear-gradient(160deg,#F8F7FF 0%,#F0EDF8 100%)",
+                border: `2px solid ${V_BORDER}`, borderRadius: 20,
+                padding: "18px 10px 14px", cursor: "pointer", textAlign: "center",
                 transition: "all 0.25s", fontFamily: "DM Sans, sans-serif",
                 width: "100%", minWidth: 0,
               }}>
+              <GraduationCap size={40} color={V} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
               <div style={{ display: "inline-block", background: V, color: "white", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Élève</div>
-              <SorcierEleve />
-              <p style={{ fontSize: 15, fontWeight: 500, color: V, marginBottom: 3 }}>Élève</p>
               <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.4 }}>J&apos;apprends du vocabulaire</p>
             </button>
 
@@ -388,21 +474,20 @@ export default function SignupPage() {
               onClick={() => router.push("/signup/professeur")}
               style={{
                 background: "linear-gradient(160deg,#E2F5EE 0%,#D8F0E7 100%)",
-                border: "2px solid rgba(29,158,117,0.15)", borderRadius: 22,
-                padding: "20px 10px 16px", cursor: "pointer", textAlign: "center",
+                border: "2px solid rgba(29,158,117,0.15)", borderRadius: 20,
+                padding: "18px 10px 14px", cursor: "pointer", textAlign: "center",
                 transition: "all 0.25s", fontFamily: "DM Sans, sans-serif",
                 width: "100%", minWidth: 0,
               }}>
+              <Users size={40} color={GREEN} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
               <div style={{ display: "inline-block", background: GREEN, color: "white", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Professeur</div>
-              <SorcierProf />
-              <p style={{ fontSize: 15, fontWeight: 500, color: GREEN, marginBottom: 3 }}>Professeur</p>
               <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.4 }}>Je crée des listes pour mes élèves</p>
             </button>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
             <div style={{ flex: 1, height: 1, background: "rgba(108,63,200,0.08)" }} />
-            <span style={{ fontSize: 11, color: "#C4BBE0", whiteSpace: "nowrap" }}>Bienvenue dans la magie du vocabulaire</span>
+            <span style={{ fontSize: 11, color: "#9A95A8", whiteSpace: "nowrap" }}>Bienvenue dans la magie du vocabulaire</span>
             <div style={{ flex: 1, height: 1, background: "rgba(108,63,200,0.08)" }} />
           </div>
 
@@ -419,13 +504,13 @@ export default function SignupPage() {
     if (eleveStep === "source") return wrap(
       <>
         <BackBtn onClick={() => { setRole(null); setEleveStep("role"); setProfStep("role"); }} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4 }}>Comment avez-vous entendu parler de Lexiva ?</p>
-        <p style={{ fontSize: 12, color: MUTED, marginBottom: 20 }}>Cela nous aide à améliorer l&apos;application.</p>
+        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4, textAlign: "center", textWrap: "balance" }}>Comment as-tu entendu parler de Lexiva ?</p>
+        <p style={{ fontSize: 12, color: MUTED, marginBottom: 20, textAlign: "center", textWrap: "balance" }}>Cela nous aide à améliorer l&apos;application.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {ACQUISITION_OPTIONS.map(opt => (
             <Card key={opt.value} selected={acquisitionSource === opt.value} onClick={() => setAcquisitionSource(opt.value)}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 18 }}>{opt.icon}</span>
+                <opt.Icon size={18} color={V} strokeWidth={1.75} aria-hidden />
                 <span style={{ fontSize: 14, color: TEXT }}>{opt.label}</span>
                 {acquisitionSource === opt.value && <span style={{ marginLeft: "auto", color: V, fontSize: 16 }}>✓</span>}
               </div>
@@ -435,14 +520,14 @@ export default function SignupPage() {
         <CTA onClick={() => setEleveStep("goal")}>Continuer →</CTA>
         <SkipLink onClick={() => setEleveStep("goal")} />
       </>,
-      1, 7
+      1, 6
     );
 
     if (eleveStep === "goal") return wrap(
       <>
         <BackBtn onClick={() => setEleveStep("source")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4 }}>Quel est votre objectif de vocabulaire ?</p>
-        <p style={{ fontSize: 12, color: MUTED, marginBottom: 20 }}>Nombre de mots à apprendre par semaine.</p>
+        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4, textAlign: "center", textWrap: "balance" }}>Quel est ton objectif de vocabulaire ?</p>
+        <p style={{ fontSize: 12, color: MUTED, marginBottom: 20, textAlign: "center", textWrap: "balance" }}>Nombre de mots à apprendre par semaine.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {GOAL_OPTIONS.map(opt => (
             <Card key={opt.value} selected={weeklyGoal === opt.value} onClick={() => setWeeklyGoal(opt.value)} accent={V}>
@@ -451,65 +536,70 @@ export default function SignupPage() {
             </Card>
           ))}
         </div>
-        <CTA onClick={() => { if (weeklyGoal) setEleveStep("streak"); }} disabled={!weeklyGoal}>Continuer →</CTA>
-        <SkipLink onClick={() => setEleveStep("streak")} />
-      </>,
-      2, 7
-    );
-
-    if (eleveStep === "streak") return wrap(
-      <>
-        <BackBtn onClick={() => setEleveStep("goal")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4 }}>Quel est votre objectif de série ? 🔥</p>
-        <p style={{ fontSize: 12, color: MUTED, marginBottom: 20 }}>Définissez votre ambition dès maintenant.</p>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-          {STREAK_OPTIONS.map(opt => (
-            <Card key={opt.value} selected={streakGoal === opt.value} onClick={() => setStreakGoal(opt.value)} accent={GOLD}>
-              <p style={{ fontSize: 20, fontWeight: 500, color: streakGoal === opt.value ? "#B87A10" : TEXT, marginBottom: 2 }}>{opt.label}</p>
-              <p style={{ fontSize: 11, color: MUTED }}>{opt.sub}</p>
-            </Card>
-          ))}
-        </div>
-        <CTA onClick={() => { if (streakGoal) setEleveStep("identity"); }} disabled={!streakGoal}>Continuer →</CTA>
+        <CTA onClick={() => { if (weeklyGoal) setEleveStep("identity"); }} disabled={!weeklyGoal}>Continuer →</CTA>
         <SkipLink onClick={() => setEleveStep("identity")} />
       </>,
-      3, 7
+      2, 6
     );
 
     if (eleveStep === "identity") return wrap(
       <>
-        <BackBtn onClick={() => setEleveStep("streak")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 20 }}>Faisons connaissance 👋</p>
-        <FieldLabel>Prénom</FieldLabel>
-        <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
-          placeholder="Votre prénom" style={{ ...inputStyle, marginBottom: 14 }}
+        <BackBtn onClick={() => setEleveStep("goal")} />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+          <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, textAlign: "center", textWrap: "balance", margin: 0 }}>Faisons connaissance</p>
+          <Smile size={20} color={TEXT} strokeWidth={1.75} aria-hidden />
+        </div>
+        <FieldLabel required>Prénom</FieldLabel>
+        <input type="text" value={firstName} onChange={e => { setFirstName(e.target.value); setIdentityError(""); }}
+          placeholder="Ton prénom" style={{ ...inputStyle, marginBottom: 14 }}
           onFocus={handleFocus} onBlur={handleBlur} />
-        <FieldLabel>Nom</FieldLabel>
-        <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
-          placeholder="Votre nom" style={{ ...inputStyle, marginBottom: 14 }}
+        <FieldLabel required>Nom</FieldLabel>
+        <input type="text" value={lastName} onChange={e => { setLastName(e.target.value); setIdentityError(""); }}
+          placeholder="Ton nom" style={{ ...inputStyle, marginBottom: 14 }}
           onFocus={handleFocus} onBlur={handleBlur} />
-        <FieldLabel>Date de naissance</FieldLabel>
-        <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)}
+        <FieldLabel required>Date de naissance</FieldLabel>
+        <input type="date" value={birthDate} max={todayDateInputMax()} required
+          onChange={e => { setBirthDate(e.target.value); setIdentityError(""); }}
           style={{ ...inputStyle, marginBottom: 4 }}
           onFocus={handleFocus} onBlur={handleBlur} />
-        <p style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Optionnel — utilisé pour personnaliser votre expérience.</p>
-        <CTA onClick={() => setEleveStep("account")}>Continuer →</CTA>
+        <p style={{ fontSize: 11, color: MUTED, marginBottom: identityError ? 8 : 4 }}>
+          <span style={{ color: "#dc2626" }}>*</span> Champs obligatoires
+        </p>
+        {identityError && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{identityError}</p>}
+        <CTA
+          onClick={() => {
+            const check = validateIdentityStep(firstName, lastName, birthDate);
+            if (!check.valid) {
+              setIdentityError(check.error ?? "Merci de remplir tous les champs obligatoires.");
+              return;
+            }
+            setIdentityError("");
+            setEleveStep("account");
+          }}
+          disabled={!firstName.trim() || !lastName.trim() || !birthDate.trim()}
+        >
+          Continuer →
+        </CTA>
       </>,
-      4, 7
+      3, 6
     );
 
     if (eleveStep === "account") return wrap(
       <>
         <BackBtn onClick={() => setEleveStep("identity")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 20 }}>Créez votre compte ✨</p>
-        <FieldLabel>Adresse email</FieldLabel>
-        <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="vous@email.com" style={{ ...inputStyle, marginBottom: 14 }}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+          <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, textAlign: "center", textWrap: "balance", margin: 0 }}>Crée ton compte</p>
+          <KeyRound size={20} color={TEXT} strokeWidth={1.75} aria-hidden />
+        </div>
+        <FieldLabel required>Adresse email</FieldLabel>
+        <input type="email" value={email} onChange={e => { setEmail(e.target.value); setError(""); setEmailTaken(false); }}
+          placeholder="ton@email.com" style={{ ...inputStyle, marginBottom: emailTaken ? 4 : 14 }}
           onFocus={handleFocus} onBlur={handleBlur} autoComplete="email" />
-        <FieldLabel>Mot de passe</FieldLabel>
+        {emailTaken && <EmailTakenNotice email={email} />}
+        <FieldLabel required>Mot de passe</FieldLabel>
         <div style={{ position: "relative", marginBottom: 6 }}>
           <input type={showPassword ? "text" : "password"} value={password}
-            onChange={e => setPassword(e.target.value)} placeholder="••••••••"
+            onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="••••••••"
             style={{ ...inputStyle, paddingRight: 40 }}
             onFocus={handleFocus} onBlur={handleBlur} autoComplete="new-password" />
           <button type="button" onClick={() => setShowPassword(v => !v)}
@@ -517,16 +607,25 @@ export default function SignupPage() {
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
         </div>
-        <p style={{ fontSize: 11, color: MUTED, marginBottom: 8 }}>8 caractères min. · 1 majuscule · 1 chiffre</p>
-        {error && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>}
-        <CTA onClick={() => {
-          setError("");
-          if (!email.trim() || !password) { setError("Email et mot de passe requis."); return; }
-          if (password.length < 8) { setError("Mot de passe trop court (8 car. min.)"); return; }
-          setEleveStep("projection");
-        }}>Continuer →</CTA>
+        <p style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>8 caractères min. · 1 majuscule · 1 chiffre</p>
+        <p style={{ fontSize: 11, color: MUTED, marginBottom: error ? 8 : 4 }}>
+          <span style={{ color: "#dc2626" }}>*</span> Champs obligatoires
+        </p>
+        {error && !emailTaken && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>}
+        <CTA
+          onClick={handleAccountContinue}
+          disabled={
+            accountChecking ||
+            !email.trim() ||
+            !password ||
+            !validateEmail(email.trim()).valid ||
+            !validatePassword(password).valid
+          }
+        >
+          {accountChecking ? "Vérification…" : "Continuer →"}
+        </CTA>
       </>,
-      5, 7
+      4, 6
     );
 
     if (eleveStep === "projection") {
@@ -534,19 +633,17 @@ export default function SignupPage() {
       return wrap(
         <>
           <div style={{ textAlign: "center", marginBottom: 24 }}>
-            <div style={{ fontSize: 48, marginBottom: 8 }}>🚀</div>
-            <p style={{ fontSize: 17, fontWeight: 500, color: TEXT, marginBottom: 6 }}>Voici ce que vous pouvez accomplir en 3 mois</p>
-            <p style={{ fontSize: 13, color: MUTED }}>Basé sur votre objectif de {weeklyGoal ?? 10} mots/semaine</p>
+            <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
+              <Rocket size={44} color={V} strokeWidth={1.75} aria-hidden />
+            </div>
+            <p style={{ fontSize: 17, fontWeight: 500, color: TEXT, marginBottom: 6, textWrap: "balance" }}>Voici ce que tu peux accomplir en 3 mois</p>
+            <p style={{ fontSize: 13, color: MUTED, textWrap: "balance" }}>Basé sur ton objectif de {weeklyGoal ?? 10} mots/semaine</p>
           </div>
           <div style={{ background: V_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center", marginBottom: 16 }}>
             <p style={{ fontSize: 48, fontWeight: 500, color: V, marginBottom: 4 }}>{mots}</p>
             <p style={{ fontSize: 14, color: V }}>mots mémorisés</p>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 8 }}>
-            <div style={{ background: GOLD_LIGHT, borderRadius: 14, padding: "14px", textAlign: "center" }}>
-              <p style={{ fontSize: 20, fontWeight: 500, color: "#B87A10" }}>{streakGoal ?? 14}</p>
-              <p style={{ fontSize: 11, color: MUTED }}>jours de série visés</p>
-            </div>
+          <div style={{ marginBottom: 8 }}>
             <div style={{ background: GREEN_LIGHT, borderRadius: 14, padding: "14px", textAlign: "center" }}>
               <p style={{ fontSize: 20, fontWeight: 500, color: GREEN }}>SM-2</p>
               <p style={{ fontSize: 11, color: MUTED }}>algorithme d&apos;apprentissage</p>
@@ -554,59 +651,72 @@ export default function SignupPage() {
           </div>
           <CTA onClick={() => setEleveStep("pricing")}>Choisir mon plan →</CTA>
         </>,
-        6, 7
+        5, 6
       );
     }
 
-    if (eleveStep === "pricing") return wrap(
+    if (eleveStep === "pricing") {
+      const planPriceLabel = plan === "monthly" ? "7€/mois" : "4€/mois";
+      return wrap(
       <>
         <BackBtn onClick={() => setEleveStep("projection")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, textAlign: "center", marginBottom: 4 }}>Choisissez votre plan</p>
-        <p style={{ fontSize: 12, color: MUTED, textAlign: "center", marginBottom: 20 }}>Vous pouvez changer de plan à tout moment.</p>
+        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, textAlign: "center", textWrap: "balance", marginBottom: 4 }}>Choisis ton plan</p>
+        <p style={{ fontSize: 12, color: MUTED, textAlign: "center", textWrap: "balance", marginBottom: 20 }}>Tu peux changer de plan à tout moment.</p>
         <div onClick={() => setPlan("annual")}
           style={{ background: plan === "annual" ? V_LIGHT : "white", border: `2px solid ${plan === "annual" ? V : V_BORDER}`, borderRadius: 16, padding: "16px", marginBottom: 10, cursor: "pointer", position: "relative" }}>
           <div style={{ position: "absolute", top: -10, left: 16, background: V, color: "white", fontSize: 10, fontWeight: 500, padding: "2px 10px", borderRadius: 20 }}>MEILLEURE OFFRE</div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <p style={{ fontSize: 14, fontWeight: 500, color: TEXT }}>Plan annuel</p>
-              <p style={{ fontSize: 11, color: MUTED }}>Économisez 40% vs mensuel</p>
+              <p style={{ fontSize: 11, color: MUTED }}>Économise 43% vs mensuel</p>
             </div>
             <div style={{ textAlign: "right" }}>
-              <p style={{ fontSize: 18, fontWeight: 500, color: V }}>4,99€<span style={{ fontSize: 11, color: MUTED }}>/mois</span></p>
-              <p style={{ fontSize: 10, color: MUTED }}>59,88€/an</p>
+              <p style={{ fontSize: 18, fontWeight: 500, color: V }}>4€<span style={{ fontSize: 11, color: MUTED }}>/mois</span></p>
+              <p style={{ fontSize: 10, color: MUTED }}>facturé 48€/an</p>
             </div>
           </div>
         </div>
         <div onClick={() => setPlan("monthly")}
-          style={{ background: plan === "monthly" ? V_LIGHT : "white", border: `1.5px solid ${plan === "monthly" ? V : V_BORDER}`, borderRadius: 16, padding: "16px", marginBottom: 10, cursor: "pointer" }}>
+          style={{ background: plan === "monthly" ? V_LIGHT : "white", border: `1.5px solid ${plan === "monthly" ? V : V_BORDER}`, borderRadius: 16, padding: "16px", marginBottom: 12, cursor: "pointer" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <div>
               <p style={{ fontSize: 14, fontWeight: 500, color: TEXT }}>Plan mensuel</p>
-              <p style={{ fontSize: 11, color: MUTED }}>Annulable à tout moment</p>
+              <p style={{ fontSize: 11, color: MUTED }}>Sans engagement</p>
             </div>
-            <p style={{ fontSize: 18, fontWeight: 500, color: TEXT }}>8,99€<span style={{ fontSize: 11, color: MUTED }}>/mois</span></p>
+            <p style={{ fontSize: 18, fontWeight: 500, color: TEXT }}>7€<span style={{ fontSize: 11, color: MUTED }}>/mois</span></p>
           </div>
         </div>
-        <div onClick={() => setPlan("free")}
-          style={{ background: plan === "free" ? GREEN_LIGHT : "white", border: `1.5px solid ${plan === "free" ? GREEN : V_BORDER}`, borderRadius: 16, padding: "14px", marginBottom: 16, cursor: "pointer" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ fontSize: 13, fontWeight: 500, color: plan === "free" ? GREEN : MUTED }}>Pas sûr(e) ? Plan gratuit</p>
-              <p style={{ fontSize: 11, color: MUTED }}>Fonctionnalités de base, sans CB</p>
-            </div>
-            <p style={{ fontSize: 14, fontWeight: 500, color: plan === "free" ? GREEN : MUTED }}>Gratuit</p>
-          </div>
+        <div style={{ marginBottom: 16 }}>
+          {!showPromoCode ? (
+            <button type="button" onClick={() => setShowPromoCode(true)}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: V, textDecoration: "underline", padding: 0, fontFamily: "DM Sans, sans-serif" }}>
+              Tu as un code de parrainage ou de promo ?
+            </button>
+          ) : (
+            <>
+              <p style={{ fontSize: 11, color: MUTED, marginBottom: 6 }}>Code de parrainage ou promo (optionnel)</p>
+              <input type="text" value={promoCode} onChange={e => setPromoCode(e.target.value)}
+                placeholder="Entre ton code"
+                style={inputStyle}
+                onFocus={handleFocus} onBlur={handleBlur} />
+            </>
+          )}
         </div>
-        {error && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>}
-        <CTA onClick={handleRegister} disabled={loading} gold={plan !== "free"}>
-          {loading ? "Création du compte…" : plan === "free" ? "Commencer gratuitement 🎉" : "Commencer avec Lexiva 🎉"}
+        {emailTaken ? (
+          <EmailTakenNotice email={email} />
+        ) : error ? (
+          <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>
+        ) : null}
+        <CTA onClick={handleRegister} disabled={loading}>
+          {loading ? "Création du compte…" : "Commencer mon essai →"}
         </CTA>
-        <p style={{ fontSize: 10, color: MUTED, textAlign: "center", marginTop: 10 }}>
-          {plan === "free" ? "Aucune carte bancaire requise." : "Paiement sécurisé · Annulable à tout moment."}
+        <p style={{ fontSize: 10, color: MUTED, textAlign: "center", marginTop: 10, lineHeight: 1.45, textWrap: "balance" }}>
+          15 jours gratuits, puis {planPriceLabel}. Sans engagement, résiliable à tout moment.
         </p>
       </>,
-      7, 7
+      6, 6
     );
+    }
   }
 
   if (role === "professeur") {
@@ -666,7 +776,7 @@ export default function SignupPage() {
     if (profStep === "teacher") return wrap(
       <>
         <BackBtn onClick={() => setProfStep("account")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 20 }}>Votre profil enseignant 👩‍🏫</p>
+        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 20 }}>Votre profil professeur 👩‍🏫</p>
         <FieldLabel>Matière enseignée (optionnel)</FieldLabel>
         <input type="text" value={teacherSubject} onChange={e => setTeacherSubject(e.target.value)}
           placeholder="Ex. : Anglais, Espagnol, Latin…" style={{ ...inputStyle, marginBottom: 14 }}

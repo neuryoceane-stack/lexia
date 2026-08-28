@@ -157,7 +157,7 @@ export async function POST(request: Request) {
 
   if (!isPdf && !isImage) {
     return NextResponse.json(
-      { error: "Format non supporté. Utilisez JPG, PNG ou PDF." },
+      { error: "Format non supporté. Utilise JPG, PNG ou PDF." },
       { status: 400 }
     );
   }
@@ -315,7 +315,7 @@ export async function POST(request: Request) {
     if (err instanceof Error) {
       if (err.name === "AbortError") {
         return NextResponse.json(
-          { error: "Délai dépassé (30 s). Réessayez avec un fichier plus petit." },
+          { error: "Délai dépassé (30 s). Réessaie avec un fichier plus petit." },
           { status: 504 }
         );
       }
