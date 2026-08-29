@@ -4,6 +4,7 @@ import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { detectListLanguages, KNOWN_LANGUAGE_CODES } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
+import { SaveWordsToListModal } from "@/components/save-words-to-list-modal";
 
 export type RevueItem = { term: string; definition: string };
 
@@ -29,9 +30,7 @@ export function RevueImport({
   const router = useRouter();
   const [items, setItems] = useState<RevueItem[]>(initialItems);
   const [index, setIndex] = useState(0);
-  const [listName, setListName] = useState(defaultListName ?? "");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [editing, setEditing] = useState<RevueItem | null>(null);
 
   const current = items[index];
@@ -82,60 +81,12 @@ export function RevueImport({
     [editing, index, current]
   );
 
-  async function handleSaveList() {
-    const name = listName.trim();
-    if (!name) {
-      setError("Donne un nom à la liste.");
-      return;
-    }
-    const words = items
-      .map((i) => ({ term: i.term.trim(), definition: i.definition.trim() }))
-      .filter((w) => w.term.length > 0);
-    if (words.length === 0) {
-      setError("Aucun mot à enregistrer. Garde ou modifie au moins un mot.");
-      return;
-    }
-    setError("");
-    setSaving(true);
-    try {
-      const listRes = await fetch(`/api/familles/${familyId}/listes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          source,
-          language:
-            (defaultLanguage && KNOWN_LANGUAGE_CODES.has(defaultLanguage)
-              ? defaultLanguage
-              : termLang && KNOWN_LANGUAGE_CODES.has(termLang)
-                ? termLang
-                : defaultLanguage) || undefined,
-        }),
-      });
-      const listData = await listRes.json().catch(() => ({}));
-      if (!listRes.ok) {
-        setError(listData.error ?? "Erreur création liste");
-        setSaving(false);
-        return;
-      }
-      const listId = listData.id;
-      const wordsRes = await fetch(`/api/listes/${listId}/mots/bulk`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ words }),
-      });
-      if (!wordsRes.ok) {
-        setError("Liste créée mais erreur lors de l’ajout des mots.");
-        setSaving(false);
-        return;
-      }
-      onSaved();
-      router.refresh();
-    } catch {
-      setError("Erreur réseau");
-      setSaving(false);
-    }
-  }
+  const saveDefaultLanguage =
+    (defaultLanguage && KNOWN_LANGUAGE_CODES.has(defaultLanguage)
+      ? defaultLanguage
+      : termLang && KNOWN_LANGUAGE_CODES.has(termLang)
+        ? termLang
+        : defaultLanguage) ?? null;
 
   if (editing) {
     return (
@@ -203,7 +154,8 @@ export function RevueImport({
         )}
       </div>
       <p className="text-sm text-[var(--foreground-muted)]">
-        Garde, modifie ou supprime chaque mot. Puis donne un nom à la liste et enregistre.
+        Garde, modifie ou supprime chaque mot. Puis enregistre-les dans une liste existante
+        ou crée-en une nouvelle.
       </p>
 
       {/* Carte type Tinder */}
@@ -251,57 +203,52 @@ export function RevueImport({
         </div>
       ) : (
         <p className="rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] px-4 py-3 text-sm text-[var(--foreground-muted)]">
-          Toutes les fiches ont été parcourues. Donne un nom à la liste et enregistre ci-dessous.
+          Toutes les fiches ont été parcourues. Enregistre ta sélection ci-dessous.
         </p>
       )}
 
-      {/* Enregistrer la liste */}
       <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
         <h3 className="mb-2 font-medium text-[var(--foreground)]">
-          Enregistrer la liste
+          Enregistrer dans une liste
         </h3>
         <p className="mb-4 text-sm text-[var(--foreground-muted)]">
-          {items.length} mot(s) conservé(s). Donne un nom puis enregistre.
+          {items.length} mot{items.length !== 1 ? "s" : ""} conservé
+          {items.length !== 1 ? "s" : ""}. Choisis une liste existante ou crée-en une
+          nouvelle.
         </p>
-        <div className="flex flex-wrap items-end gap-4">
-          <div>
-            <label
-              htmlFor="revue-list-name"
-              className="mb-1 block text-sm text-[var(--foreground-muted)]"
-            >
-              Nom de la liste
-            </label>
-            <input
-              id="revue-list-name"
-              type="text"
-              value={listName}
-              onChange={(e) => setListName(e.target.value)}
-              placeholder="ex. Mots extraits du PDF"
-              className="w-64 rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
-            />
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onCancel}
-              className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
-            >
-              Annuler
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveList}
-              disabled={saving}
-              className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
-            >
-              {saving ? "Enregistrement…" : "Tout enregistrer"}
-            </button>
-          </div>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
+          >
+            Annuler
+          </button>
+          <button
+            type="button"
+            onClick={() => setSaveModalOpen(true)}
+            disabled={items.length === 0}
+            className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+            style={{ background: "#6C3FC8" }}
+          >
+            Enregistrer dans une liste →
+          </button>
         </div>
-        {error && (
-          <p className="mt-3 text-sm text-red-600">{error}</p>
-        )}
       </div>
+
+      <SaveWordsToListModal
+        open={saveModalOpen}
+        onClose={() => setSaveModalOpen(false)}
+        words={items}
+        defaultFamilyId={familyId}
+        defaultNewListName={defaultListName}
+        defaultLanguage={saveDefaultLanguage}
+        newListSource={source}
+        onSaved={() => {
+          onSaved();
+          router.refresh();
+        }}
+      />
     </div>
   );
 }

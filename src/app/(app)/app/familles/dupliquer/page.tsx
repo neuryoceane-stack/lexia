@@ -141,7 +141,7 @@ export default function DupliquerPage() {
     setSaveError(null);
     setSaving(true);
     try {
-      const createRes = await fetch(`/api/familles/${list.familyId}/listes`, {
+      const createRes = await fetch("/api/listes", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

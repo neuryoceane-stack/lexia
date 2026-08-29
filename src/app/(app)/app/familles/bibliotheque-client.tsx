@@ -8,6 +8,8 @@ import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 import { BackLink } from "@/components/back-link";
 import { PawPrint, FileText, X, Plus, ListPlus, Languages, Search, Check } from "lucide-react";
+import { AppModal } from "@/components/app-modal";
+import { ListNameInput } from "@/components/list-name-input";
 
 type BibliothequeList = {
   id: string;
@@ -266,17 +268,24 @@ export function BibliothequeClient() {
     }
   }
 
-  async function handleDeleteFamily(familyId: string, familyName: string) {
+  async function handleDeleteList(list: BibliothequeList) {
     setMenuOpenId(null);
     const ok = window.confirm(
-      `Supprimer la liste « ${familyName} » ? Cette action est irréversible.`
+      `Supprimer la liste « ${list.name} » ? Cette action est irréversible.`
     );
     if (!ok) return;
-    setDeletingFamilyId(familyId);
+    setDeletingFamilyId(list.id);
     try {
-      const res = await fetch(`/api/familles/${familyId}`, { method: "DELETE" });
+      const res = await fetch(`/api/listes/${list.id}`, { method: "DELETE" });
       if (res.ok) {
         fetchLists();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        window.alert(
+          typeof data.error === "string"
+            ? data.error
+            : "Impossible de supprimer cette liste."
+        );
       }
     } finally {
       setDeletingFamilyId(null);
@@ -872,7 +881,7 @@ export function BibliothequeClient() {
                                         )}
                                       </div>
                                       <p className="mt-0.5 text-xs text-[var(--foreground-muted)]">
-                                        {list.familyName} · {list.wordCount} mot
+                                        {list.wordCount} mot
                                         {list.wordCount !== 1 ? "s" : ""}
                                       </p>
                                       <div className="mt-2 flex items-center gap-2">
@@ -1018,8 +1027,8 @@ export function BibliothequeClient() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteFamily(list.familyId, list.name)}
-                      disabled={deletingFamilyId === list.familyId}
+                      onClick={() => handleDeleteList(list)}
+                      disabled={deletingFamilyId === list.id}
                       className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
                       Supprimer la liste
@@ -1055,7 +1064,10 @@ export function BibliothequeClient() {
                   {list.name}
                 </span>
                 <span className="text-sm text-[var(--foreground-muted)]">
-                  {list.familyName} · {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""} · {list.progressPercent} % retenu
+                  {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""} ·{" "}
+                  {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === list.language)?.label ??
+                    list.language ??
+                    "—"}
                 </span>
               </Link>
               <div className="relative">
@@ -1101,8 +1113,8 @@ export function BibliothequeClient() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteFamily(list.familyId, list.name)}
-                      disabled={deletingFamilyId === list.familyId}
+                      onClick={() => handleDeleteList(list)}
+                      disabled={deletingFamilyId === list.id}
                       className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
                       Supprimer la liste
@@ -1119,26 +1131,18 @@ export function BibliothequeClient() {
 
       {/* Modale Renommer la liste */}
       {renameModalList && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          onClick={() => !renamingListId && setRenameModalList(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="rename-modal-title"
+        <AppModal
+          open={!!renameModalList}
+          onClose={() => !renamingListId && setRenameModalList(null)}
+          closeOnOverlay={!renamingListId}
+          title="Renommer la liste"
+          titleId="rename-modal-title"
         >
-          <div
-            className="w-full max-w-md rounded-xl bg-[var(--background-card)] p-6"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 id="rename-modal-title" className="mb-4 text-lg font-semibold text-[var(--foreground)]">
-              Renommer la liste
-            </h2>
-            <label htmlFor="rename-list-input" className="mb-2 block text-sm font-medium text-[var(--foreground-muted)]">
+            <label htmlFor="bib-rename-list-title" className="mb-2 block text-sm font-medium text-[var(--foreground-muted)]">
               Nom de la liste
             </label>
-            <input
-              id="rename-list-input"
-              type="text"
+            <ListNameInput
+              id="bib-rename-list-title"
               value={renameInput}
               onChange={(e) => setRenameInput(e.target.value)}
               placeholder="ex. Mots extraits du PDF"
@@ -1163,8 +1167,7 @@ export function BibliothequeClient() {
                 {renamingListId === renameModalList?.id ? "Enregistrement…" : "Enregistrer"}
               </button>
             </div>
-          </div>
-        </div>
+        </AppModal>
       )}
 
       {/* Modale Dupliquer dans une autre langue */}
@@ -1369,12 +1372,16 @@ export function BibliothequeClient() {
       {/* Modal Liste de mots : langue + nom, puis Créer ma liste ou Annuler */}
       {addModal === "list" && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
           style={{ background: "rgba(80,60,120,0.18)" }}
           onClick={() => setAddModal(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="bib-new-list-modal-title"
         >
+          <div className="flex min-h-[100dvh] w-full items-end justify-center sm:min-h-full sm:items-center sm:py-8">
           <div
-            className="w-full overflow-hidden"
+            className="my-0 w-full max-h-[min(88dvh,100%)] overflow-y-auto overscroll-contain sm:my-auto"
             style={{ maxWidth: 400, borderRadius: 20, background: "var(--background-card)", border: "0.5px solid rgba(108,63,200,0.15)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -1387,7 +1394,7 @@ export function BibliothequeClient() {
                 <FileText size={20} stroke="white" />
               </div>
               <div className="min-w-0 flex-1">
-                <p style={{ color: "white", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>Nouvelle liste de mots</p>
+                <p id="bib-new-list-modal-title" style={{ color: "white", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>Nouvelle liste de mots</p>
                 <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>Elle apparaîtra dans ta bibliothèque</p>
               </div>
               <button
@@ -1441,12 +1448,14 @@ export function BibliothequeClient() {
                 Autre langue →
               </button>
 
-              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8 }}>
+              <label
+                htmlFor="bib-new-list-title"
+                style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8, display: "block" }}
+              >
                 Nom de la liste
-              </p>
-              <input
-                id="modal-list-name"
-                type="text"
+              </label>
+              <ListNameInput
+                id="bib-new-list-title"
                 value={newListName}
                 onChange={(e) => setNewListName(e.target.value)}
                 placeholder="ex. Chapitre 3 — La Révolution"
@@ -1507,6 +1516,7 @@ export function BibliothequeClient() {
                 {creatingFamily ? "Création…" : "Créer ma liste"}
               </button>
             </div>
+          </div>
           </div>
         </div>
       )}

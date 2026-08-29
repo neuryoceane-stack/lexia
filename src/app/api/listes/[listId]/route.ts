@@ -3,6 +3,7 @@ import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { wordFamilies, lists } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { syncFamilyNameToList, deleteUserListWithFamily } from "@/lib/user-list";
 
 async function ensureListAccess(listId: string, userId: string) {
   const [list] = await db
@@ -74,6 +75,9 @@ export async function PATCH(
     return NextResponse.json(list);
   }
   await db.update(lists).set(updates).where(eq(lists.id, listId));
+  if (updates.name) {
+    await syncFamilyNameToList(list.familyId, updates.name);
+  }
   const [updated] = await db
     .select()
     .from(lists)
@@ -95,6 +99,19 @@ export async function DELETE(
   if (!list) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
-  await db.delete(lists).where(eq(lists.id, listId));
-  return NextResponse.json({ ok: true });
+  try {
+    await deleteUserListWithFamily(listId, user.id);
+    return NextResponse.json({ ok: true });
+  } catch (err) {
+    if (err instanceof Error && err.message === "FAMILY_HAS_MULTIPLE_LISTS") {
+      return NextResponse.json(
+        {
+          error:
+            "Impossible de supprimer cette liste seule : plusieurs listes partagent le même conteneur. Contacte le support.",
+        },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
+  }
 }

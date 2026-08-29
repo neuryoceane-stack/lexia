@@ -389,7 +389,7 @@ export function ListesClasse({
               <option value="">— Choisir une liste —</option>
               {availableLists.map((l) => (
                 <option key={l.id} value={l.id}>
-                  {l.familyName} / {l.name} ({l.wordCount} mots)
+                  {l.name} ({l.wordCount} mots)
                 </option>
               ))}
             </select>

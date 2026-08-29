@@ -16,11 +16,9 @@ import {
 } from "@/lib/parse-claude-segments";
 import { parseClaudeTranslationResponse } from "@/lib/parse-claude-translation";
 import { compressImage } from "@/lib/image-compression";
+import { SaveWordsToListModal } from "@/components/save-words-to-list-modal";
 
 type Step = "source" | "langs" | "select" | "reading";
-
-type Family = { id: string; name: string };
-type List = { id: string; familyId: string; name: string };
 
 type TextBlock = {
   id: string;
@@ -291,15 +289,6 @@ export default function MotsSauvagesPage() {
   >([]);
   const [translateLoading, setTranslateLoading] = useState(false);
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const [families, setFamilies] = useState<Family[]>([]);
-  const [listsByFamily, setListsByFamily] = useState<Record<string, List[]>>({});
-  const [addLoading, setAddLoading] = useState(false);
-  const [addSuccess, setAddSuccess] = useState(false);
-  const [addSuccessCount, setAddSuccessCount] = useState(0);
-  const [showCreateForm, setShowCreateForm] = useState(false);
-  const [createListFamilyId, setCreateListFamilyId] = useState("");
-  const [createListName, setCreateListName] = useState("");
-  const [createListLoading, setCreateListLoading] = useState(false);
   const [urlInput, setUrlInput] = useState("");
   const [songInput, setSongInput] = useState("");
   const [urlLoading, setUrlLoading] = useState(false);
@@ -638,95 +627,15 @@ export default function MotsSauvagesPage() {
     [sourceLang, targetLang, selectedWords]
   );
 
-  const openAddModal = useCallback(async () => {
-    setAddSuccess(false);
-    setShowCreateForm(false);
+  const openAddModal = useCallback(() => {
     setAddModalOpen(true);
-    try {
-      const famRes = await fetch("/api/familles");
-      const famData = await famRes.json().catch(() => ({}));
-      const famList: Family[] = famRes.ok ? famData : [];
-      setFamilies(famList);
-      const lists: Record<string, List[]> = {};
-      for (const f of famList) {
-        const listRes = await fetch(`/api/familles/${f.id}/listes`);
-        const listData = await listRes.json().catch(() => ({}));
-        lists[f.id] = listRes.ok ? (Array.isArray(listData) ? listData : []) : [];
-      }
-      setListsByFamily(lists);
-    } catch {
-      setFamilies([]);
-      setListsByFamily({});
-    }
   }, []);
 
-  const addToList = useCallback(
-    async (listId: string) => {
-      const wordsToAdd =
-        selectedWords.length > 0
-          ? selectedWords
-          : bubble
-            ? [{ word: bubble.word, translation: bubble.translation, example: bubble.example }]
-            : [];
-      if (wordsToAdd.length === 0) return;
-      setAddLoading(true);
-      try {
-        let successCount = 0;
-        for (const w of wordsToAdd) {
-          const res = await fetch(`/api/listes/${listId}/mots`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              term: w.word,
-              definition: w.translation,
-            }),
-          });
-          if (res.ok) successCount += 1;
-        }
-        if (successCount > 0) {
-          setAddSuccessCount(successCount);
-          setAddSuccess(true);
-          setSelectedWords([]);
-          setTimeout(() => {
-            setAddModalOpen(false);
-            setBubble(null);
-          }, 600);
-        }
-      } finally {
-        setAddLoading(false);
-      }
-    },
-    [bubble, selectedWords]
-  );
-
-  const handleCreateListAndAdd = useCallback(async () => {
-    const familyId = createListFamilyId || families[0]?.id;
-    const name = createListName.trim();
-    if (!familyId || !name) return;
-    setCreateListLoading(true);
-    try {
-      const res = await fetch(`/api/familles/${familyId}/listes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        console.error("Create list error:", data);
-        return;
-      }
-      const newList = data as List;
-      setListsByFamily((prev) => ({
-        ...prev,
-        [familyId]: [...(prev[familyId] ?? []), newList],
-      }));
-      setShowCreateForm(false);
-      setCreateListName("");
-      await addToList(newList.id);
-    } finally {
-      setCreateListLoading(false);
-    }
-  }, [createListFamilyId, createListName, families, addToList]);
+  const handleWordsSaved = useCallback(() => {
+    setSelectedWords([]);
+    setBubble(null);
+    setAddModalOpen(false);
+  }, []);
 
   // Découper le texte en mots (lettres + apostrophe) et non-mots (espaces, ponctuation)
   const tokens = (() => {
@@ -1507,133 +1416,17 @@ export default function MotsSauvagesPage() {
             </div>
           </div>
 
-          {addModalOpen && (
-            <div
-              className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-              onClick={() => setAddModalOpen(false)}
-            >
-              <div
-                className="w-full max-w-md rounded-xl bg-[var(--background-card)] p-6"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
-                  Enregistrer dans une liste
-                </h2>
-                {addSuccess ? (
-                  <p className="text-primary">
-                    ✓ {addSuccessCount > 1 ? `${addSuccessCount} mots ajoutés` : "Mot ajouté à la liste"}.
-                  </p>
-                ) : showCreateForm ? (
-                  <div className="space-y-4">
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]">
-                        Liste
-                      </label>
-                      <select
-                        value={createListFamilyId || (families[0]?.id ?? "")}
-                        onChange={(e) => setCreateListFamilyId(e.target.value)}
-                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
-                      >
-                        {families.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.name}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]">
-                        Nom de la liste
-                      </label>
-                      <input
-                        type="text"
-                        value={createListName}
-                        onChange={(e) => setCreateListName(e.target.value)}
-                        placeholder="Ex: Verbes irréguliers"
-                        className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)]"
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowCreateForm(false);
-                          setCreateListName("");
-                        }}
-                        className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
-                      >
-                        Annuler
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCreateListAndAdd}
-                        disabled={createListLoading || !createListName.trim()}
-                        className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
-                      >
-                        {createListLoading ? "Création…" : "Créer et ajouter"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (() => {
-                  const familiesWithLists = families.filter(
-                    (f) => (listsByFamily[f.id] ?? []).length > 0
-                  );
-                  return familiesWithLists.length === 0 ? (
-                    <p className="text-sm text-[var(--foreground-muted)]">
-                      Crée d'abord une liste dans ta Bibliothèque
-                    </p>
-                  ) : (
-                    <ul className="space-y-2">
-                      {familiesWithLists.map((f) => {
-                      const listes = listsByFamily[f.id] ?? [];
-                      return (
-                        <li key={f.id}>
-                          <span className="block text-sm font-medium text-[var(--foreground)]">
-                            {f.name}
-                          </span>
-                          <ul className="ml-3 mt-1 space-y-1">
-                            {listes.map((list) => (
-                                <li key={list.id}>
-                                  <button
-                                    type="button"
-                                    onClick={() => addToList(list.id)}
-                                    disabled={addLoading}
-                                    className="btn-relief rounded-lg border border-[var(--border)] px-3 py-2 text-sm text-[var(--foreground)] hover:bg-[var(--background-subtle)]"
-                                  >
-                                    {list.name}
-                                  </button>
-                                </li>
-                            ))}
-                          </ul>
-                        </li>
-                      );
-                    })}
-                  </ul>
-                  );
-                })()}
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:justify-between">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreateListFamilyId(families[0]?.id ?? "");
-                      setCreateListName("");
-                      setShowCreateForm(true);
-                    }}
-                    className="btn-relief rounded-lg border border-primary px-4 py-2 text-sm font-medium text-primary hover:bg-primary/10"
-                  >
-                    ＋ Créer une nouvelle liste
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setAddModalOpen(false)}
-                    className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
-                  >
-                    Fermer
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          <SaveWordsToListModal
+            open={addModalOpen}
+            onClose={() => setAddModalOpen(false)}
+            words={selectedWords.map((w) => ({
+              term: w.word,
+              definition: w.translation,
+            }))}
+            defaultLanguage={sourceLang}
+            newListSource="manual"
+            onSaved={handleWordsSaved}
+          />
         </>
       )}
     </div>

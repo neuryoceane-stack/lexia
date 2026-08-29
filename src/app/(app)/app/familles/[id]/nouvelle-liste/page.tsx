@@ -324,6 +324,7 @@ export default function NouvelleListePage() {
         <FormManuel
           familyId={familyId}
           defaultLanguage={defaultListLanguage}
+          defaultListName={listNameFromUrl}
           onBack={() => setMethod(null)}
         />
       )}
@@ -372,20 +373,40 @@ export default function NouvelleListePage() {
 function FormManuel({
   familyId,
   defaultLanguage,
+  defaultListName,
   onBack,
 }: {
   familyId: string;
   defaultLanguage: string | null;
+  defaultListName?: string | null;
   onBack: () => void;
 }) {
   const router = useRouter();
-  const [listName, setListName] = useState("");
+  const [existingListId, setExistingListId] = useState<string | null>(null);
+  const [listName, setListName] = useState(defaultListName ?? "");
   const [listLanguage, setListLanguage] = useState(() => defaultLanguage ?? "");
   useEffect(() => {
-    if (defaultLanguage != null && listLanguage === "" && defaultLanguage !== "") {
-      setListLanguage(defaultLanguage);
+    let cancelled = false;
+    (async () => {
+      const res = await fetch(`/api/familles/${familyId}/listes`);
+      const data = await res.json().catch(() => []);
+      if (cancelled || !res.ok || !Array.isArray(data) || data.length === 0) return;
+      const first = data[0] as { id: string; name: string; language?: string | null };
+      setExistingListId(first.id);
+      setListName((prev) => prev || first.name);
+      if (first.language) {
+        setListLanguage((prev) => prev || first.language || "");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [familyId]);
+  useEffect(() => {
+    if (defaultListName && !listName) {
+      setListName(defaultListName);
     }
-  }, [defaultLanguage, listLanguage]);
+  }, [defaultListName, listName]);
   const [rows, setRows] = useState<Array<{ term: string; definition: string }>>([
     { term: "", definition: "" },
   ]);
@@ -465,22 +486,40 @@ function FormManuel({
     }
     setLoading(true);
     try {
-      const listRes = await fetch(`/api/familles/${familyId}/listes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          source: "manual",
-          language: listLanguage.trim() || undefined,
-        }),
-      });
-      const listData = await listRes.json().catch(() => ({}));
-      if (!listRes.ok) {
-        setError(listData.error ?? "Erreur création liste");
-        setLoading(false);
-        return;
+      let listId = existingListId;
+      if (listId) {
+        const patchRes = await fetch(`/api/listes/${listId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            language: listLanguage.trim() || null,
+          }),
+        });
+        if (!patchRes.ok) {
+          const patchData = await patchRes.json().catch(() => ({}));
+          setError(patchData.error ?? "Erreur mise à jour de la liste");
+          setLoading(false);
+          return;
+        }
+      } else {
+        const listRes = await fetch(`/api/familles/${familyId}/listes`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            source: "manual",
+            language: listLanguage.trim() || undefined,
+          }),
+        });
+        const listData = await listRes.json().catch(() => ({}));
+        if (!listRes.ok) {
+          setError(listData.error ?? "Erreur création liste");
+          setLoading(false);
+          return;
+        }
+        listId = listData.id as string;
       }
-      const listId = listData.id;
       const wordsRes = await fetch(`/api/listes/${listId}/mots/bulk`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -4,6 +4,10 @@ import { db } from "@/lib/db";
 import { wordFamilies, lists } from "@/lib/db/schema";
 import { nanoid } from "nanoid";
 import { eq, and, asc } from "drizzle-orm";
+import {
+  countListsInFamily,
+  syncFamilyNameToList,
+} from "@/lib/user-list";
 
 export async function GET(
   _request: Request,
@@ -57,6 +61,16 @@ export async function POST(
   if (!family) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
+  const existingCount = await countListsInFamily(familyId);
+  if (existingCount > 0) {
+    return NextResponse.json(
+      {
+        error:
+          "Cette liste existe déjà. Utilise « Enregistrer dans une liste » pour y ajouter des mots, ou crée une nouvelle liste.",
+      },
+      { status: 409 }
+    );
+  }
   let body: { name?: string; source?: "manual" | "ocr" | "pdf"; language?: string };
   try {
     body = await request.json();
@@ -83,6 +97,7 @@ export async function POST(
     source,
     language,
   });
+  await syncFamilyNameToList(familyId, name);
   const [created] = await db
     .select()
     .from(lists)

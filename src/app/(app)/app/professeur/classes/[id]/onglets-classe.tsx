@@ -187,17 +187,6 @@ export function OngletsClasse({
                       }}
                     >
                       {lp.name}
-                      {lp.familyName ? (
-                        <span
-                          style={{
-                            color: "var(--foreground-muted)",
-                            fontWeight: 400,
-                          }}
-                        >
-                          {" "}
-                          · {lp.familyName}
-                        </span>
-                      ) : null}
                     </span>
                     <span
                       style={{

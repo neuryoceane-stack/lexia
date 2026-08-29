@@ -11,6 +11,7 @@ import { CLAUDE_MODEL } from "@/lib/ai-model";
 import OpenAI from "openai";
 import Anthropic from "@anthropic-ai/sdk";
 import type { Word } from "@/lib/db/schema";
+import { syncFamilyNameToList } from "@/lib/user-list";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 const API_TIMEOUT_MS = 30_000;
@@ -282,6 +283,7 @@ export async function POST(request: Request) {
       source: isPdf ? "pdf" : "ocr",
       language: detectedLang && detectedLang !== "und" ? detectedLang : null,
     });
+    await syncFamilyNameToList(familyId, listName);
 
     const inserted: Array<Word & { id: string; rank: number }> = [];
     for (let i = 0; i < toInsert.length; i++) {
