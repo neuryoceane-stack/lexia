@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
+import { FlagDisplay } from "@/components/flag-display";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import {
   Pencil,
@@ -13,6 +14,8 @@ import {
   Camera,
   Plus,
   ArrowRight,
+  ChevronDown,
+  X,
 } from "lucide-react";
 
 /** Redimensionne l'image (côté client) pour accélérer envoi et traitement. */
@@ -234,7 +237,6 @@ export default function NouvelleListePage() {
 
   return (
     <div>
-      {/* Header */}
       <button
         type="button"
         onClick={() => router.push(`/app/familles/${familyId}`)}
@@ -244,12 +246,17 @@ export default function NouvelleListePage() {
         <ArrowRight size={13} stroke="currentColor" className="rotate-180" />
         Retour
       </button>
-      <h1 className="mb-1" style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
-        Comment veux-tu ajouter tes mots ?
-      </h1>
-      <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
-        Choisis un mode pour créer ta liste.
-      </p>
+
+      {method !== "manual" && (
+        <>
+          <h1 className="mb-1" style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
+            Comment veux-tu ajouter tes mots ?
+          </h1>
+          <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
+            Choisis un mode pour créer ta liste.
+          </p>
+        </>
+      )}
 
       {/* Hidden file inputs */}
       <input type="file" accept=".pdf,application/pdf" className="hidden" id="pdf-input-nl" onChange={handlePdfChange} disabled={extractLoading} />
@@ -266,7 +273,7 @@ export default function NouvelleListePage() {
             icon={<Pencil size={22} stroke="white" />}
             decoColor="#6C3FC8"
             title="Manuel"
-            description="Saisis tes mots un par un ou colle une liste."
+            description="Saisis tes mots un par un."
             btnBg="#6C3FC8"
             btnIcon={<Plus size={11} stroke="white" />}
             btnLabel="Commencer"
@@ -285,7 +292,7 @@ export default function NouvelleListePage() {
             decoColor="#F5A623"
             title="PDF"
             description="Importe un document — l'IA extrait les mots automatiquement."
-            btnBg="#F5A623"
+            btnBg="#6C3FC8"
             btnIcon={<Upload size={11} stroke="white" />}
             btnLabel="Importer"
             arrowBg="#FAE5B0"
@@ -303,7 +310,7 @@ export default function NouvelleListePage() {
             decoColor="#1D9E75"
             title="Photo ou image"
             description="Prends une photo ou importe une image — l'IA lit le texte pour toi."
-            btnBg="#1D9E75"
+            btnBg="#6C3FC8"
             btnIcon={<Camera size={11} stroke="white" />}
             btnLabel="Choisir"
             arrowBg="#C3E6D6"
@@ -320,7 +327,6 @@ export default function NouvelleListePage() {
           onBack={() => setMethod(null)}
         />
       )}
-
       {extractLoading && (
         <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] p-6">
           <div className="flex items-start gap-4">
@@ -385,9 +391,45 @@ function FormManuel({
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const termRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const defRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const focusNewTermRow = useRef(false);
 
   function addRow() {
     setRows((r) => [...r, { term: "", definition: "" }]);
+  }
+
+  function addRowAndFocusNewTerm() {
+    focusNewTermRow.current = true;
+    addRow();
+  }
+
+  useEffect(() => {
+    if (!focusNewTermRow.current) return;
+    focusNewTermRow.current = false;
+    const idx = rows.length - 1;
+    requestAnimationFrame(() => {
+      termRefs.current[idx]?.focus();
+    });
+  }, [rows.length]);
+
+  function handleTermKeyDown(
+    rowIndex: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    defRefs.current[rowIndex]?.focus();
+  }
+
+  function handleDefinitionKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    addRowAndFocusNewTerm();
+  }
+
+  function preventEnterSubmit(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") e.preventDefault();
   }
 
   function removeRow(i: number) {
@@ -460,116 +502,351 @@ function FormManuel({
     }
   }
 
+  const languageLabel =
+    PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === listLanguage)?.label ??
+    (listLanguage || null);
+  const termFieldLabel =
+    typeof languageLabel === "string"
+      ? `Mot en ${languageLabel.toLowerCase()}`
+      : "Mot (langue de la liste)";
+  const definitionFieldLabel = "Traduction en français";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      <button
-        type="button"
-        onClick={onBack}
-        className="btn-relief rounded px-2 py-1 text-sm text-[var(--foreground-muted)] hover:bg-[var(--background-subtle)] hover:text-[var(--foreground)]"
+    <div className="mx-auto flex w-full justify-center px-1 pb-8">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full"
+        style={{
+          maxWidth: 680,
+          background: "#FFFFFF",
+          borderRadius: 16,
+          border: "1px solid rgba(108, 63, 200, 0.14)",
+          boxShadow: "0 8px 40px rgba(108, 63, 200, 0.1)",
+          padding: "28px 24px 24px",
+        }}
       >
-        ← Changer de méthode
-      </button>
-      <div>
-        <label
-          htmlFor="list-name-manual"
-          className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]"
-        >
-          Nom de la liste
-        </label>
-        <input
-          id="list-name-manual"
-          type="text"
-          value={listName}
-          onChange={(e) => setListName(e.target.value)}
-          required
-          placeholder="ex. Parties du corps"
-          className="w-full max-w-md rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
-        />
-      </div>
-      <div>
-        <label
-          htmlFor="list-lang-manual"
-          className="mb-1 block text-sm font-medium text-[var(--foreground-muted)]"
-        >
-          Langue de la liste
-        </label>
-        <select
-          id="list-lang-manual"
-          value={listLanguage}
-          onChange={(e) => setListLanguage(e.target.value)}
-          className="w-full max-w-md rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
-          aria-label="Langue de la liste"
-        >
-          <option value="">Aucune</option>
-          {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <label className="text-sm font-medium text-[var(--foreground-muted)]">
-            Mots
-          </label>
-          <button
-            type="button"
-            onClick={addRow}
-            className="btn-relief rounded px-2 py-1 text-sm text-primary hover:bg-primary/10"
-          >
-            + Ajouter une ligne
-          </button>
-        </div>
-        <div className="space-y-2">
-          {rows.map((row, i) => (
-            <div key={i} className="flex flex-wrap items-center gap-2">
-              <input
-                type="text"
-                value={row.term}
-                onChange={(e) => updateRow(i, "term", e.target.value)}
-                placeholder="Mot / terme"
-                className="flex-1 min-w-[120px] rounded border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
-              />
-              <input
-                type="text"
-                value={row.definition}
-                onChange={(e) => updateRow(i, "definition", e.target.value)}
-                placeholder="Traduction / définition"
-                className="flex-1 min-w-[120px] rounded border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
-              />
-              <button
-                type="button"
-                onClick={() => removeRow(i)}
-                className="btn-relief rounded p-2 text-[var(--foreground-disabled)] hover:bg-[var(--background-subtle)] hover:text-red-600"
-                aria-label="Supprimer la ligne"
-              >
-                ✕
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-      {error && (
-        <p className="text-sm text-red-600">{error}</p>
-      )}
-      <div className="flex gap-2">
         <button
           type="button"
           onClick={onBack}
-          className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
+          className="mb-5 flex items-center gap-1 transition hover:opacity-70"
+          style={{
+            fontSize: 12,
+            color: "var(--foreground-muted)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
         >
-          Annuler
+          <ArrowRight size={13} stroke="currentColor" className="rotate-180" />
+          Changer de méthode
         </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark disabled:opacity-50"
+
+        <h1
+          className="mb-1"
+          style={{ fontSize: 20, fontWeight: 500, color: "#1F1235", lineHeight: 1.3 }}
         >
-          {loading ? "Enregistrement…" : "Enregistrer la liste"}
-        </button>
-      </div>
-    </form>
+          Saisis tes mots
+        </h1>
+        <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
+          Ajoute chaque mot et sa traduction.
+        </p>
+
+        <div className="mb-5">
+          <label
+            htmlFor="list-name-manual"
+            className="mb-2 block"
+            style={{
+              fontSize: 11,
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              color: "var(--foreground-muted)",
+            }}
+          >
+            Nom de la liste
+          </label>
+          <input
+            id="list-name-manual"
+            type="text"
+            value={listName}
+            onChange={(e) => setListName(e.target.value)}
+            required
+            placeholder="ex. Parties du corps"
+            className="w-full transition-colors"
+            style={{
+              fontFamily: "DM Sans, sans-serif",
+              fontSize: 14,
+              color: "var(--foreground)",
+              padding: "11px 14px",
+              borderRadius: 10,
+              border: "1.5px solid var(--input-border)",
+              background: "var(--input-bg)",
+              outline: "none",
+            }}
+            onFocus={(e) => {
+              e.currentTarget.style.borderColor = "#6C3FC8";
+              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+            }}
+            onBlur={(e) => {
+              e.currentTarget.style.borderColor = "var(--input-border)";
+              e.currentTarget.style.boxShadow = "none";
+            }}
+            onKeyDown={preventEnterSubmit}
+          />
+        </div>
+
+        <div className="mb-6">
+          <span
+            className="mb-2 block"
+            style={{
+              fontSize: 11,
+              fontWeight: 500,
+              textTransform: "uppercase",
+              letterSpacing: "0.05em",
+              color: "var(--foreground-muted)",
+            }}
+          >
+            Langue de la liste
+          </span>
+          {listLanguage ? (
+            <div
+              className="inline-flex items-center gap-2.5"
+              style={{
+                padding: "8px 12px",
+                borderRadius: 10,
+                border: "1.5px solid rgba(108, 63, 200, 0.2)",
+                background: "rgba(108, 63, 200, 0.06)",
+              }}
+            >
+              <FlagDisplay langCode={listLanguage} size={22} />
+              <span style={{ fontSize: 14, fontWeight: 500, color: "#4B3A9E" }}>
+                {languageLabel}
+              </span>
+            </div>
+          ) : (
+            <div className="relative w-full max-w-xs">
+              <select
+                id="list-lang-manual"
+                value={listLanguage}
+                onChange={(e) => setListLanguage(e.target.value)}
+                className="w-full cursor-pointer transition-colors"
+                style={{
+                  fontFamily: "DM Sans, sans-serif",
+                  fontSize: 14,
+                  fontWeight: 500,
+                  color: "var(--foreground)",
+                  padding: "11px 40px 11px 14px",
+                  borderRadius: 10,
+                  border: "1.5px solid var(--input-border)",
+                  background: "var(--input-bg)",
+                  outline: "none",
+                  appearance: "none",
+                  WebkitAppearance: "none",
+                  MozAppearance: "none",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "#6C3FC8";
+                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "var(--input-border)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
+                aria-label="Langue de la liste"
+              >
+                <option value="">Aucune</option>
+                {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
+                  <option key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
+                size={18}
+                strokeWidth={2}
+                color="var(--foreground-muted)"
+                aria-hidden
+              />
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <span
+              style={{
+                fontSize: 11,
+                fontWeight: 500,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+                color: "var(--foreground-muted)",
+              }}
+            >
+              Mots
+            </span>
+            <button
+              type="button"
+              onClick={addRow}
+              className="inline-flex items-center gap-1.5 transition hover:opacity-80"
+              style={{
+                fontSize: 13,
+                fontWeight: 500,
+                color: "#6C3FC8",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "4px 0",
+              }}
+            >
+              <Plus size={15} strokeWidth={2.5} aria-hidden />
+              Ajouter une ligne
+            </button>
+          </div>
+
+          <div className="space-y-3">
+            {rows.map((row, i) => (
+              <div
+                key={i}
+                className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[1fr_1fr_auto]"
+              >
+                <input
+                  type="text"
+                  value={row.term}
+                  onChange={(e) => updateRow(i, "term", e.target.value)}
+                  placeholder={termFieldLabel}
+                  aria-label={termFieldLabel}
+                  ref={(el) => {
+                    termRefs.current[i] = el;
+                  }}
+                  className="min-w-0 transition-colors"
+                  style={{
+                    fontFamily: "DM Sans, sans-serif",
+                    fontSize: 14,
+                    color: "var(--foreground)",
+                    padding: "11px 14px",
+                    borderRadius: 10,
+                    border: "1.5px solid var(--input-border)",
+                    background: "var(--input-bg)",
+                    outline: "none",
+                    width: "100%",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#6C3FC8";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "var(--input-border)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                  onKeyDown={(e) => handleTermKeyDown(i, e)}
+                />
+                <input
+                  type="text"
+                  value={row.definition}
+                  onChange={(e) => updateRow(i, "definition", e.target.value)}
+                  placeholder={definitionFieldLabel}
+                  aria-label={definitionFieldLabel}
+                  ref={(el) => {
+                    defRefs.current[i] = el;
+                  }}
+                  className="min-w-0 transition-colors"
+                  style={{
+                    fontFamily: "DM Sans, sans-serif",
+                    fontSize: 14,
+                    color: "var(--foreground)",
+                    padding: "11px 14px",
+                    borderRadius: 10,
+                    border: "1.5px solid var(--input-border)",
+                    background: "var(--input-bg)",
+                    outline: "none",
+                    width: "100%",
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.borderColor = "#6C3FC8";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.borderColor = "var(--input-border)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
+                  onKeyDown={handleDefinitionKeyDown}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeRow(i)}
+                  className="flex shrink-0 items-center justify-center self-center transition hover:bg-red-50 sm:justify-self-end"
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    border: "1.5px solid var(--border)",
+                    background: "var(--background-subtle)",
+                    color: "var(--foreground-disabled)",
+                    cursor: "pointer",
+                  }}
+                  aria-label="Supprimer la ligne"
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#E24B4A";
+                    e.currentTarget.style.borderColor = "#F09595";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "var(--foreground-disabled)";
+                    e.currentTarget.style.borderColor = "var(--border)";
+                  }}
+                >
+                  <X size={16} strokeWidth={2} aria-hidden />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {error && (
+          <p className="mt-5 text-sm text-red-600" role="alert">
+            {error}
+          </p>
+        )}
+
+        <div className="mt-8 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            onClick={onBack}
+            className="transition hover:bg-[var(--hover-bg)] sm:min-w-[120px]"
+            style={{
+              fontSize: 14,
+              fontWeight: 500,
+              padding: "12px 18px",
+              borderRadius: 10,
+              border: "1.5px solid var(--border)",
+              background: "transparent",
+              color: "var(--foreground-muted)",
+              cursor: "pointer",
+            }}
+          >
+            Annuler
+          </button>
+          <button
+            type="submit"
+            disabled={loading}
+            className="transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 sm:min-w-[180px]"
+            style={{
+              fontSize: 14,
+              fontWeight: 500,
+              padding: "12px 18px",
+              borderRadius: 10,
+              border: "none",
+              background: "#6C3FC8",
+              color: "#FFFFFF",
+              cursor: "pointer",
+            }}
+          >
+            {loading ? "Enregistrement…" : "Enregistrer la liste"}
+          </button>
+        </div>
+      </form>
+    </div>
   );
 }
 

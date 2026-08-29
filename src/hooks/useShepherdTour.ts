@@ -79,7 +79,7 @@ function buildStudentSteps(
         <ul class="lx-list">
           <li>📄 Importe un PDF ou une photo</li>
           <li>✍️ Tape directement tes mots</li>
-          <li>🗂️ Organise par familles et listes</li>
+          <li>🗂️ Organise tes listes</li>
         </ul>
       `,
       attachTo: { element: 'a[href="/app/familles"]', on: "bottom" },

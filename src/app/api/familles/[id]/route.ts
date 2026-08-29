@@ -24,7 +24,7 @@ export async function GET(
     )
     .limit(1);
   if (!row) {
-    return NextResponse.json({ error: "Famille introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
   return NextResponse.json(row);
 }
@@ -58,7 +58,7 @@ export async function PATCH(
     )
     .limit(1);
   if (!existing) {
-    return NextResponse.json({ error: "Famille introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
   const updates: { name?: string; orderIndex?: number } = {};
   if (body.name !== undefined) updates.name = body.name.trim();
@@ -98,7 +98,7 @@ export async function DELETE(
     )
     .limit(1);
   if (!existing) {
-    return NextResponse.json({ error: "Famille introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
   await db.delete(wordFamilies).where(eq(wordFamilies.id, id));
   return NextResponse.json({ ok: true });

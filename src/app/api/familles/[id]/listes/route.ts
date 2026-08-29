@@ -25,7 +25,7 @@ export async function GET(
     )
     .limit(1);
   if (!family) {
-    return NextResponse.json({ error: "Famille introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
   const rows = await db
     .select()
@@ -55,7 +55,7 @@ export async function POST(
     )
     .limit(1);
   if (!family) {
-    return NextResponse.json({ error: "Famille introuvable" }, { status: 404 });
+    return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
   let body: { name?: string; source?: "manual" | "ocr" | "pdf"; language?: string };
   try {

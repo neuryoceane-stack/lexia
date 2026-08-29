@@ -42,13 +42,13 @@ export function FamillesClient() {
         onClick={() => setOpen(true)}
         className="btn-relief rounded-lg bg-accent px-4 py-2 text-sm font-medium text-vocab-gray hover:bg-accent/90"
       >
-        Créer une famille
+        Créer une liste
       </button>
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
             <div className="w-full max-w-sm rounded-xl bg-[var(--background-card)] p-6">
             <h2 className="mb-4 text-lg font-semibold text-[var(--foreground)]">
-              Nouvelle famille
+              Nouvelle liste
             </h2>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div>

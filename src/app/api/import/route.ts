@@ -165,7 +165,7 @@ export async function POST(request: Request) {
   const family = await ensureFamilyAccess(familyId, user.id);
   if (!family) {
     return NextResponse.json(
-      { error: "Famille introuvable" },
+      { error: "Liste introuvable" },
       { status: 404 }
     );
   }

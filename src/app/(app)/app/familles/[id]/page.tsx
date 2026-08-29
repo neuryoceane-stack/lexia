@@ -42,7 +42,7 @@ export default async function FamilleDetailPage({
         <ListesClient familyId={familyId} familyName={family.name} />
       </div>
       <p className="mb-6 text-slate-600">
-        Listes de vocabulaire dans cette famille. Ajoute des mots à la main, depuis un PDF ou une image.
+        Mots de cette liste. Ajoute-les à la main, depuis un PDF ou une image.
       </p>
       {listesList.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">

@@ -35,7 +35,7 @@ export async function POST(request: Request) {
   const name = body.name?.trim();
   if (!name) {
     return NextResponse.json(
-      { error: "Le nom de la famille est requis" },
+      { error: "Le nom de la liste est requis" },
       { status: 400 }
     );
   }

@@ -7,7 +7,7 @@ import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 import { BackLink } from "@/components/back-link";
-import { PawPrint, FileText, X, Plus, Languages, Search, Check } from "lucide-react";
+import { PawPrint, FileText, X, Plus, ListPlus, Languages, Search, Check } from "lucide-react";
 
 type BibliothequeList = {
   id: string;
@@ -40,6 +40,17 @@ const SORT_OPTIONS = [
 ] as const;
 
 const KNOWN_LANGS = new Set(PREFERRED_LANGUAGE_OPTIONS.map((o) => o.value));
+
+const BIBLIOTHEQUE_LANG_STORAGE_KEY = "lexiva.bibliotheque.activeLanguage";
+
+/** Dimensions et alignement communs — paire symétrique header Bibliothèque */
+const BIB_HEADER_ACTION_BTN =
+  "box-border inline-flex h-[3.5rem] w-full shrink-0 flex-col items-center justify-center gap-1 rounded-[20px] border-2 px-3.5 py-2.5 text-center text-[13px] font-medium leading-tight transition hover:brightness-95 min-[400px]:h-[5.25rem] min-[520px]:w-[10.75rem] lg:w-[13.25rem]";
+
+const BIB_HEADER_ACTION_TITLE = "flex items-center justify-center gap-1.5";
+
+const BIB_HEADER_ACTION_SUBTEXT =
+  "hidden min-h-[2.4em] w-full max-w-[11.5rem] items-center justify-center text-center text-[10px] font-normal leading-snug min-[400px]:flex";
 
 export function BibliothequeClient() {
   const router = useRouter();
@@ -168,6 +179,16 @@ export function BibliothequeClient() {
     });
   }, [prefsLoaded, preferredLanguages, langToApply]);
 
+  /** Persiste le filtre langue pour Mots sauvages (contexte Bibliothèque). */
+  useEffect(() => {
+    if (!activeLanguage) return;
+    try {
+      sessionStorage.setItem(BIBLIOTHEQUE_LANG_STORAGE_KEY, activeLanguage);
+    } catch {
+      /* ignore */
+    }
+  }, [activeLanguage]);
+
   useEffect(() => {
     const t = setTimeout(() => setSearchDebounced(search), 300);
     return () => clearTimeout(t);
@@ -248,7 +269,7 @@ export function BibliothequeClient() {
   async function handleDeleteFamily(familyId: string, familyName: string) {
     setMenuOpenId(null);
     const ok = window.confirm(
-      `Supprimer la famille « ${familyName} » et toutes ses listes de mots ? Cette action est irréversible.`
+      `Supprimer la liste « ${familyName} » ? Cette action est irréversible.`
     );
     if (!ok) return;
     setDeletingFamilyId(familyId);
@@ -337,7 +358,10 @@ export function BibliothequeClient() {
 
   const totalLists = lists.length;
   const totalWords = lists.reduce((s, l) => s + l.wordCount, 0);
-  const uniqueLangs = new Set(lists.map((l) => l.language).filter(Boolean)).size;
+  const languageCount = new Set([
+    ...preferredLanguages,
+    ...lists.map((l) => l.language).filter((code): code is string => !!code),
+  ]).size;
   const avgMastery =
     lists.length > 0
       ? Math.round(lists.reduce((s, l) => s + l.progressPercent, 0) / lists.length)
@@ -613,26 +637,45 @@ export function BibliothequeClient() {
         <div>
           <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>Bibliothèque</h1>
           <p className="mt-1" style={{ fontSize: 12, color: "var(--foreground-muted)" }}>
-            {totalLists} liste{totalLists !== 1 ? "s" : ""} · {uniqueLangs} langue{uniqueLangs !== 1 ? "s" : ""} · {totalWords} mot{totalWords !== 1 ? "s" : ""} · {totalDue} à revoir
+            {totalLists} liste{totalLists !== 1 ? "s" : ""} · {languageCount} langue{languageCount !== 1 ? "s" : ""} · {totalWords} mot{totalWords !== 1 ? "s" : ""} · {totalDue} à revoir
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex w-full max-w-full flex-col gap-2 min-[520px]:w-auto min-[520px]:flex-row min-[520px]:items-stretch min-[520px]:justify-end">
           <Link
-            href="/app/familles/mots-sauvages"
-            className="inline-flex items-center gap-1.5 no-underline transition hover:brightness-95"
-            style={{ border: "2px solid #6C3FC8", color: "#6C3FC8", borderRadius: 20, padding: "7px 14px", fontSize: 13, fontWeight: 500 }}
+            href={
+              activeLanguage
+                ? `/app/familles/mots-sauvages?lang=${encodeURIComponent(activeLanguage)}`
+                : "/app/familles/mots-sauvages"
+            }
+            title="Pioche des mots dans un texte, un livre, une photo."
+            aria-label="Mots sauvages — Pioche des mots dans un texte, un livre, une photo."
+            className={`${BIB_HEADER_ACTION_BTN} border-[#6C3FC8] text-[#6C3FC8] no-underline`}
           >
-            <PawPrint size={16} />
-            Mots sauvages
+            <span className={`${BIB_HEADER_ACTION_TITLE} whitespace-nowrap`}>
+              <PawPrint size={16} className="shrink-0" aria-hidden />
+              Mots sauvages
+            </span>
+            <span className={`${BIB_HEADER_ACTION_SUBTEXT} opacity-75`}>
+              Pioche des mots dans un texte, un livre, une photo.
+            </span>
           </Link>
           <button
             type="button"
             onClick={() => setAddModal("list")}
-            className="inline-flex items-center gap-1.5 transition hover:brightness-95"
-            style={{ background: "#6C3FC8", color: "white", borderRadius: 20, padding: "9px 16px", fontSize: 13, fontWeight: 500, border: "none", cursor: "pointer" }}
+            title="J'ai déjà mes paires mot/traduction."
+            aria-label="Liste de vocabulaire — J'ai déjà mes paires mot/traduction."
+            className={`${BIB_HEADER_ACTION_BTN} cursor-pointer border-transparent bg-[#6C3FC8] text-white`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg>
-            Ajouter
+            <span className={BIB_HEADER_ACTION_TITLE}>
+              <ListPlus size={16} className="shrink-0" aria-hidden />
+              <span className="text-center">
+                <span className="hidden lg:inline">Importer une liste de vocabulaire</span>
+                <span className="lg:hidden">Liste de vocabulaire</span>
+              </span>
+            </span>
+            <span className={`${BIB_HEADER_ACTION_SUBTEXT} opacity-90`}>
+              J&apos;ai déjà mes paires mot/traduction.
+            </span>
           </button>
         </div>
       </div>
@@ -870,6 +913,24 @@ export function BibliothequeClient() {
               <p className="text-[var(--foreground-muted)]">
                 Aucune liste pour cette langue. Crée une liste de mots ou importe un PDF / une photo.
               </p>
+              <button
+                type="button"
+                onClick={() => setAddModal("list")}
+                className="mx-auto mt-5 inline-flex items-center gap-1.5 transition hover:brightness-95"
+                style={{
+                  background: "#6C3FC8",
+                  color: "#FFFFFF",
+                  borderRadius: 20,
+                  padding: "10px 18px",
+                  fontSize: 13,
+                  fontWeight: 500,
+                  border: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <Plus size={14} strokeWidth={2.5} aria-hidden />
+                {activeLanguage ? "Ajouter une liste" : "Crée ta première liste"}
+              </button>
             </div>
           ) : viewMode === "grid" ? (
         <ul className="grid gap-[10px] grid-cols-1 sm:grid-cols-2">
@@ -957,11 +1018,11 @@ export function BibliothequeClient() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
+                      onClick={() => handleDeleteFamily(list.familyId, list.name)}
                       disabled={deletingFamilyId === list.familyId}
                       className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
-                      Supprimer la famille
+                      Supprimer la liste
                     </button>
                   </div>
                 )}
@@ -1040,11 +1101,11 @@ export function BibliothequeClient() {
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleDeleteFamily(list.familyId, list.familyName)}
+                      onClick={() => handleDeleteFamily(list.familyId, list.name)}
                       disabled={deletingFamilyId === list.familyId}
                       className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
                     >
-                      Supprimer la famille
+                      Supprimer la liste
                     </button>
                   </div>
                 )}
