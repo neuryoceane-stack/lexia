@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronLeft, Check, CreditCard, Lock, Pencil, Zap } from "lucide-react";
+import { ChevronLeft, Check, CreditCard, Lock, Pencil, Zap, Rocket, ArrowRight } from "lucide-react";
 import {
   PREFERRED_LANGUAGE_OPTIONS,
   getFlagEmoji,
@@ -34,11 +34,108 @@ function languageLabel(code: string | null): string {
   return PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === n)?.label ?? n.toUpperCase();
 }
 
+function SenseDirectionFlags({
+  fromLang,
+  toLang,
+}: {
+  fromLang: string;
+  toLang: string;
+}) {
+  return (
+    <>
+      <span className="text-base leading-none" aria-hidden>
+        {getFlagEmoji(fromLang)}
+      </span>
+      <ArrowRight
+        size={14}
+        strokeWidth={2}
+        color={BORDER_TERTIARY}
+        aria-hidden
+      />
+      <span className="text-base leading-none" aria-hidden>
+        {getFlagEmoji(toLang)}
+      </span>
+    </>
+  );
+}
+
 type Props = {
   mode: "flashcard" | "dictee";
   /** Pré-sélection depuis l’URL (`?listIds=`) */
   initialListIds: string[];
 };
+
+function SelectionRecap({
+  selectedCount,
+  selectedLang,
+  labelSource,
+}: {
+  selectedCount: number;
+  selectedLang: string | null;
+  labelSource: string;
+}) {
+  return (
+    <p
+      style={{
+        fontSize: 12,
+        color: "var(--foreground-muted)",
+        lineHeight: 1.45,
+        margin: 0,
+      }}
+    >
+      {selectedCount === 0 ? (
+        "Aucune liste sélectionnée"
+      ) : (
+        <>
+          <span style={{ fontWeight: 500, color: VIOLET }}>
+            {selectedCount} liste{selectedCount !== 1 ? "s" : ""}{" "}
+            sélectionnée{selectedCount !== 1 ? "s" : ""}
+          </span>
+          {" · "}
+          <span className="inline-flex items-center gap-1">
+            <span className="text-base leading-none">
+              {getFlagEmoji(selectedLang ?? "fra")}
+            </span>
+            {labelSource}
+          </span>
+        </>
+      )}
+    </p>
+  );
+}
+
+function LaunchSessionButton({
+  disabled,
+  onClick,
+  className = "",
+}: {
+  disabled: boolean;
+  onClick: () => void;
+  className?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center justify-center gap-2 border-none font-medium text-white ${className}`}
+      style={{
+        background: VIOLET,
+        borderRadius: 20,
+        padding: "10px 24px",
+        fontSize: 13,
+        fontWeight: 500,
+        opacity: disabled ? 0.4 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+      }}
+    >
+      <Zap size={13} stroke="white" strokeWidth={2.5} aria-hidden />
+      Lancer la session
+    </button>
+  );
+}
 
 export function RevisionListSelection({ mode, initialListIds }: Props) {
   const router = useRouter();
@@ -56,6 +153,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const [revisionDirection, setRevisionDirection] = useState<
     "term_to_def" | "def_to_term"
   >("term_to_def");
+  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(["fra"]);
 
   useEffect(() => {
     setSelected(new Set(initialListIds));
@@ -103,6 +201,25 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     };
   }, []);
 
+  useEffect(() => {
+    fetch("/api/user/preferences")
+      .then((r) => r.json())
+      .then((data) => {
+        if (Array.isArray(data.preferredLanguages) && data.preferredLanguages.length) {
+          setPreferredLanguages(
+            data.preferredLanguages.map((code: string) => normLang(code))
+          );
+        } else if (data.preferredLanguage) {
+          setPreferredLanguages(
+            [data.preferredLanguage, data.preferredLanguage2]
+              .filter(Boolean)
+              .map((code: string) => normLang(code))
+          );
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   const selectedLang =
     selected.size > 0
       ? normLang(lists.find((l) => selected.has(l.id))?.language)
@@ -142,8 +259,23 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     router.push(`${basePath}?${q.toString()}`);
   }
 
-  const previewSourceLang = selectedLang ?? "fra";
-  const labelSource = languageLabel(previewSourceLang);
+  const previewListLang = useMemo(() => {
+    if (selectedLang) return selectedLang;
+    if (langFilter !== "all") return normLang(langFilter);
+    if (languages.length > 0) return normLang(languages[0]);
+    return "eng";
+  }, [selectedLang, langFilter, languages]);
+
+  const previewTranslationLang = useMemo(() => {
+    const fra = preferredLanguages.find((l) => normLang(l) === "fra");
+    if (fra && normLang(previewListLang) !== "fra") return "fra";
+    const other = preferredLanguages.find(
+      (l) => normLang(l) !== normLang(previewListLang)
+    );
+    return other ?? "fra";
+  }, [preferredLanguages, previewListLang]);
+
+  const labelSource = languageLabel(previewListLang);
 
   const lockBannerLang = selectedLang ? labelSource : "";
   const isFlashcardMode = mode === "flashcard";
@@ -161,7 +293,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
 
   return (
     <div
-      className="min-h-full w-full -mx-4 -my-8 py-8 pb-32 sm:-mx-6 sm:-my-10 sm:py-10 sm:pb-36"
+      className="min-h-full w-full -mx-4 -my-8 py-8 pb-32 sm:-mx-6 sm:-my-10 sm:py-10 md:pb-10"
       style={{ maxWidth: "100%" }}
     >
       <div
@@ -219,22 +351,40 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           )}
         </div>
 
-        <h1
-          className="mb-1"
-          style={{
-            fontSize: 20,
-            fontWeight: 500,
-            color: "var(--foreground)",
-            marginBottom: 4,
-          }}
-        >
-          On révise quoi aujourd&apos;hui ? 🚀
-        </h1>
+        <div className="mb-1 flex flex-col gap-3 md:mb-2 md:flex-row md:items-center md:justify-between md:gap-4">
+          <div className="min-w-0 flex-1">
+            <h1
+              className="inline-flex items-center gap-2"
+              style={{
+                fontSize: 20,
+                fontWeight: 500,
+                color: "var(--foreground)",
+                margin: 0,
+              }}
+            >
+              <span>On révise quoi aujourd&apos;hui ?</span>
+              <Rocket size={20} strokeWidth={2} color={senseAccent} aria-hidden />
+            </h1>
+            <div className="mt-1.5 hidden md:block">
+              <SelectionRecap
+                selectedCount={selected.size}
+                selectedLang={selectedLang}
+                labelSource={labelSource}
+              />
+            </div>
+          </div>
+          <LaunchSessionButton
+            disabled={selected.size === 0}
+            onClick={launchSession}
+            className="hidden shrink-0 md:inline-flex"
+          />
+        </div>
         <p
           style={{
             fontSize: 13,
             color: "var(--foreground-muted)",
             marginBottom: 18,
+            marginTop: 4,
           }}
         >
           Sélectionne une ou plusieurs listes pour lancer ta session.
@@ -330,15 +480,10 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                 )}
               </span>
               <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                <span className="text-base leading-none" aria-hidden>
-                  🌍
-                </span>
-                <span style={{ color: BORDER_TERTIARY }} aria-hidden>
-                  →
-                </span>
-                <span className="text-base leading-none" aria-hidden>
-                  🇫🇷
-                </span>
+                <SenseDirectionFlags
+                  fromLang={previewListLang}
+                  toLang={previewTranslationLang}
+                />
                 <div className="min-w-0">
                   <div
                     style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}
@@ -392,15 +537,10 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                 )}
               </span>
               <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                <span className="text-base leading-none" aria-hidden>
-                  🇫🇷
-                </span>
-                <span style={{ color: BORDER_TERTIARY }} aria-hidden>
-                  →
-                </span>
-                <span className="text-base leading-none" aria-hidden>
-                  🌍
-                </span>
+                <SenseDirectionFlags
+                  fromLang={previewTranslationLang}
+                  toLang={previewListLang}
+                />
                 <div className="min-w-0">
                   <div
                     style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}
@@ -591,56 +731,35 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
         )}
       </div>
 
-      {/* Barre sticky */}
+      {/* Barre mobile — fixe en bas, dégagement bulle de support à droite */}
       <div
-        className="fixed bottom-0 left-0 right-0 z-20 flex items-center justify-between gap-3 border-t bg-white px-4 py-3.5 sm:px-6"
+        className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none md:hidden"
         style={{
-          borderTop: `0.5px solid ${BORDER_TERTIARY}`,
-          padding: "14px 16px",
-          gap: 12,
-          paddingBottom: "max(14px, env(safe-area-inset-bottom))",
+          paddingLeft: "max(16px, env(safe-area-inset-left, 0px))",
+          paddingRight: "max(80px, env(safe-area-inset-right, 0px))",
         }}
       >
         <div
-          className="min-w-0 flex-1"
-          style={{ fontSize: 12, color: "var(--foreground-muted)" }}
-        >
-          {selected.size === 0 ? (
-            "Aucune liste sélectionnée"
-          ) : (
-            <>
-              <span style={{ fontWeight: 500, color: VIOLET }}>
-                {selected.size} liste{selected.size !== 1 ? "s" : ""}{" "}
-                sélectionnée{selected.size !== 1 ? "s" : ""}
-              </span>
-              {" · "}
-              <span className="inline-flex items-center gap-1">
-                <span className="text-base leading-none">
-                  {getFlagEmoji(selectedLang ?? "fra")}
-                </span>
-                {labelSource}
-              </span>
-            </>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={launchSession}
-          disabled={selected.size === 0}
-          className="inline-flex shrink-0 items-center gap-2 border-none font-medium text-white"
+          className="pointer-events-auto border-t bg-white"
           style={{
-            background: VIOLET,
-            borderRadius: 20,
-            padding: "10px 24px",
-            fontSize: 13,
-            fontWeight: 500,
-            opacity: selected.size === 0 ? 0.4 : 1,
-            pointerEvents: selected.size === 0 ? "none" : "auto",
+            borderTop: `0.5px solid ${BORDER_TERTIARY}`,
+            padding: "12px 16px",
+            paddingBottom: "max(12px, env(safe-area-inset-bottom, 0px))",
           }}
         >
-          <Zap size={13} stroke="white" strokeWidth={2.5} aria-hidden />
-          Lancer la session
-        </button>
+          <div className="mb-2.5">
+            <SelectionRecap
+              selectedCount={selected.size}
+              selectedLang={selectedLang}
+              labelSource={labelSource}
+            />
+          </div>
+          <LaunchSessionButton
+            disabled={selected.size === 0}
+            onClick={launchSession}
+            className="w-full"
+          />
+        </div>
       </div>
     </div>
   );

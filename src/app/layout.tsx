@@ -12,7 +12,7 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   title: "LEXIVA — Apprendre du vocabulaire",
-  description: "Familles de mots, révisions et suivi de progression",
+  description: "Listes de vocabulaire, révisions et suivi de progression",
   manifest: "/manifest.json",
   icons: { icon: "/logo.png", apple: "/logo.png" },
   appleWebApp: {

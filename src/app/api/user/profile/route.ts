@@ -3,6 +3,7 @@ import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { userProfiles, users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { ensureUserReferralCode } from "@/lib/referral-code.server";
 
 const STATUS_VALUES = ["etudiant", "salarie", "independant", "en_formation"] as const;
 export type ProfileStatus = (typeof STATUS_VALUES)[number];
@@ -43,6 +44,8 @@ export async function GET() {
     .where(eq(userProfiles.userId, userId))
     .limit(1);
 
+  const { referralCode, referralCount } = await ensureUserReferralCode(userId);
+
   return NextResponse.json({
     firstName: profile?.firstName ?? null,
     lastName: profile?.lastName ?? null,
@@ -53,6 +56,8 @@ export async function GET() {
     role: profile?.role ?? null,
     institutionName: profile?.institutionName ?? null,
     email: user.email ?? null,
+    referralCode,
+    referralCount,
   });
 }
 

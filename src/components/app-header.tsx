@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, type CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -57,6 +57,14 @@ function Avatar({ name, className }: { name: string; className?: string }) {
   );
 }
 
+function capitalizeDisplayName(name: string): string {
+  const trimmed = name.trim();
+  if (!trimmed) return trimmed;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+const ACCOUNT_MENU_HONEYCOMB = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='0.65'%3E%3Cpath d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z'/%3E%3Cpath d='M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/g%3E%3C/svg%3E")`;
+
 function AvatarDropdown({
   name,
   isProfesseur,
@@ -65,9 +73,32 @@ function AvatarDropdown({
   isProfesseur?: boolean;
 }) {
   const [open, setOpen] = useState(false);
+  const [panelEntered, setPanelEntered] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [userLevel, setUserLevel] = useState(1);
   const [userXP, setUserXP] = useState(0);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const sync = () => setReducedMotion(mq.matches);
+    sync();
+    mq.addEventListener("change", sync);
+    return () => mq.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
+    if (!open) {
+      setPanelEntered(false);
+      return;
+    }
+    if (reducedMotion) {
+      setPanelEntered(true);
+      return;
+    }
+    const id = requestAnimationFrame(() => setPanelEntered(true));
+    return () => cancelAnimationFrame(id);
+  }, [open, reducedMotion]);
 
   useEffect(() => {
     if (!open) return;
@@ -102,7 +133,22 @@ function AvatarDropdown({
   }, []);
 
   const initial = name ? name.trim()[0]?.toUpperCase() ?? "?" : "?";
+  const displayName = capitalizeDisplayName(name);
   const xpInLevel = userXP % 1000;
+  const xpPct = Math.min(100, (xpInLevel / 1000) * 100);
+  const motionTransition = reducedMotion ? "none" : "120ms ease-out";
+  const xpWidthTransition = reducedMotion ? "none" : "width 300ms ease";
+
+  const iconTileStyle: CSSProperties = {
+    width: 30,
+    height: 30,
+    borderRadius: 9,
+    background: "rgba(108,63,200,.09)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  };
 
   return (
     <div ref={containerRef} className="relative">
@@ -121,159 +167,306 @@ function AvatarDropdown({
 
       {open && (
         <div
+          role="menu"
+          aria-label="Menu compte"
           style={{
             position: "absolute",
             top: "calc(100% + 8px)",
             right: 0,
             zIndex: 9999,
-            width: 230,
+            width: 248,
             backgroundColor: "white",
-            borderRadius: 16,
-            boxShadow: "0 4px 24px rgba(108,63,200,0.10)",
-            border: "0.5px solid rgba(108,63,200,0.15)",
+            borderRadius: 18,
+            boxShadow:
+              "0 4px 24px rgba(108,63,200,.12), 0 1px 3px rgba(108,63,200,.08)",
+            border: "0.5px solid rgba(108,63,200,.12)",
             overflow: "hidden",
+            transformOrigin: "top right",
+            opacity: panelEntered ? 1 : 0,
+            transform: panelEntered ? "scale(1)" : "scale(0.96)",
+            transition: reducedMotion
+              ? "none"
+              : `opacity ${motionTransition}, transform ${motionTransition}`,
+            fontFamily: "DM Sans, sans-serif",
           }}
         >
-          {/* Header violet */}
+          {/* En-tête identité */}
           <div
-            className="flex items-center gap-3"
-            style={{ background: "#6C3FC8", padding: "14px 16px" }}
+            className="relative flex items-start gap-3 overflow-hidden"
+            style={{
+              padding: "16px 16px 14px",
+              background:
+                "linear-gradient(150deg, #7B4AD4 0%, #6C3FC8 55%, #5A32A8 100%)",
+            }}
           >
             <div
-              className="flex shrink-0 items-center justify-center"
+              className="pointer-events-none absolute inset-0"
+              aria-hidden
               style={{
-                width: 40,
-                height: 40,
+                zIndex: 0,
+                background:
+                  "radial-gradient(circle at 100% 120%, rgba(245,166,35,.22), transparent 60%)",
+              }}
+            />
+            <div
+              className="pointer-events-none absolute inset-0"
+              aria-hidden
+              style={{
+                zIndex: 1,
+                opacity: 0.06,
+                backgroundImage: ACCOUNT_MENU_HONEYCOMB,
+                backgroundSize: "56px 48px",
+                backgroundPosition: "14px 10px",
+              }}
+            />
+            <div
+              className="relative z-[2] flex shrink-0 items-center justify-center"
+              style={{
+                width: 44,
+                height: 44,
                 borderRadius: "50%",
-                background: "rgba(255,255,255,0.2)",
-                border: "2px solid rgba(255,255,255,0.3)",
+                background: "rgba(255,255,255,.18)",
                 color: "white",
-                fontSize: 16,
-                fontWeight: 500,
+                fontSize: 17,
+                fontWeight: 600,
+                boxShadow:
+                  "0 0 0 2px rgba(245,166,35,.85), inset 0 0 0 1px rgba(255,255,255,.35)",
               }}
             >
               {initial}
             </div>
-            <div className="min-w-0 flex-1">
-              <p style={{ fontSize: 14, fontWeight: 500, color: "white", marginBottom: 2 }} className="truncate">
-                {name}
+            <div className="relative z-[2] min-w-0 flex-1">
+              <p
+                className="truncate"
+                style={{
+                  fontSize: 15,
+                  fontWeight: 600,
+                  color: "white",
+                  letterSpacing: "-0.01em",
+                  marginBottom: 2,
+                }}
+              >
+                {displayName}
               </p>
-              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", marginBottom: 6 }}>
+              <p style={{ fontSize: 11.5, color: "rgba(255,255,255,.7)", marginBottom: 8 }}>
                 {isProfesseur ? "Professeur" : "Étudiant"}
               </p>
               <span
                 className="inline-flex items-center gap-1"
                 style={{
-                  background: "rgba(255,255,255,0.15)",
+                  background: "rgba(255,255,255,.16)",
                   color: "white",
-                  fontSize: 10,
-                  fontWeight: 500,
-                  padding: "2px 8px",
-                  borderRadius: 8,
+                  fontSize: 10.5,
+                  fontWeight: 600,
+                  padding: "3px 9px",
+                  borderRadius: 999,
                 }}
               >
-                <Star size={9} stroke="white" />
+                <Star size={11} stroke="#F7B733" fill="#F7B733" aria-hidden />
                 Niveau {userLevel} — {getLevelName(userLevel)}
               </span>
-              <div style={{ marginTop: 8 }}>
-                <div style={{ height: 3, background: "rgba(255,255,255,0.2)", borderRadius: 2 }}>
-                  <div style={{ height: "100%", width: `${(xpInLevel / 1000) * 100}%`, background: "white", borderRadius: 2 }} />
+              <div
+                style={{
+                  marginTop: 10,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 4,
+                }}
+              >
+                <div style={{ textAlign: "right", lineHeight: 1 }}>
+                  <span
+                    style={{
+                      fontSize: 10,
+                      lineHeight: 1,
+                      color: "rgba(255,255,255,.85)",
+                    }}
+                  >
+                    {xpInLevel} / 1000 XP
+                  </span>
                 </div>
-                <p style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", marginTop: 3 }}>
-                  {xpInLevel} / 1000 XP
-                </p>
+                <div
+                  style={{
+                    height: 6,
+                    background: "rgba(255,255,255,.20)",
+                    borderRadius: 999,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${xpPct}%`,
+                      background: "linear-gradient(90deg, #F5A623, #F7B733)",
+                      borderRadius: 999,
+                      transition: xpWidthTransition,
+                    }}
+                  />
+                </div>
               </div>
             </div>
           </div>
 
           {/* Items */}
-          <div style={{ padding: "6px 0" }}>
-            <Link
+          <div style={{ padding: 6 }}>
+            <AccountMenuNavItem
               href="/app/parametres/information-personnelle"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-[10px] no-underline transition"
-              style={{ padding: "10px 16px", cursor: "pointer" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDF8")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#F0EDF8" }}>
-                <User size={13} stroke="#6C3FC8" />
-              </div>
-              <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Mon profil</span>
-              <ChevronRight size={12} stroke="#a1a1aa" />
-            </Link>
+              icon={User}
+              label="Mon profil"
+              onNavigate={() => setOpen(false)}
+              reducedMotion={reducedMotion}
+              iconTileStyle={iconTileStyle}
+            />
 
             {!isProfesseur && (
-              <Link
-                href="/app/shop"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-[10px] no-underline transition"
-                style={{ padding: "10px 16px", cursor: "pointer" }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDF8")}
-                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              <div
+                role="presentation"
+                className="flex items-center"
+                style={{
+                  borderRadius: 10,
+                  padding: "8px 10px",
+                  gap: 8,
+                  cursor: "default",
+                }}
               >
-                <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#F0EDF8" }}>
-                  <ShoppingBag size={13} stroke="#6C3FC8" />
+                <div style={iconTileStyle}>
+                  <ShoppingBag size={16} stroke="#6C3FC8" aria-hidden />
                 </div>
-                <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Lexi Shop</span>
+                <span className="flex-1" style={{ fontSize: 13.5, color: "#1A1A1A", fontWeight: 500 }}>
+                  Lexi Shop
+                </span>
                 <span
                   style={{
                     background: "#F5A623",
                     color: "white",
-                    fontSize: 10,
-                    fontWeight: 500,
-                    padding: "2px 7px",
-                    borderRadius: 10,
+                    fontSize: 9.5,
+                    fontWeight: 600,
+                    padding: "2px 8px",
+                    borderRadius: 999,
                     whiteSpace: "nowrap",
+                    marginRight: 3,
                   }}
                 >
                   Bientôt
                 </span>
-                <ChevronRight size={12} stroke="#a1a1aa" />
-              </Link>
+              </div>
             )}
 
-            <Link
+            <AccountMenuNavItem
               href="/app/parametres"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-[10px] no-underline transition"
-              style={{ padding: "10px 16px", cursor: "pointer" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#F0EDF8")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#f4f4f5" }}>
-                <Settings size={13} stroke="#71717a" />
-              </div>
-              <span className="flex-1" style={{ fontSize: 13, color: "#1a1a1a" }}>Paramètres</span>
-              <ChevronRight size={12} stroke="#a1a1aa" />
-            </Link>
+              icon={Settings}
+              label="Paramètres"
+              onNavigate={() => setOpen(false)}
+              reducedMotion={reducedMotion}
+              iconTileStyle={iconTileStyle}
+            />
           </div>
 
-          {/* Séparateur */}
-          <div style={{ borderTop: "0.5px solid #e4e4e7", margin: "4px 0" }} />
+          <div
+            style={{
+              height: 1,
+              background: "rgba(108,63,200,.08)",
+              margin: "6px 10px",
+            }}
+          />
 
-          {/* Déconnexion */}
-          <div style={{ padding: "6px 0" }}>
-            <button
-              type="button"
-              onClick={() => {
+          <div style={{ padding: "0 6px 6px" }}>
+            <AccountMenuLogoutButton
+              onLogout={() => {
                 setOpen(false);
                 void handleLogout();
               }}
-              className="flex w-full items-center gap-[10px] transition"
-              style={{ padding: "10px 16px", background: "none", border: "none", cursor: "pointer" }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#FCEBEB")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#FCEBEB" }}>
-                <LogOut size={13} stroke="#E24B4A" />
-              </div>
-              <span style={{ fontSize: 13, color: "#E24B4A" }}>Déconnexion</span>
-            </button>
+              reducedMotion={reducedMotion}
+            />
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+function AccountMenuNavItem({
+  href,
+  icon: Icon,
+  label,
+  onNavigate,
+  reducedMotion,
+  iconTileStyle,
+}: {
+  href: string;
+  icon: typeof User;
+  label: string;
+  onNavigate: () => void;
+  reducedMotion: boolean;
+  iconTileStyle: CSSProperties;
+}) {
+  const [hover, setHover] = useState(false);
+
+  return (
+    <Link
+      href={href}
+      role="menuitem"
+      onClick={onNavigate}
+      className="flex items-center no-underline outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-1"
+      style={{
+        borderRadius: 10,
+        padding: "8px 10px",
+        gap: 8,
+        background: hover ? "rgba(108,63,200,.06)" : "transparent",
+        transition: reducedMotion ? "none" : "background 120ms ease",
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <div style={iconTileStyle}>
+        <Icon size={16} stroke="#6C3FC8" aria-hidden />
+      </div>
+      <span className="flex-1" style={{ fontSize: 13.5, color: "#1A1A1A", fontWeight: 500 }}>
+        {label}
+      </span>
+      <ChevronRight
+        size={15}
+        stroke={hover ? "#6C3FC8" : "#B8B2C4"}
+        aria-hidden
+        style={{
+          flexShrink: 0,
+          transform: hover ? "translateX(1px)" : "translateX(0)",
+          transition: reducedMotion ? "none" : "transform 120ms ease, stroke 120ms ease",
+        }}
+      />
+    </Link>
+  );
+}
+
+function AccountMenuLogoutButton({
+  onLogout,
+  reducedMotion,
+}: {
+  onLogout: () => void;
+  reducedMotion: boolean;
+}) {
+  const [hover, setHover] = useState(false);
+
+  return (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={onLogout}
+      className="flex w-full items-center outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-1"
+      style={{
+        borderRadius: 10,
+        padding: "9px 10px",
+        gap: 10,
+        background: hover ? "rgba(229,72,77,.07)" : "transparent",
+        border: "none",
+        cursor: "pointer",
+        transition: reducedMotion ? "none" : "background 120ms ease",
+      }}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      <LogOut size={16} stroke="#E5484D" aria-hidden />
+      <span style={{ fontSize: 13.5, color: "#E5484D", fontWeight: 500 }}>Déconnexion</span>
+    </button>
   );
 }
 

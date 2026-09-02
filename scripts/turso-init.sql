@@ -12,7 +12,10 @@ CREATE TABLE IF NOT EXISTS users (
   school_name text,
   weekly_goal integer NOT NULL DEFAULT 20,
   plan text NOT NULL DEFAULT 'free',
-  subscription_status text NOT NULL DEFAULT 'inactive'
+  subscription_status text NOT NULL DEFAULT 'inactive',
+  referral_code text UNIQUE,
+  referral_count integer NOT NULL DEFAULT 0,
+  referred_by_user_id text REFERENCES users(id)
 );
 
 CREATE TABLE IF NOT EXISTS word_families (

@@ -59,7 +59,7 @@ export function FamillesClient() {
                   Nom (ex. Corps, Adverbes)
                 </label>
                 <input
-                  id="family-name"
+                  id="list-name"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}

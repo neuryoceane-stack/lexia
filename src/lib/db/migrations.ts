@@ -33,6 +33,18 @@ export async function ensureUsersTable(): Promise<void> {
   await addColumnIfMissing("ALTER TABLE users ADD COLUMN plan TEXT DEFAULT 'free'");
   await addColumnIfMissing("ALTER TABLE users ADD COLUMN subscription_status TEXT DEFAULT 'inactive'");
   await addColumnIfMissing("ALTER TABLE users ADD COLUMN created_at INTEGER");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN referral_code TEXT");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN referral_count INTEGER DEFAULT 0");
+  await addColumnIfMissing(
+    "ALTER TABLE users ADD COLUMN referred_by_user_id TEXT REFERENCES users(id)"
+  );
+  try {
+    await runRawSql(
+      "CREATE UNIQUE INDEX IF NOT EXISTS users_referral_code_unique ON users(referral_code)"
+    );
+  } catch {
+    /* index déjà présent */
+  }
 }
 
 /** Colonnes user_profiles alignées sur src/lib/db/schema.ts (userProfiles). */

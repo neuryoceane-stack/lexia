@@ -3,6 +3,7 @@ import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { wordFamilies } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { countListsInFamily } from "@/lib/user-list";
 
 export async function GET(
   _request: Request,
@@ -70,6 +71,24 @@ export async function PATCH(
     .update(wordFamilies)
     .set(updates)
     .where(eq(wordFamilies.id, id));
+  if (updates.name) {
+    const { lists } = await import("@/lib/db/schema");
+    const { countListsInFamily } = await import("@/lib/user-list");
+    const listCount = await countListsInFamily(id);
+    if (listCount === 1) {
+      const [onlyList] = await db
+        .select()
+        .from(lists)
+        .where(eq(lists.familyId, id))
+        .limit(1);
+      if (onlyList) {
+        await db
+          .update(lists)
+          .set({ name: updates.name })
+          .where(eq(lists.id, onlyList.id));
+      }
+    }
+  }
   const [updated] = await db
     .select()
     .from(wordFamilies)
@@ -99,6 +118,16 @@ export async function DELETE(
     .limit(1);
   if (!existing) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
+  }
+  const listCount = await countListsInFamily(id);
+  if (listCount > 1) {
+    return NextResponse.json(
+      {
+        error:
+          "Impossible de supprimer : plusieurs listes partagent le même conteneur.",
+      },
+      { status: 409 }
+    );
   }
   await db.delete(wordFamilies).where(eq(wordFamilies.id, id));
   return NextResponse.json({ ok: true });

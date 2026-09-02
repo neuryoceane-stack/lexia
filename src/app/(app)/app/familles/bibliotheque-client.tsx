@@ -1492,11 +1492,11 @@ export function BibliothequeClient() {
                 onClick={async () => {
                   if (creatingFamily || !newListName.trim()) return;
                   setCreatingFamily(true);
-                  const familyName = newListName.trim();
+                  const listName = newListName.trim();
                   const res = await fetch("/api/familles", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: familyName }),
+                    body: JSON.stringify({ name: listName }),
                   });
                   const data = await res.json().catch(() => ({}));
                   setCreatingFamily(false);

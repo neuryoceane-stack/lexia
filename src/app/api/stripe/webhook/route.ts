@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
-import { shopPacks, userPurchases, wordFamilies, lists, words } from "@/lib/db/schema";
+import { shopPacks, userPurchases, words } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
+import { createUserListPair } from "@/lib/user-list";
 
 function getStripe() {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -66,34 +67,9 @@ export async function POST(req: Request) {
     amountPaid: session.amount_total ?? pack.price,
   });
 
-  // Trouve ou crée la wordFamily "Lexi Shop" pour cet utilisateur
-  let [shopFamily] = await db
-    .select()
-    .from(wordFamilies)
-    .where(and(eq(wordFamilies.userId, userId), eq(wordFamilies.name, "Lexi Shop")))
-    .limit(1);
-
-  if (!shopFamily) {
-    const newFamilyId = crypto.randomUUID();
-    await db.insert(wordFamilies).values({
-      id: newFamilyId,
-      userId,
-      name: "Lexi Shop",
-      orderIndex: 999,
-    });
-    const [created] = await db
-      .select()
-      .from(wordFamilies)
-      .where(eq(wordFamilies.id, newFamilyId))
-      .limit(1);
-    shopFamily = created;
-  }
-
-  // Crée la liste dans la bibliothèque
-  const listId = crypto.randomUUID();
-  await db.insert(lists).values({
-    id: listId,
-    familyId: shopFamily.id,
+  // Crée une paire famille + liste (1:1) avec le titre du pack
+  const { listId } = await createUserListPair({
+    userId,
     name: pack.title,
     source: "shop",
     language: pack.language,

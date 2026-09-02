@@ -5,6 +5,7 @@ import { eq } from "drizzle-orm";
 import { redirect } from "next/navigation";
 import { InformationPersonnelleClient } from "./information-personnelle-client";
 import { ensureClassTables } from "@/lib/db/migrations";
+import { ensureUserReferralCode } from "@/lib/referral-code.server";
 
 export default async function InformationPersonnellePage() {
   const user = await getUser();
@@ -24,6 +25,8 @@ export default async function InformationPersonnellePage() {
     .where(eq(users.id, user.id))
     .limit(1);
 
+  const { referralCode, referralCount } = await ensureUserReferralCode(user.id);
+
   const initialData = {
     firstName: profile?.firstName ?? "",
     lastName: profile?.lastName ?? "",
@@ -33,6 +36,8 @@ export default async function InformationPersonnellePage() {
     city: profile?.city ?? "",
     dateOfBirth: profile?.dateOfBirth ?? "",
     phone: profile?.phone ?? "",
+    referralCode,
+    referralCount,
   };
 
   return (

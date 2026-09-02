@@ -2,10 +2,34 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db, runRawSql } from "@/lib/db";
 import { userPreferences } from "@/lib/db/schema";
+import {
+  parseReminderSettings,
+  parseReminderSettingsJson,
+  type ReminderSettings,
+} from "@/lib/reminder-settings";
 import { eq } from "drizzle-orm";
 
 const AVATAR_TYPES = ["arbre", "phenix", "koala"] as const;
 export type AvatarType = (typeof AVATAR_TYPES)[number];
+
+const PREFERENCE_MIGRATIONS = [
+  "ALTER TABLE user_preferences ADD COLUMN preferred_language text;",
+  "ALTER TABLE user_preferences ADD COLUMN preferred_language_2 text;",
+  "ALTER TABLE user_preferences ADD COLUMN preferred_languages text;",
+  "ALTER TABLE user_preferences ADD COLUMN theme_preference text;",
+  "ALTER TABLE user_preferences ADD COLUMN reminder_settings text;",
+  "ALTER TABLE user_preferences ADD COLUMN feedback_sounds_enabled INTEGER NOT NULL DEFAULT 1;",
+] as const;
+
+async function ensurePreferenceColumns() {
+  for (const col of PREFERENCE_MIGRATIONS) {
+    try {
+      await runRawSql(col);
+    } catch {
+      /* colonne déjà présente */
+    }
+  }
+}
 
 const PREFERRED_LANGUAGE_CODES = [
   "fra", "eng", "spa", "deu", "ita", "por", "nld", "pol", "rus", "jpn", "zho", "ell",
@@ -22,19 +46,7 @@ export async function GET() {
   }
   const userId = user.id;
 
-  // Migrations automatiques (colonnes langues, thème)
-  for (const col of [
-    "ALTER TABLE user_preferences ADD COLUMN preferred_language text;",
-    "ALTER TABLE user_preferences ADD COLUMN preferred_language_2 text;",
-    "ALTER TABLE user_preferences ADD COLUMN preferred_languages text;",
-    "ALTER TABLE user_preferences ADD COLUMN theme_preference text;",
-  ]) {
-    try {
-      await runRawSql(col);
-    } catch {
-      /* colonne déjà présente */
-    }
-  }
+  await ensurePreferenceColumns();
 
   const [prefs] = await db
     .select()
@@ -65,12 +77,16 @@ export async function GET() {
     prefs?.themePreference === "light" || prefs?.themePreference === "dark"
       ? prefs.themePreference
       : "light";
+  const reminderSettings = parseReminderSettingsJson(prefs?.reminderSettings);
+  const feedbackSoundsEnabled = prefs?.feedbackSoundsEnabled !== false;
   return NextResponse.json({
     avatarType,
     preferredLanguage,
     preferredLanguage2,
     preferredLanguages,
     themePreference,
+    reminderSettings,
+    feedbackSoundsEnabled,
   });
 }
 
@@ -91,6 +107,8 @@ export async function PATCH(request: Request) {
     preferredLanguage2?: string | null;
     preferredLanguages?: string[] | null;
     themePreference?: string | null;
+    reminderSettings?: Partial<ReminderSettings> | ReminderSettings;
+    feedbackSoundsEnabled?: boolean;
   };
   try {
     body = await request.json();
@@ -154,18 +172,18 @@ export async function PATCH(request: Request) {
     ? (rawTheme as (typeof THEME_VALUES)[number])
     : (existing?.themePreference === "dark" ? "dark" : "light");
 
-  for (const col of [
-    "ALTER TABLE user_preferences ADD COLUMN preferred_language text;",
-    "ALTER TABLE user_preferences ADD COLUMN preferred_language_2 text;",
-    "ALTER TABLE user_preferences ADD COLUMN preferred_languages text;",
-    "ALTER TABLE user_preferences ADD COLUMN theme_preference text;",
-  ]) {
-    try {
-      await runRawSql(col);
-    } catch {
-      /* déjà présent */
-    }
-  }
+  const existingReminders = parseReminderSettingsJson(existing?.reminderSettings);
+  const reminderSettings =
+    body.reminderSettings !== undefined
+      ? parseReminderSettings({ ...existingReminders, ...body.reminderSettings })
+      : existingReminders;
+  const reminderSettingsJson = JSON.stringify(reminderSettings);
+  const feedbackSoundsEnabled =
+    typeof body.feedbackSoundsEnabled === "boolean"
+      ? body.feedbackSoundsEnabled
+      : existing?.feedbackSoundsEnabled !== false;
+
+  await ensurePreferenceColumns();
 
   try {
     await db
@@ -177,6 +195,8 @@ export async function PATCH(request: Request) {
         preferredLanguage2,
         preferredLanguages: preferredLanguagesJson,
         themePreference,
+        reminderSettings: reminderSettingsJson,
+        feedbackSoundsEnabled,
         updatedAt: new Date(),
       })
       .onConflictDoUpdate({
@@ -187,6 +207,8 @@ export async function PATCH(request: Request) {
           preferredLanguage2,
           preferredLanguages: preferredLanguagesJson,
           themePreference,
+          reminderSettings: reminderSettingsJson,
+          feedbackSoundsEnabled,
           updatedAt: new Date(),
         },
       });
@@ -208,5 +230,7 @@ export async function PATCH(request: Request) {
     preferredLanguage2,
     preferredLanguages,
     themePreference,
+    reminderSettings,
+    feedbackSoundsEnabled,
   });
 }

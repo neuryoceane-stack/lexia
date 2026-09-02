@@ -278,7 +278,7 @@ function buildTeacherSteps(
         <p>Créez vos propres listes ou importez-les.</p>
         <ul class="lx-list">
           <li>📄 Import PDF, photo, texte</li>
-          <li>🗂️ Organisation par familles</li>
+          <li>🗂️ Organisation par listes</li>
           <li>🔄 Assignation à une ou plusieurs classes</li>
         </ul>
       `,

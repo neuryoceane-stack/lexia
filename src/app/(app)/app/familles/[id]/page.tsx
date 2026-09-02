@@ -32,22 +32,28 @@ export default async function FamilleDetailPage({
     .where(eq(lists.familyId, familyId))
     .orderBy(asc(lists.createdAt));
 
+  if (listesList.length === 1) {
+    redirect(`/app/familles/${familyId}/listes/${listesList[0].id}`);
+  }
+
   return (
     <div>
       <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-2xl font-semibold text-slate-800">
-          {family.name}
+          {listesList.length === 0 ? "Nouvelle liste" : "Tes listes"}
         </h1>
-        <ListesClient familyId={familyId} familyName={family.name} />
+        <ListesClient familyId={familyId} />
       </div>
       <p className="mb-6 text-slate-600">
-        Mots de cette liste. Ajoute-les à la main, depuis un PDF ou une image.
+        {listesList.length === 0
+          ? "Ajoute tes mots à la main, depuis un PDF ou une image."
+          : "Choisis une liste pour la consulter ou la modifier."}
       </p>
       {listesList.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
           <p className="text-slate-600">
-            Aucune liste. Crée-en une (manuel, PDF ou image).
+            Aucun mot pour l&apos;instant. Commence par ajouter du vocabulaire.
           </p>
         </div>
       ) : (

@@ -4,6 +4,7 @@ import {
   integer,
   real,
   primaryKey,
+  type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
 export const users = sqliteTable("users", {
@@ -32,6 +33,14 @@ export const users = sqliteTable("users", {
   })
     .notNull()
     .default("inactive"),
+  /** Code de parrainage personnel (partageable, unique, généré une fois). */
+  referralCode: text("referral_code").unique(),
+  /** Nombre d'amis parrainés via ce code. */
+  referralCount: integer("referral_count").notNull().default(0),
+  /** Parrain ayant partagé son code à l'inscription (lecture interne). */
+  referredByUserId: text("referred_by_user_id").references(
+    (): AnySQLiteColumn => users.id
+  ),
 });
 
 export const wordFamilies = sqliteTable("word_families", {
@@ -243,6 +252,12 @@ export const userPreferences = sqliteTable("user_preferences", {
   preferredLanguages: text("preferred_languages"),
   /** Thème d'affichage : light (défaut) ou dark. */
   themePreference: text("theme_preference", { enum: ["light", "dark"] }),
+  /** Préférences de rappels (JSON ReminderSettings). UI uniquement — pas d'envoi automatique. */
+  reminderSettings: text("reminder_settings"),
+  /** Sons de feedback lors de l'évaluation (dictée / flashcards). Défaut : activé. */
+  feedbackSoundsEnabled: integer("feedback_sounds_enabled", { mode: "boolean" })
+    .notNull()
+    .default(true),
   updatedAt: integer("updated_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

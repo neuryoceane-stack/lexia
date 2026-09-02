@@ -7,6 +7,11 @@ import { gardenProgress, notifications, userProfiles, users } from "@/lib/db/sch
 import { eq, sql } from "drizzle-orm";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import type { SubscriptionStatus } from "@/lib/subscription";
+import {
+  generateUniqueReferralCode,
+  findReferrerUserIdByCode,
+  incrementReferrerCount,
+} from "@/lib/referral-code.server";
 
 const MILESTONES = [50, 100, 500, 1000] as const;
 const BCRYPT_ROUNDS = 12;
@@ -127,7 +132,9 @@ export async function POST(request: Request) {
   let plan: PlanValue = chosenPlan;
   let subscriptionStatus: SubscriptionStatus = "inactive";
 
-  if (!isProfessor && isTestAccessGranted(promoCode)) {
+  const testAccessGranted = !isProfessor && isTestAccessGranted(promoCode);
+
+  if (testAccessGranted) {
     plan = chosenPlan === "free" ? "annual" : chosenPlan;
     subscriptionStatus = "active";
   }
@@ -167,6 +174,16 @@ export async function POST(request: Request) {
 
     const id = nanoid();
     const passwordHash = await hash(password, BCRYPT_ROUNDS);
+    const referralCode = await generateUniqueReferralCode();
+
+    let referredByUserId: string | null = null;
+    if (!isProfessor && promoCode && !testAccessGranted) {
+      try {
+        referredByUserId = await findReferrerUserIdByCode(promoCode);
+      } catch (error) {
+        console.error("[POST /api/auth/register] referral lookup failed", error);
+      }
+    }
 
     await db.insert(users).values({
       id,
@@ -179,7 +196,21 @@ export async function POST(request: Request) {
       ...(weeklyGoal !== undefined ? { weeklyGoal } : {}),
       plan,
       subscriptionStatus,
+      referralCode,
+      referralCount: 0,
+      ...(referredByUserId ? { referredByUserId } : {}),
     });
+
+    if (referredByUserId) {
+      try {
+        await incrementReferrerCount(referredByUserId);
+      } catch (error) {
+        console.error(
+          "[POST /api/auth/register] referral count increment failed",
+          error
+        );
+      }
+    }
 
     await db.insert(gardenProgress).values({ userId: id });
 

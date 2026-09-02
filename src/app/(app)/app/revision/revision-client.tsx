@@ -21,6 +21,7 @@ import {
   detectListLanguages,
   KNOWN_LANGUAGE_CODES,
 } from "@/lib/language";
+import { playCorrectSound, playWrongSound } from "@/lib/sound-feedback";
 
 type BibliothequeList = {
   id: string;
@@ -120,6 +121,7 @@ export function RevisionClient({
   const [dicteeHadRetry, setDicteeHadRetry] = useState(false);
   const [lastWrongAnswer, setLastWrongAnswer] = useState("");
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
+  const [feedbackSoundsEnabled, setFeedbackSoundsEnabled] = useState(true);
   /** Langues détectées sur la liste (term / definition) pour l’écran « Sens de la dictée ». */
   const [directionLanguages, setDirectionLanguages] = useState<{
     termLang: string;
@@ -174,9 +176,21 @@ export function RevisionClient({
         if (Array.isArray(data.preferredLanguages)) setPreferredLanguages(data.preferredLanguages);
         else if (data.preferredLanguage ?? data.preferredLanguage2)
           setPreferredLanguages([data.preferredLanguage, data.preferredLanguage2].filter(Boolean) as string[]);
+        if (typeof data.feedbackSoundsEnabled === "boolean") {
+          setFeedbackSoundsEnabled(data.feedbackSoundsEnabled);
+        }
       })
       .catch(() => {});
   }, []);
+
+  const playEvalFeedback = useCallback(
+    (correct: boolean) => {
+      if (!feedbackSoundsEnabled) return;
+      if (correct) playCorrectSound();
+      else playWrongSound();
+    },
+    [feedbackSoundsEnabled]
+  );
 
   useEffect(() => {
     if (selectedListIds.size === 0) return;
@@ -419,6 +433,7 @@ export function RevisionClient({
    */
   async function recordFlashcardLexivaRating(lexivaFlash: 1 | 3 | 5) {
     if (!current || sending) return;
+    playEvalFeedback(lexivaFlash === 5);
     const sm2Rating = lexivaFlash === 5 ? 3 : lexivaFlash === 3 ? 2 : 1;
     const success = sm2Rating >= 2;
     setSending(true);
@@ -1182,6 +1197,7 @@ export function RevisionClient({
     function validateDictee() {
       if (!current || sending || dicteePhase !== "typing") return;
       const ok = isDicteeAnswerCorrect(writeAnswer, answerText);
+      playEvalFeedback(ok);
       if (ok) {
         setDicteePhase("correct_feedback");
       } else {
@@ -1364,6 +1380,7 @@ export function RevisionClient({
                     type="button"
                     disabled={sending}
                     onClick={() => {
+                      playEvalFeedback(false);
                       setLastWrongAnswer(writeAnswer.trim());
                       setDicteePhase("revealed_fail");
                     }}

@@ -12,7 +12,8 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "db:clean-definitions": "npx tsx scripts/clean-translation-definitions.ts"
+    "db:clean-definitions": "npx tsx scripts/clean-translation-definitions.ts",
+    "db:sync-family-list-names": "npx tsx scripts/sync-family-list-names.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.78.0",

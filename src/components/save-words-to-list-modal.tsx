@@ -220,8 +220,9 @@ export function SaveWordsToListModal({
         className="-mt-2 mb-4 text-sm"
         style={{ color: "var(--foreground-muted)", fontFamily: "DM Sans, sans-serif" }}
       >
-        {wordCount} mot{wordCount !== 1 ? "s" : ""} à enregistrer — choisis une destination,
-        puis valide.
+        {wordCount === 1
+          ? "Où veux-tu enregistrer ton mot ?"
+          : `Où veux-tu enregistrer tes ${wordCount} mots ?`}
       </p>
 
       {success ? (
