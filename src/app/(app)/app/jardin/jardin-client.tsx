@@ -14,7 +14,6 @@ import {
   Sprout,
   TreePine,
   Flame,
-  TrendingUp,
   BookOpen,
   Trophy,
   Languages,
@@ -23,6 +22,11 @@ import {
 } from "lucide-react";
 
 type ChartPeriod = "7j" | "30j" | "3m";
+
+/** Hauteur fixe du cadre graphique — identique pour 7j / 30j / 3m et en état vide. */
+const CHART_FRAME_HEIGHT_PX = 240;
+/** Zone utile pour les barres (hors labels 7j). */
+const CHART_BAR_MAX_PX = 196;
 
 type SyntheseData = {
   totalDurationSeconds: number;
@@ -521,65 +525,84 @@ export function JardinClient() {
                   </div>
                 </div>
 
-                {chartEmpty ? (
-                  <div
-                    className="flex flex-col items-center justify-center gap-3 rounded-[12px] px-4 py-12 text-center"
-                    style={{ background: "rgba(108, 63, 200, 0.04)" }}
-                  >
-                    <div
-                      className="flex h-14 w-14 items-center justify-center rounded-full"
-                      style={{ background: "rgba(108, 63, 200, 0.1)" }}
-                    >
-                      <Sprout size={28} stroke={VIOLET} strokeWidth={1.75} aria-hidden />
+                <div
+                  className="overflow-hidden rounded-[12px]"
+                  style={{
+                    height: CHART_FRAME_HEIGHT_PX,
+                    background: "rgba(108, 63, 200, 0.04)",
+                  }}
+                >
+                  {chartEmpty ? (
+                    <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
+                      <div
+                        className="flex h-11 w-11 items-center justify-center rounded-full"
+                        style={{ background: "rgba(108, 63, 200, 0.1)" }}
+                      >
+                        <Sprout size={22} stroke={VIOLET} strokeWidth={1.75} aria-hidden />
+                      </div>
+                      <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground-muted)" }}>
+                        Pas encore de données sur cette période
+                      </p>
+                      <p style={{ fontSize: 12, color: "var(--foreground-disabled)", maxWidth: 280 }}>
+                        Reviens réviser pour voir ta progression ici
+                      </p>
                     </div>
-                    <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground-muted)" }}>
-                      Continue tes révisions pour voir ta progression ici
-                    </p>
-                    <span
-                      className="inline-flex items-center gap-1.5"
-                      style={{ fontSize: 12, color: VIOLET }}
+                  ) : (
+                    <div
+                      className="flex h-full items-end gap-[2px] overflow-x-auto overscroll-x-contain px-1 pb-2 pt-3"
+                      role="img"
+                      aria-label="Mots appris par jour"
                     >
-                      <TrendingUp size={14} strokeWidth={2} aria-hidden />
-                      Chaque session compte
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex items-end gap-[3px] sm:gap-1" style={{ height: 140 }}>
-                    {chartData.map((d) => {
-                      const h = d.mots > 0 ? Math.max(10, (d.mots / maxMots) * 100) : 4;
-                      const isToday = d.date === todayKey;
-                      return (
-                        <div key={d.date} className="flex min-w-0 flex-1 flex-col items-center">
+                      {chartData.map((d) => {
+                        const barPx =
+                          d.mots > 0
+                            ? Math.max(6, Math.round((d.mots / maxMots) * CHART_BAR_MAX_PX))
+                            : 3;
+                        const isToday = d.date === todayKey;
+                        const colWidth =
+                          chartPeriod === "7j" ? undefined : chartPeriod === "30j" ? 10 : 6;
+                        return (
                           <div
-                            className="w-full transition-all duration-300"
-                            style={{
-                              height: `${h}%`,
-                              background: isToday
-                                ? `linear-gradient(180deg, ${VIOLET} 0%, #9B6FE8 100%)`
-                                : "rgba(108, 63, 200, 0.2)",
-                              borderRadius: "6px 6px 2px 2px",
-                              minWidth: 4,
-                              boxShadow: isToday ? "0 4px 12px rgba(108,63,200,0.25)" : undefined,
-                            }}
-                            title={`${d.label}: ${d.mots} mots`}
-                          />
-                          {chartPeriod === "7j" && (
-                            <span
-                              className="mt-1.5 truncate"
+                            key={d.date}
+                            className="flex h-full min-w-0 flex-col items-center justify-end"
+                            style={
+                              chartPeriod === "7j"
+                                ? { flex: "1 1 0" }
+                                : { flex: "0 0 auto", width: colWidth, minWidth: colWidth }
+                            }
+                          >
+                            <div
+                              className="transition-all duration-300"
                               style={{
-                                fontSize: 10,
-                                fontWeight: isToday ? 600 : 400,
-                                color: isToday ? VIOLET : "var(--foreground-disabled)",
+                                height: barPx,
+                                width: chartPeriod === "7j" ? "100%" : colWidth,
+                                minWidth: chartPeriod === "7j" ? 4 : colWidth,
+                                background: isToday
+                                  ? `linear-gradient(180deg, ${VIOLET} 0%, #9B6FE8 100%)`
+                                  : "rgba(108, 63, 200, 0.2)",
+                                borderRadius: "6px 6px 2px 2px",
+                                boxShadow: isToday ? "0 4px 12px rgba(108,63,200,0.25)" : undefined,
                               }}
-                            >
-                              {d.label}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                              title={`${d.label}: ${d.mots} mots`}
+                            />
+                            {chartPeriod === "7j" && (
+                              <span
+                                className="mt-1.5 truncate"
+                                style={{
+                                  fontSize: 10,
+                                  fontWeight: isToday ? 600 : 400,
+                                  color: isToday ? VIOLET : "var(--foreground-disabled)",
+                                }}
+                              >
+                                {d.label}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
 
