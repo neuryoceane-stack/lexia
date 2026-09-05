@@ -1409,17 +1409,15 @@ export function BibliothequeClient() {
       {/* Modal Liste de mots : langue + nom, puis Créer ma liste ou Annuler */}
       {addModal === "list" && (
         <div
-          className="fixed inset-0 z-50 flex flex-col justify-end overflow-hidden bg-[rgba(80,60,120,0.32)] sm:justify-center sm:overflow-y-auto sm:overscroll-contain sm:bg-[rgba(80,60,120,0.18)]"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[rgba(80,60,120,0.32)] p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))]"
           onClick={() => setAddModal(null)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="bib-new-list-modal-title"
         >
-          <div className="flex w-full justify-center sm:min-h-full sm:items-center sm:p-4 sm:pt-[max(1rem,env(safe-area-inset-top))] sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:py-8">
             <div
-              className="flex w-full max-h-[min(90dvh,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden rounded-t-[20px] shadow-[0_-8px_32px_rgba(80,60,120,0.12)] sm:max-h-[min(88dvh,100%)] sm:rounded-[20px] sm:shadow-lg"
+              className="flex w-full max-w-[420px] max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-2rem))] flex-col overflow-hidden rounded-[20px] shadow-lg"
               style={{
-                maxWidth: 400,
                 background: "var(--background-card)",
                 border: "0.5px solid rgba(108,63,200,0.15)",
               }}
@@ -1497,7 +1495,7 @@ export function BibliothequeClient() {
                 <p style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 6 }}>
                   Langue
                 </p>
-                <div className="grid grid-cols-4 gap-1.5 sm:gap-[7px]" style={{ marginBottom: 4 }}>
+                <div className="mb-3 grid grid-cols-4 gap-1.5 sm:gap-[7px]">
                   {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
                     const sel = newListLanguage === opt.value;
                     return (
@@ -1523,14 +1521,6 @@ export function BibliothequeClient() {
                     );
                   })}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setLangModalOpen(true)}
-                  className="transition hover:opacity-70"
-                  style={{ fontSize: 11, color: "#6C3FC8", background: "none", border: "none", cursor: "pointer", fontWeight: 500, textDecoration: "underline", marginTop: 2, marginBottom: 12 }}
-                >
-                  Autre langue →
-                </button>
 
                 <label
                   htmlFor="bib-new-list-title"
@@ -1685,7 +1675,6 @@ export function BibliothequeClient() {
                 </button>
               </div>
             </div>
-          </div>
         </div>
       )}
         </div></section></div>
