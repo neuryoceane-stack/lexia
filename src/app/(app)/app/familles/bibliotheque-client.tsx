@@ -1409,274 +1409,282 @@ export function BibliothequeClient() {
       {/* Modal Liste de mots : langue + nom, puis Créer ma liste ou Annuler */}
       {addModal === "list" && (
         <div
-          className="fixed inset-0 z-50 overflow-y-auto overscroll-contain p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))]"
-          style={{ background: "rgba(80,60,120,0.18)" }}
+          className="fixed inset-0 z-50 flex flex-col justify-end overflow-hidden bg-[rgba(80,60,120,0.32)] sm:justify-center sm:overflow-y-auto sm:overscroll-contain sm:bg-[rgba(80,60,120,0.18)]"
           onClick={() => setAddModal(null)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="bib-new-list-modal-title"
         >
-          <div className="flex min-h-[100dvh] w-full items-end justify-center sm:min-h-full sm:items-center sm:py-8">
-          <div
-            className="my-0 w-full max-h-[min(88dvh,100%)] overflow-y-auto overscroll-contain sm:my-auto"
-            style={{ maxWidth: 400, borderRadius: 20, background: "var(--background-card)", border: "0.5px solid rgba(108,63,200,0.15)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Header violet */}
-            <div className="flex items-center gap-3" style={{ background: "#6C3FC8", padding: "22px 24px 20px" }}>
+          <div className="flex w-full justify-center sm:min-h-full sm:items-center sm:p-4 sm:pt-[max(1rem,env(safe-area-inset-top))] sm:pb-[max(1rem,env(safe-area-inset-bottom))] sm:py-8">
+            <div
+              className="flex w-full max-h-[min(90dvh,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)))] flex-col overflow-hidden rounded-t-[20px] shadow-[0_-8px_32px_rgba(80,60,120,0.12)] sm:max-h-[min(88dvh,100%)] sm:rounded-[20px] sm:shadow-lg"
+              style={{
+                maxWidth: 400,
+                background: "var(--background-card)",
+                border: "0.5px solid rgba(108,63,200,0.15)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header violet */}
               <div
-                className="flex shrink-0 items-center justify-center"
-                style={{ width: 40, height: 40, borderRadius: 10, background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)" }}
+                className="flex shrink-0 items-center gap-2.5 px-4 py-3.5 sm:gap-3 sm:px-6 sm:py-5"
+                style={{ background: "#6C3FC8" }}
               >
-                <FileText size={20} stroke="white" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <p id="bib-new-list-modal-title" style={{ color: "white", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>
-                  {importDestMode === "existing" ? "Importer dans une liste" : "Nouvelle liste de mots"}
-                </p>
-                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
-                  {importDestMode === "existing"
-                    ? "Ajoute des paires à une liste que tu as déjà"
-                    : "Elle apparaîtra dans ta bibliothèque"}
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setAddModal(null)}
-                className="flex shrink-0 items-center justify-center transition hover:brightness-90"
-                style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.15)", border: "none", cursor: "pointer" }}
-                aria-label="Fermer"
-              >
-                <X size={12} stroke="white" />
-              </button>
-            </div>
-
-            {/* Corps */}
-            <div style={{ padding: "22px 24px" }}>
-              <div
-                className="mb-4 flex gap-2"
-                role="tablist"
-                aria-label="Destination de l'import"
-              >
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={importDestMode === "create"}
-                  onClick={() => setImportDestMode("create")}
-                  className="flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-                  style={{
-                    background: importDestMode === "create" ? "#6C3FC8" : "var(--background-subtle)",
-                    color: importDestMode === "create" ? "white" : "var(--foreground-muted)",
-                  }}
+                <div
+                  className="flex shrink-0 items-center justify-center sm:h-10 sm:w-10"
+                  style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)" }}
                 >
-                  Nouvelle liste
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={importDestMode === "existing"}
-                  onClick={() => setImportDestMode("existing")}
-                  className="flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-                  style={{
-                    background: importDestMode === "existing" ? "#6C3FC8" : "var(--background-subtle)",
-                    color: importDestMode === "existing" ? "white" : "var(--foreground-muted)",
-                  }}
-                >
-                  Liste existante
-                </button>
-              </div>
-
-              {importDestMode === "create" ? (
-              <>
-              <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8 }}>
-                Langue
-              </p>
-              <div className="grid grid-cols-4 gap-[7px]" style={{ marginBottom: 4 }}>
-                {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
-                  const sel = newListLanguage === opt.value;
-                  return (
-                    <button
-                      key={opt.value}
-                      type="button"
-                      onClick={() => setNewListLanguage(opt.value)}
-                      className="flex flex-col items-center gap-1 transition-all"
-                      style={{
-                        borderRadius: 10,
-                        padding: "8px 4px",
-                        border: `1.5px solid ${sel ? "#6C3FC8" : "var(--border)"}`,
-                        background: sel ? "var(--background-subtle)" : "var(--background-subtle)",
-                        cursor: "pointer",
-                        transition: "border-color 120ms, background 120ms",
-                      }}
-                      onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
-                      onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
-                    >
-                      <FlagDisplay langCode={opt.value} size={18} />
-                      <span style={{ fontSize: 10, fontWeight: 500, color: sel ? "#6C3FC8" : "var(--foreground-muted)" }}>{opt.label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-              <button
-                type="button"
-                onClick={() => setLangModalOpen(true)}
-                className="transition hover:opacity-70"
-                style={{ fontSize: 11, color: "#6C3FC8", background: "none", border: "none", cursor: "pointer", fontWeight: 500, textDecoration: "underline", marginTop: 4, marginBottom: 16 }}
-              >
-                Autre langue →
-              </button>
-
-              <label
-                htmlFor="bib-new-list-title"
-                style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8, display: "block" }}
-              >
-                Nom de la liste
-              </label>
-              <ListNameInput
-                id="bib-new-list-title"
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-                placeholder="ex. Chapitre 3 — La Révolution"
-                className="w-full transition-colors"
-                style={{
-                  fontSize: 13,
-                  padding: "11px 14px",
-                  borderRadius: 10,
-                  border: "1.5px solid var(--input-border)",
-                  background: "var(--input-bg)",
-                  color: "var(--foreground)",
-                  outline: "none",
-                  width: "100%",
-                }}
-                onFocus={(e) => { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--input-bg)"; }}
-                onBlur={(e) => { e.currentTarget.style.borderColor = "var(--input-border)"; e.currentTarget.style.background = "var(--input-bg)"; }}
-              />
-              <p style={{ fontSize: 11, color: "var(--foreground-disabled)", marginTop: 5 }}>Un nom précis t&apos;aidera à retrouver ta liste.</p>
-              </>
-              ) : importCatalogLoading ? (
-                <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "8px 0 0" }}>
-                  Chargement de tes listes…
-                </p>
-              ) : (() => {
-                const filtered = activeLanguage
-                  ? importCatalog.filter((l) => l.language === activeLanguage)
-                  : importCatalog;
-                const options = filtered.length > 0 ? filtered : importCatalog;
-                return options.length === 0 ? (
-                  <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "8px 0 0" }}>
-                    Tu n&apos;as pas encore de liste. Passe à « Nouvelle liste » pour en créer une.
+                  <FileText size={18} stroke="white" className="sm:h-5 sm:w-5" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p id="bib-new-list-modal-title" style={{ color: "white", fontSize: 15, fontWeight: 500, marginBottom: 2 }}>
+                    {importDestMode === "existing" ? "Importer dans une liste" : "Nouvelle liste de mots"}
                   </p>
-                ) : (
-                  <>
-                    <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8 }}>
-                      Liste de destination
-                    </p>
-                    {activeLanguage && filtered.length > 0 && (
-                      <p style={{ fontSize: 11, color: "var(--foreground-muted)", marginBottom: 8 }}>
-                        Listes en {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === activeLanguage)?.label ?? activeLanguage}
-                      </p>
-                    )}
-                    <ul
-                      className="max-h-[min(40vh,240px)] space-y-1.5 overflow-y-auto overscroll-contain pr-1"
-                      aria-label="Listes existantes"
-                    >
-                      {options.map((list) => {
-                        const selected = selectedImportListId === list.id;
-                        return (
-                          <li key={list.id}>
-                            <button
-                              type="button"
-                              onClick={() => setSelectedImportListId(list.id)}
-                              className="flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors"
-                              style={{
-                                borderColor: selected ? "#6C3FC8" : "var(--border)",
-                                background: selected ? "rgba(108, 63, 200, 0.1)" : "var(--background-card)",
-                                boxShadow: selected ? "0 0 0 1px rgba(108, 63, 200, 0.25)" : undefined,
-                                cursor: "pointer",
-                              }}
-                              aria-pressed={selected}
-                            >
-                              {list.language ? (
-                                <FlagDisplay langCode={list.language} size={18} />
-                              ) : null}
-                              <span
-                                className="min-w-0 flex-1 text-sm font-medium"
-                                style={{ color: selected ? "#4B3A9E" : "var(--foreground)" }}
-                              >
-                                {list.name}
-                              </span>
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </>
-                );
-              })()}
-            </div>
+                  <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, lineHeight: 1.35 }}>
+                    {importDestMode === "existing"
+                      ? "Ajoute des paires à une liste que tu as déjà"
+                      : "Elle apparaîtra dans ta bibliothèque"}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAddModal(null)}
+                  className="flex shrink-0 items-center justify-center transition hover:brightness-90"
+                  style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.15)", border: "none", cursor: "pointer" }}
+                  aria-label="Fermer"
+                >
+                  <X size={12} stroke="white" />
+                </button>
+              </div>
 
-            {/* Footer */}
-            <div className="flex gap-[10px]" style={{ padding: "0 24px 22px" }}>
-              <button
-                type="button"
-                onClick={() => setAddModal(null)}
-                className="flex-1 transition hover:bg-[var(--hover-bg)]"
-                style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "1.5px solid var(--border)", background: "transparent", color: "var(--foreground-muted)", cursor: "pointer" }}
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                disabled={
-                  importDestMode === "create"
-                    ? creatingFamily || !newListName.trim() || !newListLanguage.trim()
-                    : importCatalogLoading || !selectedImportListId
-                }
-                onClick={async () => {
-                  if (importDestMode === "existing") {
-                    const list = importCatalog.find((l) => l.id === selectedImportListId);
-                    if (!list) return;
-                    const params = new URLSearchParams();
-                    params.set("listId", list.id);
-                    params.set("name", list.name);
-                    if (list.language) params.set("lang", list.language);
-                    router.push(
-                      `/app/familles/${list.familyId}/nouvelle-liste?${params.toString()}`
+              {/* Corps — zone défilable */}
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3.5 sm:px-6 sm:py-[22px]">
+                <div
+                  className="mb-3 flex gap-1.5 sm:mb-4 sm:gap-2"
+                  role="tablist"
+                  aria-label="Destination de l'import"
+                >
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={importDestMode === "create"}
+                    onClick={() => setImportDestMode("create")}
+                    className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5 sm:text-sm"
+                    style={{
+                      background: importDestMode === "create" ? "#6C3FC8" : "var(--background-subtle)",
+                      color: importDestMode === "create" ? "white" : "var(--foreground-muted)",
+                    }}
+                  >
+                    Nouvelle liste
+                  </button>
+                  <button
+                    type="button"
+                    role="tab"
+                    aria-selected={importDestMode === "existing"}
+                    onClick={() => setImportDestMode("existing")}
+                    className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5 sm:text-sm"
+                    style={{
+                      background: importDestMode === "existing" ? "#6C3FC8" : "var(--background-subtle)",
+                      color: importDestMode === "existing" ? "white" : "var(--foreground-muted)",
+                    }}
+                  >
+                    Liste existante
+                  </button>
+                </div>
+
+                {importDestMode === "create" ? (
+                <>
+                <p style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 6 }}>
+                  Langue
+                </p>
+                <div className="grid grid-cols-4 gap-1.5 sm:gap-[7px]" style={{ marginBottom: 4 }}>
+                  {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
+                    const sel = newListLanguage === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => setNewListLanguage(opt.value)}
+                        className="flex flex-col items-center gap-0.5 transition-all sm:gap-1"
+                        style={{
+                          borderRadius: 10,
+                          padding: "6px 3px",
+                          border: `1.5px solid ${sel ? "#6C3FC8" : "var(--border)"}`,
+                          background: "var(--background-subtle)",
+                          cursor: "pointer",
+                          transition: "border-color 120ms, background 120ms",
+                        }}
+                        onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
+                        onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
+                      >
+                        <FlagDisplay langCode={opt.value} size={16} />
+                        <span style={{ fontSize: 9, fontWeight: 500, color: sel ? "#6C3FC8" : "var(--foreground-muted)" }} className="sm:text-[10px]">{opt.label}</span>
+                      </button>
                     );
-                    setAddModal(null);
-                    return;
-                  }
-                  if (creatingFamily || !newListName.trim()) return;
-                  setCreatingFamily(true);
-                  const listName = newListName.trim();
-                  const res = await fetch("/api/familles", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: listName }),
-                  });
-                  const data = await res.json().catch(() => ({}));
-                  setCreatingFamily(false);
-                  if (res.ok && data.id) {
-                    const params = new URLSearchParams();
-                    if (newListLanguage?.trim()) params.set("lang", newListLanguage.trim());
-                    params.set("name", newListName.trim());
-                    const qs = params.toString() ? `?${params.toString()}` : "";
-                    router.push(`/app/familles/${data.id}/nouvelle-liste${qs}`);
-                    setAddModal(null);
-                  }
-                }}
-                className="flex flex-[2] items-center justify-center gap-[7px] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60"
-                style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "none", background: "#6C3FC8", color: "white", cursor: "pointer" }}
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLangModalOpen(true)}
+                  className="transition hover:opacity-70"
+                  style={{ fontSize: 11, color: "#6C3FC8", background: "none", border: "none", cursor: "pointer", fontWeight: 500, textDecoration: "underline", marginTop: 2, marginBottom: 12 }}
+                >
+                  Autre langue →
+                </button>
+
+                <label
+                  htmlFor="bib-new-list-title"
+                  style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 6, display: "block" }}
+                >
+                  Nom de la liste
+                </label>
+                <ListNameInput
+                  id="bib-new-list-title"
+                  value={newListName}
+                  onChange={(e) => setNewListName(e.target.value)}
+                  placeholder="ex. Chapitre 3 — La Révolution"
+                  className="w-full transition-colors"
+                  style={{
+                    fontSize: 13,
+                    padding: "10px 12px",
+                    borderRadius: 10,
+                    border: "1.5px solid var(--input-border)",
+                    background: "var(--input-bg)",
+                    color: "var(--foreground)",
+                    outline: "none",
+                    width: "100%",
+                  }}
+                  onFocus={(e) => { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--input-bg)"; }}
+                  onBlur={(e) => { e.currentTarget.style.borderColor = "var(--input-border)"; e.currentTarget.style.background = "var(--input-bg)"; }}
+                />
+                <p style={{ fontSize: 11, color: "var(--foreground-disabled)", marginTop: 4 }}>Un nom précis t&apos;aidera à retrouver ta liste.</p>
+                </>
+                ) : importCatalogLoading ? (
+                  <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "4px 0 0" }}>
+                    Chargement de tes listes…
+                  </p>
+                ) : (() => {
+                  const filtered = activeLanguage
+                    ? importCatalog.filter((l) => l.language === activeLanguage)
+                    : importCatalog;
+                  const options = filtered.length > 0 ? filtered : importCatalog;
+                  return options.length === 0 ? (
+                    <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "4px 0 0" }}>
+                      Tu n&apos;as pas encore de liste. Passe à « Nouvelle liste » pour en créer une.
+                    </p>
+                  ) : (
+                    <>
+                      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 6 }}>
+                        Liste de destination
+                      </p>
+                      {activeLanguage && filtered.length > 0 && (
+                        <p style={{ fontSize: 11, color: "var(--foreground-muted)", marginBottom: 6 }}>
+                          Listes en {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === activeLanguage)?.label ?? activeLanguage}
+                        </p>
+                      )}
+                      <ul
+                        className="max-h-[min(28vh,168px)] space-y-1 overflow-y-auto overscroll-contain pr-0.5 sm:max-h-[min(40vh,240px)] sm:space-y-1.5 sm:pr-1"
+                        aria-label="Listes existantes"
+                      >
+                        {options.map((list) => {
+                          const selected = selectedImportListId === list.id;
+                          return (
+                            <li key={list.id}>
+                              <button
+                                type="button"
+                                onClick={() => setSelectedImportListId(list.id)}
+                                className="flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-colors sm:gap-2.5 sm:px-3 sm:py-2.5"
+                                style={{
+                                  borderColor: selected ? "#6C3FC8" : "var(--border)",
+                                  background: selected ? "rgba(108, 63, 200, 0.1)" : "var(--background-card)",
+                                  boxShadow: selected ? "0 0 0 1px rgba(108, 63, 200, 0.25)" : undefined,
+                                  cursor: "pointer",
+                                }}
+                                aria-pressed={selected}
+                              >
+                                {list.language ? (
+                                  <FlagDisplay langCode={list.language} size={16} />
+                                ) : null}
+                                <span
+                                  className="min-w-0 flex-1 text-[13px] font-medium sm:text-sm"
+                                  style={{ color: selected ? "#4B3A9E" : "var(--foreground)" }}
+                                >
+                                  {list.name}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Footer — toujours visible, dégagement bulle support sur mobile */}
+              <div
+                className="flex shrink-0 gap-2 px-4 pt-2.5 max-sm:pr-[max(80px,calc(16px+env(safe-area-inset-right,0px)))] pb-[max(14px,calc(12px+env(safe-area-inset-bottom,0px)))] sm:gap-[10px] sm:px-6 sm:pb-[22px] sm:pt-0"
               >
-                <Plus size={14} stroke="white" />
-                {importDestMode === "existing"
-                  ? "Continuer"
-                  : creatingFamily
-                    ? "Création…"
-                    : "Créer ma liste"}
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setAddModal(null)}
+                  className="flex-1 transition hover:bg-[var(--hover-bg)] sm:py-[11px]"
+                  style={{ fontSize: 13, fontWeight: 500, padding: "10px 12px", borderRadius: 10, border: "1.5px solid var(--border)", background: "transparent", color: "var(--foreground-muted)", cursor: "pointer" }}
+                >
+                  Annuler
+                </button>
+                <button
+                  type="button"
+                  disabled={
+                    importDestMode === "create"
+                      ? creatingFamily || !newListName.trim() || !newListLanguage.trim()
+                      : importCatalogLoading || !selectedImportListId
+                  }
+                  onClick={async () => {
+                    if (importDestMode === "existing") {
+                      const list = importCatalog.find((l) => l.id === selectedImportListId);
+                      if (!list) return;
+                      const params = new URLSearchParams();
+                      params.set("listId", list.id);
+                      params.set("name", list.name);
+                      if (list.language) params.set("lang", list.language);
+                      router.push(
+                        `/app/familles/${list.familyId}/nouvelle-liste?${params.toString()}`
+                      );
+                      setAddModal(null);
+                      return;
+                    }
+                    if (creatingFamily || !newListName.trim()) return;
+                    setCreatingFamily(true);
+                    const listName = newListName.trim();
+                    const res = await fetch("/api/familles", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ name: listName }),
+                    });
+                    const data = await res.json().catch(() => ({}));
+                    setCreatingFamily(false);
+                    if (res.ok && data.id) {
+                      const params = new URLSearchParams();
+                      if (newListLanguage?.trim()) params.set("lang", newListLanguage.trim());
+                      params.set("name", newListName.trim());
+                      const qs = params.toString() ? `?${params.toString()}` : "";
+                      router.push(`/app/familles/${data.id}/nouvelle-liste${qs}`);
+                      setAddModal(null);
+                    }
+                  }}
+                  className="flex flex-[2] items-center justify-center gap-[6px] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 sm:gap-[7px] sm:py-[11px]"
+                  style={{ fontSize: 13, fontWeight: 500, padding: "10px 12px", borderRadius: 10, border: "none", background: "#6C3FC8", color: "white", cursor: "pointer" }}
+                >
+                  <Plus size={14} stroke="white" />
+                  {importDestMode === "existing"
+                    ? "Continuer"
+                    : creatingFamily
+                      ? "Création…"
+                      : "Créer ma liste"}
+                </button>
+              </div>
             </div>
-          </div>
           </div>
         </div>
       )}
