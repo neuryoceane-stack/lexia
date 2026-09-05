@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
@@ -25,8 +25,20 @@ type ChartPeriod = "7j" | "30j" | "3m";
 
 /** Hauteur fixe du cadre graphique — identique pour 7j / 30j / 3m et en état vide. */
 const CHART_FRAME_HEIGHT_PX = 240;
-/** Zone utile pour les barres (hors labels 7j). */
-const CHART_BAR_MAX_PX = 196;
+const CHART_FRAME_PADDING_Y_PX = 12;
+const CHART_LABEL_HEIGHT_PX = 28;
+const CHART_INNER_HEIGHT_PX =
+  CHART_FRAME_HEIGHT_PX - CHART_FRAME_PADDING_Y_PX * 2;
+const CHART_PLOT_HEIGHT_PX = CHART_INNER_HEIGHT_PX - CHART_LABEL_HEIGHT_PX;
+/** Barre max ≈ 85 % de la zone de tracé — marge en haut. */
+const CHART_BAR_MAX_PX = Math.round(CHART_PLOT_HEIGHT_PX * 0.85);
+
+const CHART_FRAME_STYLE: CSSProperties = {
+  height: CHART_FRAME_HEIGHT_PX,
+  minHeight: CHART_FRAME_HEIGHT_PX,
+  maxHeight: CHART_FRAME_HEIGHT_PX,
+  flexShrink: 0,
+};
 
 type SyntheseData = {
   totalDurationSeconds: number;
@@ -526,14 +538,14 @@ export function JardinClient() {
                 </div>
 
                 <div
-                  className="overflow-hidden rounded-[12px]"
+                  className="relative shrink-0 overflow-hidden rounded-[12px]"
                   style={{
-                    height: CHART_FRAME_HEIGHT_PX,
+                    ...CHART_FRAME_STYLE,
                     background: "rgba(108, 63, 200, 0.04)",
                   }}
                 >
                   {chartEmpty ? (
-                    <div className="flex h-full flex-col items-center justify-center gap-2 px-4 text-center">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
                       <div
                         className="flex h-11 w-11 items-center justify-center rounded-full"
                         style={{ background: "rgba(108, 63, 200, 0.1)" }}
@@ -549,57 +561,85 @@ export function JardinClient() {
                     </div>
                   ) : (
                     <div
-                      className="flex h-full items-end gap-[2px] overflow-x-auto overscroll-x-contain px-1 pb-2 pt-3"
+                      className="absolute inset-0 overflow-x-auto overflow-y-hidden px-1"
+                      style={{
+                        paddingTop: CHART_FRAME_PADDING_Y_PX,
+                        paddingBottom: CHART_FRAME_PADDING_Y_PX,
+                      }}
                       role="img"
                       aria-label="Mots appris par jour"
                     >
-                      {chartData.map((d) => {
-                        const barPx =
-                          d.mots > 0
-                            ? Math.max(6, Math.round((d.mots / maxMots) * CHART_BAR_MAX_PX))
-                            : 3;
-                        const isToday = d.date === todayKey;
-                        const colWidth =
-                          chartPeriod === "7j" ? undefined : chartPeriod === "30j" ? 10 : 6;
-                        return (
-                          <div
-                            key={d.date}
-                            className="flex h-full min-w-0 flex-col items-center justify-end"
-                            style={
-                              chartPeriod === "7j"
-                                ? { flex: "1 1 0" }
-                                : { flex: "0 0 auto", width: colWidth, minWidth: colWidth }
-                            }
-                          >
+                      <div
+                        className="flex items-stretch gap-[2px]"
+                        style={{ height: CHART_INNER_HEIGHT_PX, minHeight: CHART_INNER_HEIGHT_PX, maxHeight: CHART_INNER_HEIGHT_PX }}
+                      >
+                        {chartData.map((d) => {
+                          const barPx =
+                            d.mots > 0
+                              ? Math.max(4, Math.round((d.mots / maxMots) * CHART_BAR_MAX_PX))
+                              : 3;
+                          const isToday = d.date === todayKey;
+                          const colWidth =
+                            chartPeriod === "7j" ? undefined : chartPeriod === "30j" ? 10 : 6;
+                          return (
                             <div
-                              className="transition-all duration-300"
+                              key={d.date}
+                              className="flex min-w-0 flex-col"
                               style={{
-                                height: barPx,
-                                width: chartPeriod === "7j" ? "100%" : colWidth,
-                                minWidth: chartPeriod === "7j" ? 4 : colWidth,
-                                background: isToday
-                                  ? `linear-gradient(180deg, ${VIOLET} 0%, #9B6FE8 100%)`
-                                  : "rgba(108, 63, 200, 0.2)",
-                                borderRadius: "6px 6px 2px 2px",
-                                boxShadow: isToday ? "0 4px 12px rgba(108,63,200,0.25)" : undefined,
+                                height: CHART_INNER_HEIGHT_PX,
+                                ...(chartPeriod === "7j"
+                                  ? { flex: "1 1 0" }
+                                  : { flex: "0 0 auto", width: colWidth, minWidth: colWidth }),
                               }}
-                              title={`${d.label}: ${d.mots} mots`}
-                            />
-                            {chartPeriod === "7j" && (
-                              <span
-                                className="mt-1.5 truncate"
+                            >
+                              <div
+                                className="flex min-h-0 flex-col justify-end"
                                 style={{
-                                  fontSize: 10,
-                                  fontWeight: isToday ? 600 : 400,
-                                  color: isToday ? VIOLET : "var(--foreground-disabled)",
+                                  height: CHART_PLOT_HEIGHT_PX,
+                                  minHeight: CHART_PLOT_HEIGHT_PX,
+                                  maxHeight: CHART_PLOT_HEIGHT_PX,
                                 }}
                               >
-                                {d.label}
-                              </span>
-                            )}
-                          </div>
-                        );
-                      })}
+                                <div
+                                  className="shrink-0 transition-all duration-300"
+                                  style={{
+                                    height: barPx,
+                                    width: chartPeriod === "7j" ? "100%" : colWidth,
+                                    minWidth: chartPeriod === "7j" ? 4 : colWidth,
+                                    background: isToday
+                                      ? `linear-gradient(180deg, ${VIOLET} 0%, #9B6FE8 100%)`
+                                      : "rgba(108, 63, 200, 0.2)",
+                                    borderRadius: "6px 6px 2px 2px",
+                                    boxShadow: isToday ? "0 4px 12px rgba(108,63,200,0.25)" : undefined,
+                                  }}
+                                  title={`${d.label}: ${d.mots} mots`}
+                                />
+                              </div>
+                              <div
+                                className="flex shrink-0 items-start justify-center overflow-hidden pt-0.5"
+                                style={{
+                                  height: CHART_LABEL_HEIGHT_PX,
+                                  minHeight: CHART_LABEL_HEIGHT_PX,
+                                  maxHeight: CHART_LABEL_HEIGHT_PX,
+                                }}
+                              >
+                                {chartPeriod === "7j" ? (
+                                  <span
+                                    className="truncate"
+                                    style={{
+                                      fontSize: 10,
+                                      fontWeight: isToday ? 600 : 400,
+                                      color: isToday ? VIOLET : "var(--foreground-disabled)",
+                                    }}
+                                  >
+                                    {d.label}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
                   )}
                 </div>
