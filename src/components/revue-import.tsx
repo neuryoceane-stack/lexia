@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { detectListLanguages, KNOWN_LANGUAGE_CODES } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 import { SaveWordsToListModal } from "@/components/save-words-to-list-modal";
+import { saveWordsToExistingList } from "@/lib/vocab-list-save";
 
 export type RevueItem = { term: string; definition: string };
 
@@ -14,6 +15,8 @@ export function RevueImport({
   source,
   defaultLanguage,
   defaultListName,
+  targetListId,
+  targetListName,
   onSaved,
   onCancel,
 }: {
@@ -24,6 +27,9 @@ export function RevueImport({
   defaultLanguage?: string | null;
   /** Nom de la liste saisi dans la modale Bibliothèque (évite de redemander en bas). */
   defaultListName?: string | null;
+  /** Liste existante choisie en amont : enregistrement direct sans modale de destination. */
+  targetListId?: string | null;
+  targetListName?: string | null;
   onSaved: () => void;
   onCancel: () => void;
 }) {
@@ -31,6 +37,8 @@ export function RevueImport({
   const [items, setItems] = useState<RevueItem[]>(initialItems);
   const [index, setIndex] = useState(0);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [directSaving, setDirectSaving] = useState(false);
+  const [directSaveError, setDirectSaveError] = useState("");
   const [editing, setEditing] = useState<RevueItem | null>(null);
 
   const current = items[index];
@@ -87,6 +95,23 @@ export function RevueImport({
       : termLang && KNOWN_LANGUAGE_CODES.has(termLang)
         ? termLang
         : defaultLanguage) ?? null;
+
+  const handleDirectSave = useCallback(async () => {
+    if (!targetListId || items.length === 0) return;
+    setDirectSaving(true);
+    setDirectSaveError("");
+    try {
+      await saveWordsToExistingList(targetListId, items);
+      onSaved();
+      router.refresh();
+    } catch (err) {
+      setDirectSaveError(
+        err instanceof Error ? err.message : "Erreur lors de l'enregistrement"
+      );
+    } finally {
+      setDirectSaving(false);
+    }
+  }, [targetListId, items, onSaved, router]);
 
   if (editing) {
     return (
@@ -154,8 +179,9 @@ export function RevueImport({
         )}
       </div>
       <p className="text-sm text-[var(--foreground-muted)]">
-        Garde, modifie ou supprime chaque mot. Puis enregistre-les dans une liste existante
-        ou crée-en une nouvelle.
+        {targetListId
+          ? "Garde, modifie ou supprime chaque mot. Puis ajoute-les à ta liste."
+          : "Garde, modifie ou supprime chaque mot. Puis enregistre-les dans une liste existante ou crée-en une nouvelle."}
       </p>
 
       {/* Carte type Tinder */}
@@ -209,13 +235,22 @@ export function RevueImport({
 
       <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
         <h3 className="mb-2 font-medium text-[var(--foreground)]">
-          Enregistrer dans une liste
+          {targetListId ? "Ajouter à la liste" : "Enregistrer dans une liste"}
         </h3>
         <p className="mb-4 text-sm text-[var(--foreground-muted)]">
           {items.length} mot{items.length !== 1 ? "s" : ""} conservé
-          {items.length !== 1 ? "s" : ""}. Choisis une liste existante ou crée-en une
-          nouvelle.
+          {items.length !== 1 ? "s" : ""}
+          {targetListId && targetListName
+            ? ` · destination : ${targetListName}`
+            : targetListId
+              ? "."
+              : ". Choisis une liste existante ou crée-en une nouvelle."}
         </p>
+        {directSaveError ? (
+          <p className="mb-3 text-sm text-red-600" role="alert">
+            {directSaveError}
+          </p>
+        ) : null}
         <div className="flex flex-wrap gap-2">
           <button
             type="button"
@@ -224,18 +259,31 @@ export function RevueImport({
           >
             Annuler
           </button>
-          <button
-            type="button"
-            onClick={() => setSaveModalOpen(true)}
-            disabled={items.length === 0}
-            className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
-            style={{ background: "#6C3FC8" }}
-          >
-            Enregistrer dans une liste →
-          </button>
+          {targetListId ? (
+            <button
+              type="button"
+              onClick={() => void handleDirectSave()}
+              disabled={items.length === 0 || directSaving}
+              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              style={{ background: "#6C3FC8" }}
+            >
+              {directSaving ? "Enregistrement…" : "Ajouter à la liste →"}
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setSaveModalOpen(true)}
+              disabled={items.length === 0}
+              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              style={{ background: "#6C3FC8" }}
+            >
+              Enregistrer dans une liste →
+            </button>
+          )}
         </div>
       </div>
 
+      {!targetListId && (
       <SaveWordsToListModal
         open={saveModalOpen}
         onClose={() => setSaveModalOpen(false)}
@@ -249,6 +297,7 @@ export function RevueImport({
           router.refresh();
         }}
       />
+      )}
     </div>
   );
 }

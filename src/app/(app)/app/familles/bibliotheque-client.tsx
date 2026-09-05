@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
@@ -10,6 +10,12 @@ import { BackLink } from "@/components/back-link";
 import { PawPrint, FileText, X, Plus, ListPlus, Languages, Search, Check } from "lucide-react";
 import { AppModal } from "@/components/app-modal";
 import { ListNameInput } from "@/components/list-name-input";
+import {
+  fetchExistingLists,
+  type VocabListOption,
+} from "@/lib/vocab-list-save";
+
+type ImportDestMode = "create" | "existing";
 
 type BibliothequeList = {
   id: string;
@@ -73,6 +79,10 @@ export function BibliothequeClient() {
   /** Nom de la liste saisi dans la modale (prérempli en bas sur « Réviser les mots extraits »). */
   const [newListName, setNewListName] = useState("");
   const [creatingFamily, setCreatingFamily] = useState(false);
+  const [importDestMode, setImportDestMode] = useState<ImportDestMode>("create");
+  const [importCatalog, setImportCatalog] = useState<VocabListOption[]>([]);
+  const [importCatalogLoading, setImportCatalogLoading] = useState(false);
+  const [selectedImportListId, setSelectedImportListId] = useState<string | null>(null);
   const [deletingFamilyId, setDeletingFamilyId] = useState<string | null>(null);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
@@ -203,15 +213,42 @@ export function BibliothequeClient() {
     }
   }, [searchParams, pathname, router]);
 
+  const prevAddModalRef = useRef<typeof addModal>(null);
+
   useEffect(() => {
-    if (addModal === "list") {
-      setNewListLanguage((prev) => prev || activeLanguage || preferredLanguages[0] || "");
-      fetch("/api/familles")
-        .then((r) => r.json())
-        .then((arr) => setFamilies(Array.isArray(arr) ? arr : []))
-        .catch(() => setFamilies([]));
-    }
+    const justOpened = addModal === "list" && prevAddModalRef.current !== "list";
+    prevAddModalRef.current = addModal;
+    if (!justOpened) return;
+    setImportDestMode("create");
+    setSelectedImportListId(null);
+    setNewListLanguage(activeLanguage || preferredLanguages[0] || "");
+    fetch("/api/familles")
+      .then((r) => r.json())
+      .then((arr) => setFamilies(Array.isArray(arr) ? arr : []))
+      .catch(() => setFamilies([]));
   }, [addModal, activeLanguage, preferredLanguages]);
+
+  useEffect(() => {
+    if (addModal !== "list") return;
+    setImportCatalogLoading(true);
+    fetchExistingLists()
+      .then((catalog) => {
+        setImportCatalog(catalog);
+        if (catalog.length > 0) {
+          const filtered = activeLanguage
+            ? catalog.filter((l) => l.language === activeLanguage)
+            : catalog;
+          const pool = filtered.length > 0 ? filtered : catalog;
+          setSelectedImportListId((prev) =>
+            prev && pool.some((l) => l.id === prev) ? prev : pool[0]?.id ?? null
+          );
+        } else {
+          setSelectedImportListId(null);
+        }
+      })
+      .catch(() => setImportCatalog([]))
+      .finally(() => setImportCatalogLoading(false));
+  }, [addModal, activeLanguage]);
 
   useEffect(() => {
     const close = () => setMenuOpenId(null);
@@ -1394,8 +1431,14 @@ export function BibliothequeClient() {
                 <FileText size={20} stroke="white" />
               </div>
               <div className="min-w-0 flex-1">
-                <p id="bib-new-list-modal-title" style={{ color: "white", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>Nouvelle liste de mots</p>
-                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>Elle apparaîtra dans ta bibliothèque</p>
+                <p id="bib-new-list-modal-title" style={{ color: "white", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>
+                  {importDestMode === "existing" ? "Importer dans une liste" : "Nouvelle liste de mots"}
+                </p>
+                <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 12 }}>
+                  {importDestMode === "existing"
+                    ? "Ajoute des paires à une liste que tu as déjà"
+                    : "Elle apparaîtra dans ta bibliothèque"}
+                </p>
               </div>
               <button
                 type="button"
@@ -1410,6 +1453,41 @@ export function BibliothequeClient() {
 
             {/* Corps */}
             <div style={{ padding: "22px 24px" }}>
+              <div
+                className="mb-4 flex gap-2"
+                role="tablist"
+                aria-label="Destination de l'import"
+              >
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={importDestMode === "create"}
+                  onClick={() => setImportDestMode("create")}
+                  className="flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+                  style={{
+                    background: importDestMode === "create" ? "#6C3FC8" : "var(--background-subtle)",
+                    color: importDestMode === "create" ? "white" : "var(--foreground-muted)",
+                  }}
+                >
+                  Nouvelle liste
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={importDestMode === "existing"}
+                  onClick={() => setImportDestMode("existing")}
+                  className="flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+                  style={{
+                    background: importDestMode === "existing" ? "#6C3FC8" : "var(--background-subtle)",
+                    color: importDestMode === "existing" ? "white" : "var(--foreground-muted)",
+                  }}
+                >
+                  Liste existante
+                </button>
+              </div>
+
+              {importDestMode === "create" ? (
+              <>
               <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8 }}>
                 Langue
               </p>
@@ -1474,6 +1552,67 @@ export function BibliothequeClient() {
                 onBlur={(e) => { e.currentTarget.style.borderColor = "var(--input-border)"; e.currentTarget.style.background = "var(--input-bg)"; }}
               />
               <p style={{ fontSize: 11, color: "var(--foreground-disabled)", marginTop: 5 }}>Un nom précis t&apos;aidera à retrouver ta liste.</p>
+              </>
+              ) : importCatalogLoading ? (
+                <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "8px 0 0" }}>
+                  Chargement de tes listes…
+                </p>
+              ) : (() => {
+                const filtered = activeLanguage
+                  ? importCatalog.filter((l) => l.language === activeLanguage)
+                  : importCatalog;
+                const options = filtered.length > 0 ? filtered : importCatalog;
+                return options.length === 0 ? (
+                  <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "8px 0 0" }}>
+                    Tu n&apos;as pas encore de liste. Passe à « Nouvelle liste » pour en créer une.
+                  </p>
+                ) : (
+                  <>
+                    <p style={{ fontSize: 12, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--foreground-muted)", marginBottom: 8 }}>
+                      Liste de destination
+                    </p>
+                    {activeLanguage && filtered.length > 0 && (
+                      <p style={{ fontSize: 11, color: "var(--foreground-muted)", marginBottom: 8 }}>
+                        Listes en {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === activeLanguage)?.label ?? activeLanguage}
+                      </p>
+                    )}
+                    <ul
+                      className="max-h-[min(40vh,240px)] space-y-1.5 overflow-y-auto overscroll-contain pr-1"
+                      aria-label="Listes existantes"
+                    >
+                      {options.map((list) => {
+                        const selected = selectedImportListId === list.id;
+                        return (
+                          <li key={list.id}>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedImportListId(list.id)}
+                              className="flex w-full items-center gap-2.5 rounded-xl border px-3 py-2.5 text-left transition-colors"
+                              style={{
+                                borderColor: selected ? "#6C3FC8" : "var(--border)",
+                                background: selected ? "rgba(108, 63, 200, 0.1)" : "var(--background-card)",
+                                boxShadow: selected ? "0 0 0 1px rgba(108, 63, 200, 0.25)" : undefined,
+                                cursor: "pointer",
+                              }}
+                              aria-pressed={selected}
+                            >
+                              {list.language ? (
+                                <FlagDisplay langCode={list.language} size={18} />
+                              ) : null}
+                              <span
+                                className="min-w-0 flex-1 text-sm font-medium"
+                                style={{ color: selected ? "#4B3A9E" : "var(--foreground)" }}
+                              >
+                                {list.name}
+                              </span>
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                );
+              })()}
             </div>
 
             {/* Footer */}
@@ -1488,8 +1627,25 @@ export function BibliothequeClient() {
               </button>
               <button
                 type="button"
-                disabled={creatingFamily || !newListName.trim() || !newListLanguage.trim()}
+                disabled={
+                  importDestMode === "create"
+                    ? creatingFamily || !newListName.trim() || !newListLanguage.trim()
+                    : importCatalogLoading || !selectedImportListId
+                }
                 onClick={async () => {
+                  if (importDestMode === "existing") {
+                    const list = importCatalog.find((l) => l.id === selectedImportListId);
+                    if (!list) return;
+                    const params = new URLSearchParams();
+                    params.set("listId", list.id);
+                    params.set("name", list.name);
+                    if (list.language) params.set("lang", list.language);
+                    router.push(
+                      `/app/familles/${list.familyId}/nouvelle-liste?${params.toString()}`
+                    );
+                    setAddModal(null);
+                    return;
+                  }
                   if (creatingFamily || !newListName.trim()) return;
                   setCreatingFamily(true);
                   const listName = newListName.trim();
@@ -1513,7 +1669,11 @@ export function BibliothequeClient() {
                 style={{ fontSize: 13, fontWeight: 500, padding: 11, borderRadius: 10, border: "none", background: "#6C3FC8", color: "white", cursor: "pointer" }}
               >
                 <Plus size={14} stroke="white" />
-                {creatingFamily ? "Création…" : "Créer ma liste"}
+                {importDestMode === "existing"
+                  ? "Continuer"
+                  : creatingFamily
+                    ? "Création…"
+                    : "Créer ma liste"}
               </button>
             </div>
           </div>

@@ -6,6 +6,7 @@ import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
 import { FlagDisplay } from "@/components/flag-display";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
+import { saveWordsToExistingList } from "@/lib/vocab-list-save";
 import {
   Pencil,
   FileText,
@@ -77,6 +78,8 @@ export default function NouvelleListePage() {
   const langFromUrl = searchParams.get("lang")?.trim() || null;
   /** Nom de la liste passé depuis la modale (?name=xxx), prérempli en bas sur « Réviser les mots extraits ». */
   const listNameFromUrl = searchParams.get("name")?.trim() || null;
+  /** Liste existante choisie en amont (?listId=xxx) — ajout de mots sans créer de liste. */
+  const targetListId = searchParams.get("listId")?.trim() || null;
   const [method, setMethod] = useState<Method>(null);
   const [extractedItems, setExtractedItems] = useState<
     Array<{ term: string; definition: string }>
@@ -228,6 +231,8 @@ export default function NouvelleListePage() {
           source={method === "pdf" ? "pdf" : "ocr"}
           defaultLanguage={defaultListLanguage}
           defaultListName={listNameFromUrl}
+          targetListId={targetListId}
+          targetListName={listNameFromUrl}
           onSaved={onSaved}
           onCancel={() => setExtractedItems([])}
         />
@@ -247,13 +252,30 @@ export default function NouvelleListePage() {
         Retour
       </button>
 
+      {targetListId && listNameFromUrl && (
+        <div
+          className="mb-4 rounded-xl px-4 py-3"
+          style={{
+            background: "rgba(108, 63, 200, 0.08)",
+            border: "1px solid rgba(108, 63, 200, 0.18)",
+          }}
+        >
+          <p style={{ fontSize: 13, fontWeight: 500, color: "#4B3A9E", margin: 0 }}>
+            Ajout à la liste « {listNameFromUrl} »
+          </p>
+          <p style={{ fontSize: 12, color: "var(--foreground-muted)", margin: "4px 0 0" }}>
+            Les nouveaux mots seront ajoutés à cette liste existante.
+          </p>
+        </div>
+      )}
+
       {method !== "manual" && (
         <>
           <h1 className="mb-1" style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
             Comment veux-tu ajouter tes mots ?
           </h1>
           <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
-            Choisis un mode pour créer ta liste.
+            Choisis un mode pour {targetListId ? "compléter ta liste" : "créer ta liste"}.
           </p>
         </>
       )}
@@ -325,6 +347,7 @@ export default function NouvelleListePage() {
           familyId={familyId}
           defaultLanguage={defaultListLanguage}
           defaultListName={listNameFromUrl}
+          targetListId={targetListId}
           onBack={() => setMethod(null)}
         />
       )}
@@ -374,18 +397,27 @@ function FormManuel({
   familyId,
   defaultLanguage,
   defaultListName,
+  targetListId,
   onBack,
 }: {
   familyId: string;
   defaultLanguage: string | null;
   defaultListName?: string | null;
+  targetListId?: string | null;
   onBack: () => void;
 }) {
   const router = useRouter();
-  const [existingListId, setExistingListId] = useState<string | null>(null);
+  const importToExisting = Boolean(targetListId);
+  const [existingListId, setExistingListId] = useState<string | null>(
+    targetListId ?? null
+  );
   const [listName, setListName] = useState(defaultListName ?? "");
   const [listLanguage, setListLanguage] = useState(() => defaultLanguage ?? "");
   useEffect(() => {
+    if (targetListId) {
+      setExistingListId(targetListId);
+      return;
+    }
     let cancelled = false;
     (async () => {
       const res = await fetch(`/api/familles/${familyId}/listes`);
@@ -401,7 +433,7 @@ function FormManuel({
     return () => {
       cancelled = true;
     };
-  }, [familyId]);
+  }, [familyId, targetListId]);
   useEffect(() => {
     if (defaultListName && !listName) {
       setListName(defaultListName);
@@ -473,7 +505,7 @@ function FormManuel({
     e.preventDefault();
     setError("");
     const name = listName.trim();
-    if (!name) {
+    if (!importToExisting && !name) {
       setError("Donne un nom à la liste.");
       return;
     }
@@ -487,7 +519,13 @@ function FormManuel({
     setLoading(true);
     try {
       let listId = existingListId;
-      if (listId) {
+      if (importToExisting) {
+        if (!listId) {
+          setError("Liste de destination introuvable.");
+          setLoading(false);
+          return;
+        }
+      } else if (listId) {
         const patchRes = await fetch(`/api/listes/${listId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -520,23 +558,19 @@ function FormManuel({
         }
         listId = listData.id as string;
       }
-      const wordsRes = await fetch(`/api/listes/${listId}/mots/bulk`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ words }),
-      });
-      if (!wordsRes.ok) {
-        setError("Liste créée mais erreur lors de l’ajout des mots.");
+      if (!listId) {
+        setError("Liste introuvable.");
         setLoading(false);
         return;
       }
+      await saveWordsToExistingList(listId, words);
       const qs = listLanguage.trim()
         ? `?lang=${encodeURIComponent(listLanguage.trim())}`
         : "";
       router.push(`/app/familles${qs}`);
       router.refresh();
-    } catch {
-      setError("Erreur réseau");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Erreur réseau");
       setLoading(false);
     }
   }
@@ -585,12 +619,16 @@ function FormManuel({
           className="mb-1"
           style={{ fontSize: 20, fontWeight: 500, color: "#1F1235", lineHeight: 1.3 }}
         >
-          Saisis tes mots
+          {importToExisting ? "Ajoute tes mots" : "Saisis tes mots"}
         </h1>
         <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
-          Ajoute chaque mot et sa traduction.
+          {importToExisting
+            ? "Complète ta liste avec de nouvelles paires mot / traduction."
+            : "Ajoute chaque mot et sa traduction."}
         </p>
 
+        {!importToExisting ? (
+        <>
         <div className="mb-5">
           <label
             htmlFor="list-name-manual"
@@ -711,6 +749,21 @@ function FormManuel({
             </div>
           )}
         </div>
+        </>
+        ) : (
+          <div
+            className="mb-6 inline-flex items-center gap-2.5 rounded-xl px-3 py-2.5"
+            style={{
+              background: "rgba(108, 63, 200, 0.06)",
+              border: "1.5px solid rgba(108, 63, 200, 0.16)",
+            }}
+          >
+            {listLanguage ? <FlagDisplay langCode={listLanguage} size={22} /> : null}
+            <span style={{ fontSize: 14, fontWeight: 500, color: "#4B3A9E" }}>
+              {listName || defaultListName || "Liste existante"}
+            </span>
+          </div>
+        )}
 
         <div>
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -881,7 +934,7 @@ function FormManuel({
               cursor: "pointer",
             }}
           >
-            {loading ? "Enregistrement…" : "Enregistrer la liste"}
+            {loading ? "Enregistrement…" : importToExisting ? "Ajouter à la liste" : "Enregistrer la liste"}
           </button>
         </div>
       </form>

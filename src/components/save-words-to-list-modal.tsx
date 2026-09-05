@@ -9,15 +9,14 @@ import {
   KNOWN_LANGUAGE_CODES,
   PREFERRED_LANGUAGE_OPTIONS,
 } from "@/lib/language";
+import {
+  fetchExistingLists,
+  saveWordsToExistingList,
+  type SaveWordItem,
+  type VocabListOption,
+} from "@/lib/vocab-list-save";
 
-export type SaveWordItem = {
-  term: string;
-  definition: string;
-};
-
-type VocabList = { id: string; familyId: string; name: string };
-
-type SaveMode = "existing" | "create";
+export type { SaveWordItem };
 
 export type SaveWordsToListModalProps = {
   open: boolean;
@@ -32,18 +31,7 @@ export type SaveWordsToListModalProps = {
   newListSource?: "manual" | "ocr" | "pdf";
 };
 
-async function fetchExistingLists(): Promise<VocabList[]> {
-  const res = await fetch("/api/bibliotheque?sort=alpha");
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !Array.isArray(data.lists)) return [];
-  return data.lists.map(
-    (l: { id: string; familyId: string; name: string }) => ({
-      id: l.id,
-      familyId: l.familyId,
-      name: l.name,
-    })
-  );
-}
+type SaveMode = "existing" | "create";
 
 export function SaveWordsToListModal({
   open,
@@ -57,7 +45,7 @@ export function SaveWordsToListModal({
   const wordCount = words.length;
 
   const [loadingCatalog, setLoadingCatalog] = useState(false);
-  const [existingLists, setExistingLists] = useState<VocabList[]>([]);
+  const [existingLists, setExistingLists] = useState<VocabListOption[]>([]);
   const [mode, setMode] = useState<SaveMode>("existing");
   const [selectedListId, setSelectedListId] = useState<string | null>(null);
   const [createName, setCreateName] = useState("");
@@ -127,20 +115,7 @@ export function SaveWordsToListModal({
       : createName.trim().length > 0);
 
   const saveToExistingList = useCallback(
-    async (listId: string) => {
-      const res = await fetch(`/api/listes/${listId}/mots/bulk`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ words: normalizedWords }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        throw new Error(
-          typeof data.error === "string" ? data.error : "Erreur lors de l'enregistrement"
-        );
-      }
-      return typeof data.count === "number" ? data.count : normalizedWords.length;
-    },
+    async (listId: string) => saveWordsToExistingList(listId, normalizedWords),
     [normalizedWords]
   );
 
