@@ -13,8 +13,15 @@ export interface SessionEndScreenProps {
   wordsSeen: number;
   wordsRetained: number;
   wordsWritten?: number;
-  durationStr: string;
+  xpGained?: number;
+  durationStr?: string;
   mode: "flashcard" | "dictee";
+  variant?: "normal" | "sandbox";
+  /** Nombre de mots ratés proposés au rattrapage (session normale). */
+  failedCount?: number;
+  onReplayFailed?: () => void;
+  /** Nombre de mots maîtrisés en fin de rattrapage. */
+  sandboxWordCount?: number;
   onNewSession: () => void;
   onHome: () => void;
 }
@@ -109,15 +116,25 @@ export default function SessionEndScreen({
   wordsSeen,
   wordsRetained,
   wordsWritten,
+  xpGained,
   durationStr,
   mode,
+  variant = "normal",
+  failedCount = 0,
+  onReplayFailed,
+  sandboxWordCount = 0,
   onNewSession,
   onHome,
 }: SessionEndScreenProps) {
+  const isSandbox = variant === "sandbox";
   const percent =
     wordsSeen > 0 ? Math.round((wordsRetained / wordsSeen) * 100) : 0;
-  const badge = performanceBadge(percent);
-  const showConfetti = percent > 80;
+  const badge = performanceBadge(isSandbox ? 100 : percent);
+  const showConfetti = isSandbox || percent > 80;
+  const replayLabel =
+    failedCount === 1
+      ? "Rejoue ton mot raté"
+      : `Rejoue tes ${failedCount} mots ratés`;
 
   return (
     <div
@@ -164,78 +181,95 @@ export default function SessionEndScreen({
               color: "#1a1a2e",
             }}
           >
-            Session terminée !
+            {isSandbox
+              ? `Tu as maîtrisé tes ${sandboxWordCount} mot${sandboxWordCount !== 1 ? "s" : ""} raté${sandboxWordCount !== 1 ? "s" : ""} !`
+              : "Session terminée !"}
           </h1>
 
-          <span
-            className="mt-3 inline-flex border font-medium"
-            style={{
-              marginTop: 12,
-              paddingLeft: 14,
-              paddingRight: 14,
-              paddingTop: 6,
-              paddingBottom: 6,
-              borderRadius: 20,
-              borderWidth: 1,
-              borderStyle: "solid",
-              borderColor: badge.border,
-              backgroundColor: badge.bg,
-              color: badge.text,
-              fontSize: 15,
-              fontWeight: 500,
-            }}
-          >
-            {badge.label}
-          </span>
+          {!isSandbox ? (
+            <>
+              <span
+                className="mt-3 inline-flex border font-medium"
+                style={{
+                  marginTop: 12,
+                  paddingLeft: 14,
+                  paddingRight: 14,
+                  paddingTop: 6,
+                  paddingBottom: 6,
+                  borderRadius: 20,
+                  borderWidth: 1,
+                  borderStyle: "solid",
+                  borderColor: badge.border,
+                  backgroundColor: badge.bg,
+                  color: badge.text,
+                  fontSize: 15,
+                  fontWeight: 500,
+                }}
+              >
+                {badge.label}
+              </span>
 
-          <p
-            className="mt-2 text-center font-normal"
-            style={{ fontSize: 13, color: "#6B7280", fontWeight: 400 }}
-          >
-            {wordsSeen > 0
-              ? `(${wordsRetained} / ${wordsSeen} mots maîtrisés)`
-              : "(0 mots maîtrisés)"}
-          </p>
-          {mode === "dictee" && (
+              <p
+                className="mt-2 text-center font-normal"
+                style={{ fontSize: 13, color: "#6B7280", fontWeight: 400 }}
+              >
+                {wordsSeen > 0
+                  ? `(${wordsRetained} / ${wordsSeen} mots maîtrisés)`
+                  : "(0 mots maîtrisés)"}
+              </p>
+              {mode === "dictee" && (
+                <p
+                  className="mt-1 text-center font-normal"
+                  style={{ fontSize: 13, color: "#6B7280", fontWeight: 400 }}
+                >
+                  ({typeof wordsWritten === "number" ? wordsWritten : 0} mots écrits)
+                </p>
+              )}
+
+              {typeof xpGained === "number" ? (
+                <div className="mt-5 flex flex-col items-center" style={{ marginTop: 20 }}>
+                  <p
+                    className="font-medium"
+                    style={{
+                      fontSize: 48,
+                      fontWeight: 500,
+                      color: "#C4B5FD",
+                      lineHeight: 1.1,
+                    }}
+                  >
+                    +{xpGained} XP
+                  </p>
+                  <p
+                    className="mt-1 text-center font-normal"
+                    style={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}
+                  >
+                    points d&apos;expérience gagnés
+                  </p>
+                </div>
+              ) : null}
+
+              {durationStr ? (
+                <p
+                  className="mt-3 font-normal"
+                  style={{
+                    marginTop: 12,
+                    fontSize: 15,
+                    color: "#6B7280",
+                    fontWeight: 400,
+                  }}
+                >
+                  ⏱ {durationStr}
+                </p>
+              ) : null}
+            </>
+          ) : (
             <p
-              className="mt-1 text-center font-normal"
-              style={{ fontSize: 13, color: "#6B7280", fontWeight: 400 }}
+              className="mt-3 text-center font-normal"
+              style={{ fontSize: 13, color: "var(--foreground-muted)", fontWeight: 400 }}
             >
-              ({typeof wordsWritten === "number" ? wordsWritten : 0} mots écrits)
+              Entraînement — ne compte pas dans ta progression.
             </p>
           )}
-
-          <div className="mt-5 flex flex-col items-center" style={{ marginTop: 20 }}>
-            <p
-              className="font-medium"
-              style={{
-                fontSize: 48,
-                fontWeight: 500,
-                color: "#C4B5FD",
-                lineHeight: 1.1,
-              }}
-            >
-              — XP
-            </p>
-            <p
-              className="mt-1 text-center font-normal"
-              style={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}
-            >
-              points d&apos;expérience — bientôt disponible
-            </p>
-          </div>
-
-          <p
-            className="mt-3 font-normal"
-            style={{
-              marginTop: 12,
-              fontSize: 15,
-              color: "#6B7280",
-              fontWeight: 400,
-            }}
-          >
-            ⏱ {durationStr}
-          </p>
 
           <div
             className="flex w-full flex-col"
@@ -261,27 +295,54 @@ export default function SessionEndScreen({
             >
               Accueil
             </button>
-            <button
-              type="button"
-              onClick={onNewSession}
-              className="w-full border-2 bg-transparent font-medium transition-colors duration-200"
-              style={{
-                borderColor: VIOLET,
-                color: VIOLET,
-                padding: 12,
-                borderRadius: 20,
-                fontSize: 15,
-                fontWeight: 500,
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#EDE9FD";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "transparent";
-              }}
-            >
-              Nouvelle session
-            </button>
+            {!isSandbox ? (
+              <>
+                <button
+                  type="button"
+                  onClick={onNewSession}
+                  className="w-full border-2 bg-transparent font-medium transition-colors duration-200"
+                  style={{
+                    borderColor: VIOLET,
+                    color: VIOLET,
+                    padding: 12,
+                    borderRadius: 20,
+                    fontSize: 15,
+                    fontWeight: 500,
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = "#EDE9FD";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                >
+                  Nouvelle session
+                </button>
+                {failedCount > 0 && onReplayFailed ? (
+                  <button
+                    type="button"
+                    onClick={onReplayFailed}
+                    className="w-full border-2 bg-transparent font-medium transition-colors duration-200"
+                    style={{
+                      borderColor: "var(--border)",
+                      color: "var(--foreground-muted)",
+                      padding: 12,
+                      borderRadius: 20,
+                      fontSize: 15,
+                      fontWeight: 500,
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = "var(--hover-bg)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = "transparent";
+                    }}
+                  >
+                    {replayLabel}
+                  </button>
+                ) : null}
+              </>
+            ) : null}
           </div>
         </div>
       </div>

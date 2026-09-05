@@ -4,6 +4,10 @@ import { useState, useEffect, useCallback, type CSSProperties } from "react";
 import Link from "next/link";
 import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
+import {
+  computeTotalXP,
+  computeLevelFromXP,
+} from "@/lib/xp";
 import type { LucideIcon } from "lucide-react";
 import {
   Star,
@@ -224,8 +228,12 @@ function computeXP(data: SyntheseData): { xp: number; level: number } {
     (a, x) => a + x.count,
     0
   );
-  const xp = data.wordsRetained * 5 + totalSessions * 20 + data.wordsWritten * 3;
-  const level = Math.max(1, Math.min(6, Math.floor(xp / 1000) + 1));
+  const xp = computeTotalXP({
+    wordsRetained: data.wordsRetained,
+    wordsWritten: data.wordsWritten,
+    sessionCount: totalSessions,
+  });
+  const level = computeLevelFromXP(xp);
   return { xp, level };
 }
 

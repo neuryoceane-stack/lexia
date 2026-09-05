@@ -14,6 +14,7 @@ import {
   Lightbulb,
 } from "lucide-react";
 import SessionEndScreen from "@/components/student/SessionEndScreen";
+import { computeSessionXP } from "@/lib/xp";
 import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
 import {
@@ -132,7 +133,43 @@ export function RevisionClient({
   const dicteeInputRef = useRef<HTMLInputElement>(null);
   const [showEndRecap, setShowEndRecap] = useState(false);
   const [endSessionDurationSeconds, setEndSessionDurationSeconds] = useState(0);
+  const [failedWords, setFailedWords] = useState<DueWord[]>([]);
+  const [isSandboxSession, setIsSandboxSession] = useState(false);
+  const [successStreak, setSuccessStreak] = useState<Record<string, number>>({});
+  const [sandboxMasteredCount, setSandboxMasteredCount] = useState(0);
+  const [sandboxTotalWords, setSandboxTotalWords] = useState(0);
   const current = words[index];
+
+  const addFailedWord = useCallback((word: DueWord) => {
+    setFailedWords((prev) =>
+      prev.some((w) => w.id === word.id) ? prev : [...prev, word]
+    );
+  }, []);
+
+  const resetSandboxState = useCallback(() => {
+    setIsSandboxSession(false);
+    setSuccessStreak({});
+    setSandboxMasteredCount(0);
+    setSandboxTotalWords(0);
+    setFailedWords([]);
+  }, []);
+
+  const applySandboxOutcome = useCallback((word: DueWord, success: boolean) => {
+    const id = word.id;
+    setSuccessStreak((prev) => {
+      const nextStreak = success ? (prev[id] ?? 0) + 1 : 0;
+      if (success && nextStreak >= 2) {
+        setSandboxMasteredCount((c) => c + 1);
+        setWords((w) => w.filter((x) => x.id !== id));
+      } else {
+        setWords((w) => {
+          const rest = w.filter((x) => x.id !== id);
+          return [...rest, word];
+        });
+      }
+      return { ...prev, [id]: success ? nextStreak : 0 };
+    });
+  }, []);
 
   const [memoTip, setMemoTip] = useState<string>("");
   const [memoInput, setMemoInput] = useState<string>("");
@@ -303,6 +340,7 @@ export function RevisionClient({
   }, [mode, words.length, laterWords.length]);
 
   useEffect(() => {
+    if (isSandboxSession) return;
     if (
       words.length > 0 ||
       laterWords.length > 0 ||
@@ -333,6 +371,7 @@ export function RevisionClient({
       }),
     }).finally(() => setShowEndRecap(true));
   }, [
+    isSandboxSession,
     words.length,
     laterWords.length,
     sessionTotalWords,
@@ -342,6 +381,8 @@ export function RevisionClient({
     wordsSeen,
     wordsRetained,
     wordsWritten,
+    lists,
+    selectedListIds,
   ]);
 
   const applySessionWords = useCallback((w: DueWord[]) => {
@@ -362,6 +403,16 @@ export function RevisionClient({
     hasSavedEndOfSession.current = false;
     setShowEndRecap(false);
   }, []);
+
+  const startReplayFailed = useCallback(() => {
+    if (failedWords.length === 0) return;
+    setShowEndRecap(false);
+    setIsSandboxSession(true);
+    setSuccessStreak({});
+    setSandboxMasteredCount(0);
+    setSandboxTotalWords(failedWords.length);
+    applySessionWords([...failedWords]);
+  }, [failedWords, applySessionWords]);
 
   const loadSessionWords = useCallback(async () => {
     if (selectedListIds.size === 0) return;
@@ -400,6 +451,24 @@ export function RevisionClient({
   async function recordDicteeCompletion(rating: 0 | 2 | 3) {
     if (!current || sending) return;
     const success = rating >= 2;
+    if (isSandboxSession) {
+      setSending(true);
+      setError("");
+      try {
+        applySandboxOutcome(current, success);
+        setWriteAnswer("");
+        setDicteePhase("typing");
+        setDicteeHadRetry(false);
+        setLastWrongAnswer("");
+        setIndex(0);
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+    if (rating === 0) {
+      addFailedWord(current);
+    }
     setSending(true);
     setError("");
     try {
@@ -436,6 +505,23 @@ export function RevisionClient({
     playEvalFeedback(lexivaFlash === 5);
     const sm2Rating = lexivaFlash === 5 ? 3 : lexivaFlash === 3 ? 2 : 1;
     const success = sm2Rating >= 2;
+    if (isSandboxSession) {
+      setSending(true);
+      setError("");
+      try {
+        applySandboxOutcome(current, success);
+        setRevealed(false);
+        setIndex(0);
+        setHintsUsed(0);
+        setHintPenalty(0);
+      } finally {
+        setSending(false);
+      }
+      return;
+    }
+    if (lexivaFlash === 1) {
+      addFailedWord(current);
+    }
     setSending(true);
     setError("");
     try {
@@ -477,7 +563,7 @@ export function RevisionClient({
 
   /** Sauvegarde l’astuce mémo du mot courant (POST /api/memo-tip) puis ferme le popover. */
   async function saveMemoTip() {
-    if (!current) return;
+    if (!current || isSandboxSession) return;
     const tip = memoInput.trim();
     setMemoLoading(true);
     try {
@@ -497,6 +583,13 @@ export function RevisionClient({
 
   /** Sauvegarde la session en cours puis retourne à l’écran de sélection des listes. */
   async function saveSessionAndGoBack() {
+    if (isSandboxSession) {
+      resetSandboxState();
+      setWords([]);
+      setSessionStart(null);
+      goToPicker(true);
+      return;
+    }
     if (sessionStart) {
       const endedAt = Date.now();
       const durationSeconds = Math.round((endedAt - sessionStart) / 1000);
@@ -525,6 +618,13 @@ export function RevisionClient({
 
   /** Sauvegarde la session puis navigation vers l’évaluation (sans modifier les autres routes). */
   async function saveSessionAndNavigateToEvaluation() {
+    if (isSandboxSession) {
+      resetSandboxState();
+      setWords([]);
+      setSessionStart(null);
+      goToPicker(true);
+      return;
+    }
     if (sessionStart) {
       const endedAt = Date.now();
       const durationSeconds = Math.round((endedAt - sessionStart) / 1000);
@@ -581,6 +681,24 @@ export function RevisionClient({
     );
   }
     if (words.length === 0 && laterWords.length === 0) {
+      if (isSandboxSession && sandboxTotalWords > 0 && sessionStart) {
+        return (
+          <SessionEndScreen
+            wordsSeen={sandboxTotalWords}
+            wordsRetained={sandboxMasteredCount}
+            mode={mode}
+            variant="sandbox"
+            sandboxWordCount={sandboxTotalWords}
+            onNewSession={() => {}}
+            onHome={() => {
+              resetSandboxState();
+              setWords([]);
+              setSessionStart(null);
+              router.push("/app");
+            }}
+          />
+        );
+      }
       if (showEndRecap) {
         const durationMin = Math.floor(endSessionDurationSeconds / 60);
         const durationSec = endSessionDurationSeconds % 60;
@@ -595,8 +713,14 @@ export function RevisionClient({
             wordsSeen={wordsSeen}
             wordsRetained={wordsRetained}
             wordsWritten={mode === "dictee" ? wordsWritten : undefined}
+            xpGained={computeSessionXP({
+              wordsRetained,
+              wordsWritten: mode === "dictee" ? wordsWritten : 0,
+            })}
             durationStr={durationStr}
             mode={mode}
+            failedCount={failedWords.length}
+            onReplayFailed={startReplayFailed}
             onNewSession={() => goToPicker(false)}
             onHome={() => router.push("/app")}
           />
@@ -777,12 +901,19 @@ export function RevisionClient({
     }
 
     if (mode === "flashcard") {
-      const flashWordsDone = sessionTotalWords - words.length;
+      const flashWordsDone = isSandboxSession
+        ? sandboxMasteredCount
+        : sessionTotalWords - words.length;
+      const flashProgressTotal = isSandboxSession
+        ? sandboxTotalWords
+        : sessionTotalWords;
       const flashProgressPct =
-        sessionTotalWords > 0
-          ? Math.min(100, (flashWordsDone / sessionTotalWords) * 100)
+        flashProgressTotal > 0
+          ? Math.min(100, (flashWordsDone / flashProgressTotal) * 100)
           : 0;
-      const flashSlotLabel = `${Math.min(flashWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
+      const flashSlotLabel = isSandboxSession
+        ? `${sandboxMasteredCount} / ${sandboxTotalWords} maîtrisés`
+        : `${Math.min(flashWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
 
       const revealHint =
         direction === "term_to_def"
@@ -1180,12 +1311,19 @@ export function RevisionClient({
       );
     }
 
-    const dicteeWordsDone = sessionTotalWords - words.length;
+    const dicteeWordsDone = isSandboxSession
+      ? sandboxMasteredCount
+      : sessionTotalWords - words.length;
+    const dicteeProgressTotal = isSandboxSession
+      ? sandboxTotalWords
+      : sessionTotalWords;
     const dicteeProgressPct =
-      sessionTotalWords > 0
-        ? Math.min(100, (dicteeWordsDone / sessionTotalWords) * 100)
+      dicteeProgressTotal > 0
+        ? Math.min(100, (dicteeWordsDone / dicteeProgressTotal) * 100)
         : 0;
-    const dicteeSlotLabel = `${Math.min(dicteeWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
+    const dicteeSlotLabel = isSandboxSession
+      ? `${sandboxMasteredCount} / ${sandboxTotalWords} maîtrisés`
+      : `${Math.min(dicteeWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
 
     const dicteeAnswerLabel =
       direction === "term_to_def"
