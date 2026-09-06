@@ -1485,23 +1485,25 @@ export function RevisionClient({
                         : "0 4px 20px rgba(108, 63, 200, 0.08)",
                   }}
                 >
-                  <div className="relative px-3.5 py-3 md:px-5 md:py-6">
-                    <p
-                      className="w-full break-words text-center text-[clamp(18px,4.8vw,24px)] font-medium leading-snug max-md:pr-[76px] md:pr-[84px] md:text-[32px] md:leading-tight"
-                      style={{ color: wordCardColors.wordColor }}
-                    >
-                      {displayText}
-                    </p>
-                    <div
-                      className="absolute right-3.5 top-1/2 flex -translate-y-1/2 items-center gap-1.5 md:right-5"
-                      aria-label="Actions sur le mot"
-                    >
-                      <SpeakButton
-                        text={displayText}
-                        lang={displayLang}
-                        variant="tile"
-                      />
-                      {renderMemoTipButton(12, "inline")}
+                  <div className="px-3.5 py-3 md:px-5 md:py-6">
+                    <div className="grid grid-cols-1 grid-rows-1 items-center">
+                      <p
+                        className="col-start-1 row-start-1 z-0 mx-auto w-full max-w-[calc(100%-5.5rem)] break-words text-center text-[clamp(16px,4.5vw,24px)] font-medium leading-snug [text-wrap:balance] md:text-[32px] md:leading-tight"
+                        style={{ color: wordCardColors.wordColor }}
+                      >
+                        {displayText}
+                      </p>
+                      <div
+                        className="col-start-1 row-start-1 z-10 flex items-center gap-1.5 justify-self-end self-center"
+                        aria-label="Actions sur le mot"
+                      >
+                        <SpeakButton
+                          text={displayText}
+                          lang={displayLang}
+                          variant="tile"
+                        />
+                        {renderMemoTipButton(12, "inline")}
+                      </div>
                     </div>
                   </div>
                 </div>
