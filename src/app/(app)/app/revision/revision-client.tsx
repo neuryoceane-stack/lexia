@@ -1485,25 +1485,23 @@ export function RevisionClient({
                         : "0 4px 20px rgba(108, 63, 200, 0.08)",
                   }}
                 >
-                  <div className="px-3.5 py-3 md:px-5 md:py-6">
-                    <div className="grid grid-cols-1 grid-rows-1 items-center">
-                      <p
-                        className="col-start-1 row-start-1 z-0 mx-auto w-full max-w-[calc(100%-5.5rem)] break-words text-center text-[clamp(16px,4.5vw,24px)] font-medium leading-snug [text-wrap:balance] md:text-[32px] md:leading-tight"
-                        style={{ color: wordCardColors.wordColor }}
-                      >
-                        {displayText}
-                      </p>
-                      <div
-                        className="col-start-1 row-start-1 z-10 flex items-center gap-1.5 justify-self-end self-center"
-                        aria-label="Actions sur le mot"
-                      >
-                        <SpeakButton
-                          text={displayText}
-                          lang={displayLang}
-                          variant="tile"
-                        />
-                        {renderMemoTipButton(12, "inline")}
-                      </div>
+                  <div className="flex items-start gap-2.5 px-3.5 py-3 md:gap-3 md:px-5 md:py-6">
+                    <p
+                      className="min-w-0 flex-1 break-words text-center text-[clamp(16px,4.5vw,24px)] font-medium leading-snug [text-wrap:balance] md:text-[32px] md:leading-tight"
+                      style={{ color: wordCardColors.wordColor }}
+                    >
+                      {displayText}
+                    </p>
+                    <div
+                      className="flex w-[72px] shrink-0 items-center justify-end gap-1.5 pt-0.5"
+                      aria-label="Actions sur le mot"
+                    >
+                      <SpeakButton
+                        text={displayText}
+                        lang={displayLang}
+                        variant="tile"
+                      />
+                      {renderMemoTipButton(12, "inline")}
                     </div>
                   </div>
                 </div>
