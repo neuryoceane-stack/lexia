@@ -132,8 +132,10 @@ export function RevisionClient({
     defLang: string;
   } | null>(null);
   const hasSavedEndOfSession = useRef(false);
-  /** Champ de saisie dictée : focus automatique après validation ou « Réessayer ». */
+  /** Champ de saisie dictée : focus automatique entre les mots. */
   const dicteeInputRef = useRef<HTMLInputElement>(null);
+  /** iOS : le clavier ne s'ouvre programmatiquement qu'après une interaction utilisateur. */
+  const dicteeUserEngagedRef = useRef(false);
   const [showEndRecap, setShowEndRecap] = useState(false);
   const [endSessionDurationSeconds, setEndSessionDurationSeconds] = useState(0);
   const [failedWords, setFailedWords] = useState<DueWord[]>([]);
@@ -261,15 +263,6 @@ export function RevisionClient({
         setMemoInput("");
       });
   }, [current?.id]);
-
-  /** En dictée : focus sur le champ en phase saisie (y compris après « Réessayer »). */
-  useEffect(() => {
-    if (mode !== "dictee" || !current || dicteePhase !== "typing") return;
-    const t = requestAnimationFrame(() => {
-      dicteeInputRef.current?.focus({ preventScroll: true });
-    });
-    return () => cancelAnimationFrame(t);
-  }, [mode, current?.id, dicteePhase]);
 
   /** Dictée mobile : layout fixe calé sur le visualViewport + pas de scroll document. */
   useEffect(() => {
@@ -439,9 +432,46 @@ export function RevisionClient({
     setDicteePhase("typing");
     setDicteeHadRetry(false);
     setLastWrongAnswer("");
+    dicteeUserEngagedRef.current = false;
     hasSavedEndOfSession.current = false;
     setShowEndRecap(false);
   }, []);
+
+  const markDicteeInputEngaged = useCallback(() => {
+    dicteeUserEngagedRef.current = true;
+  }, []);
+
+  const focusDicteeInput = useCallback(() => {
+    const attempt = () => {
+      const el = dicteeInputRef.current;
+      if (!el || el.disabled) return;
+      try {
+        el.focus({ preventScroll: true });
+      } catch {
+        // Certains navigateurs mobiles ignorent focus() sans geste utilisateur préalable.
+      }
+    };
+    requestAnimationFrame(() => {
+      requestAnimationFrame(attempt);
+    });
+  }, []);
+
+  /** Dictée : focus auto du champ à chaque mot (phase saisie), clavier maintenu après 1ère interaction. */
+  useEffect(() => {
+    if (mode !== "dictee" || !current || dicteePhase !== "typing" || sending) return;
+
+    const isMobile =
+      typeof window !== "undefined" &&
+      window.matchMedia("(max-width: 767px)").matches;
+    if (isMobile && !dicteeUserEngagedRef.current) return;
+
+    focusDicteeInput();
+
+    if (!isMobile) return;
+
+    const retry = window.setTimeout(focusDicteeInput, 120);
+    return () => window.clearTimeout(retry);
+  }, [mode, current?.id, dicteePhase, sending, focusDicteeInput]);
 
   const startReplayFailed = useCallback(() => {
     if (failedWords.length === 0) return;
@@ -804,11 +834,13 @@ export function RevisionClient({
       lang,
       className = "",
       stopPropagation = false,
+      variant = "default",
     }: {
       text: string;
       lang: string;
       className?: string;
       stopPropagation?: boolean;
+      variant?: "default" | "tile";
     }) => (
       <button
         type="button"
@@ -816,22 +848,45 @@ export function RevisionClient({
           if (stopPropagation) e.stopPropagation();
           speakWord(text, lang);
         }}
-        className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--background-subtle)] text-[var(--foreground-muted)] transition hover:bg-[var(--background-card)] ${className}`}
+        className={
+          variant === "tile"
+            ? `inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition hover:brightness-95 ${className}`
+            : `inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--background-subtle)] text-[var(--foreground-muted)] transition hover:bg-[var(--background-card)] ${className}`
+        }
+        style={
+          variant === "tile"
+            ? {
+                background: "#F0EDF8",
+                border: "0.5px solid #DDD6F5",
+              }
+            : undefined
+        }
         aria-label="Écouter la prononciation"
       >
-        <span aria-hidden>🔊</span>
+        {variant === "tile" ? (
+          <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#6C3FC8]" aria-hidden />
+        ) : (
+          <span aria-hidden>🔊</span>
+        )}
       </button>
     );
 
     /**
-     * Bouton « ampoule » + popover d’astuce mémo, positionné en absolu dans le
-     * coin haut-droit de la carte. Rendu via appel de fonction (et non `<Comp/>`)
-     * pour conserver le focus du textarea entre les rendus.
-     * @param right décalage horizontal (px) pour ne pas chevaucher le bouton audio.
+     * Bouton « ampoule » + popover d’astuce mémo.
+     * @param right décalage horizontal (px) en mode absolute.
+     * @param layout absolute = coin carte flashcards ; inline = colonne d’icônes dictée.
      */
-    const renderMemoTipButton = (right = 12) => (
+    const renderMemoTipButton = (
+      right = 12,
+      layout: "absolute" | "inline" = "absolute"
+    ) => (
       <div
-        style={{ position: "absolute", top: 12, right, zIndex: 40 }}
+        className={layout === "inline" ? "relative z-40" : undefined}
+        style={
+          layout === "absolute"
+            ? { position: "absolute", top: 12, right, zIndex: 40 }
+            : undefined
+        }
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -862,8 +917,9 @@ export function RevisionClient({
             style={{
               position: "absolute",
               top: 40,
-              right: 0,
+              right: layout === "inline" ? -4 : 0,
               width: 230,
+              maxWidth: "calc(100vw - 48px)",
               background: "#FFFFFF",
               border: "0.5px solid #E2DAF2",
               borderRadius: 14,
@@ -1415,6 +1471,8 @@ export function RevisionClient({
         : {}),
     };
 
+    const dicteeKeyboardOpen = visualViewportLayout.keyboardInset > 0;
+
     return (
       <div
         className="flex flex-col md:min-h-[50vh] md:overflow-visible max-md:fixed max-md:left-0 max-md:right-0 max-md:z-20 max-md:overflow-hidden"
@@ -1425,7 +1483,7 @@ export function RevisionClient({
           className="fixed inset-0 -z-10"
           style={{ background: "#F8F7FF" }}
         />
-        <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden max-md:px-4 max-md:pt-4 max-md:pb-3 md:h-auto md:overflow-visible md:px-0 md:pt-0 md:pb-0">
+        <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden max-md:pt-4 max-md:pl-4 max-md:pr-[max(80px,calc(16px+env(safe-area-inset-right,0px)))] md:h-auto md:overflow-visible md:px-0 md:pt-0 md:pb-0">
           {error ? (
             <p
               className="mb-3 shrink-0 rounded-xl px-3 py-2 text-sm text-red-700"
@@ -1437,7 +1495,7 @@ export function RevisionClient({
           ) : null}
 
           <div
-            className="flex shrink-0 items-center max-md:mb-3 md:mb-6"
+            className="flex shrink-0 items-center max-md:mb-4 md:mb-6"
             style={{ gap: 12 }}
           >
             <button
@@ -1445,41 +1503,40 @@ export function RevisionClient({
               onClick={() => {
                 void saveSessionAndNavigateToEvaluation();
               }}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0"
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border-0 bg-transparent px-0 py-1 transition hover:opacity-80"
               style={{
                 fontSize: 12,
+                fontWeight: 500,
                 color: "var(--foreground-muted)",
               }}
             >
-              <X className="h-3 w-3 shrink-0" aria-hidden />
+              <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
               Quitter
             </button>
 
             <div className="min-w-0 flex-1">
               <div
-                className="overflow-hidden"
+                className="overflow-hidden rounded-full"
                 style={{
-                  height: 6,
-                  background: "var(--background-subtle)",
-                  borderRadius: 3,
+                  height: 4,
+                  background: "rgba(108, 63, 200, 0.1)",
                 }}
               >
                 <div
+                  className="h-full rounded-full"
                   style={{
-                    height: "100%",
                     width: `${dicteeProgressPct}%`,
                     background: "#6C3FC8",
-                    borderRadius: 3,
                     transition: "width 400ms ease",
                   }}
                 />
               </div>
               <p
-                className="mt-1 text-right"
+                className="mt-1.5 text-right"
                 style={{
                   fontSize: 11,
+                  fontWeight: 500,
                   color: "var(--foreground-muted)",
-                  marginTop: 4,
                 }}
               >
                 {dicteeSlotLabel}
@@ -1487,11 +1544,10 @@ export function RevisionClient({
             </div>
 
             <div
-              className="flex shrink-0 items-center gap-[5px]"
+              className="flex shrink-0 items-center gap-1 rounded-[10px] px-2.5 py-1.5"
               style={{
                 background: "#EAF4EF",
-                borderRadius: 10,
-                padding: "5px 10px",
+                border: "0.5px solid #C3E6D6",
               }}
             >
               <Check
@@ -1499,7 +1555,7 @@ export function RevisionClient({
                 stroke="#1D9E75"
                 aria-hidden
               />
-              <span style={{ fontSize: 13, fontWeight: 500, color: "#1D9E75" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#1D9E75" }}>
                 {wordsRetained}
               </span>
               <span style={{ fontSize: 11, color: "#1D9E75" }}>bons</span>
@@ -1507,43 +1563,53 @@ export function RevisionClient({
           </div>
 
           {current ? (
-            <div className="flex min-h-0 shrink-0 flex-col gap-3 max-md:gap-2.5 md:gap-5">
-              <div
-                className="relative shrink-0 text-center max-md:py-3.5 max-md:px-3 md:py-9 md:px-5"
-                style={{
-                  background: wordCardColors.background,
-                  borderRadius: 16,
-                  borderWidth: 0.5,
-                  borderStyle: "solid",
-                  borderColor: wordCardColors.borderColor,
-                }}
-              >
-                {renderMemoTipButton(12)}
-                <div className="flex items-center justify-center gap-2">
-                  <p
-                    className="text-[24px] leading-tight md:text-[36px]"
-                    style={{
-                      fontWeight: 500,
-                      color: wordCardColors.wordColor,
-                    }}
-                  >
-                    {displayText}
-                  </p>
-                  <SpeakButton text={displayText} lang={displayLang} />
+            <div
+              className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
+                dicteeKeyboardOpen ? "justify-start" : "max-md:justify-center md:justify-start"
+              }`}
+            >
+              <div className="flex shrink-0 flex-col gap-4 max-md:gap-3 md:gap-5 max-md:pb-[max(64px,calc(56px+env(safe-area-inset-bottom,0px)))]">
+                <div
+                  className="relative shrink-0 overflow-hidden rounded-2xl md:rounded-[18px]"
+                  style={{
+                    background: wordCardColors.background,
+                    borderWidth: 0.5,
+                    borderStyle: "solid",
+                    borderColor: wordCardColors.borderColor,
+                    boxShadow:
+                      dicteePhase === "correct_feedback" ||
+                      dicteePhase === "wrong_unrevealed" ||
+                      dicteePhase === "revealed_fail"
+                        ? "none"
+                        : "0 4px 20px rgba(108, 63, 200, 0.08)",
+                  }}
+                >
+                  <div className="flex items-start gap-3 px-4 py-4 md:gap-4 md:px-5 md:py-8">
+                    <p
+                      className="min-w-0 flex-1 break-words text-center text-[clamp(18px,4.8vw,24px)] font-medium leading-snug md:text-[32px] md:leading-tight"
+                      style={{ color: wordCardColors.wordColor }}
+                    >
+                      {displayText}
+                    </p>
+                    <div
+                      className="flex w-9 shrink-0 flex-col items-center gap-1.5 pt-0.5"
+                      aria-label="Actions sur le mot"
+                    >
+                      {renderMemoTipButton(12, "inline")}
+                      <SpeakButton
+                        text={displayText}
+                        lang={displayLang}
+                        variant="tile"
+                      />
+                    </div>
+                  </div>
                 </div>
-              </div>
 
               {dicteePhase === "typing" && (
                 <div className="shrink-0">
                   <label
-                    className="mb-1.5 block text-center md:mb-2"
-                    style={{
-                      fontSize: 11,
-                      fontWeight: 500,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.05em",
-                      color: "var(--foreground-muted)",
-                    }}
+                    className="mb-2 block text-center text-[13px] font-medium md:text-sm"
+                    style={{ color: "var(--foreground-muted)" }}
                   >
                     {dicteeAnswerLabel}
                   </label>
@@ -1551,7 +1617,12 @@ export function RevisionClient({
                     ref={dicteeInputRef}
                     type="text"
                     value={writeAnswer}
-                    onChange={(e) => setWriteAnswer(e.target.value)}
+                    onChange={(e) => {
+                      markDicteeInputEngaged();
+                      setWriteAnswer(e.target.value);
+                    }}
+                    onFocus={markDicteeInputEngaged}
+                    onPointerDown={markDicteeInputEngaged}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") validateDictee();
                     }}
@@ -1560,17 +1631,14 @@ export function RevisionClient({
                     autoComplete="off"
                     autoCorrect="off"
                     spellCheck={false}
-                    className="w-full bg-white text-center outline-none focus:ring-0 max-md:py-3 max-md:text-lg md:py-3.5 md:text-xl"
+                    className="mb-3 w-full rounded-xl border border-[#DDD6F5] bg-white text-center outline-none transition-[border-color,box-shadow] focus:border-[#6C3FC8] focus:shadow-[0_0_0_3px_rgba(108,63,200,0.12)] max-md:py-3 max-md:text-lg md:mb-3.5 md:py-3.5 md:text-xl"
                     style={{
                       fontWeight: 500,
                       paddingLeft: 16,
                       paddingRight: 16,
-                      borderRadius: 12,
-                      border: "2px solid #6C3FC8",
-                      marginBottom: 10,
                     }}
                   />
-                  <div className="flex gap-2 md:gap-2.5">
+                  <div className="flex gap-2.5 md:gap-3">
                     <button
                       type="button"
                       disabled={sending}
@@ -1579,14 +1647,8 @@ export function RevisionClient({
                         setLastWrongAnswer(writeAnswer.trim());
                         setDicteePhase("revealed_fail");
                       }}
-                      className="flex-1 bg-transparent max-md:py-3 md:py-3.5"
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        borderRadius: 12,
-                        border: "1.5px solid var(--border)",
-                        color: "var(--foreground-muted)",
-                      }}
+                      className="flex-1 rounded-xl border border-[#E2DAF2] bg-white text-[13px] font-medium transition hover:bg-[#FAFAFE] disabled:opacity-50 max-md:py-3 md:py-3.5"
+                      style={{ color: "var(--foreground-muted)" }}
                     >
                       Je ne sais pas
                     </button>
@@ -1594,12 +1656,10 @@ export function RevisionClient({
                       type="button"
                       disabled={sending || !writeAnswer.trim()}
                       onClick={validateDictee}
-                      className="flex flex-[2] items-center justify-center gap-2 border-0 text-white max-md:py-3 md:py-3.5"
+                      className="flex flex-[1.6] items-center justify-center gap-2 rounded-xl border-0 text-[13px] font-medium text-white transition hover:brightness-95 disabled:opacity-50 max-md:py-3 md:py-3.5"
                       style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        borderRadius: 12,
                         background: "#6C3FC8",
+                        boxShadow: "0 2px 10px rgba(108, 63, 200, 0.22)",
                       }}
                     >
                       <Check
@@ -1827,6 +1887,7 @@ export function RevisionClient({
                   </button>
                 </>
               )}
+              </div>
             </div>
           ) : null}
         </div>
