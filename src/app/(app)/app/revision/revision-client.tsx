@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import SessionEndScreen from "@/components/student/SessionEndScreen";
 import { computeSessionXP } from "@/lib/xp";
+import { useKeyboardBottomInset } from "@/hooks/use-keyboard-bottom-inset";
 import { BackLink } from "@/components/back-link";
 import { FlagDisplay } from "@/components/flag-display";
 import {
@@ -94,6 +95,7 @@ export function RevisionClient({
   pickerPath: string;
 }) {
   const router = useRouter();
+  const keyboardBottomInset = useKeyboardBottomInset();
   const [mode] = useState<Mode>(initialMode);
   const [lists, setLists] = useState<BibliothequeList[]>([]);
   const [selectedListIds, setSelectedListIds] = useState<Set<string>>(
@@ -263,10 +265,27 @@ export function RevisionClient({
   useEffect(() => {
     if (mode !== "dictee" || !current || dicteePhase !== "typing") return;
     const t = requestAnimationFrame(() => {
-      dicteeInputRef.current?.focus();
+      dicteeInputRef.current?.focus({ preventScroll: true });
     });
     return () => cancelAnimationFrame(t);
   }, [mode, current?.id, dicteePhase]);
+
+  /** Dictée mobile : empêche le scroll document quand le clavier s'ouvre. */
+  useEffect(() => {
+    if (mode !== "dictee") return;
+    const mq = window.matchMedia("(max-width: 767px)");
+    if (!mq.matches) return;
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.overflow;
+    const prevBody = body.style.overflow;
+    html.style.overflow = "hidden";
+    body.style.overflow = "hidden";
+    return () => {
+      html.style.overflow = prevHtml;
+      body.style.overflow = prevBody;
+    };
+  }, [mode]);
 
   /** Nouveau mot dictée : réinitialiser le flux local. */
   useEffect(() => {
@@ -1365,7 +1384,7 @@ export function RevisionClient({
 
     return (
       <div
-        className="flex min-h-[50vh] flex-col"
+        className="max-md:fixed max-md:inset-0 max-md:z-20 flex flex-col overflow-hidden md:min-h-[50vh] md:overflow-visible"
         style={{ background: "#F8F7FF" }}
       >
         <div
@@ -1373,410 +1392,436 @@ export function RevisionClient({
           className="fixed inset-0 -z-10"
           style={{ background: "#F8F7FF" }}
         />
-        {error ? (
-          <p
-            className="mb-3 rounded-xl px-3 py-2 text-sm text-red-700"
-            style={{ background: "#FCEBEB" }}
-            role="alert"
-          >
-            {error}
-          </p>
-        ) : null}
-
-        <div className="flex items-center" style={{ marginBottom: 24, gap: 12 }}>
-          <button
-            type="button"
-            onClick={() => {
-              void saveSessionAndNavigateToEvaluation();
-            }}
-            className="flex shrink-0 cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0"
-            style={{
-              fontSize: 12,
-              color: "var(--foreground-muted)",
-            }}
-          >
-            <X className="h-3 w-3 shrink-0" aria-hidden />
-            Quitter
-          </button>
-
-          <div className="min-w-0 flex-1">
-            <div
-              className="overflow-hidden"
-              style={{
-                height: 6,
-                background: "var(--background-subtle)",
-                borderRadius: 3,
-              }}
-            >
-              <div
-                style={{
-                  height: "100%",
-                  width: `${dicteeProgressPct}%`,
-                  background: "#6C3FC8",
-                  borderRadius: 3,
-                  transition: "width 400ms ease",
-                }}
-              />
-            </div>
+        <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden max-md:h-[100dvh] max-md:px-4 max-md:pt-6 max-md:pb-0 md:h-auto md:overflow-visible md:px-0 md:pt-0">
+          {error ? (
             <p
-              className="mt-1 text-right"
-              style={{
-                fontSize: 11,
-                color: "var(--foreground-muted)",
-                marginTop: 4,
-              }}
+              className="mb-3 shrink-0 rounded-xl px-3 py-2 text-sm text-red-700"
+              style={{ background: "#FCEBEB" }}
+              role="alert"
             >
-              {dicteeSlotLabel}
+              {error}
             </p>
-          </div>
+          ) : null}
 
           <div
-            className="flex shrink-0 items-center gap-[5px]"
-            style={{
-              background: "#EAF4EF",
-              borderRadius: 10,
-              padding: "5px 10px",
-            }}
+            className="flex shrink-0 items-center"
+            style={{ marginBottom: 24, gap: 12 }}
           >
-            <Check
-              className="h-3 w-3 shrink-0"
-              stroke="#1D9E75"
-              aria-hidden
-            />
-            <span style={{ fontSize: 13, fontWeight: 500, color: "#1D9E75" }}>
-              {wordsRetained}
-            </span>
-            <span style={{ fontSize: 11, color: "#1D9E75" }}>bons</span>
-          </div>
-        </div>
-
-        {current ? (
-          <>
-            <div
-              className="relative text-center"
+            <button
+              type="button"
+              onClick={() => {
+                void saveSessionAndNavigateToEvaluation();
+              }}
+              className="flex shrink-0 cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0"
               style={{
-                background: wordCardColors.background,
-                borderRadius: 16,
-                borderWidth: 0.5,
-                borderStyle: "solid",
-                borderColor: wordCardColors.borderColor,
-                padding: "36px 20px 32px",
-                marginBottom: 20,
+                fontSize: 12,
+                color: "var(--foreground-muted)",
               }}
             >
-              {renderMemoTipButton(12)}
-              <div className="flex items-center justify-center gap-2">
-                <p
-                  style={{
-                    fontSize: 36,
-                    fontWeight: 500,
-                    color: wordCardColors.wordColor,
-                  }}
-                >
-                  {displayText}
-                </p>
-                <SpeakButton text={displayText} lang={displayLang} />
-              </div>
-            </div>
+              <X className="h-3 w-3 shrink-0" aria-hidden />
+              Quitter
+            </button>
 
-            {dicteePhase === "typing" && (
-              <>
-                <label
-                  className="mb-2 block text-center"
+            <div className="min-w-0 flex-1">
+              <div
+                className="overflow-hidden"
+                style={{
+                  height: 6,
+                  background: "var(--background-subtle)",
+                  borderRadius: 3,
+                }}
+              >
+                <div
                   style={{
-                    fontSize: 11,
-                    fontWeight: 500,
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    color: "var(--foreground-muted)",
-                    marginBottom: 8,
-                  }}
-                >
-                  {dicteeAnswerLabel}
-                </label>
-                <input
-                  ref={dicteeInputRef}
-                  type="text"
-                  value={writeAnswer}
-                  onChange={(e) => setWriteAnswer(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") validateDictee();
-                  }}
-                  disabled={sending}
-                  className="w-full bg-white text-center outline-none focus:ring-0"
-                  style={{
-                    fontSize: 20,
-                    fontWeight: 500,
-                    padding: "14px 16px",
-                    borderRadius: 12,
-                    border: "2px solid #6C3FC8",
-                    marginBottom: 14,
+                    height: "100%",
+                    width: `${dicteeProgressPct}%`,
+                    background: "#6C3FC8",
+                    borderRadius: 3,
+                    transition: "width 400ms ease",
                   }}
                 />
-                <div className="flex gap-[10px]" style={{ gap: 10 }}>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() => {
-                      playEvalFeedback(false);
-                      setLastWrongAnswer(writeAnswer.trim());
-                      setDicteePhase("revealed_fail");
-                    }}
-                    className="flex-1 bg-transparent"
+              </div>
+              <p
+                className="mt-1 text-right"
+                style={{
+                  fontSize: 11,
+                  color: "var(--foreground-muted)",
+                  marginTop: 4,
+                }}
+              >
+                {dicteeSlotLabel}
+              </p>
+            </div>
+
+            <div
+              className="flex shrink-0 items-center gap-[5px]"
+              style={{
+                background: "#EAF4EF",
+                borderRadius: 10,
+                padding: "5px 10px",
+              }}
+            >
+              <Check
+                className="h-3 w-3 shrink-0"
+                stroke="#1D9E75"
+                aria-hidden
+              />
+              <span style={{ fontSize: 13, fontWeight: 500, color: "#1D9E75" }}>
+                {wordsRetained}
+              </span>
+              <span style={{ fontSize: 11, color: "#1D9E75" }}>bons</span>
+            </div>
+          </div>
+
+          {current ? (
+            <>
+              <div
+                className="relative shrink-0 text-center max-md:py-5 max-md:px-4 max-md:mb-4 md:py-9 md:px-5 md:mb-5"
+                style={{
+                  background: wordCardColors.background,
+                  borderRadius: 16,
+                  borderWidth: 0.5,
+                  borderStyle: "solid",
+                  borderColor: wordCardColors.borderColor,
+                }}
+              >
+                {renderMemoTipButton(12)}
+                <div className="flex items-center justify-center gap-2">
+                  <p
+                    className="text-[28px] md:text-[36px]"
                     style={{
-                      fontSize: 13,
                       fontWeight: 500,
-                      padding: 13,
-                      borderRadius: 12,
-                      border: "1.5px solid var(--border)",
-                      color: "var(--foreground-muted)",
+                      color: wordCardColors.wordColor,
                     }}
                   >
-                    Je ne sais pas
-                  </button>
-                  <button
-                    type="button"
-                    disabled={sending || !writeAnswer.trim()}
-                    onClick={validateDictee}
-                    className="flex flex-[2] items-center justify-center gap-2 border-0 text-white"
+                    {displayText}
+                  </p>
+                  <SpeakButton text={displayText} lang={displayLang} />
+                </div>
+              </div>
+
+              <div className="min-h-0 flex-1 overflow-y-auto md:overflow-visible">
+                {dicteePhase === "wrong_unrevealed" && (
+                  <>
+                    <div
+                      className="mb-[14px] flex items-center gap-3"
+                      style={{
+                        background: "#FCEBEB",
+                        borderRadius: 14,
+                        padding: "14px 16px",
+                        marginBottom: 14,
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        className="flex shrink-0 items-center justify-center rounded-full"
+                        style={{
+                          width: 34,
+                          height: 34,
+                          background: "#E24B4A",
+                        }}
+                      >
+                        <X className="h-4 w-4 text-white" aria-hidden />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <p
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: "#A32D2D",
+                          }}
+                        >
+                          Pas tout à fait…
+                        </p>
+                        <p
+                          className="mt-0.5 line-through"
+                          style={{ fontSize: 12, color: "#A32D2D" }}
+                        >
+                          {lastWrongAnswer || "—"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2" style={{ gap: 8 }}>
+                      <button
+                        type="button"
+                        disabled={sending}
+                        onClick={() => {
+                          setDicteeHadRetry(true);
+                          setWriteAnswer("");
+                          setDicteePhase("typing");
+                        }}
+                        className="flex flex-1 items-center justify-center gap-2 bg-transparent"
+                        style={{
+                          border: "1.5px solid #E24B4A",
+                          color: "#E24B4A",
+                          borderRadius: 12,
+                          padding: 11,
+                          fontSize: 13,
+                        }}
+                      >
+                        <RotateCcw className="h-3 w-3 shrink-0 stroke-[#E24B4A]" />
+                        Réessayer
+                      </button>
+                      <button
+                        type="button"
+                        disabled={sending}
+                        onClick={() => setDicteePhase("revealed_fail")}
+                        className="flex-1 border-0 text-white"
+                        style={{
+                          background: "#E24B4A",
+                          borderRadius: 12,
+                          padding: 11,
+                          fontSize: 13,
+                        }}
+                      >
+                        Voir la réponse
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {dicteePhase === "revealed_fail" && (
+                  <>
+                    <div
+                      className="mb-[14px] flex items-center gap-3"
+                      style={{
+                        background: "#FCEBEB",
+                        borderRadius: 14,
+                        padding: "14px 16px",
+                        marginBottom: 14,
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        className="flex shrink-0 items-center justify-center rounded-full"
+                        style={{
+                          width: 34,
+                          height: 34,
+                          background: "#E24B4A",
+                        }}
+                      >
+                        <X className="h-4 w-4 text-white" aria-hidden />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <p
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: "#A32D2D",
+                          }}
+                        >
+                          La bonne réponse
+                        </p>
+                        <p
+                          className="mt-0.5"
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: "#791F1F",
+                          }}
+                        >
+                          {answerText || "—"}
+                        </p>
+                        <p
+                          className="mt-1 line-through"
+                          style={{ fontSize: 12, color: "#A32D2D" }}
+                        >
+                          {lastWrongAnswer || "—"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={sending}
+                      onClick={() => void recordDicteeCompletion(0)}
+                      className="flex w-full items-center justify-center gap-2 border-0 text-white"
+                      style={{
+                        background: "#E24B4A",
+                        borderRadius: 12,
+                        padding: 13,
+                        fontSize: 14,
+                        fontWeight: 500,
+                      }}
+                    >
+                      Continuer
+                      <ArrowRight
+                        className="h-3.5 w-3.5 shrink-0 text-white"
+                        aria-hidden
+                      />
+                    </button>
+                  </>
+                )}
+
+                {dicteePhase === "correct_feedback" && (
+                  <>
+                    <div
+                      className="mb-[14px] flex items-center gap-3"
+                      style={{
+                        background: "#EAF4EF",
+                        borderRadius: 14,
+                        padding: "14px 16px",
+                        marginBottom: 14,
+                        gap: 12,
+                      }}
+                    >
+                      <div
+                        className="flex shrink-0 items-center justify-center rounded-full"
+                        style={{
+                          width: 34,
+                          height: 34,
+                          background: "#1D9E75",
+                        }}
+                      >
+                        <Check className="h-4 w-4 text-white" aria-hidden />
+                      </div>
+                      <div className="min-w-0 flex-1 text-left">
+                        <p
+                          style={{
+                            fontSize: 13,
+                            fontWeight: 500,
+                            color: "#1A6645",
+                          }}
+                        >
+                          Bonne réponse !
+                        </p>
+                        <p
+                          className="mt-0.5"
+                          style={{
+                            fontSize: 14,
+                            fontWeight: 500,
+                            color: "#27500A",
+                          }}
+                        >
+                          {answerText || "—"}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      disabled={sending}
+                      onClick={() =>
+                        void recordDicteeCompletion(dicteeHadRetry ? 2 : 3)
+                      }
+                      className="flex w-full items-center justify-center gap-2 border-0 text-white"
+                      style={{
+                        background: "#1D9E75",
+                        borderRadius: 12,
+                        padding: 13,
+                        fontSize: 14,
+                        fontWeight: 500,
+                      }}
+                    >
+                      Mot suivant
+                      <ArrowRight
+                        className="h-3.5 w-3.5 shrink-0 text-white"
+                        aria-hidden
+                      />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {dicteePhase === "typing" && (
+                <div
+                  className="shrink-0 max-md:fixed max-md:left-0 max-md:right-0 max-md:z-30 md:relative"
+                  style={{
+                    bottom: keyboardBottomInset,
+                    paddingBottom:
+                      keyboardBottomInset > 0
+                        ? 8
+                        : "max(12px, env(safe-area-inset-bottom, 0px))",
+                  }}
+                >
+                  <div
+                    className="mx-auto w-full max-w-lg max-md:px-4 md:px-0"
                     style={{
-                      fontSize: 13,
-                      fontWeight: 500,
-                      padding: 13,
-                      borderRadius: 12,
-                      background: "#6C3FC8",
+                      background: "#F8F7FF",
+                      paddingTop: 12,
                     }}
                   >
-                    <Check
-                      className="h-3.5 w-3.5 shrink-0 text-white"
-                      aria-hidden
+                    <label
+                      className="mb-2 block text-center"
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 500,
+                        textTransform: "uppercase",
+                        letterSpacing: "0.05em",
+                        color: "var(--foreground-muted)",
+                        marginBottom: 8,
+                      }}
+                    >
+                      {dicteeAnswerLabel}
+                    </label>
+                    <input
+                      ref={dicteeInputRef}
+                      type="text"
+                      value={writeAnswer}
+                      onChange={(e) => setWriteAnswer(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") validateDictee();
+                      }}
+                      disabled={sending}
+                      enterKeyHint="done"
+                      autoComplete="off"
+                      autoCorrect="off"
+                      spellCheck={false}
+                      className="w-full bg-white text-center outline-none focus:ring-0"
+                      style={{
+                        fontSize: 20,
+                        fontWeight: 500,
+                        padding: "14px 16px",
+                        borderRadius: 12,
+                        border: "2px solid #6C3FC8",
+                        marginBottom: 14,
+                      }}
                     />
-                    Valider
-                  </button>
-                </div>
-              </>
-            )}
-
-            {dicteePhase === "wrong_unrevealed" && (
-              <>
-                <div
-                  className="mb-[14px] flex items-center gap-3"
-                  style={{
-                    background: "#FCEBEB",
-                    borderRadius: 14,
-                    padding: "14px 16px",
-                    marginBottom: 14,
-                    gap: 12,
-                  }}
-                >
-                  <div
-                    className="flex shrink-0 items-center justify-center rounded-full"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      background: "#E24B4A",
-                    }}
-                  >
-                    <X className="h-4 w-4 text-white" aria-hidden />
-                  </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: "#A32D2D",
-                      }}
-                    >
-                      Pas tout à fait…
-                    </p>
-                    <p
-                      className="mt-0.5 line-through"
-                      style={{ fontSize: 12, color: "#A32D2D" }}
-                    >
-                      {lastWrongAnswer || "—"}
-                    </p>
+                    <div className="flex gap-[10px]" style={{ gap: 10 }}>
+                      <button
+                        type="button"
+                        disabled={sending}
+                        onClick={() => {
+                          playEvalFeedback(false);
+                          setLastWrongAnswer(writeAnswer.trim());
+                          setDicteePhase("revealed_fail");
+                        }}
+                        className="flex-1 bg-transparent"
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          padding: 13,
+                          borderRadius: 12,
+                          border: "1.5px solid var(--border)",
+                          color: "var(--foreground-muted)",
+                        }}
+                      >
+                        Je ne sais pas
+                      </button>
+                      <button
+                        type="button"
+                        disabled={sending || !writeAnswer.trim()}
+                        onClick={validateDictee}
+                        className="flex flex-[2] items-center justify-center gap-2 border-0 text-white"
+                        style={{
+                          fontSize: 13,
+                          fontWeight: 500,
+                          padding: 13,
+                          borderRadius: 12,
+                          background: "#6C3FC8",
+                        }}
+                      >
+                        <Check
+                          className="h-3.5 w-3.5 shrink-0 text-white"
+                          aria-hidden
+                        />
+                        Valider
+                      </button>
+                    </div>
                   </div>
                 </div>
-                <div className="flex gap-2" style={{ gap: 8 }}>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() => {
-                      setDicteeHadRetry(true);
-                      setWriteAnswer("");
-                      setDicteePhase("typing");
-                    }}
-                    className="flex flex-1 items-center justify-center gap-2 bg-transparent"
-                    style={{
-                      border: "1.5px solid #E24B4A",
-                      color: "#E24B4A",
-                      borderRadius: 12,
-                      padding: 11,
-                      fontSize: 13,
-                    }}
-                  >
-                    <RotateCcw className="h-3 w-3 shrink-0 stroke-[#E24B4A]" />
-                    Réessayer
-                  </button>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() => setDicteePhase("revealed_fail")}
-                    className="flex-1 border-0 text-white"
-                    style={{
-                      background: "#E24B4A",
-                      borderRadius: 12,
-                      padding: 11,
-                      fontSize: 13,
-                    }}
-                  >
-                    Voir la réponse
-                  </button>
-                </div>
-              </>
-            )}
-
-            {dicteePhase === "revealed_fail" && (
-              <>
-                <div
-                  className="mb-[14px] flex items-center gap-3"
-                  style={{
-                    background: "#FCEBEB",
-                    borderRadius: 14,
-                    padding: "14px 16px",
-                    marginBottom: 14,
-                    gap: 12,
-                  }}
-                >
-                  <div
-                    className="flex shrink-0 items-center justify-center rounded-full"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      background: "#E24B4A",
-                    }}
-                  >
-                    <X className="h-4 w-4 text-white" aria-hidden />
-                  </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: "#A32D2D",
-                      }}
-                    >
-                      La bonne réponse
-                    </p>
-                    <p
-                      className="mt-0.5"
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: "#791F1F",
-                      }}
-                    >
-                      {answerText || "—"}
-                    </p>
-                    <p
-                      className="mt-1 line-through"
-                      style={{ fontSize: 12, color: "#A32D2D" }}
-                    >
-                      {lastWrongAnswer || "—"}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  disabled={sending}
-                  onClick={() => void recordDicteeCompletion(0)}
-                  className="flex w-full items-center justify-center gap-2 border-0 text-white"
-                  style={{
-                    background: "#E24B4A",
-                    borderRadius: 12,
-                    padding: 13,
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}
-                >
-                  Continuer
-                  <ArrowRight
-                    className="h-3.5 w-3.5 shrink-0 text-white"
-                    aria-hidden
-                  />
-                </button>
-              </>
-            )}
-
-            {dicteePhase === "correct_feedback" && (
-              <>
-                <div
-                  className="mb-[14px] flex items-center gap-3"
-                  style={{
-                    background: "#EAF4EF",
-                    borderRadius: 14,
-                    padding: "14px 16px",
-                    marginBottom: 14,
-                    gap: 12,
-                  }}
-                >
-                  <div
-                    className="flex shrink-0 items-center justify-center rounded-full"
-                    style={{
-                      width: 34,
-                      height: 34,
-                      background: "#1D9E75",
-                    }}
-                  >
-                    <Check className="h-4 w-4 text-white" aria-hidden />
-                  </div>
-                  <div className="min-w-0 flex-1 text-left">
-                    <p
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        color: "#1A6645",
-                      }}
-                    >
-                      Bonne réponse !
-                    </p>
-                    <p
-                      className="mt-0.5"
-                      style={{
-                        fontSize: 14,
-                        fontWeight: 500,
-                        color: "#27500A",
-                      }}
-                    >
-                      {answerText || "—"}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  disabled={sending}
-                  onClick={() =>
-                    void recordDicteeCompletion(dicteeHadRetry ? 2 : 3)
-                  }
-                  className="flex w-full items-center justify-center gap-2 border-0 text-white"
-                  style={{
-                    background: "#1D9E75",
-                    borderRadius: 12,
-                    padding: 13,
-                    fontSize: 14,
-                    fontWeight: 500,
-                  }}
-                >
-                  Mot suivant
-                  <ArrowRight
-                    className="h-3.5 w-3.5 shrink-0 text-white"
-                    aria-hidden
-                  />
-                </button>
-              </>
-            )}
-          </>
-        ) : null}
+              )}
+            </>
+          ) : null}
+        </div>
       </div>
     );
 }

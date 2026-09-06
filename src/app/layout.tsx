@@ -24,6 +24,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#6C3FC8",
+  /** Clavier virtuel par-dessus le contenu (évite le redimensionnement du layout). */
+  interactiveWidget: "overlays-content",
 };
 
 export default function RootLayout({
