@@ -1564,11 +1564,13 @@ export function RevisionClient({
 
           {current ? (
             <div
-              className={`flex min-h-0 flex-1 flex-col overflow-hidden ${
-                dicteeKeyboardOpen ? "justify-start" : "max-md:justify-center md:justify-start"
+              className={`flex min-h-0 flex-1 flex-col justify-start overflow-hidden ${
+                dicteeKeyboardOpen
+                  ? "max-md:pt-0"
+                  : "max-md:pt-[clamp(16px,5vh,40px)]"
               }`}
             >
-              <div className="flex shrink-0 flex-col gap-4 max-md:gap-3 md:gap-5 max-md:pb-[max(64px,calc(56px+env(safe-area-inset-bottom,0px)))]">
+              <div className="flex shrink-0 flex-col gap-3 max-md:gap-2.5 max-md:pb-[max(56px,calc(48px+env(safe-area-inset-bottom,0px)))] md:gap-5">
                 <div
                   className="relative shrink-0 overflow-hidden rounded-2xl md:rounded-[18px]"
                   style={{
@@ -1584,7 +1586,7 @@ export function RevisionClient({
                         : "0 4px 20px rgba(108, 63, 200, 0.08)",
                   }}
                 >
-                  <div className="flex items-start gap-3 px-4 py-4 md:gap-4 md:px-5 md:py-8">
+                  <div className="flex items-center gap-2.5 px-3.5 py-3 md:gap-3 md:px-5 md:py-6">
                     <p
                       className="min-w-0 flex-1 break-words text-center text-[clamp(18px,4.8vw,24px)] font-medium leading-snug md:text-[32px] md:leading-tight"
                       style={{ color: wordCardColors.wordColor }}
@@ -1592,15 +1594,15 @@ export function RevisionClient({
                       {displayText}
                     </p>
                     <div
-                      className="flex w-9 shrink-0 flex-col items-center gap-1.5 pt-0.5"
+                      className="flex w-[72px] shrink-0 items-center justify-end gap-1.5"
                       aria-label="Actions sur le mot"
                     >
-                      {renderMemoTipButton(12, "inline")}
                       <SpeakButton
                         text={displayText}
                         lang={displayLang}
                         variant="tile"
                       />
+                      {renderMemoTipButton(12, "inline")}
                     </div>
                   </div>
                 </div>
