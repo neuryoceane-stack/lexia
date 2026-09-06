@@ -1604,7 +1604,7 @@ export function RevisionClient({
 
           {current ? (
             <div
-              className="flex min-h-0 flex-1 flex-col overflow-hidden max-md:justify-center max-md:transition-[padding-bottom] max-md:duration-150 md:justify-start"
+              className="flex min-h-0 flex-1 flex-col overflow-hidden max-md:justify-center md:justify-start"
               style={dicteeBlockAreaStyle}
             >
               <div className="flex shrink-0 flex-col gap-3 max-md:gap-2.5 max-md:pb-[max(56px,calc(48px+env(safe-area-inset-bottom,0px)))] md:gap-5">
