@@ -132,10 +132,15 @@ export function RevisionClient({
     defLang: string;
   } | null>(null);
   const hasSavedEndOfSession = useRef(false);
-  /** Champ de saisie dictée : focus automatique entre les mots. */
+  /** Champ de saisie dictée : focus entre les mots (si le clavier était déjà actif). */
   const dicteeInputRef = useRef<HTMLInputElement>(null);
-  /** iOS : le clavier ne s'ouvre programmatiquement qu'après une interaction utilisateur. */
+  /** L'utilisateur a interagi avec le champ au moins une fois. */
   const dicteeUserEngagedRef = useRef(false);
+  /** Le champ avait le focus au moment de quitter la phase saisie. */
+  const dicteeInputHadFocusRef = useRef(false);
+  /** Reprendre le focus au mot suivant (false si l'utilisateur a fermé le clavier). */
+  const dicteePreserveFocusRef = useRef(false);
+  const prevDicteePhaseRef = useRef<DicteePhase>("typing");
   const [showEndRecap, setShowEndRecap] = useState(false);
   const [endSessionDurationSeconds, setEndSessionDurationSeconds] = useState(0);
   const [failedWords, setFailedWords] = useState<DueWord[]>([]);
@@ -433,12 +438,27 @@ export function RevisionClient({
     setDicteeHadRetry(false);
     setLastWrongAnswer("");
     dicteeUserEngagedRef.current = false;
+    dicteeInputHadFocusRef.current = false;
+    dicteePreserveFocusRef.current = false;
+    prevDicteePhaseRef.current = "typing";
     hasSavedEndOfSession.current = false;
     setShowEndRecap(false);
   }, []);
 
   const markDicteeInputEngaged = useCallback(() => {
     dicteeUserEngagedRef.current = true;
+  }, []);
+
+  const handleDicteeInputFocus = useCallback(() => {
+    dicteeUserEngagedRef.current = true;
+    dicteeInputHadFocusRef.current = true;
+  }, []);
+
+  const handleDicteeInputBlur = useCallback(() => {
+    requestAnimationFrame(() => {
+      if (dicteeInputRef.current === document.activeElement) return;
+      dicteeInputHadFocusRef.current = false;
+    });
   }, []);
 
   const focusDicteeInput = useCallback(() => {
@@ -456,14 +476,35 @@ export function RevisionClient({
     });
   }, []);
 
-  /** Dictée : focus auto du champ à chaque mot (phase saisie), clavier maintenu après 1ère interaction. */
+  /** Mémorise si le champ avait le focus en quittant la phase saisie. */
+  useEffect(() => {
+    if (mode !== "dictee") return;
+    if (prevDicteePhaseRef.current === "typing" && dicteePhase !== "typing") {
+      dicteePreserveFocusRef.current = dicteeInputHadFocusRef.current;
+    }
+    prevDicteePhaseRef.current = dicteePhase;
+  }, [mode, dicteePhase]);
+
+  /** Nouveau mot : réinitialiser l'état focus local (la préservation est déjà mémorisée). */
+  useEffect(() => {
+    if (mode !== "dictee" || !current?.id) return;
+    dicteeInputHadFocusRef.current = false;
+  }, [mode, current?.id]);
+
+  /**
+   * Dictée : reprend le focus entre les mots si le clavier était actif.
+   * Mobile — pas au 1er mot ; desktop — focus auto à chaque mot.
+   */
   useEffect(() => {
     if (mode !== "dictee" || !current || dicteePhase !== "typing" || sending) return;
 
     const isMobile =
       typeof window !== "undefined" &&
       window.matchMedia("(max-width: 767px)").matches;
-    if (isMobile && !dicteeUserEngagedRef.current) return;
+
+    if (isMobile) {
+      if (!dicteeUserEngagedRef.current || !dicteePreserveFocusRef.current) return;
+    }
 
     focusDicteeInput();
 
@@ -1463,15 +1504,14 @@ export function RevisionClient({
       ...(isDicteeMobile
         ? {
             top: visualViewportLayout.offsetTop,
-            height:
-              visualViewportLayout.height > 0
-                ? visualViewportLayout.height
-                : "100dvh",
+            height: "100dvh",
           }
         : {}),
     };
 
-    const dicteeKeyboardOpen = visualViewportLayout.keyboardInset > 0;
+    const dicteeBlockAreaStyle: React.CSSProperties | undefined = isDicteeMobile
+      ? { paddingBottom: visualViewportLayout.keyboardInset }
+      : undefined;
 
     return (
       <div
@@ -1564,11 +1604,8 @@ export function RevisionClient({
 
           {current ? (
             <div
-              className={`flex min-h-0 flex-1 flex-col justify-start overflow-hidden ${
-                dicteeKeyboardOpen
-                  ? "max-md:pt-0"
-                  : "max-md:pt-[clamp(16px,5vh,40px)]"
-              }`}
+              className="flex min-h-0 flex-1 flex-col overflow-hidden max-md:justify-center max-md:transition-[padding-bottom] max-md:duration-150 md:justify-start"
+              style={dicteeBlockAreaStyle}
             >
               <div className="flex shrink-0 flex-col gap-3 max-md:gap-2.5 max-md:pb-[max(56px,calc(48px+env(safe-area-inset-bottom,0px)))] md:gap-5">
                 <div
@@ -1623,7 +1660,8 @@ export function RevisionClient({
                       markDicteeInputEngaged();
                       setWriteAnswer(e.target.value);
                     }}
-                    onFocus={markDicteeInputEngaged}
+                    onFocus={handleDicteeInputFocus}
+                    onBlur={handleDicteeInputBlur}
                     onPointerDown={markDicteeInputEngaged}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") validateDictee();
