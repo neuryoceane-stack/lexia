@@ -12,12 +12,29 @@ const PROF_EMAIL = "prof@test.com";
 const PROF_PASSWORD = "prof1234";
 
 /**
+ * Réponse 404 sans corps : la route n'existe pas pour l'appelant.
+ * Utilisée dès que NODE_ENV vaut "production" (Vercel production et
+ * prévisualisation). Aucune lecture du secret, aucun accès base.
+ */
+function productionNotFound(): NextResponse | null {
+  if (process.env.NODE_ENV === "production") {
+    return new NextResponse(null, { status: 404 });
+  }
+  return null;
+}
+
+/**
  * POST /api/seed-test-user
  * Body: { "secret": "ton_secret" }
- * Crée les comptes test (étudiant + professeur) si le secret correspond à
- * SEED_SECRET. À appeler une fois après déploiement.
+ *
+ * En développement local uniquement : crée les comptes test (étudiant +
+ * professeur) si le secret correspond à SEED_SECRET.
+ * Dès que NODE_ENV vaut "production", répond 404.
  */
 export async function POST(request: Request) {
+  const blocked = productionNotFound();
+  if (blocked) return blocked;
+
   const expectedSecret = process.env.SEED_SECRET;
   if (!expectedSecret) {
     return NextResponse.json(
@@ -107,4 +124,38 @@ export async function POST(request: Request) {
       { email: PROF_EMAIL, password: PROF_PASSWORD, role: "professeur" },
     ],
   });
+}
+
+/** En production : 404. En développement : 405, seul POST est servi. */
+function methodNotAllowed(): NextResponse {
+  const blocked = productionNotFound();
+  if (blocked) return blocked;
+  return new NextResponse(null, {
+    status: 405,
+    headers: { Allow: "POST" },
+  });
+}
+
+export function GET() {
+  return methodNotAllowed();
+}
+
+export function PUT() {
+  return methodNotAllowed();
+}
+
+export function PATCH() {
+  return methodNotAllowed();
+}
+
+export function DELETE() {
+  return methodNotAllowed();
+}
+
+export function HEAD() {
+  return methodNotAllowed();
+}
+
+export function OPTIONS() {
+  return methodNotAllowed();
 }
