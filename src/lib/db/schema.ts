@@ -33,6 +33,14 @@ export const users = sqliteTable("users", {
   })
     .notNull()
     .default("inactive"),
+  /** Client Stripe (cus_…) lié au compte. Null tant qu'aucun Checkout abonnement n'a été ouvert. */
+  stripeCustomerId: text("stripe_customer_id").unique(),
+  /** Abonnement Stripe courant (sub_…). Conservé après résiliation. */
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  /** Fin de période Stripe, en secondes Unix. */
+  subscriptionCurrentPeriodEnd: integer("subscription_current_period_end"),
+  /** event.created du dernier événement Stripe appliqué, en secondes Unix. */
+  stripeStatusSyncedAt: integer("stripe_status_synced_at"),
   /** Code de parrainage personnel (partageable, unique, généré une fois). */
   referralCode: text("referral_code").unique(),
   /** Nombre d'amis parrainés via ce code. */

@@ -51,3 +51,18 @@ Pour appliquer les migrations SQL existantes sur Turso :
 - Soit configurer Drizzle pour Turso dans `drizzle.config.ts` (dialect `turso`, `dbCredentials` avec `url` et `authToken`) et lancer `npx drizzle-kit push` en ayant défini `TURSO_DATABASE_URL` et `TURSO_AUTH_TOKEN` dans ton `.env.local`.
 
 En local, sans variables Turso, l’app continue d’utiliser le fichier `vocab.db` (SQLite local).
+
+## 5. Abonnement Stripe (élèves)
+
+Les variables et le scénario de test sont décrits dans `docs/ABONNEMENT-STRIPE.md`.
+
+À ajouter sur Vercel, en **clés de test uniquement** (`sk_test_`, jamais `sk_live_`) :
+
+| Variable | Rôle |
+|----------|------|
+| `STRIPE_SECRET_KEY` | Clé secrète de test |
+| `STRIPE_WEBHOOK_SECRET` | Secret de signature du webhook |
+| `STRIPE_PRICE_MONTHLY` | Price ID mensuel, 4 € |
+| `STRIPE_PRICE_YEARLY` | Price ID annuel, 40 € |
+
+`NEXTAUTH_URL` sert aussi d’URL de retour après le paiement. Le schéma ajouté pour l’abonnement (`stripe_customer_id`, `stripe_subscription_id`, `subscription_current_period_end`, `stripe_status_synced_at`) doit être poussé par Océane : ne pas lancer `drizzle-kit push` depuis un agent.
