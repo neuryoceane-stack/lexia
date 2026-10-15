@@ -8,11 +8,7 @@ import {
   openBillingPortal,
 } from "@/lib/subscription-client";
 import {
-  SUBSCRIPTION_MONTHLY_EUROS,
-  SUBSCRIPTION_YEARLY_EUROS,
-  formatEuros,
-  formatPeriodEnd,
-  subscriptionStatusLabel,
+  subscriptionDisplay,
   type SubscriptionView,
 } from "@/lib/subscription";
 
@@ -118,30 +114,11 @@ export function SubscriptionSettingsCard() {
 }
 
 function Summary({ view }: { view: SubscriptionView }) {
-  const price =
-    view.plan === "monthly"
-      ? `${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} / mois`
-      : view.plan === "annual"
-        ? `${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} / an`
-        : "Aucune formule";
-  const showPrice = view.canManagePortal && view.plan !== "free";
-  const date = view.currentPeriodEnd != null ? formatPeriodEnd(view.currentPeriodEnd) : null;
-
+  const display = subscriptionDisplay(view);
   return (
     <div>
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: "#1A1033" }}>
-        {subscriptionStatusLabel(view.status)}
-      </p>
-      <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6B8A", lineHeight: 1.45 }}>
-        {view.status === "active" && !view.canManagePortal
-          ? "Votre accès Lexiva est actif."
-          : showPrice
-            ? price
-            : "Choisissez une formule mensuelle ou annuelle."}
-        {date && view.status === "trialing" ? ` Fin de l'essai le ${date}.` : ""}
-        {date && view.status === "active" && view.canManagePortal ? ` Prochain renouvellement le ${date}.` : ""}
-        {date && view.status === "canceled" ? ` Fin de période le ${date}.` : ""}
-      </p>
+      <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: "#1A1033" }}>{display.label}</p>
+      <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6B8A", lineHeight: 1.45 }}>{display.detail}</p>
     </div>
   );
 }

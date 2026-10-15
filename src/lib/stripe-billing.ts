@@ -11,6 +11,7 @@ import {
   assertSubscriptionStatus,
   canStartSubscriptionCheckout,
   subscriptionCheckoutIncludesTrial,
+  checkoutSessionOwnershipError,
   type AccountPlan,
   type BillingPlan,
   type SubscriptionStatus,
@@ -128,6 +129,7 @@ export function toSubscriptionView(row: {
     canSubscribe,
     includesTrial: subscriptionCheckoutIncludesTrial(status),
     canManagePortal: Boolean(row.stripeCustomerId) && status !== "inactive",
+    cancelAtPeriodEnd: false,
   };
 }
 
@@ -137,13 +139,67 @@ export async function loadSubscriptionView(userId: string): Promise<Subscription
       subscriptionStatus: users.subscriptionStatus,
       plan: users.plan,
       stripeCustomerId: users.stripeCustomerId,
+      stripeSubscriptionId: users.stripeSubscriptionId,
       subscriptionCurrentPeriodEnd: users.subscriptionCurrentPeriodEnd,
     })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
   if (!row) return null;
-  return toSubscriptionView(row);
+  const view = toSubscriptionView(row);
+  if (!row.stripeSubscriptionId || (view.status !== "active" && view.status !== "trialing")) {
+    return view;
+  }
+
+  const subscription = await getStripe().subscriptions.retrieve(row.stripeSubscriptionId);
+  const scheduled = isCancellationScheduled(subscription);
+  return {
+    ...view,
+    cancelAtPeriodEnd: scheduled,
+    currentPeriodEnd:
+      scheduled && subscription.cancel_at != null ? subscription.cancel_at : view.currentPeriodEnd,
+  };
+}
+
+/**
+ * Confirme un retour Checkout sans attendre le webhook.
+ * Idempotent : un second appel, ou un webhook déjà appliqué plus récent, ne régresse pas le statut.
+ * L'horloge utilisée est session.created, pas l'heure du serveur, pour laisser passer un événement Stripe ultérieur.
+ */
+export async function confirmCheckoutSessionForUser(userId: string, sessionId: string): Promise<void> {
+  if (!/^cs_[A-Za-z0-9_]+$/.test(sessionId)) {
+    throw new BillingError("Session de paiement invalide.", 400);
+  }
+
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  await assertCheckoutSessionOwner(session, userId);
+
+  if (session.status !== "complete") {
+    throw new BillingError("Le paiement n'est pas encore confirmé.", 409);
+  }
+  if (!isSubscriptionCheckout(session)) {
+    throw new BillingError("Cette session ne correspond pas à un abonnement Lexiva.", 400);
+  }
+
+  const subscriptionRef = session.subscription;
+  const subscriptionId =
+    typeof subscriptionRef === "string" ? subscriptionRef : subscriptionRef?.id ?? null;
+  if (!subscriptionId) {
+    throw new BillingError("La session ne contient pas d'abonnement.", 409);
+  }
+
+  const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+  if (subscription.status === "incomplete" || subscription.status === "incomplete_expired") {
+    throw new BillingError("Le paiement n'est pas finalisé.", 409);
+  }
+
+  await applyStripeSubscription({
+    eventCreated: session.created,
+    subscription,
+    userIdHint: userId,
+    customerIdHint: stripeObjectId(session.customer),
+  });
 }
 
 export async function createSubscriptionCheckout(input: {
@@ -184,7 +240,7 @@ export async function createSubscriptionCheckout(input: {
           : "Lexiva — formule annuelle",
       ...(includesTrial ? { trial_period_days: SUBSCRIPTION_TRIAL_DAYS } : {}),
     },
-    success_url: `${baseUrl}/app/abonnement?checkout=success`,
+    success_url: `${baseUrl}/app/abonnement?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/app/abonnement?checkout=cancel`,
   });
 
@@ -522,6 +578,37 @@ async function findBillingUser(
 
 function isStaleEvent(user: BillingUserRow, eventCreated: number): boolean {
   return user.stripeStatusSyncedAt != null && eventCreated < user.stripeStatusSyncedAt;
+}
+
+function isCancellationScheduled(subscription: Stripe.Subscription): boolean {
+  if (
+    subscription.status === "canceled" ||
+    subscription.status === "incomplete" ||
+    subscription.status === "incomplete_expired"
+  ) {
+    return false;
+  }
+  return subscription.cancel_at_period_end || subscription.cancel_at != null;
+}
+
+async function assertCheckoutSessionOwner(
+  session: Stripe.Checkout.Session,
+  userId: string
+): Promise<void> {
+  const metadataUserId = session.metadata?.userId ?? null;
+  const referenceId = session.client_reference_id;
+  const row = await requireBillingUser(userId);
+  const customerId = stripeObjectId(session.customer);
+  const ownershipError = checkoutSessionOwnershipError({
+    metadataUserId,
+    clientReferenceId: referenceId,
+    sessionCustomerId: customerId,
+    userId,
+    userCustomerId: row.stripeCustomerId,
+  });
+  if (ownershipError) {
+    throw new BillingError(ownershipError, 403);
+  }
 }
 
 function invoiceSubscriptionId(invoice: Stripe.Invoice): string | null {

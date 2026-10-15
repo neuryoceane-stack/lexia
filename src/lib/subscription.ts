@@ -74,7 +74,7 @@ export function subscriptionStatusLabel(status: SubscriptionStatus): string {
     case "canceled":
       return "Résilié";
     case "past_due":
-      return "Paiement en échec";
+      return "Paiement échoué";
     default: {
       const unexpected: never = status;
       throw new Error(`Statut non affiché : ${String(unexpected)}`);
@@ -98,4 +98,110 @@ export type SubscriptionView = {
   canSubscribe: boolean;
   includesTrial: boolean;
   canManagePortal: boolean;
+  /** Résiliation demandée, accès conservé jusqu'à la fin de période. Lu chez Stripe, pas stocké. */
+  cancelAtPeriodEnd: boolean;
 };
+
+export function subscriptionOfferIntro(includesTrial: boolean): string {
+  if (includesTrial) {
+    return `Essai de ${SUBSCRIPTION_TRIAL_DAYS} jours. Une carte bancaire est requise. ${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} par mois ou ${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} par an.`;
+  }
+  return "Choisissez une formule pour reprendre Lexiva. Une carte bancaire est requise. Le prélèvement a lieu aujourd'hui.";
+}
+
+/** Texte affiché après souscription. La carte n'est mentionnée qu'à ce moment-là. */
+export function subscribedIntro(): string {
+  return "Votre carte est enregistrée. Retrouvez ici votre formule et le portail pour gérer votre carte ou résilier.";
+}
+
+export function subscriptionDisplay(view: {
+  status: SubscriptionStatus;
+  plan: AccountPlan;
+  currentPeriodEnd: number | null;
+  cancelAtPeriodEnd: boolean;
+  canManagePortal: boolean;
+}): { label: string; detail: string } {
+  const date = view.currentPeriodEnd != null ? formatPeriodEnd(view.currentPeriodEnd) : null;
+  const formula =
+    view.plan === "monthly"
+      ? `Formule mensuelle, ${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} par mois.`
+      : view.plan === "annual"
+        ? `Formule annuelle, ${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} par an.`
+        : null;
+
+  if (view.cancelAtPeriodEnd && (view.status === "active" || view.status === "trialing")) {
+    return {
+      label: "Résiliation programmée",
+      detail: date
+        ? `Votre résiliation est programmée. Vous gardez l'accès jusqu'au ${date}.`
+        : "Votre résiliation est programmée. Vous gardez l'accès jusqu'à la fin de la période en cours.",
+    };
+  }
+
+  switch (view.status) {
+    case "inactive":
+      return {
+        label: "Sans abonnement",
+        detail: subscriptionOfferIntro(true),
+      };
+    case "trialing":
+      return {
+        label: "Essai en cours",
+        detail: joinSentences(
+          formula,
+          date
+            ? `Le premier prélèvement aura lieu le ${date}, sauf résiliation.`
+            : "Le premier prélèvement aura lieu à la fin de l'essai, sauf résiliation."
+        ),
+      };
+    case "active":
+      if (!view.canManagePortal) {
+        return { label: "Actif", detail: "Votre accès Lexiva est actif." };
+      }
+      return {
+        label: "Actif",
+        detail: joinSentences(formula, date ? `Prochain renouvellement le ${date}.` : "Votre abonnement est actif."),
+      };
+    case "canceled":
+      return {
+        label: "Résilié",
+        detail: date
+          ? `Votre abonnement est résilié. La période s'est terminée le ${date}. Vous pouvez choisir une nouvelle formule quand vous le souhaitez.`
+          : "Votre abonnement est résilié. Vous pouvez choisir une nouvelle formule quand vous le souhaitez.",
+      };
+    case "past_due":
+      return {
+        label: "Paiement échoué",
+        detail:
+          "Le dernier paiement a échoué. Mettez à jour votre carte depuis le portail pour conserver votre formule.",
+      };
+    default: {
+      const unexpected: never = view.status;
+      throw new Error(`Statut non affiché : ${String(unexpected)}`);
+    }
+  }
+}
+
+function joinSentences(...parts: Array<string | null>): string {
+  return parts.filter((part): part is string => Boolean(part)).join(" ");
+}
+
+/** Null si la session Checkout appartient au compte. Sinon un message à afficher, sans détail interne. */
+export function checkoutSessionOwnershipError(input: {
+  metadataUserId: string | null;
+  clientReferenceId: string | null;
+  sessionCustomerId: string | null;
+  userId: string;
+  userCustomerId: string | null;
+}): string | null {
+  if (
+    input.metadataUserId !== input.userId ||
+    (input.clientReferenceId != null && input.clientReferenceId !== input.userId) ||
+    (input.userCustomerId != null &&
+      input.sessionCustomerId != null &&
+      input.userCustomerId !== input.sessionCustomerId)
+  ) {
+    return "Cette session de paiement ne correspond pas à votre compte.";
+  }
+  return null;
+}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, CreditCard, Sparkles } from "lucide-react";
 import { BackLink } from "@/components/back-link";
 import { openBillingPortal, startSubscriptionCheckout } from "@/lib/subscription-client";
@@ -9,8 +9,9 @@ import {
   SUBSCRIPTION_TRIAL_DAYS,
   SUBSCRIPTION_YEARLY_EUROS,
   formatEuros,
-  formatPeriodEnd,
-  subscriptionStatusLabel,
+  subscribedIntro,
+  subscriptionDisplay,
+  subscriptionOfferIntro,
   type BillingPlan,
   type SubscriptionView,
 } from "@/lib/subscription";
@@ -26,62 +27,16 @@ type CheckoutResult = "success" | "cancel" | null;
 export function AbonnementClient({
   initial,
   checkout,
+  confirmationError,
 }: {
   initial: SubscriptionView;
   checkout: CheckoutResult;
+  confirmationError: string | null;
 }) {
-  const [view, setView] = useState(initial);
+  const view = initial;
   const [pendingPlan, setPendingPlan] = useState<BillingPlan | null>(null);
   const [portalPending, setPortalPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState(checkout === "success" && initial.canSubscribe);
-
-  useEffect(() => {
-    if (checkout !== "success") return;
-    let stopped = false;
-    let attempts = 0;
-
-    async function refresh() {
-      const response = await fetch("/api/stripe/subscription", { cache: "no-store" });
-      if (!response.ok) {
-        const data: unknown = await response.json().catch(() => null);
-        const message =
-          data && typeof data === "object" && "error" in data && typeof data.error === "string"
-            ? data.error
-            : "Impossible de confirmer l'abonnement.";
-        throw new Error(message);
-      }
-      const data: unknown = await response.json();
-      if (!data || typeof data !== "object" || !("showBilling" in data) || data.showBilling !== true) {
-        throw new Error("Réponse d'abonnement illisible.");
-      }
-      return data as SubscriptionView;
-    }
-
-    const timer = window.setInterval(() => {
-      attempts += 1;
-      void refresh()
-        .then((next) => {
-          if (stopped) return;
-          setView(next);
-          if (!next.canSubscribe || attempts >= 8) {
-            setConfirming(false);
-            window.clearInterval(timer);
-          }
-        })
-        .catch((cause: unknown) => {
-          if (stopped) return;
-          setConfirming(false);
-          setError(cause instanceof Error ? cause.message : "Impossible de confirmer l'abonnement.");
-          window.clearInterval(timer);
-        });
-    }, 2000);
-
-    return () => {
-      stopped = true;
-      window.clearInterval(timer);
-    };
-  }, [checkout]);
+  const [error, setError] = useState<string | null>(confirmationError);
 
   async function subscribe(plan: BillingPlan) {
     setError(null);
@@ -105,9 +60,7 @@ export function AbonnementClient({
     }
   }
 
-  const trialCopy = view.includesTrial
-    ? `Un mois offert pour commencer. Votre carte est enregistrée aujourd'hui, le premier prélèvement a lieu dans ${SUBSCRIPTION_TRIAL_DAYS} jours, sauf résiliation.`
-    : "Choisissez une formule pour reprendre Lexiva. Le prélèvement a lieu aujourd'hui. Vous pouvez résilier à tout moment : l'abonnement reste actif jusqu'à la fin de la période en cours.";
+  const intro = view.canSubscribe ? subscriptionOfferIntro(view.includesTrial) : subscribedIntro();
 
   return (
     <div className="mx-auto max-w-[760px]">
@@ -119,7 +72,7 @@ export function AbonnementClient({
           Votre abonnement
         </h1>
         <p style={{ fontSize: 15, lineHeight: 1.55, color: MUTED, marginTop: 8, maxWidth: 560 }}>
-          {view.canSubscribe ? trialCopy : "Retrouvez ici votre formule, la date de renouvellement et le portail pour gérer votre carte ou résilier."}
+          {intro}
         </p>
       </header>
 
@@ -129,21 +82,19 @@ export function AbonnementClient({
         </Notice>
       ) : null}
 
-      {checkout === "success" && confirming ? (
-        <Notice tone="violet">Confirmation de votre essai en cours. Cela peut prendre quelques instants.</Notice>
-      ) : null}
-
-      {checkout === "success" && !confirming && !view.canSubscribe ? (
+      {checkout === "success" && !confirmationError && !view.canSubscribe ? (
         <Notice tone="green">
-          {view.status === "trialing"
-            ? "Votre essai est lancé. Le premier prélèvement aura lieu à la fin de l'essai, sauf résiliation."
-            : "Votre abonnement est enregistré."}
+          {view.cancelAtPeriodEnd
+            ? "Votre résiliation est programmée. Vous gardez l'accès jusqu'à la fin de la période en cours."
+            : view.status === "trialing"
+              ? "Votre essai est lancé. Le premier prélèvement aura lieu à la fin de l'essai, sauf résiliation."
+              : "Votre abonnement est enregistré."}
         </Notice>
       ) : null}
 
-      {checkout === "success" && !confirming && view.canSubscribe ? (
+      {checkout === "success" && !confirmationError && view.canSubscribe ? (
         <Notice tone="gold">
-          Le retour de paiement est bien reçu, mais le statut n&apos;est pas encore à jour. Rafraîchissez la page dans un instant.
+          Le paiement est revenu, mais aucun abonnement actif n&apos;est associé à votre compte.
         </Notice>
       ) : null}
 
@@ -221,10 +172,10 @@ export function AbonnementClient({
 }
 
 function StatusCard({ view }: { view: SubscriptionView }) {
-  if (view.status === "inactive" && view.canSubscribe) return null;
+  if (view.status === "inactive" && view.canSubscribe && !view.cancelAtPeriodEnd) return null;
 
-  const tone = statusTone(view.status);
-  const periodLabel = periodPhrase(view);
+  const display = subscriptionDisplay(view);
+  const tone = statusTone(view);
 
   return (
     <section
@@ -237,45 +188,19 @@ function StatusCard({ view }: { view: SubscriptionView }) {
       }}
     >
       <div className="flex items-center gap-2">
-        <Sparkles size={16} color={tone.color} aria-hidden />
-        <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: TEXT }}>{subscriptionStatusLabel(view.status)}</p>
+        <Sparkles size={16} color={tone} aria-hidden />
+        <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: TEXT }}>{display.label}</p>
       </div>
-      <p style={{ margin: "8px 0 0", fontSize: 14, color: MUTED, lineHeight: 1.5 }}>
-        {view.status === "active" && !view.canManagePortal
-          ? "Votre accès Lexiva est actif."
-          : planPhrase(view)}
-        {periodLabel ? ` ${periodLabel}` : ""}
-      </p>
-      {view.status === "past_due" ? (
-        <p style={{ margin: "8px 0 0", fontSize: 14, color: "#8A5A00", lineHeight: 1.5 }}>
-          Le dernier paiement a échoué. Mettez à jour votre carte depuis le portail pour conserver la formule.
-        </p>
-      ) : null}
+      <p style={{ margin: "8px 0 0", fontSize: 14, color: MUTED, lineHeight: 1.5 }}>{display.detail}</p>
     </section>
   );
 }
 
-function planPhrase(view: SubscriptionView): string {
-  if (view.plan === "monthly") return `Formule mensuelle, ${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} par mois.`;
-  if (view.plan === "annual") return `Formule annuelle, ${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} par an.`;
-  if (view.status === "canceled") return "Vous pouvez choisir une nouvelle formule quand vous le souhaitez.";
-  return "Aucune formule en cours.";
-}
-
-function periodPhrase(view: SubscriptionView): string | null {
-  if (view.currentPeriodEnd == null) return null;
-  const date = formatPeriodEnd(view.currentPeriodEnd);
-  if (view.status === "trialing") return `Fin de l'essai le ${date}.`;
-  if (view.status === "active") return `Prochain renouvellement le ${date}.`;
-  if (view.status === "canceled") return `Fin de période le ${date}.`;
-  if (view.status === "past_due") return `Échéance le ${date}.`;
-  return null;
-}
-
-function statusTone(status: SubscriptionView["status"]): { color: string } {
-  if (status === "active" || status === "trialing") return { color: GREEN };
-  if (status === "past_due" || status === "canceled") return { color: GOLD };
-  return { color: VIOLET };
+function statusTone(view: SubscriptionView): string {
+  if (view.cancelAtPeriodEnd) return GOLD;
+  if (view.status === "active" || view.status === "trialing") return GREEN;
+  if (view.status === "past_due" || view.status === "canceled") return GOLD;
+  return VIOLET;
 }
 
 function PlanCard({

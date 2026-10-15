@@ -55,7 +55,7 @@ En local : `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
 1. Menu du compte → Abonnement, ou Paramètres → S'abonner.
 2. Choisir Mensuel ou Annuel. La page Stripe s'ouvre en français et demande une carte.
 3. Carte de test : `4242 4242 4242 4242`, date future, CVC quelconque.
-4. Retour sur `/app/abonnement?checkout=success`. Le statut passe à `trialing`.
+4. Retour sur `/app/abonnement?checkout=success&session_id=cs_test_…`. La page relit la session Checkout chez Stripe, vérifie qu'elle appartient au compte connecté, puis enregistre le statut (`trialing`) sans attendre le webhook. Un second affichage de la même URL ne crée pas un second abonnement.
 5. « Gérer mon abonnement » ouvre le portail (résiliation, carte, factures).
 
 Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événement `invoice.payment_failed`, le statut devient `past_due`.
@@ -70,5 +70,8 @@ Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événemen
 | `canceled` | `canceled` (formule remise à `free`) |
 | `incomplete`, `incomplete_expired` | `inactive` |
 | `paused` | erreur webhook, non appliqué |
+| `cancel_at_period_end` alors que le statut reste `active` ou `trialing` | affiché « Résiliation programmée », lu chez Stripe à l'affichage, sans colonne supplémentaire |
+
+Sur la page, avant souscription : l'offre (essai de 30 jours, carte requise). La phrase « Votre carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
 
 `hasActiveSubscription` reste vrai seulement pour `active` et `trialing`. Cette étape ne s'en sert pas pour bloquer l'accès.
