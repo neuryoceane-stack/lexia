@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { getUser } from "@/lib/auth";
+import { paywallDenial } from "@/lib/paywall";
 import { CLAUDE_MODEL } from "@/lib/ai-model";
 import {
   PREFERRED_LANGUAGE_OPTIONS,
@@ -34,6 +35,8 @@ export async function POST(request: Request) {
   if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
+  const denied = await paywallDenial(user);
+  if (denied) return denied;
 
   const apiKey = process.env.ANTHROPIC_API_KEY?.trim();
   if (!apiKey) {

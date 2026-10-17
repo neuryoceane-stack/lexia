@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLeaveForAbonnement } from "@/components/paywall-gate";
 
 export function FamillesClient() {
   const router = useRouter();
+  const leaveForAbonnement = useLeaveForAbonnement();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -12,6 +14,7 @@ export function FamillesClient() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (leaveForAbonnement()) return;
     setError("");
     setLoading(true);
     try {
@@ -39,7 +42,10 @@ export function FamillesClient() {
     <>
       <button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => {
+          if (leaveForAbonnement()) return;
+          setOpen(true);
+        }}
         className="btn-relief rounded-lg bg-accent px-4 py-2 text-sm font-medium text-vocab-gray hover:bg-accent/90"
       >
         Créer une liste

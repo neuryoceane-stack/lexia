@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import { paywallDenial } from "@/lib/paywall";
 import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { nanoid } from "nanoid";
@@ -55,6 +56,8 @@ export async function POST(
   if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
+  const denied = await paywallDenial(user);
+  if (denied) return denied;
   const { listId } = await params;
   const list = await ensureListAccess(listId, user.id);
   if (!list) {

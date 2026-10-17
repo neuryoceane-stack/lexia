@@ -14,6 +14,7 @@ import {
   fetchExistingLists,
   type VocabListOption,
 } from "@/lib/vocab-list-save";
+import { useLeaveForAbonnement } from "@/components/paywall-gate";
 
 type ImportDestMode = "create" | "existing";
 
@@ -64,6 +65,7 @@ export function BibliothequeClient() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const leaveForAbonnement = useLeaveForAbonnement();
   const [lists, setLists] = useState<BibliothequeList[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -207,11 +209,11 @@ export function BibliothequeClient() {
   }, [search]);
 
   useEffect(() => {
-    if (searchParams.get("ajouter") === "liste") {
-      setAddModal("list");
-      router.replace(pathname, { scroll: false });
-    }
-  }, [searchParams, pathname, router]);
+    if (searchParams.get("ajouter") !== "liste") return;
+    if (leaveForAbonnement()) return;
+    setAddModal("list");
+    router.replace(pathname, { scroll: false });
+  }, [searchParams, pathname, router, leaveForAbonnement]);
 
   const prevAddModalRef = useRef<typeof addModal>(null);
 
@@ -707,7 +709,10 @@ export function BibliothequeClient() {
           </Link>
           <button
             type="button"
-            onClick={() => setAddModal("list")}
+            onClick={() => {
+              if (leaveForAbonnement()) return;
+              setAddModal("list");
+            }}
             title="J'ai déjà mes paires mot/traduction."
             aria-label="Liste de vocabulaire — J'ai déjà mes paires mot/traduction."
             className={`${BIB_HEADER_ACTION_BTN} cursor-pointer border-transparent bg-[#6C3FC8] text-white`}
@@ -961,7 +966,10 @@ export function BibliothequeClient() {
               </p>
               <button
                 type="button"
-                onClick={() => setAddModal("list")}
+                onClick={() => {
+              if (leaveForAbonnement()) return;
+              setAddModal("list");
+            }}
                 className="mx-auto mt-5 inline-flex items-center gap-1.5 transition hover:brightness-95"
                 style={{
                   background: "#6C3FC8",
@@ -1043,6 +1051,7 @@ export function BibliothequeClient() {
                       type="button"
                       className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
                       onClick={() => {
+                        if (leaveForAbonnement()) return;
                         setMenuOpenId(null);
                         setDuplicateModalList(list);
                         const from = list.language || "eng";
@@ -1080,7 +1089,10 @@ export function BibliothequeClient() {
           <li>
             <button
               type="button"
-              onClick={() => setAddModal("list")}
+              onClick={() => {
+              if (leaveForAbonnement()) return;
+              setAddModal("list");
+            }}
               className="flex h-full w-full flex-col items-center justify-center gap-2 transition hover:bg-[var(--hover-bg)]"
               style={{ border: "1.5px dashed var(--border)", borderRadius: 12, background: "transparent", padding: "32px 12px", cursor: "pointer" }}
             >
@@ -1129,6 +1141,7 @@ export function BibliothequeClient() {
                       type="button"
                       className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
                       onClick={() => {
+                        if (leaveForAbonnement()) return;
                         setMenuOpenId(null);
                         setDuplicateModalList(list);
                         const from = list.language || "eng";
@@ -1631,6 +1644,7 @@ export function BibliothequeClient() {
                       : importCatalogLoading || !selectedImportListId
                   }
                   onClick={async () => {
+                    if (leaveForAbonnement()) return;
                     if (importDestMode === "existing") {
                       const list = importCatalog.find((l) => l.id === selectedImportListId);
                       if (!list) return;

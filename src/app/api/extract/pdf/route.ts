@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import { paywallDenial } from "@/lib/paywall";
 import { parseLinesToItems } from "@/lib/extract";
 import { getDocumentProxy, extractText } from "unpdf";
 
@@ -8,6 +9,8 @@ export async function POST(request: Request) {
   if (!user?.id) {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
+  const denied = await paywallDenial(user);
+  if (denied) return denied;
   let formData: FormData;
   try {
     formData = await request.formData();

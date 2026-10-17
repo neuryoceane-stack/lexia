@@ -7,6 +7,8 @@ import { db } from "@/lib/db";
 import { userProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { OnboardingWrapper } from "@/components/onboarding-wrapper";
+import { PaywallBlockedProvider } from "@/components/paywall-gate";
+import { isStudentPaywalled } from "@/lib/paywall";
 
 export default async function AppLayout({
   children,
@@ -31,13 +33,17 @@ export default async function AppLayout({
   });
   const showOnboarding = profile ? !profile.onboardingCompleted : false;
   const userRole = role === "professeur" ? "professeur" : "etudiant";
+  const paywalled = await isStudentPaywalled(user);
 
   return (
-    <div className="min-h-screen">
-      <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
-      <main className="page-fade-in mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
-      <FeedbackWidget />
-      {showOnboarding && <OnboardingWrapper role={userRole} />}
-    </div>
+    <PaywallBlockedProvider blocked={paywalled}>
+      <div className="min-h-screen">
+        <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
+        <main className="page-fade-in mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
+        <FeedbackWidget />
+        {/* Le tutoriel ouvre la révision : il attend que l'élève ait accès. */}
+        {showOnboarding && !paywalled && <OnboardingWrapper role={userRole} />}
+      </div>
+    </PaywallBlockedProvider>
   );
 }

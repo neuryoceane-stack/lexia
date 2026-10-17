@@ -7,6 +7,8 @@ import { gardenProgress, notifications, userProfiles, users } from "@/lib/db/sch
 import { eq, sql } from "drizzle-orm";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import type { SubscriptionStatus } from "@/lib/subscription";
+import { isPaywallEnabled } from "@/lib/paywall";
+import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
 import {
   generateUniqueReferralCode,
   findReferrerUserIdByCode,
@@ -269,6 +271,9 @@ export async function POST(request: Request) {
       firstName,
       lastName,
       role: profileRole,
+      ...(!isProfessor && isPaywallEnabled()
+        ? { postSignupPath: ABONNEMENT_PATH }
+        : {}),
     });
   } catch (error) {
     return registerErrorResponse(error);
