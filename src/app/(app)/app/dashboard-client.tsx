@@ -174,7 +174,7 @@ export function DashboardClient() {
           </div>
 
           <Link
-            href={libraryEmpty ? "/app/familles?ajouter=liste" : "/app/revision/express"}
+            href={libraryEmpty ? "/app/familles/nouvelle-liste" : "/app/revision/express"}
             onClick={() => {
               if (navigator.vibrate) navigator.vibrate(10);
             }}
