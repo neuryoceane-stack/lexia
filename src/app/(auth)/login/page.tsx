@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
@@ -14,7 +14,26 @@ const FEATURE_CHIPS = [
   { emoji: "🌍", label: "Multi-langues" },
 ];
 
-export default function LoginPage() {
+const loginCardShellStyle: React.CSSProperties = {
+  background: "white",
+  borderRadius: 20,
+  width: "100%",
+  maxWidth: 320,
+  padding: "26px 22px",
+  border: "0.5px solid rgba(108,63,200,0.15)",
+};
+
+function LoginPageFallback() {
+  return (
+    <div style={loginCardShellStyle} aria-busy="true" aria-label="Chargement">
+      <p className="text-center" style={{ fontSize: 13, color: "#71717a" }}>
+        Chargement…
+      </p>
+    </div>
+  );
+}
+
+function LoginPageContent() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -64,16 +83,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div
-      style={{
-        background: "white",
-        borderRadius: 20,
-        width: "100%",
-        maxWidth: 320,
-        padding: "26px 22px",
-        border: "0.5px solid rgba(108,63,200,0.15)",
-      }}
-    >
+    <div style={loginCardShellStyle}>
       {/* Logo */}
       <div className="mb-[18px] text-center">
         <Link href="/" className="inline-block no-underline">
@@ -223,6 +233,14 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<LoginPageFallback />}>
+      <LoginPageContent />
+    </Suspense>
   );
 }
 
