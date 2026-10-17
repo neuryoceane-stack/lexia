@@ -4,9 +4,9 @@
 
 ## Offre
 
-- Mensuel : 4 € / mois
-- Annuel : 40 € / an (2 mois offerts)
-- Essai : 30 jours, carte bancaire obligatoire, une seule fois (statut `inactive`)
+- Mensuel : 5 € / mois, sans engagement
+- Annuel : 45 € / an, soit 3,75 € / mois, 3 mois offerts
+- Essai : 15 jours, carte bancaire obligatoire, une seule fois (statut `inactive`). Il n'existe pas de version gratuite.
 - Un compte `canceled` peut se réabonner, sans nouvel essai
 - Un accès déjà `active` ou `trialing` (y compris un code promo) ne redémarre pas un Checkout
 
@@ -18,11 +18,13 @@ Clés de **test** uniquement. Une clé `sk_live_` ou `rk_live_` est refusée par
 |----------|---------|------|
 | `STRIPE_SECRET_KEY` | `sk_test_…` | Clé secrète Stripe |
 | `STRIPE_WEBHOOK_SECRET` | `whsec_…` | Signature du webhook |
-| `STRIPE_PRICE_MONTHLY` | `price_…` | Prix récurrent 4 € / mois |
-| `STRIPE_PRICE_YEARLY` | `price_…` | Prix récurrent 40 € / an |
+| `STRIPE_PRICE_MONTHLY` | `price_…` | Prix récurrent 5 € / mois. **À mettre à jour** avec le Price ID du nouveau tarif. |
+| `STRIPE_PRICE_YEARLY` | `price_…` | Prix récurrent 45 € / an. **À mettre à jour** avec le Price ID du nouveau tarif. |
 | `NEXTAUTH_URL` | `http://localhost:3000` | Origine des URLs de retour |
 
-Les Price ID ne sont pas écrits dans le code. Au moment du Checkout, Lexiva vérifie que le prix Stripe est actif, en euros, et exactement égal à 400 ou 4 000 centimes, avec un intervalle d'un mois ou d'un an. Ne pas poser de période d'essai sur le Price : les 30 jours sont ajoutés par la session Checkout.
+Les Price ID ne sont pas écrits dans le code. Au moment du Checkout, Lexiva vérifie que le prix Stripe est actif, en euros, et exactement égal à 500 ou 4 500 centimes, avec un intervalle d'un mois ou d'un an. Ces montants viennent de `src/lib/offer.ts`. Ne pas poser de période d'essai sur le Price : les 15 jours sont ajoutés par la session Checkout (`trial_period_days`).
+
+Variables à mettre à jour après création des deux prix : `STRIPE_PRICE_MONTHLY` (5 € / mois) et `STRIPE_PRICE_YEARLY` (45 € / an). Un ancien Price ID à 4 € ou 40 € est refusé. `PAYWALL_ENABLED` ne change pas.
 
 ## Schéma à pousser
 
@@ -40,8 +42,8 @@ Tant que ces colonnes ne sont pas en place, la page et Paramètres affichent le 
 
 ## Stripe Dashboard (mode test)
 
-1. Créer un produit Lexiva et deux prix récurrents : 4 € / mois et 40 € / an.
-2. Copier les Price ID dans `STRIPE_PRICE_MONTHLY` et `STRIPE_PRICE_YEARLY`.
+1. Créer un produit Lexiva et deux prix récurrents : 5 € / mois et 45 € / an. Pas de période d'essai sur le Price.
+2. Copier les Price ID dans `STRIPE_PRICE_MONTHLY` et `STRIPE_PRICE_YEARLY` (les deux variables sont à mettre à jour).
 3. Activer le portail client : annulation, mise à jour de la carte, et changement entre ces deux prix.
 4. Ajouter l'endpoint webhook `https://<domaine>/api/stripe/webhook` avec les événements :
    - `checkout.session.completed` (déjà utilisé par la boutique)
@@ -74,9 +76,9 @@ Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événemen
 | `paused` | erreur webhook, non appliqué |
 | `cancel_at_period_end` alors que le statut reste `active` ou `trialing` | affiché « Résiliation programmée », lu chez Stripe à l'affichage, sans colonne supplémentaire |
 
-Sur la page, avant souscription : l'offre (essai de 30 jours, carte requise). La phrase « Votre carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
+Sur la page, avant souscription : l'offre (essai de 15 jours, carte requise) et la ligne « Si tu es mineur, demande à un parent ou à un tuteur de souscrire. » La phrase « Ta carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
 
-Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Vous pouvez continuer à utiliser Lexiva. » sur `/app/abonnement` et dans Paramètres. Aucun bouton de paiement, aucun message d'erreur.
+Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Tu peux continuer à utiliser Lexiva. » sur `/app/abonnement` et dans Paramètres. Aucun bouton de paiement, aucun message d'erreur.
 
 `hasActiveSubscription` reste vrai seulement pour `active` et `trialing`. Le paywall s'en sert lorsque `PAYWALL_ENABLED=true`.
 

@@ -498,7 +498,7 @@ async function assertCheckoutAllowed(
     });
     if (existing && OPEN_SUBSCRIPTION_STATUSES.has(existing.status)) {
       throw new BillingError(
-        "Vous avez déjà un abonnement en cours. Utilisez « Gérer mon abonnement » pour le modifier ou le résilier.",
+        "Tu as déjà un abonnement en cours. Utilise « Gérer mon abonnement » pour le modifier ou le résilier.",
         409
       );
     }
@@ -514,8 +514,8 @@ async function assertCheckoutAllowed(
   if (status === "active" || status === "trialing" || status === "past_due") {
     throw new BillingError(
       status === "past_due"
-        ? "Un paiement est en échec sur ce compte. Mettez à jour la carte depuis le portail."
-        : "Votre accès Lexiva est déjà actif.",
+        ? "Un paiement est en échec sur ce compte. Mets à jour la carte depuis le portail."
+        : "Ton accès Lexiva est déjà actif.",
       409
     );
   }

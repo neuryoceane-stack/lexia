@@ -42,14 +42,14 @@ export default async function AbonnementPage({
   try {
     subscription = await loadSubscriptionView(user.id);
   } catch (error) {
-    loadError = billingMessage(error, "Impossible de lire votre abonnement.");
+    loadError = billingMessage(error, "Impossible de lire ton abonnement.");
   }
 
   if (!subscription) {
     return (
       <div className={dmSans.className}>
         <p role="alert" style={{ fontSize: 15, color: "#B42318" }}>
-          {loadError ?? "Impossible de lire votre abonnement."}
+          {loadError ?? "Impossible de lire ton abonnement."}
         </p>
       </div>
     );
