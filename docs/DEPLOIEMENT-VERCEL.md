@@ -62,7 +62,7 @@ Les variables et le scénario de test sont décrits dans `docs/ABONNEMENT-STRIPE
 |----------|------|
 | `STRIPE_SECRET_KEY` | Clé secrète de test |
 | `STRIPE_WEBHOOK_SECRET` | Secret de signature du webhook |
-| `STRIPE_PRICE_MONTHLY` | Price ID mensuel, 4 € |
-| `STRIPE_PRICE_YEARLY` | Price ID annuel, 40 € |
+| `STRIPE_PRICE_MONTHLY` | Price ID mensuel, 5 €. À remplacer par le nouveau prix. |
+| `STRIPE_PRICE_YEARLY` | Price ID annuel, 45 €. À remplacer par le nouveau prix. |
 
 `NEXTAUTH_URL` sert aussi d’URL de retour après le paiement. Le schéma ajouté pour l’abonnement (`stripe_customer_id`, `stripe_subscription_id`, `subscription_current_period_end`, `stripe_status_synced_at`) doit être poussé par Océane : ne pas lancer `drizzle-kit push` depuis un agent.

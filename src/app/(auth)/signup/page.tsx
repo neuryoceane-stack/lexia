@@ -10,7 +10,6 @@ import { validateEmail, validatePassword } from "@/lib/validation";
 import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
 
 type Role = "eleve" | "professeur";
-type Plan = "free" | "monthly" | "annual";
 
 type EleveStep =
   | "role"
@@ -18,8 +17,7 @@ type EleveStep =
   | "goal"
   | "identity"
   | "account"
-  | "projection"
-  | "pricing";
+  | "projection";
 
 type ProfStep =
   | "role"
@@ -222,9 +220,6 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [plan, setPlan] = useState<Plan>("annual");
-  const [showPromoCode, setShowPromoCode] = useState(false);
-  const [promoCode, setPromoCode] = useState("");
   const [teacherSubject, setTeacherSubject] = useState("");
   const [schoolName, setSchoolName] = useState("");
   const [institutionCode, setInstitutionCode] = useState("");
@@ -300,8 +295,6 @@ export default function SignupPage() {
           institution_code: isProf ? institutionCode.trim() || undefined : undefined,
           acquisition_source: !isProf ? acquisitionSource || undefined : undefined,
           weekly_goal: !isProf ? weeklyGoal ?? undefined : undefined,
-          promo_code: !isProf ? promoCode.trim() || undefined : undefined,
-          plan,
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -525,7 +518,7 @@ export default function SignupPage() {
         <CTA onClick={() => setEleveStep("goal")}>Continuer →</CTA>
         <SkipLink onClick={() => setEleveStep("goal")} />
       </>,
-      1, 6
+      1, 5
     );
 
     if (eleveStep === "goal") return wrap(
@@ -544,7 +537,7 @@ export default function SignupPage() {
         <CTA onClick={() => { if (weeklyGoal) setEleveStep("identity"); }} disabled={!weeklyGoal}>Continuer →</CTA>
         <SkipLink onClick={() => setEleveStep("identity")} />
       </>,
-      2, 6
+      2, 5
     );
 
     if (eleveStep === "identity") return wrap(
@@ -586,7 +579,7 @@ export default function SignupPage() {
           Continuer →
         </CTA>
       </>,
-      3, 6
+      3, 5
     );
 
     if (eleveStep === "account") return wrap(
@@ -630,13 +623,14 @@ export default function SignupPage() {
           {accountChecking ? "Vérification…" : "Continuer →"}
         </CTA>
       </>,
-      4, 6
+      4, 5
     );
 
     if (eleveStep === "projection") {
       const mots = calcProjection();
       return wrap(
         <>
+          <BackBtn onClick={() => { setError(""); setEmailTaken(false); setEleveStep("account"); }} />
           <div style={{ textAlign: "center", marginBottom: 24 }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
               <Rocket size={44} color={V} strokeWidth={1.75} aria-hidden />
@@ -654,73 +648,17 @@ export default function SignupPage() {
               <p style={{ fontSize: 11, color: MUTED }}>algorithme d&apos;apprentissage</p>
             </div>
           </div>
-          <CTA onClick={() => setEleveStep("pricing")}>Choisir mon plan →</CTA>
+          <CTA onClick={handleRegister} disabled={loading}>
+            {loading ? "Création du compte…" : "Créer mon compte →"}
+          </CTA>
+          {emailTaken ? (
+            <EmailTakenNotice email={email} />
+          ) : error ? (
+            <p style={{ fontSize: 12, color: "#dc2626", marginTop: 8 }}>{error}</p>
+          ) : null}
         </>,
-        5, 6
+        5, 5
       );
-    }
-
-    if (eleveStep === "pricing") {
-      const planPriceLabel = plan === "monthly" ? "7€/mois" : "4€/mois";
-      return wrap(
-      <>
-        <BackBtn onClick={() => setEleveStep("projection")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, textAlign: "center", textWrap: "balance", marginBottom: 4 }}>Choisis ton plan</p>
-        <p style={{ fontSize: 12, color: MUTED, textAlign: "center", textWrap: "balance", marginBottom: 20 }}>Tu peux changer de plan à tout moment.</p>
-        <div onClick={() => setPlan("annual")}
-          style={{ background: plan === "annual" ? V_LIGHT : "white", border: `2px solid ${plan === "annual" ? V : V_BORDER}`, borderRadius: 16, padding: "16px", marginBottom: 10, cursor: "pointer", position: "relative" }}>
-          <div style={{ position: "absolute", top: -10, left: 16, background: V, color: "white", fontSize: 10, fontWeight: 500, padding: "2px 10px", borderRadius: 20 }}>MEILLEURE OFFRE</div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 500, color: TEXT }}>Plan annuel</p>
-              <p style={{ fontSize: 11, color: MUTED }}>Économise 43% vs mensuel</p>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <p style={{ fontSize: 18, fontWeight: 500, color: V }}>4€<span style={{ fontSize: 11, color: MUTED }}>/mois</span></p>
-              <p style={{ fontSize: 10, color: MUTED }}>facturé 48€/an</p>
-            </div>
-          </div>
-        </div>
-        <div onClick={() => setPlan("monthly")}
-          style={{ background: plan === "monthly" ? V_LIGHT : "white", border: `1.5px solid ${plan === "monthly" ? V : V_BORDER}`, borderRadius: 16, padding: "16px", marginBottom: 12, cursor: "pointer" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <div>
-              <p style={{ fontSize: 14, fontWeight: 500, color: TEXT }}>Plan mensuel</p>
-              <p style={{ fontSize: 11, color: MUTED }}>Sans engagement</p>
-            </div>
-            <p style={{ fontSize: 18, fontWeight: 500, color: TEXT }}>7€<span style={{ fontSize: 11, color: MUTED }}>/mois</span></p>
-          </div>
-        </div>
-        <div style={{ marginBottom: 16 }}>
-          {!showPromoCode ? (
-            <button type="button" onClick={() => setShowPromoCode(true)}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 12, color: V, textDecoration: "underline", padding: 0, fontFamily: "DM Sans, sans-serif" }}>
-              Tu as un code de parrainage ou de promo ?
-            </button>
-          ) : (
-            <>
-              <p style={{ fontSize: 11, color: MUTED, marginBottom: 6 }}>Code de parrainage ou promo (optionnel)</p>
-              <input type="text" value={promoCode} onChange={e => setPromoCode(e.target.value)}
-                placeholder="Entre ton code"
-                style={inputStyle}
-                onFocus={handleFocus} onBlur={handleBlur} />
-            </>
-          )}
-        </div>
-        {emailTaken ? (
-          <EmailTakenNotice email={email} />
-        ) : error ? (
-          <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>
-        ) : null}
-        <CTA onClick={handleRegister} disabled={loading}>
-          {loading ? "Création du compte…" : "Commencer mon essai →"}
-        </CTA>
-        <p style={{ fontSize: 10, color: MUTED, textAlign: "center", marginTop: 10, lineHeight: 1.45, textWrap: "balance" }}>
-          15 jours gratuits, puis {planPriceLabel}. Sans engagement, résiliable à tout moment.
-        </p>
-      </>,
-      6, 6
-    );
     }
   }
 

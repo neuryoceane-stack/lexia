@@ -5,10 +5,21 @@ import { Check, CreditCard, Sparkles } from "lucide-react";
 import { BackLink } from "@/components/back-link";
 import { openBillingPortal, startSubscriptionCheckout } from "@/lib/subscription-client";
 import {
-  SUBSCRIPTION_MONTHLY_EUROS,
-  SUBSCRIPTION_TRIAL_DAYS,
-  SUBSCRIPTION_YEARLY_EUROS,
-  formatEuros,
+  OFFER_MINOR_NOTICE,
+  OFFER_MONTHLY_DETAIL,
+  OFFER_MONTHLY_EUROS,
+  OFFER_MONTHLY_LABEL,
+  OFFER_MONTHLY_PERIOD,
+  OFFER_TRIAL_CARD_LABEL,
+  OFFER_YEARLY_BADGE,
+  OFFER_YEARLY_DETAIL,
+  OFFER_YEARLY_EUROS,
+  OFFER_YEARLY_LABEL,
+  OFFER_YEARLY_PERIOD,
+  OFFER_YEARLY_PER_MONTH_LABEL,
+  formatOfferEuros,
+} from "@/lib/offer";
+import {
   subscribedIntro,
   subscriptionDisplay,
   subscriptionOfferIntro,
@@ -77,10 +88,13 @@ export function AbonnementClient({
       <header className="mb-6">
         <p style={{ fontSize: 13, fontWeight: 500, color: VIOLET, marginBottom: 6 }}>Lexiva</p>
         <h1 style={{ fontFamily: "DM Sans, sans-serif", fontSize: 28, fontWeight: 500, color: TEXT, margin: 0 }}>
-          Votre abonnement
+          Ton abonnement
         </h1>
         <p style={{ fontSize: 15, lineHeight: 1.55, color: MUTED, marginTop: 8, maxWidth: 560 }}>
           {intro}
+        </p>
+        <p style={{ fontSize: 14, lineHeight: 1.5, color: MUTED, marginTop: 10, maxWidth: 560 }}>
+          {OFFER_MINOR_NOTICE}
         </p>
       </header>
 
@@ -93,16 +107,16 @@ export function AbonnementClient({
       {checkout === "success" && !confirmationError && !view.canSubscribe ? (
         <Notice tone="green">
           {view.cancelAtPeriodEnd
-            ? "Votre résiliation est programmée. Vous gardez l'accès jusqu'à la fin de la période en cours."
+            ? "Ta résiliation est programmée. Tu gardes l'accès jusqu'à la fin de la période en cours."
             : view.status === "trialing"
-              ? "Votre essai est lancé. Le premier prélèvement aura lieu à la fin de l'essai, sauf résiliation."
-              : "Votre abonnement est enregistré."}
+              ? "Ton essai est lancé. Le premier prélèvement aura lieu à la fin de l'essai, sauf résiliation."
+              : "Ton abonnement est enregistré."}
         </Notice>
       ) : null}
 
       {checkout === "success" && !confirmationError && view.canSubscribe ? (
         <Notice tone="gold">
-          Le paiement est revenu, mais aucun abonnement actif n&apos;est associé à votre compte.
+          Le paiement est revenu, mais aucun abonnement actif n&apos;est associé à ton compte.
         </Notice>
       ) : null}
 
@@ -111,22 +125,24 @@ export function AbonnementClient({
       {checkoutOpen ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <PlanCard
-            title="Mensuel"
-            amount={formatEuros(SUBSCRIPTION_MONTHLY_EUROS)}
-            period="par mois"
-            detail="Sans engagement"
-            cta={view.includesTrial ? "Commencer l'essai gratuit" : "S'abonner"}
+            title={OFFER_MONTHLY_LABEL}
+            amount={formatOfferEuros(OFFER_MONTHLY_EUROS)}
+            period={OFFER_MONTHLY_PERIOD}
+            detail={OFFER_MONTHLY_DETAIL}
+            cta={view.includesTrial ? "Commencer l'essai" : "S'abonner"}
             pending={pendingPlan === "monthly"}
             disabled={pendingPlan !== null}
             onSubscribe={() => void subscribe("monthly")}
           />
           <PlanCard
-            title="Annuel"
-            amount={formatEuros(SUBSCRIPTION_YEARLY_EUROS)}
-            period="par an"
-            detail="Facturé une fois par an"
+            title={OFFER_YEARLY_LABEL}
+            amount={formatOfferEuros(OFFER_YEARLY_EUROS)}
+            perMonth={OFFER_YEARLY_PER_MONTH_LABEL}
+            period={OFFER_YEARLY_PERIOD}
+            detail={OFFER_YEARLY_DETAIL}
             highlighted
-            cta={view.includesTrial ? "Commencer l'essai gratuit" : "S'abonner"}
+            badge={OFFER_YEARLY_BADGE}
+            cta={view.includesTrial ? "Commencer l'essai" : "S'abonner"}
             pending={pendingPlan === "annual"}
             disabled={pendingPlan !== null}
             onSubscribe={() => void subscribe("annual")}
@@ -171,12 +187,12 @@ export function AbonnementClient({
       {checkoutOpen ? (
         <ul className="mt-6 grid gap-2" style={{ listStyle: "none", padding: 0, marginBottom: 0 }}>
           {view.includesTrial ? (
-            <Reassurance>Essai de {SUBSCRIPTION_TRIAL_DAYS} jours, carte bancaire requise</Reassurance>
+            <Reassurance>{OFFER_TRIAL_CARD_LABEL}</Reassurance>
           ) : (
             <Reassurance>Carte bancaire requise, prélèvement aujourd&apos;hui</Reassurance>
           )}
           <Reassurance>
-            {`${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} par mois ou ${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} par an`}
+            {`${formatOfferEuros(OFFER_MONTHLY_EUROS)} par mois ou ${formatOfferEuros(OFFER_YEARLY_EUROS)} par an`}
           </Reassurance>
           <Reassurance>Résiliable à tout moment depuis le portail de paiement</Reassurance>
         </ul>
@@ -220,9 +236,11 @@ function statusTone(view: SubscriptionView): string {
 function PlanCard({
   title,
   amount,
+  perMonth,
   period,
   detail,
   highlighted = false,
+  badge,
   cta,
   pending,
   disabled,
@@ -230,9 +248,11 @@ function PlanCard({
 }: {
   title: string;
   amount: string;
+  perMonth?: string;
   period: string;
   detail: string;
   highlighted?: boolean;
+  badge?: string;
   cta: string;
   pending: boolean;
   disabled: boolean;
@@ -249,7 +269,7 @@ function PlanCard({
         boxShadow: "0 2px 12px rgba(108, 63, 200, 0.08)",
       }}
     >
-      {highlighted ? (
+      {highlighted && badge ? (
         <span
           style={{
             position: "absolute",
@@ -263,13 +283,16 @@ function PlanCard({
             borderRadius: 20,
           }}
         >
-          2 mois offerts
+          {badge}
         </span>
       ) : null}
       <p style={{ margin: "6px 0 0", fontSize: 15, fontWeight: 500, color: TEXT }}>{title}</p>
       <p style={{ margin: "10px 0 0", fontSize: 32, fontWeight: 500, color: highlighted ? VIOLET : TEXT, lineHeight: 1 }}>
         {amount}
       </p>
+      {perMonth ? (
+        <p style={{ margin: "6px 0 0", fontSize: 12, color: MUTED }}>{perMonth}</p>
+      ) : null}
       <p style={{ margin: "4px 0 0", fontSize: 13, color: MUTED }}>{period}</p>
       <p style={{ margin: "12px 0 16px", fontSize: 13, color: MUTED }}>{detail}</p>
       <button

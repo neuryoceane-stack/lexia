@@ -1,3 +1,10 @@
+import {
+  OFFER_MONTHLY_EUROS,
+  OFFER_TRIAL_DAYS,
+  OFFER_YEARLY_EUROS,
+  formatOfferEuros,
+} from "@/lib/offer";
+
 /** Statuts d'abonnement stockés dans users.subscription_status */
 export const SUBSCRIPTION_STATUSES = [
   "inactive",
@@ -20,10 +27,10 @@ export function hasActiveSubscription(user: SubscriptionUserRow): boolean {
   return status === "active" || status === "trialing";
 }
 
-/** Offre élève validée : chiffres ronds, essai d'un mois avec carte. */
-export const SUBSCRIPTION_TRIAL_DAYS = 30;
-export const SUBSCRIPTION_MONTHLY_EUROS = 4;
-export const SUBSCRIPTION_YEARLY_EUROS = 40;
+/** Alias de l'offre officielle, lus aussi par le contrôle de montant Stripe. */
+export const SUBSCRIPTION_TRIAL_DAYS = OFFER_TRIAL_DAYS;
+export const SUBSCRIPTION_MONTHLY_EUROS = OFFER_MONTHLY_EUROS;
+export const SUBSCRIPTION_YEARLY_EUROS = OFFER_YEARLY_EUROS;
 
 export const BILLING_PLANS = ["monthly", "annual"] as const;
 export type BillingPlan = (typeof BILLING_PLANS)[number];
@@ -60,7 +67,7 @@ export function subscriptionCheckoutIncludesTrial(status: SubscriptionStatus): b
 }
 
 export function formatEuros(amount: number): string {
-  return `${amount}\u00a0€`;
+  return formatOfferEuros(amount);
 }
 
 export function subscriptionStatusLabel(status: SubscriptionStatus): string {
@@ -106,19 +113,19 @@ export type SubscriptionView = {
 
 /** Message élève quand le paiement n'est pas ouvert. Ce n'est pas une erreur. */
 export function subscriptionUnavailableCopy(): string {
-  return "L'abonnement n'est pas encore ouvert. Vous pouvez continuer à utiliser Lexiva.";
+  return "L'abonnement n'est pas encore ouvert. Tu peux continuer à utiliser Lexiva.";
 }
 
 export function subscriptionOfferIntro(includesTrial: boolean): string {
   if (includesTrial) {
     return `Essai de ${SUBSCRIPTION_TRIAL_DAYS} jours. Une carte bancaire est requise. ${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} par mois ou ${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} par an.`;
   }
-  return "Choisissez une formule pour reprendre Lexiva. Une carte bancaire est requise. Le prélèvement a lieu aujourd'hui.";
+  return "Choisis une formule pour reprendre Lexiva. Une carte bancaire est requise. Le prélèvement a lieu aujourd'hui.";
 }
 
 /** Texte affiché après souscription. La carte n'est mentionnée qu'à ce moment-là. */
 export function subscribedIntro(): string {
-  return "Votre carte est enregistrée. Retrouvez ici votre formule et le portail pour gérer votre carte ou résilier.";
+  return "Ta carte est enregistrée. Retrouve ici ta formule et le portail pour gérer ta carte ou résilier.";
 }
 
 export function subscriptionDisplay(view: {
@@ -140,8 +147,8 @@ export function subscriptionDisplay(view: {
     return {
       label: "Résiliation programmée",
       detail: date
-        ? `Votre résiliation est programmée. Vous gardez l'accès jusqu'au ${date}.`
-        : "Votre résiliation est programmée. Vous gardez l'accès jusqu'à la fin de la période en cours.",
+        ? `Ta résiliation est programmée. Tu gardes l'accès jusqu'au ${date}.`
+        : "Ta résiliation est programmée. Tu gardes l'accès jusqu'à la fin de la période en cours.",
     };
   }
 
@@ -163,24 +170,24 @@ export function subscriptionDisplay(view: {
       };
     case "active":
       if (!view.canManagePortal) {
-        return { label: "Actif", detail: "Votre accès Lexiva est actif." };
+        return { label: "Actif", detail: "Ton accès Lexiva est actif." };
       }
       return {
         label: "Actif",
-        detail: joinSentences(formula, date ? `Prochain renouvellement le ${date}.` : "Votre abonnement est actif."),
+        detail: joinSentences(formula, date ? `Prochain renouvellement le ${date}.` : "Ton abonnement est actif."),
       };
     case "canceled":
       return {
         label: "Résilié",
         detail: date
-          ? `Votre abonnement est résilié. La période s'est terminée le ${date}. Vous pouvez choisir une nouvelle formule quand vous le souhaitez.`
-          : "Votre abonnement est résilié. Vous pouvez choisir une nouvelle formule quand vous le souhaitez.",
+          ? `Ton abonnement est résilié. La période s'est terminée le ${date}. Tu peux choisir une nouvelle formule quand tu le souhaites.`
+          : "Ton abonnement est résilié. Tu peux choisir une nouvelle formule quand tu le souhaites.",
       };
     case "past_due":
       return {
         label: "Paiement échoué",
         detail:
-          "Le dernier paiement a échoué. Mettez à jour votre carte depuis le portail pour conserver votre formule.",
+          "Le dernier paiement a échoué. Mets à jour ta carte depuis le portail pour conserver ta formule.",
       };
     default: {
       const unexpected: never = view.status;
@@ -208,7 +215,7 @@ export function checkoutSessionOwnershipError(input: {
       input.sessionCustomerId != null &&
       input.userCustomerId !== input.sessionCustomerId)
   ) {
-    return "Cette session de paiement ne correspond pas à votre compte.";
+    return "Cette session de paiement ne correspond pas à ton compte.";
   }
   return null;
 }

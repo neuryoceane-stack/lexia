@@ -404,7 +404,7 @@ export function InformationPersonnelleClient({
                     className={`${editInputClass} !rounded-[10px] !border !border-[rgba(108,63,200,.25)] !bg-white !px-3 !py-[9px]`}
                   />
                 ) : (
-                  <ReadValue value={form.city} placeholder="Ajoutez votre ville" />
+                  <ReadValue value={form.city} placeholder="Ajoute ta ville" />
                 )}
               </FieldValueRow>
             </FieldBlock>
@@ -421,7 +421,7 @@ export function InformationPersonnelleClient({
                     inputClassName="!rounded-r-[10px] !border !border-[rgba(108,63,200,.25)] !border-l-0 !bg-white !text-[13px] !py-[9px] focus-visible:!ring-2 focus-visible:!ring-[#6C3FC8]"
                   />
                 ) : (
-                  <ReadValue value={form.phone} placeholder="Ajoutez un numéro" />
+                  <ReadValue value={form.phone} placeholder="Ajoute un numéro" />
                 )}
               </FieldValueRow>
             </FieldBlock>

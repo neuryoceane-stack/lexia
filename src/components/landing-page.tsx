@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Brain, FileText, LineChart, ListPlus, Loader2, MousePointerClick, Users, type LucideIcon } from "lucide-react";
+import { OFFER_TRIAL_CARD_LABEL } from "@/lib/offer";
 
 const DEMO_CARDS = [
   { term: "distorto", def: "distorcere : déformer", lang: "it" },
@@ -182,7 +183,7 @@ export function LandingPage() {
     <div className="min-h-screen overflow-x-hidden">
       {showDeletedBanner && (
         <div className="relative flex items-center justify-center gap-2 bg-[#dcfce7] px-4 py-3 text-sm font-medium text-[#166534]">
-          <span>✓ Votre compte a bien été supprimé. À bientôt sur Lexiva.</span>
+          <span>✓ Ton compte a bien été supprimé. À bientôt sur Lexiva.</span>
           <button
             type="button"
             onClick={dismissBanner}
@@ -579,7 +580,7 @@ export function LandingPage() {
             Créer mon compte
           </Link>
           <p className="mt-4 text-sm text-[#9A95A8]">
-            15 jours offerts · En 30 secondes
+            {OFFER_TRIAL_CARD_LABEL} · En 30 secondes
           </p>
         </div>
       </section>
