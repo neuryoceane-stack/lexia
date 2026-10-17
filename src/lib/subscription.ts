@@ -100,7 +100,14 @@ export type SubscriptionView = {
   canManagePortal: boolean;
   /** Résiliation demandée, accès conservé jusqu'à la fin de période. Lu chez Stripe, pas stocké. */
   cancelAtPeriodEnd: boolean;
+  /** Faux tant que la clé de test et les Price ID ne sont pas en place. */
+  billingConfigured: boolean;
 };
+
+/** Message élève quand le paiement n'est pas ouvert. Ce n'est pas une erreur. */
+export function subscriptionUnavailableCopy(): string {
+  return "L'abonnement n'est pas encore ouvert. Vous pouvez continuer à utiliser Lexiva.";
+}
 
 export function subscriptionOfferIntro(includesTrial: boolean): string {
   if (includesTrial) {

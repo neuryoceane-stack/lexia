@@ -12,6 +12,7 @@ import {
   subscribedIntro,
   subscriptionDisplay,
   subscriptionOfferIntro,
+  subscriptionUnavailableCopy,
   type BillingPlan,
   type SubscriptionView,
 } from "@/lib/subscription";
@@ -60,7 +61,14 @@ export function AbonnementClient({
     }
   }
 
-  const intro = view.canSubscribe ? subscriptionOfferIntro(view.includesTrial) : subscribedIntro();
+  const checkoutOpen = view.billingConfigured && view.canSubscribe;
+  const portalOpen = view.billingConfigured && view.canManagePortal;
+  const intro =
+    !view.billingConfigured && view.canSubscribe
+      ? subscriptionUnavailableCopy()
+      : view.canSubscribe
+        ? subscriptionOfferIntro(view.includesTrial)
+        : subscribedIntro();
 
   return (
     <div className="mx-auto max-w-[760px]">
@@ -100,7 +108,7 @@ export function AbonnementClient({
 
       <StatusCard view={view} />
 
-      {view.canSubscribe ? (
+      {checkoutOpen ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
           <PlanCard
             title="Mensuel"
@@ -126,7 +134,13 @@ export function AbonnementClient({
         </div>
       ) : null}
 
-      {view.canManagePortal ? (
+      {!view.billingConfigured && view.canManagePortal ? (
+        <p style={{ marginTop: 16, fontSize: 14, lineHeight: 1.5, color: MUTED }}>
+          La gestion du paiement n&apos;est pas disponible pour le moment.
+        </p>
+      ) : null}
+
+      {portalOpen ? (
         <button
           type="button"
           onClick={() => void manage()}
@@ -154,7 +168,7 @@ export function AbonnementClient({
         </p>
       ) : null}
 
-      {view.canSubscribe ? (
+      {checkoutOpen ? (
         <ul className="mt-6 grid gap-2" style={{ listStyle: "none", padding: 0, marginBottom: 0 }}>
           {view.includesTrial ? (
             <Reassurance>Essai de {SUBSCRIPTION_TRIAL_DAYS} jours, carte bancaire requise</Reassurance>

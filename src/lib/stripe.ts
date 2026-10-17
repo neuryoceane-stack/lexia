@@ -13,6 +13,20 @@ export function getStripe(): Stripe {
   return new Stripe(key, { apiVersion: "2026-02-25.clover" });
 }
 
+/** Vrai seulement si la clé de test et les deux Price ID sont présents. */
+export function isStripeBillingConfigured(): boolean {
+  const key = process.env.STRIPE_SECRET_KEY?.trim();
+  if (!key) return false;
+  try {
+    assertStripeTestKey(key);
+  } catch {
+    return false;
+  }
+  const monthly = process.env.STRIPE_PRICE_MONTHLY?.trim() ?? "";
+  const yearly = process.env.STRIPE_PRICE_YEARLY?.trim() ?? "";
+  return monthly.startsWith("price_") && yearly.startsWith("price_");
+}
+
 export function assertStripeTestKey(key: string): void {
   if (
     key.startsWith("sk_live") ||

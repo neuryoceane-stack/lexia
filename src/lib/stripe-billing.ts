@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
-import { getAppBaseUrl, getStripe } from "@/lib/stripe";
+import { getAppBaseUrl, getStripe, isStripeBillingConfigured } from "@/lib/stripe";
 import {
   SUBSCRIPTION_MONTHLY_EUROS,
   SUBSCRIPTION_TRIAL_DAYS,
@@ -112,12 +112,15 @@ export function mapStripeSubscriptionStatus(
   }
 }
 
-export function toSubscriptionView(row: {
-  subscriptionStatus: string;
-  plan: string;
-  stripeCustomerId: string | null;
-  subscriptionCurrentPeriodEnd: number | null;
-}): SubscriptionView {
+export function toSubscriptionView(
+  row: {
+    subscriptionStatus: string;
+    plan: string;
+    stripeCustomerId: string | null;
+    subscriptionCurrentPeriodEnd: number | null;
+  },
+  billingConfigured: boolean
+): SubscriptionView {
   const status = assertSubscriptionStatus(row.subscriptionStatus);
   const plan = assertAccountPlan(row.plan);
   const canSubscribe = canStartSubscriptionCheckout(status);
@@ -130,24 +133,56 @@ export function toSubscriptionView(row: {
     includesTrial: subscriptionCheckoutIncludesTrial(status),
     canManagePortal: Boolean(row.stripeCustomerId) && status !== "inactive",
     cancelAtPeriodEnd: false,
+    billingConfigured,
   };
 }
 
 export async function loadSubscriptionView(userId: string): Promise<SubscriptionView | null> {
-  const [row] = await db
-    .select({
-      subscriptionStatus: users.subscriptionStatus,
-      plan: users.plan,
-      stripeCustomerId: users.stripeCustomerId,
-      stripeSubscriptionId: users.stripeSubscriptionId,
-      subscriptionCurrentPeriodEnd: users.subscriptionCurrentPeriodEnd,
-    })
-    .from(users)
-    .where(eq(users.id, userId))
-    .limit(1);
-  if (!row) return null;
-  const view = toSubscriptionView(row);
-  if (!row.stripeSubscriptionId || (view.status !== "active" && view.status !== "trialing")) {
+  let row: {
+    subscriptionStatus: string;
+    plan: string;
+    stripeCustomerId: string | null;
+    stripeSubscriptionId: string | null;
+    subscriptionCurrentPeriodEnd: number | null;
+  };
+  try {
+    const [found] = await db
+      .select({
+        subscriptionStatus: users.subscriptionStatus,
+        plan: users.plan,
+        stripeCustomerId: users.stripeCustomerId,
+        stripeSubscriptionId: users.stripeSubscriptionId,
+        subscriptionCurrentPeriodEnd: users.subscriptionCurrentPeriodEnd,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!found) return null;
+    row = found;
+  } catch (error) {
+    if (!isMissingStripeColumn(error)) throw error;
+    console.error("[stripe] colonnes d'abonnement absentes", error);
+    const [basic] = await db
+      .select({
+        subscriptionStatus: users.subscriptionStatus,
+        plan: users.plan,
+      })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+    if (!basic) return null;
+    return toSubscriptionView(
+      { ...basic, stripeCustomerId: null, subscriptionCurrentPeriodEnd: null },
+      false
+    );
+  }
+  const billingConfigured = isStripeBillingConfigured();
+  const view = toSubscriptionView(row, billingConfigured);
+  if (
+    !billingConfigured ||
+    !row.stripeSubscriptionId ||
+    (view.status !== "active" && view.status !== "trialing")
+  ) {
     return view;
   }
 
@@ -624,6 +659,22 @@ function stripeObjectId(
   if (typeof value === "string") return value;
   if (value.deleted === true) return null;
   return value.id;
+}
+
+function isMissingStripeColumn(error: unknown): boolean {
+  const parts: string[] = [];
+  let current: unknown = error;
+  for (let depth = 0; depth < 4 && current; depth += 1) {
+    if (current instanceof Error) {
+      parts.push(current.message);
+      current = current.cause;
+    } else {
+      parts.push(String(current));
+      break;
+    }
+  }
+  const text = parts.join(" ");
+  return /no such column/i.test(text) && /stripe_|subscription_current_period_end/i.test(text);
 }
 
 function isMissingStripeResource(error: unknown): boolean {

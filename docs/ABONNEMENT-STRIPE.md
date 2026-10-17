@@ -36,6 +36,8 @@ ALTER TABLE users ADD COLUMN stripe_status_synced_at INTEGER;
 CREATE UNIQUE INDEX IF NOT EXISTS users_stripe_customer_id_unique ON users(stripe_customer_id);
 ```
 
+Tant que ces colonnes ne sont pas en place, la page et Paramètres affichent le même message « pas encore ouvert », sans erreur visible. Le paiement ne démarre qu'après ce SQL.
+
 ## Stripe Dashboard (mode test)
 
 1. Créer un produit Lexiva et deux prix récurrents : 4 € / mois et 40 € / an.
@@ -73,5 +75,7 @@ Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événemen
 | `cancel_at_period_end` alors que le statut reste `active` ou `trialing` | affiché « Résiliation programmée », lu chez Stripe à l'affichage, sans colonne supplémentaire |
 
 Sur la page, avant souscription : l'offre (essai de 30 jours, carte requise). La phrase « Votre carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
+
+Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Vous pouvez continuer à utiliser Lexiva. » sur `/app/abonnement` et dans Paramètres. Aucun bouton de paiement, aucun message d'erreur.
 
 `hasActiveSubscription` reste vrai seulement pour `active` et `trialing`. Cette étape ne s'en sert pas pour bloquer l'accès.

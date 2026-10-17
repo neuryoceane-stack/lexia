@@ -9,6 +9,7 @@ import {
 } from "@/lib/subscription-client";
 import {
   subscriptionDisplay,
+  subscriptionUnavailableCopy,
   type SubscriptionView,
 } from "@/lib/subscription";
 
@@ -63,10 +64,25 @@ export function SubscriptionSettingsCard() {
         </h2>
       </div>
 
-      {view && view.showBilling ? <Summary view={view} /> : null}
+      {view && view.showBilling && !view.billingConfigured && view.canSubscribe ? (
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: "#6B6B8A" }}>
+          {subscriptionUnavailableCopy()}
+        </p>
+      ) : null}
 
+      {view && view.showBilling && (view.billingConfigured || !view.canSubscribe) ? (
+        <Summary view={view} />
+      ) : null}
+
+      {!view || !view.showBilling || view.billingConfigured || !view.canManagePortal ? null : (
+        <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.45, color: "#6B6B8A" }}>
+          La gestion du paiement n&apos;est pas disponible pour le moment.
+        </p>
+      )}
+
+      {view && view.showBilling && view.billingConfigured && (view.canSubscribe || view.canManagePortal) ? (
       <div className="mt-3 flex flex-col gap-2">
-        {view && view.showBilling && view.canSubscribe ? (
+        {view.canSubscribe ? (
           <Link
             href="/app/abonnement"
             className="flex w-full items-center justify-center no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
@@ -82,7 +98,7 @@ export function SubscriptionSettingsCard() {
             S&apos;abonner
           </Link>
         ) : null}
-        {view && view.showBilling && view.canManagePortal ? (
+        {view.canManagePortal ? (
           <button
             type="button"
             onClick={() => void manage()}
@@ -103,6 +119,7 @@ export function SubscriptionSettingsCard() {
           </button>
         ) : null}
       </div>
+      ) : null}
 
       {error ? (
         <p role="alert" style={{ margin: "10px 0 0", fontSize: 13, color: "#B42318" }}>
