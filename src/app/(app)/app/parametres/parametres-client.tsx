@@ -1043,7 +1043,7 @@ export function ParametresClient() {
           <ReminderTypeRow
             icon={Music}
             label="Sons de feedback"
-            description="Un son quand ta réponse est juste ou fausse, pendant l'évaluation."
+            description="Un son quand ta réponse est juste ou fausse, pendant la révision."
             checked={feedbackSoundsEnabled}
             onChange={updateFeedbackSounds}
             reducedMotion={reducedMotion}
