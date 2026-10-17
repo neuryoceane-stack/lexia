@@ -6,7 +6,7 @@
 
 - Mensuel : 5 € / mois, sans engagement
 - Annuel : 45 € / an, soit 3,75 € / mois, 3 mois offerts
-- Essai : 30 jours, carte bancaire obligatoire, une seule fois (statut `inactive`). Il n'existe pas de version gratuite.
+- Essai : 15 jours, carte bancaire obligatoire, une seule fois (statut `inactive`). Il n'existe pas de version gratuite.
 - Un compte `canceled` peut se réabonner, sans nouvel essai
 - Un accès déjà `active` ou `trialing` (y compris un code promo) ne redémarre pas un Checkout
 
@@ -22,7 +22,7 @@ Clés de **test** uniquement. Une clé `sk_live_` ou `rk_live_` est refusée par
 | `STRIPE_PRICE_YEARLY` | `price_…` | Prix récurrent 45 € / an. **À mettre à jour** avec le Price ID du nouveau tarif. |
 | `NEXTAUTH_URL` | `http://localhost:3000` | Origine des URLs de retour |
 
-Les Price ID ne sont pas écrits dans le code. Au moment du Checkout, Lexiva vérifie que le prix Stripe est actif, en euros, et exactement égal à 500 ou 4 500 centimes, avec un intervalle d'un mois ou d'un an. Ces montants viennent de `src/lib/offer.ts`. Ne pas poser de période d'essai sur le Price : les 30 jours sont ajoutés par la session Checkout.
+Les Price ID ne sont pas écrits dans le code. Au moment du Checkout, Lexiva vérifie que le prix Stripe est actif, en euros, et exactement égal à 500 ou 4 500 centimes, avec un intervalle d'un mois ou d'un an. Ces montants viennent de `src/lib/offer.ts`. Ne pas poser de période d'essai sur le Price : les 15 jours sont ajoutés par la session Checkout (`trial_period_days`).
 
 Variables à mettre à jour après création des deux prix : `STRIPE_PRICE_MONTHLY` (5 € / mois) et `STRIPE_PRICE_YEARLY` (45 € / an). Un ancien Price ID à 4 € ou 40 € est refusé. `PAYWALL_ENABLED` ne change pas.
 
@@ -76,7 +76,7 @@ Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événemen
 | `paused` | erreur webhook, non appliqué |
 | `cancel_at_period_end` alors que le statut reste `active` ou `trialing` | affiché « Résiliation programmée », lu chez Stripe à l'affichage, sans colonne supplémentaire |
 
-Sur la page, avant souscription : l'offre (essai de 30 jours, carte requise) et la ligne « Si tu es mineur, demande à un parent ou à un tuteur de souscrire. » La phrase « Ta carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
+Sur la page, avant souscription : l'offre (essai de 15 jours, carte requise) et la ligne « Si tu es mineur, demande à un parent ou à un tuteur de souscrire. » La phrase « Ta carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
 
 Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Tu peux continuer à utiliser Lexiva. » sur `/app/abonnement` et dans Paramètres. Aucun bouton de paiement, aucun message d'erreur.
 

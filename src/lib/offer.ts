@@ -5,7 +5,7 @@
  * correspond pas est refusé, sans autre changement de la logique de paiement.
  */
 
-export const OFFER_TRIAL_DAYS = 30;
+export const OFFER_TRIAL_DAYS = 15;
 
 /** Chiffres ronds, sans centimes. */
 export const OFFER_MONTHLY_EUROS = 5;

@@ -46,7 +46,7 @@ export default function CgvPage() {
         <ul>
           <li>
             <strong>Un abonnement</strong> donnant accès aux fonctionnalités premium du
-            service, incluant un essai gratuit d&apos;une durée de trente (30) jours, sauf
+            service, incluant un essai gratuit d&apos;une durée de quinze (15) jours, sauf
             mention contraire au moment de la souscription.
           </li>
           <li>
@@ -146,7 +146,7 @@ export default function CgvPage() {
         </p>
         <h3>Essai gratuit</h3>
         <p>
-          Lorsqu&apos;un essai gratuit de trente (30) jours est proposé, vous ne serez débité
+          Lorsqu&apos;un essai gratuit de quinze (15) jours est proposé, vous ne serez débité
           qu&apos;à l&apos;issue de cette période, sauf résiliation préalable. Les conditions
           précises de l&apos;essai sont rappelées au moment de la souscription.
         </p>

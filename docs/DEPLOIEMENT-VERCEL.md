@@ -54,7 +54,7 @@ En local, sans variables Turso, l’app continue d’utiliser le fichier `vocab.
 
 ## 5. Abonnement Stripe (élèves)
 
-Les variables et le scénario de test sont décrits dans `docs/ABONNEMENT-STRIPE.md`.
+Les variables et le scénario de test sont décrits dans `docs/ABONNEMENT-STRIPE.md`. L'essai élève est de 15 jours : il est ajouté par la session Checkout, pas sur le Price Stripe.
 
 À ajouter sur Vercel, en **clés de test uniquement** (`sk_test_`, jamais `sk_live_`) :
 
