@@ -67,9 +67,21 @@ function withSkipOnEveryStep(
   }));
 }
 
+async function finishTourAndGo(
+  tour: ShepherdTour,
+  router: AppRouter,
+  onComplete: () => void | Promise<void>,
+  path: string,
+) {
+  await onComplete();
+  tour.complete();
+  router.push(path);
+}
+
 function buildStudentSteps(
   tour: ShepherdTour,
   router: AppRouter,
+  onComplete: () => void | Promise<void>,
 ): StepOptions[] {
   return [
     {
@@ -135,8 +147,7 @@ function buildStudentSteps(
         {
           text: "Importe ta première liste",
           action: () => {
-            tour.complete();
-            window.location.href = "/app/familles";
+            void finishTourAndGo(tour, router, onComplete, "/app/familles");
           },
         },
       ],
@@ -147,6 +158,7 @@ function buildStudentSteps(
 function buildTeacherSteps(
   tour: ShepherdTour,
   router: AppRouter,
+  onComplete: () => void | Promise<void>,
 ): StepOptions[] {
   return [
     {
@@ -234,8 +246,12 @@ function buildTeacherSteps(
         {
           text: "Créer ma première classe 🏫",
           action: () => {
-            tour.complete();
-            window.location.href = "/app/professeur/classes?creer=1";
+            void finishTourAndGo(
+              tour,
+              router,
+              onComplete,
+              "/app/professeur/classes?creer=1",
+            );
           },
         },
       ],
@@ -262,13 +278,17 @@ export function useShepherdTour(role: Role, onComplete: () => void) {
 
     const rawSteps =
       role === "professeur"
-        ? buildTeacherSteps(tour, router)
-        : buildStudentSteps(tour, router);
+        ? buildTeacherSteps(tour, router, onComplete)
+        : buildStudentSteps(tour, router, onComplete);
 
     tour.addSteps(withSkipOnEveryStep(tour, rawSteps));
 
-    tour.on("complete", onComplete);
-    tour.on("cancel", onComplete);
+    tour.on("complete", () => {
+      void onComplete();
+    });
+    tour.on("cancel", () => {
+      void onComplete();
+    });
 
     tourRef.current = tour;
     tour.start();
