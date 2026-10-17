@@ -238,6 +238,7 @@ export function SaveWordsToListModal({
         </div>
       ) : (
         <>
+          {sortedLists.length > 0 && (
           <div
             className="mb-4 flex gap-2"
             role="tablist"
@@ -269,6 +270,7 @@ export function SaveWordsToListModal({
               Nouvelle liste
             </button>
           </div>
+          )}
 
           {mode === "existing" ? (
             <div className="max-h-[min(40vh,280px)] overflow-y-auto overscroll-contain pr-1">
@@ -338,38 +340,56 @@ export function SaveWordsToListModal({
                 <p className="mb-2 text-xs font-medium uppercase tracking-wide text-[var(--foreground-muted)]">
                   Langue
                 </p>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
-                    const selected = createLanguage === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setCreateLanguage(opt.value)}
-                        className="flex flex-col items-center gap-1 rounded-lg border px-1 py-2 transition-colors"
-                        style={{
-                          borderColor: selected ? "#6C3FC8" : "var(--border)",
-                          background: selected
-                            ? "rgba(108, 63, 200, 0.08)"
-                            : "transparent",
-                        }}
-                        aria-pressed={selected}
-                      >
-                        <FlagDisplay langCode={opt.value} size={18} />
-                        <span
-                          className="text-center leading-tight"
+                {defaultLanguage && KNOWN_LANGUAGE_CODES.has(defaultLanguage) ? (
+                  <div
+                    className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5"
+                    style={{
+                      background: "rgba(108, 63, 200, 0.06)",
+                      border: "1.5px solid rgba(108, 63, 200, 0.16)",
+                    }}
+                  >
+                    <FlagDisplay langCode={createLanguage || defaultLanguage} size={18} />
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "#4B3A9E" }}>
+                      {PREFERRED_LANGUAGE_OPTIONS.find(
+                        (o) => o.value === (createLanguage || defaultLanguage)
+                      )?.label ?? createLanguage}
+                    </span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-1.5">
+                    {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
+                      const selected = createLanguage === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => setCreateLanguage(opt.value)}
+                          className="flex flex-col items-center gap-1 rounded-lg border px-1 py-2 transition-colors"
                           style={{
-                            fontSize: 9,
-                            fontWeight: selected ? 600 : 500,
-                            color: selected ? "#6C3FC8" : "var(--foreground-muted)",
+                            borderColor: selected ? "#6C3FC8" : "var(--border)",
+                            background: selected
+                              ? "rgba(108, 63, 200, 0.08)"
+                              : "transparent",
+                            minHeight: 44,
                           }}
+                          aria-pressed={selected}
                         >
-                          {opt.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
+                          <FlagDisplay langCode={opt.value} size={18} />
+                          <span
+                            className="text-center leading-tight"
+                            style={{
+                              fontSize: 9,
+                              fontWeight: selected ? 500 : 400,
+                              color: selected ? "#6C3FC8" : "var(--foreground-muted)",
+                            }}
+                          >
+                            {opt.label}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             </div>
           )}
