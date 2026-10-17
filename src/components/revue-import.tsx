@@ -156,7 +156,7 @@ export function RevueImport({
     <div className="space-y-6">
       <div className="mb-2 flex flex-wrap items-center gap-3">
         <h2 className="text-xl font-semibold text-[var(--foreground)]">
-          Réviser les mots extraits
+          Trier les mots extraits
         </h2>
         {(displayTermLang || displayDefLang) && (
           <span className="flex items-center gap-1 text-xl" title="Langues détectées">

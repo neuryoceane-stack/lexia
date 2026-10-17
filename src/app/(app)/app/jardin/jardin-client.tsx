@@ -826,7 +826,7 @@ export function JardinClient() {
             Aucune activité pour le moment.
           </p>
           <p className="mt-1" style={{ fontSize: 12, color: "var(--foreground-disabled)" }}>
-            Lance une session d&apos;évaluation pour voir ta progression ici.
+            Lance une session de révision pour voir ta progression ici.
           </p>
           <Link
             href="/app/revision"

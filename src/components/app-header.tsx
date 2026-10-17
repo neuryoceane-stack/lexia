@@ -6,6 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
 import { Star, User, Settings, LogOut, ChevronRight, ShoppingBag, CreditCard } from "lucide-react";
+import { SHOP_ENABLED } from "@/lib/feature-flags";
 
 const LEVEL_NAMES: Record<number, string> = {
   1: "Graine",
@@ -26,7 +27,7 @@ async function handleLogout() {
 
 const navItemsStudent = [
   { href: "/app/familles", label: "Bibliothèque", icon: "book" as const },
-  { href: "/app/revision", label: "Évaluation", icon: "clipboard" as const },
+  { href: "/app/revision", label: "Révision", icon: "clipboard" as const },
   { href: "/app/jardin", label: "Synthèse", icon: "sparkles" as const },
 ] as const;
 
@@ -328,38 +329,15 @@ function AvatarDropdown({
               />
             )}
 
-            {!isProfesseur && (
-              <div
-                role="presentation"
-                className="flex items-center"
-                style={{
-                  borderRadius: 10,
-                  padding: "8px 10px",
-                  gap: 8,
-                  cursor: "default",
-                }}
-              >
-                <div style={iconTileStyle}>
-                  <ShoppingBag size={16} stroke="#6C3FC8" aria-hidden />
-                </div>
-                <span className="flex-1" style={{ fontSize: 13.5, color: "#1A1A1A", fontWeight: 500 }}>
-                  Lexi Shop
-                </span>
-                <span
-                  style={{
-                    background: "#F5A623",
-                    color: "white",
-                    fontSize: 9.5,
-                    fontWeight: 600,
-                    padding: "2px 8px",
-                    borderRadius: 999,
-                    whiteSpace: "nowrap",
-                    marginRight: 3,
-                  }}
-                >
-                  Bientôt
-                </span>
-              </div>
+            {!isProfesseur && SHOP_ENABLED && (
+              <AccountMenuNavItem
+                href="/app/shop"
+                icon={ShoppingBag}
+                label="Lexi Shop"
+                onNavigate={() => setOpen(false)}
+                reducedMotion={reducedMotion}
+                iconTileStyle={iconTileStyle}
+              />
             )}
 
             <AccountMenuNavItem

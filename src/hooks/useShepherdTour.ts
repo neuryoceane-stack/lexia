@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Shepherd from "shepherd.js";
-import type { StepOptions } from "shepherd.js";
+import type { StepOptions, StepOptionsButton } from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
 import "@/styles/shepherd-lexiva.css";
 
@@ -49,6 +49,24 @@ function navigateAndWait(
   });
 }
 
+function skipButton(tour: ShepherdTour): StepOptionsButton {
+  return {
+    text: "Passer",
+    action: () => tour.cancel(),
+    secondary: true,
+  };
+}
+
+function withSkipOnEveryStep(
+  tour: ShepherdTour,
+  steps: StepOptions[],
+): StepOptions[] {
+  return steps.map((step) => ({
+    ...step,
+    buttons: [...(step.buttons ?? []), skipButton(tour)],
+  }));
+}
+
 function buildStudentSteps(
   tour: ShepherdTour,
   router: AppRouter,
@@ -62,7 +80,7 @@ function buildStudentSteps(
           <p class="lx-intro">La méthode la plus efficace pour mémoriser du vocabulaire — enfin disponible.</p>
           <div class="lx-pills">
             <span class="lx-pill">📚 Bibliothèque</span>
-            <span class="lx-pill">⚡ Évaluation</span>
+            <span class="lx-pill">⚡ Révision</span>
             <span class="lx-pill">🌿 Mots Sauvages</span>
             <span class="lx-pill">📊 Synthèse</span>
           </div>
@@ -83,38 +101,13 @@ function buildStudentSteps(
         </ul>
       `,
       attachTo: { element: 'a[href="/app/familles"]', on: "bottom" },
+      beforeShowPromise: () =>
+        navigateAndWait(router, "/app", 'a[href="/app/familles"]'),
       buttons: [{ text: "Suivant →", action: () => tour.next() }],
     },
     {
-      id: "mots-sauvages",
-      title: "🌿 Mots Sauvages — dans ta Bibliothèque",
-      text: `
-        <p>La fonctionnalité <strong>la plus puissante de Lexiva</strong>.</p>
-        <ul class="lx-list">
-          <li>📸 Prends en photo n'importe quel texte</li>
-          <li>👆 Clique sur un mot inconnu</li>
-          <li>⚡ Il est ajouté instantanément à ta liste</li>
-        </ul>
-        <p class="lx-tip">💡 Idéal pour les romans, articles, panneaux…</p>
-      `,
-      attachTo: {
-        element: 'a[href="/app/familles/mots-sauvages"]',
-        on: "bottom",
-      },
-      beforeShowPromise: () =>
-        navigateAndWait(
-          router,
-          "/app/familles",
-          'a[href="/app/familles/mots-sauvages"]',
-        ),
-      buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
-      ],
-    },
-    {
-      id: "evaluation",
-      title: "⚡ Évaluation",
+      id: "revision",
+      title: "⚡ Révision",
       text: `
         <p>Deux modes d'entraînement <strong>adaptés à ton niveau</strong> :</p>
         <ul class="lx-list">
@@ -126,101 +119,21 @@ function buildStudentSteps(
       attachTo: { element: 'a[href="/app/revision"]', on: "bottom" },
       beforeShowPromise: () =>
         navigateAndWait(router, "/app", 'a[href="/app/revision"]'),
-      buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
-      ],
-    },
-    {
-      id: "flashcards",
-      title: "🃏 Flashcards — dans Évaluation",
-      text: `
-        <p>Retourne la carte, évalue toi-même ta réponse.</p>
-        <div class="lx-badge-row">
-          <span class="lx-badge lx-badge--red">✗ Raté</span>
-          <span class="lx-badge lx-badge--orange">△ Difficile</span>
-          <span class="lx-badge lx-badge--green">✓ Maîtrisé</span>
-        </div>
-        <p class="lx-tip">Plus tu te trompes, plus le mot revient vite.</p>
-      `,
-      attachTo: {
-        element: 'a[href="/app/revision/flashcards"]',
-        on: "bottom",
-      },
-      beforeShowPromise: () =>
-        navigateAndWait(
-          router,
-          "/app/revision",
-          'a[href="/app/revision/flashcards"]',
-        ),
-      buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
-      ],
-    },
-    {
-      id: "streak",
-      title: "🔥 Ta Streak",
-      text: `
-        <p>Révise <strong>chaque jour</strong> pour maintenir ta série.</p>
-        <ul class="lx-list">
-          <li>🔥 La régularité est la clé de la mémorisation</li>
-          <li>📈 Ta streak booste tes points</li>
-          <li>💪 Même 5 minutes par jour suffisent</li>
-        </ul>
-      `,
-      attachTo: {
-        element:
-          '.streak-widget, [data-streak], section[aria-label="Série de révision"]',
-        on: "bottom",
-      },
-      beforeShowPromise: () =>
-        navigateAndWait(router, "/app", 'a[href="/app/revision"]'),
-      showOn: () =>
-        !!document.querySelector(
-          '.streak-widget, [data-streak], section[aria-label="Série de révision"]',
-        ),
-      buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
-      ],
-    },
-    {
-      id: "synthese",
-      title: "📊 Synthèse",
-      text: `
-        <p>Ton <strong>tableau de bord</strong> personnel.</p>
-        <ul class="lx-list">
-          <li>📈 Courbe de progression par liste</li>
-          <li>🏆 Mots maîtrisés vs à revoir</li>
-          <li>⏱️ Temps de révision cumulé</li>
-        </ul>
-      `,
-      attachTo: { element: 'a[href="/app/jardin"]', on: "bottom" },
-      buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
-      ],
+      buttons: [{ text: "Suivant →", action: () => tour.next() }],
     },
     {
       id: "finish",
       title: "🎉 Tu es prêt !",
       text: `
         <div class="lx-finish">
-          <p class="lx-intro">Lexiva va transformer ta façon d'apprendre.</p>
-          <div class="lx-checklist">
-            <div class="lx-check">✅ Bibliothèque configurée</div>
-            <div class="lx-check">✅ Évaluation intelligente</div>
-            <div class="lx-check">✅ Progression suivie</div>
-          </div>
-          <p class="lx-sub">Commence par importer ta première liste 👇</p>
+          <p class="lx-intro">Importe ta première liste pour commencer à réviser.</p>
         </div>
       `,
       beforeShowPromise: () =>
         navigateAndWait(router, "/app", 'a[href="/app/familles"]'),
       buttons: [
         {
-          text: "Aller à ma bibliothèque 📚",
+          text: "Importe ta première liste",
           action: () => {
             tour.complete();
             window.location.href = "/app/familles";
@@ -347,12 +260,12 @@ export function useShepherdTour(role: Role, onComplete: () => void) {
       },
     });
 
-    const steps =
+    const rawSteps =
       role === "professeur"
         ? buildTeacherSteps(tour, router)
         : buildStudentSteps(tour, router);
 
-    tour.addSteps(steps);
+    tour.addSteps(withSkipOnEveryStep(tour, rawSteps));
 
     tour.on("complete", onComplete);
     tour.on("cancel", onComplete);

@@ -278,7 +278,7 @@ export function DashboardClient() {
           </span>
         </Link>
 
-        {/* Évaluation */}
+        {/* Révision */}
         <Link
           href="/app/revision"
           className="card-hover flex flex-col gap-2 no-underline"
@@ -295,7 +295,7 @@ export function DashboardClient() {
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
           </div>
-          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Évaluation</p>
+          <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Révision</p>
           <span
             className={dueCount > 0 ? "badge-urgent" : ""}
             style={{ fontSize: 11, fontWeight: 500, color: "#C47D0A", background: "#FAE5B0", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}

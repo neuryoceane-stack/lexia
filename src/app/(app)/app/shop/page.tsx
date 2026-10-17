@@ -5,8 +5,7 @@ import { ShoppingBag, BookOpen, X, Eye, EyeOff, CheckCircle } from "lucide-react
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-// Passer à true pour réactiver le Lexi Shop (mode étudiant : désactivé au lancement).
-const SHOP_ENABLED = false;
+import { SHOP_ENABLED } from "@/lib/feature-flags";
 
 type Pack = {
   id: string;
@@ -129,7 +128,7 @@ function ShopContent() {
   const bundleThemes = [...new Set(packs.slice(0, 5).map((p) => p.title.split(" ")[0]))];
 
   async function handleBuy(pack: Pack) {
-    if (pack.owned) { router.push("/app/bibliotheque"); return; }
+    if (pack.owned) { router.push("/app/familles"); return; }
     setLoading(true);
     try {
       const res = await fetch("/api/shop/checkout", {
@@ -287,7 +286,7 @@ function ShopContent() {
                     Dans ta bibliothèque
                   </div>
                   <button
-                    onClick={(e) => { e.stopPropagation(); router.push("/app/bibliotheque"); }}
+                    onClick={(e) => { e.stopPropagation(); router.push("/app/familles"); }}
                     style={{
                       width: "100%", background: "#1D9E75", color: "white",
                       border: "none", borderRadius: 20, padding: "8px 0",
@@ -466,7 +465,7 @@ function ShopContent() {
               </div>
               {selectedPack.owned ? (
                 <button
-                  onClick={() => router.push("/app/bibliotheque")}
+                  onClick={() => router.push("/app/familles")}
                   style={{
                     width: "100%", background: "#1D9E75", color: "white",
                     border: "none", borderRadius: 20, padding: "14px 0",

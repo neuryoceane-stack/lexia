@@ -42,6 +42,9 @@ type MotsSauvagesSourceProps = {
 const PHASE_1_MS = 2000;
 const PHASE_2_MS = 5000;
 
+/** Sources URL / Chanson : masquées tant que l’API renvoie 501 (code conservé). */
+const SHOW_URL_AND_SONG_SOURCES = false;
+
 function extractionPhaseMessage(
   kind: "pdf" | "image",
   elapsedMs: number
@@ -115,8 +118,7 @@ export function MotsSauvagesSource({
           </h1>
         </div>
         <p className="mt-2" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
-          Capture des mots depuis ton environnement réel — musique, articles,
-          photos, PDF.
+          Capture des mots depuis ton environnement réel — articles, photos et PDF.
         </p>
       </header>
 
@@ -259,7 +261,8 @@ export function MotsSauvagesSource({
         onChange={onFileChange}
       />
 
-      {/* Section "Bientôt disponible" */}
+      {/* Section "Bientôt disponible" — masquée tant que les sources ne sont pas prêtes */}
+      {SHOW_URL_AND_SONG_SOURCES ? (
       <section className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] p-4">
         <p
           className="mb-3"
@@ -287,6 +290,7 @@ export function MotsSauvagesSource({
         />
         </div>
       </section>
+      ) : null}
 
       {/* Tip */}
       <div
