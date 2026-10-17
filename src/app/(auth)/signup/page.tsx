@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ChevronLeft, GraduationCap, KeyRound, MessageCircle, Rocket, Search, Share2, Smile, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { validateEmail, validatePassword } from "@/lib/validation";
+import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
 
 type Role = "eleve" | "professeur";
 type Plan = "free" | "monthly" | "annual";
@@ -329,7 +330,11 @@ export default function SignupPage() {
         setLoading(false);
         return;
       }
-      router.push("/app");
+      router.push(
+        !isProf && data.postSignupPath === ABONNEMENT_PATH
+          ? ABONNEMENT_PATH
+          : "/app"
+      );
     } catch {
       setError("Une erreur est survenue.");
     } finally {

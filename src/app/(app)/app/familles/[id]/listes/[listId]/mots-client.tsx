@@ -19,6 +19,7 @@ import {
   KNOWN_LANGUAGE_CODES,
   getFlagEmoji,
 } from "@/lib/language";
+import { useLeaveForAbonnement } from "@/components/paywall-gate";
 
 const VIOLET = "#6C3FC8";
 const GOLD = "#F5A623";
@@ -69,6 +70,7 @@ export function MotsClient({
   canEdit: boolean;
 }) {
   const router = useRouter();
+  const leaveForAbonnement = useLeaveForAbonnement();
   const [mots, setMots] = useState<MotWithSm2[]>(initialMots);
   const [displayName, setDisplayName] = useState(listName);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -199,6 +201,7 @@ export function MotsClient({
   }
 
   async function addWord() {
+    if (leaveForAbonnement()) return;
     const term = newTerm.trim();
     if (!term) return;
     setLoading(true);
@@ -431,7 +434,10 @@ export function MotsClient({
           {canEdit && (
             <button
               type="button"
-              onClick={() => setAdding((a) => !a)}
+              onClick={() => {
+                if (leaveForAbonnement()) return;
+                setAdding((a) => !a);
+              }}
               className="inline-flex items-center gap-1.5 border-[1.5px] bg-transparent font-medium"
               style={{
                 borderColor: VIOLET,
@@ -449,7 +455,10 @@ export function MotsClient({
 
           <button
             type="button"
-            onClick={() => setReviseOpen((o) => !o)}
+            onClick={() => {
+              if (leaveForAbonnement()) return;
+              setReviseOpen((o) => !o);
+            }}
             className="inline-flex items-center gap-1 border-none font-medium text-white"
             style={{
               background: VIOLET,

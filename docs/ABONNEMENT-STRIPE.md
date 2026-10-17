@@ -1,6 +1,6 @@
 # Abonnement Stripe (élèves)
 
-Étape 1 : encaisser l'abonnement. Aucun contenu n'est bloqué pour un compte non abonné.
+Étape 1 : encaisser l'abonnement. Le blocage des actions est optionnel : voir « Paywall ». Sans `PAYWALL_ENABLED=true`, un compte non abonné utilise l'app comme avant.
 
 ## Offre
 
@@ -78,4 +78,49 @@ Sur la page, avant souscription : l'offre (essai de 30 jours, carte requise). La
 
 Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Vous pouvez continuer à utiliser Lexiva. » sur `/app/abonnement` et dans Paramètres. Aucun bouton de paiement, aucun message d'erreur.
 
-`hasActiveSubscription` reste vrai seulement pour `active` et `trialing`. Cette étape ne s'en sert pas pour bloquer l'accès.
+`hasActiveSubscription` reste vrai seulement pour `active` et `trialing`. Le paywall s'en sert lorsque `PAYWALL_ENABLED=true`.
+
+## Paywall
+
+Interrupteur : `PAYWALL_ENABLED`. Le paywall n'agit que si la variable vaut exactement `true`. Absente, vide ou toute autre valeur : aucun blocage, parcours d'inscription inchangé (arrivée sur `/app`).
+
+### Activer
+
+Poser la variable dans l'environnement (Vercel ou fichier local, jamais commité) puis relancer ou redéployer :
+
+```
+PAYWALL_ENABLED=true
+```
+
+Aucune clé Stripe n'est lue ni modifiée par cet interrupteur.
+
+### Qui est bloqué
+
+Un élève (`etudiant`) dont le statut n'est ni `active` ni `trialing` : nouvel inscrit sans carte, essai non converti, abonnement terminé (`canceled`), paiement refusé (`past_due`). Un essai en cours (`trialing`) ou un abonnement `active` (y compris un code promo de test) passe. Une résiliation programmée qui laisse le statut `active` ou `trialing` conserve l'accès jusqu'à la fin de période.
+
+Exemptés : les rôles `creator` et `professeur`. L'espace professeur n'est pas modifié.
+
+### Bloqué
+
+Création de listes et de mots, imports, Mots Sauvages, et toute la révision (express, flashcards, dictée, évaluation).
+
+- Pages : redirection vers `/app/abonnement`. Après l'inscription d'un élève, même redirection.
+- API : `402` et `{ "error": "Un abonnement est nécessaire pour cette action.", "code": "subscription_required" }`.
+
+Routes API concernées : `POST /api/familles`, `POST /api/familles/[id]/listes`, `POST /api/listes`, `POST /api/listes/[listId]/mots`, `POST /api/listes/[listId]/mots/bulk`, `POST /api/extract/ocr`, `POST /api/extract/raw`, `POST /api/extract/segment`, `POST /api/extract/pdf`, `POST /api/extract/url`, `POST /api/extract/song`, `POST /api/translate`, `GET` et `POST /api/revision`, `POST /api/revision/session`.
+
+Pages : `/app/familles/mots-sauvages`, `/app/familles/dupliquer`, `/app/familles/[id]/nouvelle-liste`, `/app/revision` (express, flashcards, dictée) et `/app/evaluation`. Les boutons d'ajout ou de révision dans la bibliothèque redirigent aussi, sans ouvrir le formulaire.
+
+Le tutoriel d'accueil ne démarre pas tant que l'élève est bloqué (il ouvre la révision). Il se lance une fois l'accès obtenu, si l'onboarding n'a pas été marqué terminé.
+
+### Toujours autorisé
+
+Tableau de bord, consultation de la bibliothèque (listes personnelles et listes de classe), `/app/abonnement`, paramètres, déconnexion, pages légales. Renommer, modifier ou supprimer une liste ou un mot déjà là reste possible. L'achat d'un pack en boutique n'est pas bloqué : le webhook crée la liste après paiement.
+
+### Non tranché
+
+Un élève rattaché à une classe de professeur n'est pas exempté. Sans abonnement actif ni essai, il voit sa bibliothèque et les listes de classe, mais il ne peut ni ajouter ni réviser. À décider.
+
+### Routes retirées
+
+`POST /api/import`, `POST /api/extract/vision` et `POST /api/synthese/message` ne sont appelées nulle part (espace élève et espace professeur). Elles répondent `410` et n'appellent plus de modèle. `GET /api/synthese` (statistiques) reste en place.
