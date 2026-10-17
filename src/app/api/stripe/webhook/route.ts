@@ -4,34 +4,77 @@ import { db } from "@/lib/db";
 import { shopPacks, userPurchases, words } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { createUserListPair } from "@/lib/user-list";
-
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY manquante");
-  return new Stripe(key, { apiVersion: "2026-02-25.clover" as any });
-}
+import { getStripe } from "@/lib/stripe";
+import {
+  applyInvoicePaymentFailed,
+  applyStripeSubscription,
+  isSubscriptionCheckout,
+  syncSubscriptionCheckout,
+} from "@/lib/stripe-billing";
 
 export async function POST(req: Request) {
   const body = await req.text();
-  const sig = req.headers.get("stripe-signature")!;
+  const sig = req.headers.get("stripe-signature");
+  if (!sig) {
+    return NextResponse.json({ error: "Signature manquante" }, { status: 400 });
+  }
+
+  const secret = process.env.STRIPE_WEBHOOK_SECRET?.trim();
+  if (!secret) {
+    console.error("[stripe webhook] STRIPE_WEBHOOK_SECRET manquante");
+    return NextResponse.json({ error: "Webhook non configuré" }, { status: 500 });
+  }
 
   let event: Stripe.Event;
-
   try {
-    event = getStripe().webhooks.constructEvent(
-      body,
-      sig,
-      process.env.STRIPE_WEBHOOK_SECRET!
-    );
+    event = getStripe().webhooks.constructEvent(body, sig, secret);
   } catch (err) {
+    console.error("[stripe webhook] signature invalide", err);
     return NextResponse.json({ error: "Webhook signature invalid" }, { status: 400 });
   }
 
-  if (event.type !== "checkout.session.completed") {
-    return NextResponse.json({ received: true });
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+    if (isSubscriptionCheckout(session)) {
+      try {
+        await syncSubscriptionCheckout(session, event.created);
+      } catch (error) {
+        console.error("[stripe webhook] checkout abonnement", error);
+        return NextResponse.json({ error: "Traitement webhook échoué" }, { status: 500 });
+      }
+      return NextResponse.json({ received: true });
+    }
+    return handleShopCheckout(session);
   }
 
-  const session = event.data.object as Stripe.Checkout.Session;
+  try {
+    switch (event.type) {
+      case "customer.subscription.created":
+      case "customer.subscription.updated":
+      case "customer.subscription.deleted":
+        await applyStripeSubscription({
+          eventCreated: event.created,
+          subscription: event.data.object,
+        });
+        break;
+      case "invoice.payment_failed":
+        await applyInvoicePaymentFailed({
+          eventCreated: event.created,
+          invoice: event.data.object,
+        });
+        break;
+      default:
+        break;
+    }
+  } catch (error) {
+    console.error(`[stripe webhook] ${event.type}`, error);
+    return NextResponse.json({ error: "Traitement webhook échoué" }, { status: 500 });
+  }
+
+  return NextResponse.json({ received: true });
+}
+
+async function handleShopCheckout(session: Stripe.Checkout.Session) {
   const userId = session.metadata?.userId;
   const packId = session.metadata?.packId;
 
@@ -39,7 +82,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing metadata" }, { status: 400 });
   }
 
-  // Vérifie que le pack existe
   const [pack] = await db
     .select()
     .from(shopPacks)
@@ -48,7 +90,6 @@ export async function POST(req: Request) {
 
   if (!pack) return NextResponse.json({ error: "Pack not found" }, { status: 404 });
 
-  // Vérifie que l'achat n'existe pas déjà (idempotence)
   const [existingPurchase] = await db
     .select()
     .from(userPurchases)
@@ -57,7 +98,6 @@ export async function POST(req: Request) {
 
   if (existingPurchase) return NextResponse.json({ received: true });
 
-  // Enregistre l'achat
   await db.insert(userPurchases).values({
     id: crypto.randomUUID(),
     userId,
@@ -67,7 +107,6 @@ export async function POST(req: Request) {
     amountPaid: session.amount_total ?? pack.price,
   });
 
-  // Crée une paire famille + liste (1:1) avec le titre du pack
   const { listId } = await createUserListPair({
     userId,
     name: pack.title,
@@ -75,7 +114,6 @@ export async function POST(req: Request) {
     language: pack.language,
   });
 
-  // Insère les mots du pack
   if (pack.wordsJson) {
     type PackWord = { term: string; definition: string; isExpression?: boolean };
     const packWords: PackWord[] = JSON.parse(pack.wordsJson);
@@ -93,10 +131,3 @@ export async function POST(req: Request) {
 
   return NextResponse.json({ received: true });
 }
-
-// Désactive le bodyParser Next.js pour que Stripe puisse vérifier la signature
-export const config = {
-  api: {
-    bodyParser: false,
-  },
-};

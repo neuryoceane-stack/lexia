@@ -8,10 +8,7 @@ import {
   Sprout,
   Flame,
   Gem,
-  CreditCard,
   Check,
-  Star,
-  Plus,
   GraduationCap,
   Clock,
   Activity,
@@ -32,6 +29,7 @@ import {
   parseReminderSettings,
   type ReminderSettings,
 } from "@/lib/reminder-settings";
+import { SubscriptionSettingsCard } from "./subscription-settings-card";
 
 type AvatarType = "arbre" | "phenix" | "koala";
 
@@ -1054,151 +1052,7 @@ export function ParametresClient() {
         )}
       </div>
 
-      {/* -------- Section Abonnement & Paiement -------- */}
-      <div className="mb-3" style={SECTION_CARD_STYLE}>
-        <SectionHeader icon={CreditCard} title="Abonnement & paiement" />
-
-        <span
-          className="mb-3 inline-flex items-center gap-1.5"
-          style={{
-            background: "rgba(29,158,117,.12)",
-            color: "#1D9E75",
-            fontSize: 11,
-            fontWeight: 600,
-            padding: "4px 10px",
-            borderRadius: 999,
-          }}
-        >
-          <Check size={11} stroke="#1D9E75" strokeWidth={2.5} />
-          Plan Étudiant — actif
-        </span>
-
-        <div
-          className="mb-3"
-          style={{
-            background: "rgba(108,63,200,.06)",
-            borderRadius: 12,
-            padding: "12px 14px",
-          }}
-        >
-          <PlanRow label="Tarif" value="6 € / mois" />
-          <div style={{ borderTop: "0.5px solid rgba(108,63,200,.10)", margin: "4px 0" }} />
-          <PlanRow label="Prochain renouvellement" value="—" />
-          <div style={{ borderTop: "0.5px solid rgba(108,63,200,.10)", margin: "4px 0" }} />
-          <PlanRow label="Statut" value="Actif" valueColor="#1D9E75" />
-        </div>
-
-        <div className="mb-3 flex flex-col gap-2">
-          <button
-            type="button"
-            className="flex w-full items-center justify-center gap-1.5 transition hover:bg-[rgba(108,63,200,.08)]"
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              padding: "11px 14px",
-              borderRadius: 12,
-              border: "1.5px solid #6C3FC8",
-              background: "rgba(108,63,200,.06)",
-              color: "#6C3FC8",
-              cursor: "pointer",
-            }}
-          >
-            <CreditCard size={14} stroke="#6C3FC8" />
-            Gérer mon abonnement
-          </button>
-          <button
-            type="button"
-            className="flex w-full items-center justify-center gap-1.5 transition hover:bg-[rgba(245,166,35,.08)]"
-            style={{
-              fontSize: 13,
-              fontWeight: 600,
-              padding: "11px 14px",
-              borderRadius: 12,
-              border: "1.5px solid #F5A623",
-              background: "transparent",
-              color: "#B8791A",
-              cursor: "pointer",
-            }}
-          >
-            <Star size={14} stroke="#B8791A" />
-            Passer à l&apos;annuel — 50&nbsp;€/an
-          </button>
-        </div>
-
-        <p
-          style={{
-            fontSize: 12,
-            fontWeight: 600,
-            color: "#1A1A1A",
-            marginBottom: 8,
-          }}
-        >
-          Méthode de paiement
-        </p>
-
-        <div
-          className="mb-2 flex items-center gap-2.5"
-          style={{
-            background: "rgba(108,63,200,.06)",
-            borderRadius: 12,
-            padding: "10px 14px",
-          }}
-        >
-          <div
-            className="flex shrink-0 items-center justify-center"
-            style={{
-              width: 32,
-              height: 22,
-              borderRadius: 4,
-              background: "#1A1F71",
-              color: "white",
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: "0.04em",
-            }}
-          >
-            VISA
-          </div>
-          <div className="min-w-0 flex-1">
-            <p style={{ fontSize: 12, fontWeight: 600, color: "#1A1A1A" }}>
-              •••• •••• •••• 4242
-            </p>
-            <p style={{ fontSize: 11, color: "#6B6478" }}>Expire 12/27</p>
-          </div>
-          <button
-            type="button"
-            className="shrink-0 transition hover:opacity-70"
-            style={{
-              fontSize: 11,
-              fontWeight: 500,
-              color: "#6C3FC8",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            Modifier
-          </button>
-        </div>
-
-        <button
-          type="button"
-          className="flex w-full items-center justify-center gap-1.5 transition hover:bg-[rgba(108,63,200,.04)]"
-          style={{
-            fontSize: 12,
-            fontWeight: 500,
-            color: "#6C3FC8",
-            background: "transparent",
-            border: "1.5px dashed rgba(108,63,200,.25)",
-            borderRadius: 12,
-            padding: 10,
-            cursor: "pointer",
-          }}
-        >
-          <Plus size={14} stroke="#6C3FC8" />
-          Ajouter une carte
-        </button>
-      </div>
+      <SubscriptionSettingsCard />
 
       {/* -------- Section Ma classe -------- */}
       <div className="mb-3" style={SECTION_CARD_STYLE}>
@@ -1373,25 +1227,6 @@ function SectionHeader({
         ) : null}
       </div>
       {trailing}
-    </div>
-  );
-}
-
-function PlanRow({
-  label,
-  value,
-  valueColor,
-}: {
-  label: string;
-  value: string;
-  valueColor?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between" style={{ padding: "5px 0" }}>
-      <span style={{ fontSize: 12, color: "#6B6478" }}>{label}</span>
-      <span style={{ fontSize: 12, fontWeight: 600, color: valueColor ?? "#1A1A1A" }}>
-        {value}
-      </span>
     </div>
   );
 }

@@ -1,15 +1,9 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 import { db } from "@/lib/db";
 import { shopPacks } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { getUser } from "@/lib/auth";
-
-function getStripe() {
-  const key = process.env.STRIPE_SECRET_KEY;
-  if (!key) throw new Error("STRIPE_SECRET_KEY manquante");
-  return new Stripe(key, { apiVersion: "2026-02-25.clover" as any });
-}
+import { getStripe } from "@/lib/stripe";
 
 export async function POST(req: Request) {
   const user = await getUser();

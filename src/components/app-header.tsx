@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { Star, User, Settings, LogOut, ChevronRight, ShoppingBag } from "lucide-react";
+import { Star, User, Settings, LogOut, ChevronRight, ShoppingBag, CreditCard } from "lucide-react";
 
 const LEVEL_NAMES: Record<number, string> = {
   1: "Graine",
@@ -316,6 +316,17 @@ function AvatarDropdown({
               reducedMotion={reducedMotion}
               iconTileStyle={iconTileStyle}
             />
+
+            {!isProfesseur && (
+              <AccountMenuNavItem
+                href="/app/abonnement"
+                icon={CreditCard}
+                label="Abonnement"
+                onNavigate={() => setOpen(false)}
+                reducedMotion={reducedMotion}
+                iconTileStyle={iconTileStyle}
+              />
+            )}
 
             {!isProfesseur && (
               <div
