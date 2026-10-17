@@ -574,7 +574,7 @@ export function BibliothequeClient() {
       </div>
 
       {/* Contenu */}
-      {loading ? (
+      {loading && lists.length === 0 ? (
         <p className="text-[var(--foreground-muted)]">Chargement…</p>
       ) : (
         <>
