@@ -5,10 +5,9 @@ import { useRouter } from "next/navigation";
 import { CityAutocomplete } from "@/components/city-autocomplete";
 import { PhoneInput } from "@/components/phone-input";
 import {
-  ChevronLeft,
   Pencil,
   Save,
-  Star,
+  Sprout,
   User,
   Calendar,
   MapPin,
@@ -20,6 +19,7 @@ import {
   Copy,
   Check,
   Users,
+  CircleAlert,
   type LucideIcon,
 } from "lucide-react";
 
@@ -53,9 +53,6 @@ function formatDateDisplay(value: string): string {
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
-const PANEL_SHADOW =
-  "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)";
-
 type ProfileForm = {
   firstName: string;
   lastName: string;
@@ -78,6 +75,25 @@ export type InitialProfileData = {
   referralCount?: number;
 };
 
+const cardStyle: CSSProperties = {
+  background: "var(--surface)",
+  border: "1.5px solid var(--line)",
+  borderRadius: 20,
+  padding: 20,
+};
+
+const labelStyle: CSSProperties = {
+  display: "block",
+  fontSize: 13,
+  fontWeight: 500,
+  color: "var(--muted)",
+  marginBottom: 6,
+  lineHeight: 1.3,
+};
+
+const inputClass =
+  "w-full min-w-0 border-0 bg-transparent p-0 text-[15px] leading-normal text-ink outline-none placeholder:text-muted";
+
 export function InformationPersonnelleClient({
   initialData,
 }: {
@@ -94,25 +110,20 @@ export function InformationPersonnelleClient({
     institutionName: initialData?.institutionName ?? "",
   });
   const [formSnapshot, setFormSnapshot] = useState<ProfileForm | null>(null);
-  const [role, setRole] = useState<"etudiant" | "professeur" | "">(
-    initialData?.role ?? ""
-  );
+  const [role, setRole] = useState<"etudiant" | "professeur" | "">(initialData?.role ?? "");
   const [email, setEmail] = useState<string | null>(initialData?.email ?? null);
   const [loaded, setLoaded] = useState(!!initialData);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<"saved" | "error" | null>(null);
   const [editing, setEditing] = useState(false);
   const [userLevel, setUserLevel] = useState(1);
-  const [primaryHover, setPrimaryHover] = useState(false);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
   const [deleteStatus, setDeleteStatus] = useState<"idle" | "loading" | "error">("idle");
   const [deleteError, setDeleteError] = useState("");
 
-  const [referralCode, setReferralCode] = useState<string | null>(
-    initialData?.referralCode ?? null
-  );
+  const [referralCode, setReferralCode] = useState<string | null>(initialData?.referralCode ?? null);
   const [referralCount, setReferralCount] = useState(initialData?.referralCount ?? 0);
   const [referralLoading, setReferralLoading] = useState(!initialData?.referralCode);
   const [copiedCode, setCopiedCode] = useState(false);
@@ -227,669 +238,441 @@ export function InformationPersonnelleClient({
     window.setTimeout(() => setCopiedCode(false), 1500);
   }
 
-  const editInputClass =
-    "w-full text-[13px] text-ink placeholder:text-muted outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-0";
-
   return (
-    <div className="mx-auto max-w-lg" style={{ fontFamily: "var(--font-sans), sans-serif" }}>
-      <button
-        type="button"
-        onClick={() => router.push("/app/parametres")}
-        className="mb-5 flex items-center gap-1 transition hover:opacity-70"
-        style={{
-          fontSize: 12,
-          color: "var(--muted)",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          width: "fit-content",
-        }}
-      >
-        <ChevronLeft size={14} stroke="var(--muted)" />
-        Retour
-      </button>
+    <div>
+      <header className="mb-8">
+        <h1 className="m-0 text-[46px] leading-[1.05] tracking-[-0.02em] text-ink">
+          Ton <span className="home-mark">profil</span>
+        </h1>
+      </header>
 
-      {/* En-tête identité */}
-      <div
-        className="relative mb-5 overflow-hidden"
-        style={{
-          borderRadius: 18,
-          padding: "20px 18px",
-          boxShadow: PANEL_SHADOW,
-          background: "var(--ink)",
-        }}
-      >
-        <div className="relative z-[2] flex items-center gap-4">
-          <div
-            className="flex shrink-0 items-center justify-center"
-            style={{
-              width: 72,
-              height: 72,
-              borderRadius: "50%",
-              background: "color-mix(in srgb, var(--surface) 18%, transparent)",
-              color: "var(--surface)",
-              fontSize: 28,
-              fontWeight: 600,
-              boxShadow:
-                "0 0 0 2px var(--mark), inset 0 0 0 1px color-mix(in srgb, var(--surface) 35%, transparent)",
-            }}
+      {!loaded ? (
+        <p className="m-0 text-sm text-muted">Chargement…</p>
+      ) : (
+        <div className="flex flex-col gap-5 lg:grid lg:grid-cols-[340px_minmax(0,1fr)] lg:items-start">
+          <section
+            className="order-1 flex flex-col items-center px-6 py-9 text-center lg:col-start-1 lg:row-start-1"
+            style={{ background: "var(--ink)", borderRadius: 20 }}
           >
-            {initial}
-          </div>
-          <div className="min-w-0 flex-1">
-            <p
-              className="truncate"
+            <div
+              className="flex items-center justify-center"
+              aria-hidden
               style={{
-                fontSize: 18,
-                fontWeight: 600,
+                width: 96,
+                height: 96,
+                borderRadius: "50%",
+                border: "3px solid var(--mark)",
                 color: "var(--surface)",
-                letterSpacing: "-0.01em",
-                marginBottom: 3,
+                fontFamily: "var(--font-heading)",
+                fontWeight: 700,
+                fontSize: 40,
+                lineHeight: 1,
+              }}
+            >
+              {initial}
+            </div>
+            <p
+              className="m-0 mt-5 max-w-full break-words text-surface"
+              style={{
+                fontFamily: "var(--font-heading)",
+                fontWeight: 700,
+                fontSize: 28,
+                lineHeight: 1.15,
               }}
             >
               {displayName || "—"}
             </p>
             <p
-              className="truncate"
-              style={{ fontSize: 12.5, color: "color-mix(in srgb, var(--surface) 75%, transparent)", marginBottom: 10 }}
+              className="m-0 mt-1 max-w-full truncate text-[15px]"
+              title={email ?? undefined}
+              style={{ color: "color-mix(in srgb, var(--surface) 82%, var(--ink))" }}
             >
               {email ?? "—"}
             </p>
             <span
-              className="inline-flex items-center gap-1"
-              style={{
-                background: "color-mix(in srgb, var(--surface) 16%, transparent)",
-                color: "var(--surface)",
-                fontSize: 10.5,
-                fontWeight: 600,
-                padding: "3px 9px",
-                borderRadius: 999,
-              }}
+              className="mt-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium"
+              style={{ background: "var(--mark)", color: "var(--ink)" }}
             >
-              <Star size={11} stroke="var(--mark)" fill="var(--mark)" aria-hidden />
+              <Sprout size={14} strokeWidth={1.75} color="var(--ink)" aria-hidden />
               Niveau {userLevel} — {getLevelName(userLevel)}
             </span>
-          </div>
-        </div>
-      </div>
+          </section>
 
-      {!loaded ? (
-        <p style={{ fontSize: 13, color: "var(--muted)" }}>Chargement…</p>
-      ) : (
-        <form onSubmit={submit}>
-          <SectionCard title="Informations personnelles">
-            <div className="mb-3 grid grid-cols-2 gap-3">
-              <FieldBlock label="Prénom">
-                <FieldValueRow icon={User}>
+          <form onSubmit={submit} className="contents">
+            <section
+              className="order-2 min-w-0 lg:col-start-2 lg:row-start-1"
+              style={cardStyle}
+              aria-labelledby="profil-infos-titre"
+            >
+              <h2 id="profil-infos-titre" className="m-0 mb-4 text-xl text-ink">
+                Informations personnelles
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <ProfileField label="Prénom" icon={User}>
                   {editing ? (
                     <input
+                      id="profil-prenom"
                       type="text"
                       value={form.firstName}
                       onChange={(e) => update({ firstName: e.target.value })}
-                      className={editInputClass}
-                      style={fieldStyle(true)}
+                      className={inputClass}
                       autoComplete="given-name"
+                      aria-label="Prénom"
                     />
                   ) : (
-                    <ReadValue value={form.firstName} />
+                    <Readout value={form.firstName} />
                   )}
-                </FieldValueRow>
-              </FieldBlock>
-              <FieldBlock label="Nom">
-                <FieldValueRow icon={User}>
+                </ProfileField>
+                <ProfileField label="Nom" icon={User}>
                   {editing ? (
                     <input
+                      id="profil-nom"
                       type="text"
                       value={form.lastName}
                       onChange={(e) => update({ lastName: e.target.value })}
-                      className={editInputClass}
-                      style={fieldStyle(true)}
+                      className={inputClass}
                       autoComplete="family-name"
+                      aria-label="Nom"
                     />
                   ) : (
-                    <ReadValue value={form.lastName} />
+                    <Readout value={form.lastName} />
                   )}
-                </FieldValueRow>
-              </FieldBlock>
-            </div>
+                </ProfileField>
+                <ProfileField label="Date de naissance" icon={Calendar}>
+                  {editing ? (
+                    <input
+                      id="profil-naissance"
+                      type="date"
+                      value={form.dateOfBirth}
+                      onChange={(e) => update({ dateOfBirth: e.target.value })}
+                      className={inputClass}
+                      autoComplete="bday"
+                      aria-label="Date de naissance"
+                      style={{ colorScheme: "light" }}
+                    />
+                  ) : (
+                    <Readout value={formatDateDisplay(form.dateOfBirth)} />
+                  )}
+                </ProfileField>
+                <ProfileField label="Ville" icon={MapPin}>
+                  {editing ? (
+                    <div className="relative min-w-0 flex-1">
+                      <CityAutocomplete
+                        id="profil-ville"
+                        value={form.city}
+                        onChange={(v) => update({ city: v })}
+                        placeholder="Ta ville"
+                        disabled={saving}
+                        aria-label="Ville"
+                        className={inputClass}
+                      />
+                    </div>
+                  ) : (
+                    <Readout value={form.city} placeholder="Ajoute ta ville" />
+                  )}
+                </ProfileField>
+                <ProfileField label="Téléphone" icon={Phone}>
+                  {editing ? (
+                    <PhoneInput
+                      id="profil-telephone"
+                      value={form.phone}
+                      onChange={(v) => update({ phone: v })}
+                      placeholder="6 12 34 56 78"
+                      disabled={saving}
+                      aria-label="Téléphone"
+                      className="profile-phone min-w-0 flex-1"
+                      prefixClassName="flex min-h-11 min-w-[4.25rem] items-center justify-between gap-1 border-0 bg-transparent px-0 text-[15px] text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-50"
+                      inputClassName="h-11 min-w-0 flex-1 border-0 bg-transparent px-1 text-[15px] text-ink outline-none placeholder:text-muted"
+                    />
+                  ) : (
+                    <Readout value={form.phone} placeholder="Ajoute un numéro" />
+                  )}
+                </ProfileField>
+              </div>
+            </section>
 
-            <FieldBlock label="Date de naissance" className="mb-3">
-              <FieldValueRow icon={Calendar}>
-                {editing ? (
-                  <input
-                    type="date"
-                    value={form.dateOfBirth}
-                    onChange={(e) => update({ dateOfBirth: e.target.value })}
-                    className={editInputClass}
-                    style={fieldStyle(true)}
-                    autoComplete="bday"
-                  />
-                ) : (
-                  <ReadValue value={formatDateDisplay(form.dateOfBirth) || undefined} />
-                )}
-              </FieldValueRow>
-            </FieldBlock>
-
-            <FieldBlock label="Ville" className="mb-3">
-              <FieldValueRow icon={MapPin}>
-                {editing ? (
-                  <CityAutocomplete
-                    value={form.city}
-                    onChange={(v) => update({ city: v })}
-                    placeholder="Ta ville"
-                    disabled={saving}
-                    className={`${editInputClass} !rounded-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !bg-surface !px-3 !py-[9px]`}
-                  />
-                ) : (
-                  <ReadValue value={form.city} placeholder="Ajoute ta ville" />
-                )}
-              </FieldValueRow>
-            </FieldBlock>
-
-            <FieldBlock label="Téléphone">
-              <FieldValueRow icon={Phone}>
-                {editing ? (
-                  <PhoneInput
-                    value={form.phone}
-                    onChange={(v) => update({ phone: v })}
-                    placeholder="6 12 34 56 78"
-                    disabled={saving}
-                    className="w-full min-w-0 flex-1"
-                    inputClassName="!rounded-r-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !border-l-0 !bg-surface !text-[13px] !py-[9px] focus-visible:!ring-2 focus-visible:!ring-ink"
-                  />
-                ) : (
-                  <ReadValue value={form.phone} placeholder="Ajoute un numéro" />
-                )}
-              </FieldValueRow>
-            </FieldBlock>
-          </SectionCard>
-
-          <SectionCard title="Compte">
-            <FieldBlock label="Email" className="mb-3">
-              <FieldValueRow icon={Mail}>
-                <LockedField value={email ?? "—"} />
-              </FieldValueRow>
-              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, paddingLeft: 38 }}>
-                L&apos;adresse mail ne peut pas être modifiée ici.
-              </p>
-            </FieldBlock>
-
-            <FieldBlock label="Statut" className="mb-3">
-              <FieldValueRow icon={User}>
-                <LockedField value={getRoleLabel(role)} />
-              </FieldValueRow>
-              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, paddingLeft: 38 }}>
-                Le statut ne peut pas être modifié.
-              </p>
-            </FieldBlock>
-
-            <FieldBlock label="Établissement">
-              <FieldValueRow icon={Building2}>
-                {editing ? (
-                  <input
-                    type="text"
-                    value={form.institutionName}
-                    onChange={(e) => update({ institutionName: e.target.value })}
-                    placeholder="École, entreprise…"
-                    className={editInputClass}
-                    style={fieldStyle(true)}
-                    autoComplete="organization"
-                  />
-                ) : (
-                  <ReadValue
-                    value={form.institutionName}
-                    placeholder="École, entreprise…"
-                  />
-                )}
-              </FieldValueRow>
-            </FieldBlock>
-          </SectionCard>
-
-          {message === "saved" && (
-            <div
-              className="mb-3"
-              style={{
-                background: "var(--surface)",
-                border: "1px solid var(--line)",
-                borderRadius: 10,
-                padding: "8px 12px",
-                fontSize: 12,
-                color: "var(--ink)",
-              }}
+            <section
+              className="order-3 min-w-0 lg:col-start-2 lg:row-start-2"
+              style={cardStyle}
+              aria-labelledby="profil-compte-titre"
             >
-              Informations mises à jour !
-            </div>
-          )}
-          {message === "error" && (
-            <div
-              className="mb-3"
-              style={{
-                background: "var(--false-bg)",
-                border: "1px solid var(--false-sign)",
-                borderRadius: 10,
-                padding: "8px 12px",
-                fontSize: 12,
-                color: "var(--false-sign)",
-              }}
-            >
-              Erreur lors de l&apos;enregistrement.
-            </div>
-          )}
+              <h2 id="profil-compte-titre" className="m-0 mb-4 text-xl text-ink">
+                Compte
+              </h2>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div>
+                  <ProfileField label="Email" icon={Mail} locked>
+                    <Readout value={email ?? "—"} />
+                  </ProfileField>
+                  <p className="m-0 mt-1.5 text-xs leading-snug text-muted">
+                    L&apos;adresse mail ne peut pas être modifiée ici.
+                  </p>
+                </div>
+                <div>
+                  <ProfileField label="Statut" icon={User} locked>
+                    <Readout value={getRoleLabel(role)} />
+                  </ProfileField>
+                  <p className="m-0 mt-1.5 text-xs leading-snug text-muted">
+                    Le statut ne peut pas être modifié.
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <ProfileField label="Établissement" icon={Building2}>
+                    {editing ? (
+                      <input
+                        id="profil-etablissement"
+                        type="text"
+                        value={form.institutionName}
+                        onChange={(e) => update({ institutionName: e.target.value })}
+                        placeholder="École, entreprise…"
+                        className={inputClass}
+                        autoComplete="organization"
+                        aria-label="Établissement"
+                      />
+                    ) : (
+                      <Readout value={form.institutionName} placeholder="École, entreprise…" />
+                    )}
+                  </ProfileField>
+                </div>
+              </div>
 
-          <div className="flex flex-col gap-2" style={{ marginTop: 6 }}>
-            {!editing ? (
+              {message === "saved" ? (
+                <p
+                  role="status"
+                  className="mt-4 flex items-center gap-2 rounded-xl px-3 py-2 text-sm"
+                  style={{ background: "var(--just-bg)", color: "var(--just-text)" }}
+                >
+                  <Check size={16} color="var(--just-sign)" aria-hidden />
+                  Informations mises à jour !
+                </p>
+              ) : null}
+              {message === "error" ? (
+                <p
+                  role="alert"
+                  className="mt-4 flex items-center gap-2 rounded-xl px-3 py-2 text-sm"
+                  style={{ background: "var(--false-bg)", color: "var(--false-text)" }}
+                >
+                  <CircleAlert size={16} color="var(--false-sign)" aria-hidden />
+                  Erreur lors de l&apos;enregistrement.
+                </p>
+              ) : null}
+
+              <div className="mt-5 flex flex-wrap items-center justify-end gap-3">
+                {!editing ? (
+                  <button
+                    type="button"
+                    onClick={startEditing}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-medium text-surface outline-none hover:bg-ink-hover focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+                  >
+                    <Pencil size={16} color="var(--surface)" aria-hidden />
+                    Modifier mes informations
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={cancelEditing}
+                      className="inline-flex min-h-11 items-center justify-center rounded-full border-[1.5px] border-line bg-surface px-5 text-sm font-medium text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink"
+                    >
+                      Annuler
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-medium text-surface outline-none hover:bg-ink-hover focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      <Save size={16} color="var(--surface)" aria-hidden />
+                      {saving ? "Enregistrement…" : "Enregistrer"}
+                    </button>
+                  </>
+                )}
+              </div>
+            </section>
+          </form>
+
+          <ReferralSection
+            referralCode={referralCode}
+            referralCount={referralCount}
+            referralLoading={referralLoading}
+            copiedCode={copiedCode}
+            onCopyCode={() => referralCode && void copyReferralCode(referralCode)}
+          />
+
+          <section
+            className="order-5 lg:col-start-2 lg:row-start-3"
+            style={{
+              background: "var(--false-bg)",
+              border: "1.5px solid color-mix(in srgb, var(--false-sign) 35%, var(--false-bg))",
+              borderRadius: 20,
+              padding: 20,
+            }}
+            aria-labelledby="profil-danger-titre"
+          >
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <h2 id="profil-danger-titre" className="m-0 text-xl" style={{ color: "var(--false-text)" }}>
+                  Zone dangereuse
+                </h2>
+                <p className="m-0 mt-1.5 max-w-xl text-sm leading-relaxed" style={{ color: "var(--false-text)" }}>
+                  La suppression de ton compte est définitive. Toutes tes listes, progressions et données
+                  seront perdues.
+                </p>
+              </div>
               <button
                 type="button"
-                onClick={startEditing}
-                onMouseEnter={() => setPrimaryHover(true)}
-                onMouseLeave={() => setPrimaryHover(false)}
-                className="flex w-full items-center justify-center gap-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-                style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  padding: "12px 16px",
-                  borderRadius: 12,
-                  border: "none",
-                  background: primaryHover ? "var(--ink)" : "var(--ink)",
-                  color: "var(--surface)",
-                  cursor: "pointer",
+                onClick={() => {
+                  setDeleteConfirmEmail("");
+                  setDeleteStatus("idle");
+                  setDeleteError("");
+                  setDeleteModalOpen(true);
                 }}
+                className="inline-flex min-h-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-false-sign bg-surface px-5 text-sm font-medium text-false-text outline-none focus-visible:ring-2 focus-visible:ring-false-sign focus-visible:ring-offset-2"
               >
-                <Pencil size={15} stroke="white" />
-                Modifier mes informations
+                Supprimer mon compte
               </button>
-            ) : (
-              <>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  onMouseEnter={() => setPrimaryHover(true)}
-                  onMouseLeave={() => setPrimaryHover(false)}
-                  className="flex w-full items-center justify-center gap-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50"
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 600,
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    border: "none",
-                    background: primaryHover ? "var(--ink)" : "var(--ink)",
-                    color: "var(--surface)",
-                    cursor: "pointer",
-                  }}
-                >
-                  <Save size={15} stroke="white" />
-                  {saving ? "Enregistrement…" : "Enregistrer"}
-                </button>
-                <button
-                  type="button"
-                  onClick={cancelEditing}
-                  className="flex w-full items-center justify-center outline-none transition hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)] focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-                  style={{
-                    fontSize: 14,
-                    fontWeight: 500,
-                    padding: "12px 16px",
-                    borderRadius: 12,
-                    border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
-                    background: "transparent",
-                    color: "var(--muted)",
-                    cursor: "pointer",
-                  }}
-                >
-                  Annuler
-                </button>
-              </>
-            )}
-          </div>
-        </form>
-      )}
-
-      {loaded && (
-        <ReferralSection
-          referralCode={referralCode}
-          referralCount={referralCount}
-          referralLoading={referralLoading}
-          copiedCode={copiedCode}
-          onCopyCode={() => referralCode && void copyReferralCode(referralCode)}
-        />
-      )}
-
-      {loaded && (
-        <div
-          className="mt-5"
-          style={{
-            background: "var(--false-bg)",
-            border: "1px solid var(--false-sign)",
-            borderRadius: 12,
-            padding: "14px 16px",
-          }}
-        >
-          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--false-sign)", marginBottom: 4 }}>
-            Zone dangereuse
-          </p>
-          <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.5, marginBottom: 12 }}>
-            La suppression de ton compte est définitive. Toutes tes listes, progressions et données
-            seront perdues.
-          </p>
-          <button
-            type="button"
-            onClick={() => {
-              setDeleteConfirmEmail("");
-              setDeleteStatus("idle");
-              setDeleteError("");
-              setDeleteModalOpen(true);
-            }}
-            className="transition hover:bg-false-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--false-sign)]"
-            style={{
-              fontSize: 12,
-              fontWeight: 500,
-              padding: "8px 16px",
-              borderRadius: 10,
-              border: "1px solid var(--false-sign)",
-              background: "transparent",
-              color: "var(--false-sign)",
-              cursor: "pointer",
-            }}
-          >
-            Supprimer mon compte
-          </button>
+            </div>
+          </section>
         </div>
       )}
 
-      {deleteModalOpen && (
+      {deleteModalOpen ? (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ background: "color-mix(in srgb, var(--ink) 45%, transparent)" }}
           onClick={() => deleteStatus !== "loading" && setDeleteModalOpen(false)}
         >
           <div
-            className="w-full max-w-md overflow-hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="supprimer-compte-titre"
+            className="w-full max-w-md"
             style={{
-              borderRadius: 18,
+              borderRadius: 20,
               background: "var(--surface)",
-              boxShadow: PANEL_SHADOW,
-              border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
+              border: "1.5px solid var(--line)",
+              boxShadow: "var(--shadow-elevated)",
+              padding: 20,
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ padding: "20px" }}>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
-                Supprimer mon compte
-              </h2>
-              <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5, marginBottom: 16 }}>
-                Cette action est irréversible. Toutes tes données seront définitivement supprimées :
-                listes, mots, révisions, progression.
+            <h2 id="supprimer-compte-titre" className="m-0 text-xl text-ink">
+              Supprimer mon compte
+            </h2>
+            <p className="mb-4 mt-2 text-sm leading-relaxed text-muted">
+              Cette action est irréversible. Toutes tes données seront définitivement supprimées :
+              listes, mots, révisions, progression.
+            </p>
+            <label className="block">
+              <span style={labelStyle}>Pour confirmer, saisis ton adresse email</span>
+              <input
+                type="email"
+                value={deleteConfirmEmail}
+                onChange={(e) => setDeleteConfirmEmail(e.target.value)}
+                placeholder={email ?? ""}
+                className="w-full outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                style={{
+                  height: 50,
+                  borderRadius: 14,
+                  border: "1.5px solid var(--false-sign)",
+                  background: "var(--surface)",
+                  color: "var(--ink)",
+                  fontSize: 15,
+                  padding: "0 14px",
+                }}
+              />
+            </label>
+            {deleteStatus === "error" && deleteError ? (
+              <p
+                role="alert"
+                className="mt-3 flex items-center gap-2 rounded-xl px-3 py-2 text-sm"
+                style={{ background: "var(--false-bg)", color: "var(--false-text)" }}
+              >
+                <CircleAlert size={16} color="var(--false-sign)" aria-hidden />
+                {deleteError}
               </p>
-
-              <label className="block">
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: "var(--muted)",
-                    marginBottom: 5,
-                    display: "block",
-                  }}
-                >
-                  Pour confirmer, saisis ton adresse email
-                </span>
-                <input
-                  type="email"
-                  value={deleteConfirmEmail}
-                  onChange={(e) => setDeleteConfirmEmail(e.target.value)}
-                  placeholder={email ?? ""}
-                  className="w-full outline-none focus-visible:ring-2 focus-visible:ring-ink"
-                  style={{ ...fieldStyle(true), borderColor: "var(--false-sign)" }}
-                />
-              </label>
-
-              {deleteStatus === "error" && deleteError && (
-                <div
-                  className="mt-3"
-                  style={{
-                    background: "var(--false-bg)",
-                    borderRadius: 8,
-                    padding: "6px 10px",
-                    fontSize: 12,
-                    color: "var(--false-sign)",
-                  }}
-                >
-                  {deleteError}
-                </div>
-              )}
-
-              <div className="mt-5 flex gap-2">
-                <button
-                  type="button"
-                  disabled={deleteStatus === "loading"}
-                  onClick={() => setDeleteModalOpen(false)}
-                  className="flex-1 transition hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)]"
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    padding: 11,
-                    borderRadius: 10,
-                    border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
-                    background: "transparent",
-                    color: "var(--muted)",
-                    cursor: "pointer",
-                  }}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    deleteStatus === "loading" ||
-                    !email ||
-                    deleteConfirmEmail.trim().toLowerCase() !== email.toLowerCase()
-                  }
-                  onClick={async () => {
-                    setDeleteStatus("loading");
-                    setDeleteError("");
-                    try {
-                      const res = await fetch("/api/user/delete", { method: "DELETE" });
-                      const data = await res.json().catch(() => ({}));
-                      if (res.ok && data.success) {
-                        router.push("/?deleted=true");
-                      } else {
-                        setDeleteError(data.error || "Erreur lors de la suppression.");
-                        setDeleteStatus("error");
-                      }
-                    } catch {
-                      setDeleteError("Erreur réseau, réessaie.");
+            ) : null}
+            <div className="mt-5 flex gap-2">
+              <button
+                type="button"
+                disabled={deleteStatus === "loading"}
+                onClick={() => setDeleteModalOpen(false)}
+                className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border-[1.5px] border-line bg-surface text-sm font-medium text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-50"
+              >
+                Annuler
+              </button>
+              <button
+                type="button"
+                disabled={
+                  deleteStatus === "loading" ||
+                  !email ||
+                  deleteConfirmEmail.trim().toLowerCase() !== email.toLowerCase()
+                }
+                onClick={async () => {
+                  setDeleteStatus("loading");
+                  setDeleteError("");
+                  try {
+                    const res = await fetch("/api/user/delete", { method: "DELETE" });
+                    const data = await res.json().catch(() => ({}));
+                    if (res.ok && data.success) {
+                      router.push("/?deleted=true");
+                    } else {
+                      setDeleteError(data.error || "Erreur lors de la suppression.");
                       setDeleteStatus("error");
                     }
-                  }}
-                  className="flex-[2] transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-40"
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 500,
-                    padding: 11,
-                    borderRadius: 10,
-                    border: "none",
-                    background: "var(--false-sign)",
-                    color: "var(--surface)",
-                    cursor: "pointer",
-                  }}
-                >
-                  {deleteStatus === "loading" ? "Suppression…" : "Supprimer définitivement"}
-                </button>
-              </div>
+                  } catch {
+                    setDeleteError("Erreur réseau, réessaie.");
+                    setDeleteStatus("error");
+                  }
+                }}
+                className="inline-flex min-h-11 flex-[2] items-center justify-center rounded-full border-0 bg-false-sign text-sm font-medium text-surface outline-none focus-visible:ring-2 focus-visible:ring-false-sign focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {deleteStatus === "loading" ? "Suppression…" : "Supprimer définitivement"}
+              </button>
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
 
-function fieldStyle(editable: boolean): CSSProperties {
-  return {
-    fontSize: 13,
-    padding: "9px 12px",
-    borderRadius: 10,
-    width: "100%",
-    border: editable ? "1px solid color-mix(in srgb, var(--ink) 25%, transparent)" : "1px solid transparent",
-    background: editable ? "white" : "color-mix(in srgb, var(--ink) 4%, transparent)",
-    outline: "none",
-    color: "var(--ink)",
-  };
-}
-
-function SectionCard({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <div
-      className="mb-3"
-      style={{
-        background: "var(--surface)",
-        border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
-        borderRadius: 12,
-        padding: 16,
-        boxShadow: PANEL_SHADOW,
-      }}
-    >
-      <SectionLabel>{title}</SectionLabel>
-      {children}
-    </div>
-  );
-}
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      style={{
-        fontSize: 13,
-        fontWeight: 600,
-        color: "var(--ink)",
-        marginBottom: 14,
-      }}
-    >
-      {children}
-    </p>
-  );
-}
-
-function IconTile({ icon: Icon }: { icon: LucideIcon }) {
-  return (
-    <div
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: 8,
-        background: "color-mix(in srgb, var(--ink) 8%, transparent)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        flexShrink: 0,
-      }}
-    >
-      <Icon size={16} stroke="var(--ink)" aria-hidden />
-    </div>
-  );
-}
-
-function FieldBlock({
+function ProfileField({
   label,
+  icon: Icon,
+  locked,
   children,
-  className,
 }: {
   label: string;
+  icon: LucideIcon;
+  locked?: boolean;
   children: ReactNode;
-  className?: string;
 }) {
   return (
-    <div className={className}>
-      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", marginBottom: 6 }}>
-        {label}
-      </p>
-      {children}
-    </div>
+    <label className="block min-w-0">
+      <span style={labelStyle}>{label}</span>
+      <div
+        className="flex items-center gap-2.5 px-3.5 focus-within:ring-2 focus-within:ring-ink"
+        style={{
+          minHeight: 50,
+          borderRadius: 14,
+          border: "1.5px solid var(--line)",
+          background: locked ? "var(--page)" : "var(--surface)",
+        }}
+      >
+        <Icon size={18} strokeWidth={1.75} color="var(--muted)" aria-hidden className="shrink-0" />
+        <div className="min-w-0 flex-1">{children}</div>
+        {locked ? <Lock size={16} strokeWidth={1.75} color="var(--muted)" aria-hidden className="shrink-0" /> : null}
+      </div>
+    </label>
   );
 }
 
-function FieldValueRow({ icon, children }: { icon: LucideIcon; children: ReactNode }) {
-  return (
-    <div className="flex items-center gap-2.5">
-      <IconTile icon={icon} />
-      <div className="min-w-0 flex-1">{children}</div>
-    </div>
-  );
-}
-
-function ReadValue({ value, placeholder }: { value?: string; placeholder?: string }) {
+function Readout({ value, placeholder }: { value?: string | null; placeholder?: string }) {
   const empty = !value?.trim();
   return (
-    <div
-      style={{
-        ...fieldStyle(false),
-        color: empty ? "var(--muted)" : "var(--ink)",
-      }}
-    >
+    <span className="block truncate text-[15px]" style={{ color: empty ? "var(--muted)" : "var(--ink)" }}>
       {empty ? placeholder ?? "—" : value}
-    </div>
-  );
-}
-
-function LockedField({ value }: { value: string }) {
-  return (
-    <div className="relative">
-      <div
-        style={{
-          ...fieldStyle(false),
-          background: "color-mix(in srgb, var(--ink) 6%, transparent)",
-          paddingRight: 36,
-          cursor: "default",
-        }}
-      >
-        {value}
-      </div>
-      <Lock
-        size={14}
-        stroke="var(--muted)"
-        aria-hidden
-        style={{
-          position: "absolute",
-          right: 12,
-          top: "50%",
-          transform: "translateY(-50%)",
-          pointerEvents: "none",
-        }}
-      />
-    </div>
-  );
-}
-
-function ProfileSectionHeader({
-  icon: Icon,
-  title,
-  subtitle,
-  compact,
-}: {
-  icon: LucideIcon;
-  title: string;
-  subtitle?: string;
-  compact?: boolean;
-}) {
-  return (
-    <div className="flex items-start gap-3" style={{ marginBottom: compact ? 10 : 16 }}>
-      <div
-        className="flex shrink-0 items-center justify-center"
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 9,
-          background: "color-mix(in srgb, var(--ink) 9%, transparent)",
-        }}
-      >
-        <Icon size={16} stroke="var(--ink)" aria-hidden />
-      </div>
-      <div>
-        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</p>
-        {subtitle ? (
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
-        ) : null}
-      </div>
-    </div>
+    </span>
   );
 }
 
@@ -906,89 +689,42 @@ function ReferralSection({
   copiedCode: boolean;
   onCopyCode: () => void;
 }) {
-  const referralLabel = `Tu as parrainé ${referralCount} ${referralCount >= 2 ? "amis" : "ami"}`;
-
-  const referralBtnBase: CSSProperties = {
-    height: 36,
-    padding: "0 12px",
-    borderRadius: 10,
-    fontSize: 13,
-    fontWeight: 500,
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 6,
-    flexShrink: 0,
-  };
+  const friendWord = referralCount >= 2 ? "amis" : "ami";
 
   return (
-    <div
-      className="mb-3 mt-3"
-      style={{
-        background: "var(--surface)",
-        border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
-        borderRadius: 12,
-        padding: 14,
-        boxShadow: PANEL_SHADOW,
-      }}
+    <section
+      className="order-4 min-w-0 lg:col-start-1 lg:row-start-2"
+      style={cardStyle}
+      aria-labelledby="profil-parrainage-titre"
     >
-      <ProfileSectionHeader
-        icon={Gift}
-        title="Parrainage"
-        subtitle="Partage ton code avec tes amis."
-        compact
-      />
+      <div className="mb-4 flex items-start gap-3">
+        <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-surface">
+          <Gift size={16} strokeWidth={1.75} color="var(--ink)" aria-hidden />
+        </span>
+        <div>
+          <h2 id="profil-parrainage-titre" className="m-0 text-xl text-ink">
+            Parrainage
+          </h2>
+          <p className="m-0 mt-1 text-sm text-muted">Partage ton code avec tes amis.</p>
+        </div>
+      </div>
 
       {referralLoading ? (
-        <div
-          style={{
-            height: 40,
-            borderRadius: 10,
-            background: "color-mix(in srgb, var(--ink) 6%, transparent)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 13,
-            color: "var(--muted)",
-          }}
-        >
-          …
-        </div>
+        <p className="m-0 text-sm text-muted">…</p>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 10,
-              width: "fit-content",
-              maxWidth: "100%",
-            }}
-          >
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-wrap items-center gap-3">
             <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                width: "fit-content",
-                flexShrink: 0,
-                background: "color-mix(in srgb, var(--ink) 5%, transparent)",
-                border: "1px solid color-mix(in srgb, var(--ink) 12%, transparent)",
-                borderRadius: 10,
-                padding: "7px 14px",
-                height: 36,
-                boxSizing: "border-box",
-              }}
+              className="inline-flex min-h-11 items-center px-4"
+              style={{ border: "1.5px dashed var(--ink)", borderRadius: 14 }}
             >
               <span
+                className="whitespace-nowrap text-ink"
                 style={{
                   fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-                  fontSize: 15,
-                  fontWeight: 600,
-                  color: "var(--ink)",
-                  letterSpacing: "1.5px",
-                  lineHeight: 1.2,
-                  whiteSpace: "nowrap",
+                  fontSize: 16,
+                  fontWeight: 500,
+                  letterSpacing: "0.08em",
                 }}
               >
                 {referralCode}
@@ -998,41 +734,43 @@ function ReferralSection({
               type="button"
               onClick={onCopyCode}
               disabled={!referralCode}
-              className="outline-none transition focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-4 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               style={{
-                ...referralBtnBase,
-                flexShrink: 0,
-                border: copiedCode
-                  ? "1.5px solid var(--ink)"
-                  : "1px solid color-mix(in srgb, var(--ink) 12%, transparent)",
-                background: copiedCode ? "var(--surface)" : "transparent",
-                color: copiedCode ? "var(--ink)" : "var(--muted)",
+                background: copiedCode ? "var(--just-bg)" : "var(--ink)",
+                color: copiedCode ? "var(--just-text)" : "var(--surface)",
               }}
             >
               {copiedCode ? (
                 <>
-                  <Check size={13} stroke="var(--ink)" />
-                  Copié ✓
+                  <Check size={16} color="var(--just-sign)" aria-hidden />
+                  Copié
                 </>
               ) : (
                 <>
-                  <Copy size={13} stroke="var(--muted)" />
+                  <Copy size={16} color="var(--surface)" aria-hidden />
                   Copier
                 </>
               )}
             </button>
           </div>
-
-          <div className="flex items-center gap-2">
-            <Users size={13} stroke="var(--muted)" aria-hidden />
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>{referralLabel}</span>
-          </div>
-
-          <p style={{ fontSize: 11.5, color: "var(--muted)", margin: 0, lineHeight: 1.35 }}>
+          <p className="m-0 flex items-center gap-2 text-sm text-ink">
+            <Users size={16} color="var(--muted)" aria-hidden />
+            <span>
+              Tu as parrainé{" "}
+              <span
+                className="inline-flex min-w-6 items-center justify-center rounded-full px-1.5"
+                style={{ background: "var(--mark)", color: "var(--ink)", fontWeight: 500 }}
+              >
+                {referralCount}
+              </span>{" "}
+              {friendWord}
+            </span>
+          </p>
+          <p className="m-0 text-[13px] leading-snug text-muted">
             Bientôt : des avantages à débloquer en parrainant.
           </p>
         </div>
       )}
-    </div>
+    </section>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, type CSSProperties, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
 import {
-  ChevronLeft,
+  Minus,
+  Plus,
   User,
   Sprout,
   Flame,
@@ -11,10 +11,9 @@ import {
   Check,
   GraduationCap,
   Clock,
-  Activity,
   Calendar,
   Zap,
-  Pencil,
+  Activity,
   Bell,
   AlarmClock,
   TrendingUp,
@@ -29,10 +28,10 @@ import {
   parseReminderSettings,
   type ReminderSettings,
 } from "@/lib/reminder-settings";
-import { SubscriptionSettingsCard } from "./subscription-settings-card";
 
 type AvatarType = "arbre" | "phenix" | "koala";
 
+/** Illustrations d’avatar : exception D2b, glyphes et teintes inchangés. */
 const AVATAR_OPTIONS: {
   value: AvatarType;
   label: string;
@@ -45,62 +44,15 @@ const AVATAR_OPTIONS: {
   { value: "koala", label: "Cristal", subLabel: "Éclat → Nexus", icon: Gem, color: "#6C3FC8" },
 ];
 
-type MaClasseRow = {
-  id: string;
-  title: string;
-  language: string | null;
-  schoolLevel: string | null;
-  status: "pending" | "accepted";
-};
-
 const WEEKLY_GOAL_MIN = 5;
 const WEEKLY_GOAL_MAX = 70;
 const WEEKLY_GOAL_STEP = 5;
 
-function snapWeeklyGoal(n: number): number {
-  const s = Math.round(n / WEEKLY_GOAL_STEP) * WEEKLY_GOAL_STEP;
-  return Math.min(WEEKLY_GOAL_MAX, Math.max(WEEKLY_GOAL_MIN, s));
-}
-
-function getLevelInfo(val: number) {
-  if (val <= 10) {
-    return {
-      label: "Découverte",
-      pillBg: "color-mix(in srgb, var(--ink) 12%, transparent)",
-      pillColor: "var(--ink)",
-      time: "~2 min / jour",
-    };
-  }
-  if (val <= 20) {
-    return {
-      label: "Régulier",
-      pillBg: "var(--mark)",
-      pillColor: "var(--ink)",
-      time: "~4 min / jour",
-    };
-  }
-  if (val <= 35) {
-    return {
-      label: "Soutenu",
-      pillBg: "var(--surface)",
-      pillColor: "var(--ink)",
-      pillBorder: "1.5px solid var(--line)",
-      time: "~7 min / jour",
-    };
-  }
-  return {
-    label: "Intensif",
-    pillBg: "color-mix(in srgb, var(--ink) 12%, transparent)",
-    pillColor: "var(--ink)",
-    time: "~12 min / jour",
-  };
-}
-
-const SLIDER_MARKERS = [
-  { v: 10, sub: "Découverte" },
-  { v: 20, sub: "Régulier" },
-  { v: 35, sub: "Soutenu" },
-  { v: 50, sub: "Intensif" },
+const GOAL_PRESETS = [
+  { value: 10, label: "Découverte" },
+  { value: 20, label: "Régulier" },
+  { value: 35, label: "Soutenu" },
+  { value: 50, label: "Intensif" },
 ] as const;
 
 const WEEK_PREVIEW = [
@@ -113,21 +65,22 @@ const WEEK_PREVIEW = [
   { label: "Dim", pct: 10, dow: 0 },
 ] as const;
 
-const BORDER_TERTIARY = "color-mix(in srgb, var(--ink) 14%, transparent)";
+const TOC = [
+  { id: "avatar", label: "Avatar" },
+  { id: "objectif", label: "Objectif hebdomadaire" },
+  { id: "rappels", label: "Rappels" },
+  { id: "son", label: "Son" },
+  { id: "ma-classe", label: "Ma classe" },
+] as const;
 
-const PANEL_SHADOW =
-  "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)";
+function snapWeeklyGoal(n: number): number {
+  const s = Math.round(n / WEEKLY_GOAL_STEP) * WEEKLY_GOAL_STEP;
+  return Math.min(WEEKLY_GOAL_MAX, Math.max(WEEKLY_GOAL_MIN, s));
+}
 
-const SECTION_CARD_STYLE: CSSProperties = {
-  background: "var(--surface)",
-  border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
-  borderRadius: 16,
-  padding: 16,
-  boxShadow: PANEL_SHADOW,
-};
+const cardClass = "scroll-mt-24 rounded-[20px] border-[1.5px] border-line bg-surface p-5";
 
 export function ParametresClient() {
-  const router = useRouter();
   const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -143,37 +96,7 @@ export function ParametresClient() {
   const [reducedMotion, setReducedMotion] = useState(false);
   const remindersPersistReady = useRef(false);
   const soundPersistReady = useRef(false);
-
-  const [mesClasses, setMesClasses] = useState<MaClasseRow[]>([]);
-  const [classesLoading, setClassesLoading] = useState(true);
-  const [joinCode, setJoinCode] = useState("");
-  const [joinInputFocused, setJoinInputFocused] = useState(false);
-  const [joinLoading, setJoinLoading] = useState(false);
-  const [joinSuccess, setJoinSuccess] = useState<string | null>(null);
-  const [joinError, setJoinError] = useState<string | null>(null);
-
-  const loadMesClasses = useCallback(() => {
-    setClassesLoading(true);
-    fetch("/api/eleve/classes-avec-listes", { cache: "no-store" })
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data.classes)) {
-          setMesClasses(
-            data.classes.map((c: MaClasseRow & { status?: string }) => ({
-              id: c.id,
-              title: c.title,
-              language: c.language ?? null,
-              schoolLevel: c.schoolLevel ?? null,
-              status: c.status === "pending" ? "pending" : "accepted",
-            }))
-          );
-        } else {
-          setMesClasses([]);
-        }
-      })
-      .catch(() => setMesClasses([]))
-      .finally(() => setClassesLoading(false));
-  }, []);
+  const [activeId, setActiveId] = useState<(typeof TOC)[number]["id"]>("avatar");
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -184,8 +107,25 @@ export function ParametresClient() {
   }, []);
 
   useEffect(() => {
-    loadMesClasses();
-  }, [loadMesClasses]);
+    const nodes = TOC.map((item) => document.getElementById(item.id)).filter(
+      (node): node is HTMLElement => node instanceof HTMLElement
+    );
+    if (nodes.length === 0) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+        const id = visible[0]?.target.id;
+        if (id && TOC.some((item) => item.id === id)) {
+          setActiveId(id as (typeof TOC)[number]["id"]);
+        }
+      },
+      { rootMargin: "-96px 0px -50% 0px", threshold: [0.1, 0.25, 0.5] }
+    );
+    nodes.forEach((node) => observer.observe(node));
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     fetch("/api/user/preferences")
@@ -226,8 +166,7 @@ export function ParametresClient() {
     fetch("/api/weekly-progress")
       .then((r) => r.json())
       .then((d) => {
-        const g =
-          typeof d.weeklyGoal === "number" ? d.weeklyGoal : 20;
+        const g = typeof d.weeklyGoal === "number" ? d.weeklyGoal : 20;
         const snapped = snapWeeklyGoal(g);
         setWeeklyGoal(snapped);
         setSavedWeeklyGoal(snapped);
@@ -279,934 +218,516 @@ export function ParametresClient() {
     setWeeklyGoal(savedWeeklyGoal);
   };
 
-  async function handleJoinClass(e: React.FormEvent) {
-    e.preventDefault();
-    const identifier = joinCode.trim();
-    if (!identifier || joinLoading) return;
-    setJoinLoading(true);
-    setJoinError(null);
-    setJoinSuccess(null);
-    try {
-      const res = await fetch("/api/classes/join", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ identifier }),
-      });
-      const data = (await res.json().catch(() => ({}))) as {
-        error?: string;
-        status?: string;
-        message?: string;
-      };
-      if (!res.ok) {
-        setJoinError(
-          typeof data.error === "string"
-            ? data.error
-            : "Impossible de rejoindre la classe."
-        );
-        return;
-      }
-      const st = data.status;
-      if (st === "pending") {
-        setJoinSuccess(
-          "Demande envoyée ! En attente de validation par ton professeur."
-        );
-      } else if (st === "accepted") {
-        setJoinSuccess("Tu as rejoint la classe !");
-      } else if (typeof data.message === "string") {
-        setJoinSuccess(data.message);
-      }
-      setJoinCode("");
-      loadMesClasses();
-    } finally {
-      setJoinLoading(false);
-    }
-  }
-
-  const levelInfo = getLevelInfo(weeklyGoal);
   const sliderFillPct =
     ((weeklyGoal - WEEKLY_GOAL_MIN) / (WEEKLY_GOAL_MAX - WEEKLY_GOAL_MIN)) * 100;
   const todayDow = new Date().getDay();
-
-  const joinCodeReady = joinCode.trim().length > 0;
+  const wordsPerDay = Math.ceil(weeklyGoal / 7);
+  const minutesPerDay = Math.ceil((weeklyGoal / 7) * 1.5);
+  const wordsPerYear = (weeklyGoal * 52).toLocaleString("fr-FR");
 
   return (
-    <div className="mx-auto max-w-lg" style={{ fontFamily: "var(--font-sans), sans-serif" }}>
-      <button
-        type="button"
-        onClick={() => router.push("/app")}
-        className="mb-5 flex items-center gap-1 transition hover:opacity-70"
-        style={{
-          fontSize: 12,
-          color: "var(--muted)",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          width: "fit-content",
-        }}
-      >
-        <ChevronLeft size={14} stroke="var(--muted)" />
-        Retour
-      </button>
+    <div>
+      <style>{`
+        .lexiva-weekly-range {
+          -webkit-appearance: none;
+          appearance: none;
+          width: 100%;
+          height: 44px;
+          background: transparent;
+          margin: 0;
+          cursor: pointer;
+        }
+        .lexiva-weekly-range:focus {
+          outline: none;
+        }
+        .lexiva-weekly-range:focus-visible {
+          outline: 2px solid var(--ink);
+          outline-offset: 2px;
+          border-radius: 999px;
+        }
+        .lexiva-weekly-range::-webkit-slider-runnable-track {
+          height: 8px;
+          background: transparent;
+        }
+        .lexiva-weekly-range::-webkit-slider-thumb {
+          -webkit-appearance: none;
+          width: 26px;
+          height: 26px;
+          margin-top: -9px;
+          border-radius: 50%;
+          background: var(--surface);
+          border: 2.5px solid var(--ink);
+          box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
+        }
+        .lexiva-weekly-range::-moz-range-track {
+          height: 8px;
+          background: transparent;
+        }
+        .lexiva-weekly-range::-moz-range-thumb {
+          width: 26px;
+          height: 26px;
+          border-radius: 50%;
+          background: var(--surface);
+          border: 2.5px solid var(--ink);
+          box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
+        }
+        .lexiva-goal-input::-webkit-outer-spin-button,
+        .lexiva-goal-input::-webkit-inner-spin-button {
+          -webkit-appearance: none;
+          margin: 0;
+        }
+        .lexiva-goal-input[type="number"] {
+          -moz-appearance: textfield;
+          appearance: textfield;
+        }
+      `}</style>
 
-      {/* En-tête identité */}
-      <div
-        className="relative mb-5 overflow-hidden"
-        style={{
-          borderRadius: 18,
-          padding: "20px 18px",
-          boxShadow: PANEL_SHADOW,
-          background: "var(--ink)",
-        }}
-      >
-        <div className="relative z-[2]">
-          <h1
-            style={{
-              fontSize: 20,
-              fontWeight: 600,
-              color: "var(--surface)",
-              letterSpacing: "-0.01em",
-              marginBottom: 4,
-            }}
-          >
-            Paramètres
-          </h1>
-          <p style={{ fontSize: 13, color: "color-mix(in srgb, var(--surface) 75%, transparent)", margin: 0 }}>
-            Personnalise ton expérience
-          </p>
-        </div>
-      </div>
+      <header className="mb-8">
+        <h1 className="m-0 text-[46px] leading-[1.05] tracking-[-0.02em] text-ink">Paramètres</h1>
+        <p className="mt-2 text-base text-muted">Personnalise ton expérience.</p>
+      </header>
 
-      {/* -------- Section Avatar -------- */}
-      <div className="mb-3" style={SECTION_CARD_STYLE}>
-        <SectionHeader
-          icon={User}
-          title="Avatar"
-          subtitle="Choisis ton avatar — il évolue avec ton niveau d'activité."
-        />
-
-        {loaded && (
-          <div className="grid grid-cols-3 gap-2">
-            {AVATAR_OPTIONS.map(({ value, label, subLabel, icon: Icon, color }) => {
-              const selected = avatarType === value;
+      <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start lg:gap-8">
+        <nav className="top-24 hidden lg:sticky lg:block lg:self-start" aria-label="Sommaire">
+          <ul className="m-0 flex list-none flex-col gap-1 p-0">
+            {TOC.map((item) => {
+              const active = activeId === item.id;
               return (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => saveAvatarType(value)}
-                  disabled={saving}
-                  className="flex flex-col items-center justify-center transition-all disabled:opacity-60"
-                  style={{
-                    borderRadius: 12,
-                    padding: "14px 8px",
-                    minHeight: 108,
-                    textAlign: "center",
-                    border: selected
-                      ? "1.5px solid var(--ink)"
-                      : "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
-                    background: selected ? "color-mix(in srgb, var(--ink) 5%, transparent)" : "white",
-                    cursor: "pointer",
-                    transition: "border-color 120ms, background 120ms",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!selected) {
-                      e.currentTarget.style.borderColor = "color-mix(in srgb, var(--ink) 35%, transparent)";
-                      e.currentTarget.style.background = "color-mix(in srgb, var(--ink) 3%, transparent)";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!selected) {
-                      e.currentTarget.style.borderColor = "color-mix(in srgb, var(--ink) 14%, transparent)";
-                      e.currentTarget.style.background = "white";
-                    }
-                  }}
-                >
-                  <Icon size={26} stroke={color} style={{ marginBottom: 8 }} />
-                  <span
-                    style={{
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: selected ? "var(--ink)" : "var(--ink)",
-                    }}
+                <li key={item.id}>
+                  <a
+                    href={`#${item.id}`}
+                    aria-current={active ? "location" : undefined}
+                    onClick={() => setActiveId(item.id)}
+                    className="flex min-h-11 items-center rounded-lg px-1 text-[15px] font-medium text-ink no-underline outline-none focus-visible:ring-2 focus-visible:ring-ink"
                   >
-                    {label}
-                  </span>
-                  <span style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{subLabel}</span>
-                </button>
+                    <span
+                      className="rounded-lg px-2 py-1"
+                      style={{ background: active ? "var(--mark)" : "transparent" }}
+                    >
+                      {item.label}
+                    </span>
+                  </a>
+                </li>
               );
             })}
-          </div>
-        )}
-      </div>
+          </ul>
+        </nav>
 
-      {/* -------- Section Objectif hebdomadaire -------- */}
-      <div
-        className="mb-3"
-        style={{ ...SECTION_CARD_STYLE, padding: 0, overflow: "hidden" }}
-      >
-        <style>{`
-          .lexiva-weekly-range {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 26px;
-            background: transparent;
-            margin: 0;
-            cursor: pointer;
-          }
-          .lexiva-weekly-range:focus {
-            outline: none;
-          }
-          .lexiva-weekly-range::-webkit-slider-runnable-track {
-            height: 8px;
-            background: transparent;
-          }
-          .lexiva-weekly-range::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 26px;
-            height: 26px;
-            margin-top: -9px;
-            border-radius: 50%;
-            background: white;
-            border: 2.5px solid var(--ink);
-            box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
-          }
-          .lexiva-weekly-range:active::-webkit-slider-thumb {
-            transform: scale(1.15);
-            box-shadow: 0 4px 14px color-mix(in srgb, var(--ink) 35%, transparent);
-          }
-          .lexiva-weekly-range::-moz-range-track {
-            height: 8px;
-            background: transparent;
-          }
-          .lexiva-weekly-range::-moz-range-thumb {
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            background: white;
-            border: 2.5px solid var(--ink);
-            box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
-          }
-          .lexiva-weekly-range:active::-moz-range-thumb {
-            transform: scale(1.15);
-            box-shadow: 0 4px 14px color-mix(in srgb, var(--ink) 35%, transparent);
-          }
-          .param-weekly-custom:focus-within {
-            border-color: var(--ink) !important;
-            background: color-mix(in srgb, var(--ink) 6%, transparent) !important;
-          }
-        `}</style>
-
-        {!goalLoaded ? (
-          <div
-            style={{
-              padding: 28,
-              textAlign: "center",
-              fontSize: 13,
-              color: "var(--muted)",
-            }}
-          >
-            Chargement…
-          </div>
-        ) : (
-          <>
-            <div style={{ padding: "16px 16px 0" }}>
-              <SectionHeader
-                icon={Clock}
-                title="Objectif hebdomadaire"
-                subtitle="Combien de mots veux-tu maîtriser cette semaine ?"
-                trailing={
-                  <span
-                    className="shrink-0"
-                    style={{
-                      background: "color-mix(in srgb, var(--ink) 9%, transparent)",
-                      borderRadius: 999,
-                      padding: "5px 12px",
-                      fontSize: 12,
-                      fontWeight: 600,
-                      color: "var(--ink)",
-                    }}
-                  >
-                    {weeklyGoal} mots / sem.
-                  </span>
-                }
-              />
-            </div>
-
-            {/* Hero */}
-            <div
-              style={{
-                padding: "8px 16px 0",
-                display: "flex",
-                alignItems: "center",
-                gap: 20,
-              }}
-            >
-              <div className="min-w-0 flex-1">
-                <p
-                  style={{
-                    fontSize: 64,
-                    fontWeight: 600,
-                    color: "var(--ink)",
-                    lineHeight: 1,
-                    letterSpacing: "-2px",
-                  }}
-                >
-                  {weeklyGoal}
-                </p>
-                <p style={{ fontSize: 14, color: "var(--muted)", marginTop: 4 }}>
-                  mots par semaine
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col items-end" style={{ gap: 8 }}>
-                <span
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 600,
-                    padding: "5px 14px",
-                    borderRadius: 999,
-                    background: levelInfo.pillBg,
-                    color: levelInfo.pillColor,
-                    border: "pillBorder" in levelInfo ? levelInfo.pillBorder : "none",
-                  }}
-                >
-                  {levelInfo.label}
-                </span>
-                <div
-                  className="flex items-center gap-1"
-                  style={{ color: "var(--muted)", fontSize: 12 }}
-                >
-                  <Clock size={11} stroke="var(--muted)" strokeWidth={2} />
-                  <span>{levelInfo.time}</span>
-                </div>
-                <div className="flex items-center gap-1" style={{ color: "var(--ink)" }}>
-                  <Activity size={11} stroke="var(--ink)" strokeWidth={2} />
-                  <span style={{ fontSize: 11, fontWeight: 500 }}>
-                    ~{(weeklyGoal * 52).toLocaleString("fr-FR")} mots / an
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Slider */}
-            <div style={{ padding: "24px 16px 8px" }}>
-              <div
-                style={{
-                  position: "relative",
-                  height: 26,
-                  display: "flex",
-                  alignItems: "center",
-                }}
-              >
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    right: 0,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    height: 8,
-                    borderRadius: 4,
-                    background: "var(--background-subtle)",
-                  }}
-                />
-                <div
-                  style={{
-                    position: "absolute",
-                    left: 0,
-                    top: "50%",
-                    transform: "translateY(-50%)",
-                    height: 8,
-                    borderRadius: 4,
-                    width: `${sliderFillPct}%`,
-                    background: "linear-gradient(to right, var(--ink), var(--ink))",
-                    transition: "width 60ms ease",
-                    pointerEvents: "none",
-                  }}
-                />
-                <input
-                  type="range"
-                  className="lexiva-weekly-range"
-                  min={WEEKLY_GOAL_MIN}
-                  max={WEEKLY_GOAL_MAX}
-                  step={WEEKLY_GOAL_STEP}
-                  value={weeklyGoal}
-                  onChange={(e) =>
-                    setWeeklyGoal(snapWeeklyGoal(Number(e.target.value)))
-                  }
-                  aria-label="Objectif hebdomadaire en mots"
-                  style={{ position: "relative", zIndex: 1 }}
-                />
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  marginTop: 12,
-                  marginBottom: 4,
-                }}
-              >
-                {SLIDER_MARKERS.map(({ v, sub }) => {
-                  const active = weeklyGoal >= v;
+        <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-2">
+          <section id="avatar" className={`${cardClass} lg:col-span-2`}>
+            <SectionHeader
+              icon={User}
+              title="Avatar"
+              subtitle="Choisis ton avatar — il évolue avec ton niveau d'activité."
+            />
+            {!loaded ? (
+              <p className="m-0 text-sm text-muted">Chargement…</p>
+            ) : (
+              <div className="grid grid-cols-3 gap-3">
+                {AVATAR_OPTIONS.map(({ value, label, subLabel, icon: Icon, color }) => {
+                  const selected = avatarType === value;
                   return (
                     <button
-                      key={v}
+                      key={value}
                       type="button"
-                      onClick={() => setWeeklyGoal(v)}
-                      style={{
-                        background: "none",
-                        border: "none",
-                        cursor: "pointer",
-                        padding: 0,
-                        display: "flex",
-                        flexDirection: "column",
-                        alignItems: "center",
-                        gap: 4,
-                        flex: 1,
-                      }}
+                      onClick={() => saveAvatarType(value)}
+                      disabled={saving}
+                      aria-pressed={selected}
+                      className={`relative flex min-h-[120px] flex-col items-center justify-center rounded-2xl bg-surface px-2 py-4 text-center outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ink disabled:opacity-60 ${
+                        selected ? "border-2 border-ink" : "border-[1.5px] border-line hover:border-ink"
+                      }`}
                     >
-                      <div
-                        style={{
-                          width: 1,
-                          height: active ? 10 : 8,
-                          background: active ? "var(--ink)" : "color-mix(in srgb, var(--ink) 20%, transparent)",
-                          borderRadius: 1,
-                        }}
-                      />
-                      <span
-                        style={{
-                          fontSize: active ? 13 : 12,
-                          fontWeight: active ? 600 : 500,
-                          color: active ? "var(--ink)" : "var(--muted)",
-                        }}
-                      >
-                        {v}
-                      </span>
-                      <span style={{ fontSize: 10, color: "var(--muted)" }}>{sub}</span>
+                      {selected ? (
+                        <span
+                          aria-hidden
+                          className="absolute right-2 top-2 flex h-[22px] w-[22px] items-center justify-center rounded-full"
+                          style={{ background: "var(--just-sign)" }}
+                        >
+                          <Check size={14} strokeWidth={3} color="var(--surface)" />
+                        </span>
+                      ) : null}
+                      <Icon size={28} stroke={color} aria-hidden />
+                      <span className="mt-2 text-[13px] font-medium text-ink">{label}</span>
+                      <span className="mt-0.5 text-[11px] leading-tight text-muted">{subLabel}</span>
                     </button>
                   );
                 })}
               </div>
-            </div>
+            )}
+          </section>
 
-            {/* Stats */}
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, 1fr)",
-                gap: 10,
-                padding: "16px 16px 0",
-              }}
-            >
-              {[
-                { icon: Calendar, value: Math.ceil(weeklyGoal / 7), unit: "mots par jour" },
-                {
-                  icon: Zap,
-                  value: `${Math.ceil((weeklyGoal / 7) * 1.5)} min`,
-                  unit: "min estimées / jour",
-                },
-                {
-                  icon: Activity,
-                  value: (weeklyGoal * 52).toLocaleString("fr-FR"),
-                  unit: "mots maîtrisés / an",
-                },
-              ].map(({ icon: StatIcon, value, unit }) => (
-                <div
-                  key={unit}
-                  style={{
-                    background: "color-mix(in srgb, var(--ink) 6%, transparent)",
-                    borderRadius: 12,
-                    padding: 12,
-                    textAlign: "center",
-                  }}
-                >
-                  <div
-                    className="mx-auto mb-2 flex items-center justify-center"
-                    style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: 8,
-                      background: "color-mix(in srgb, var(--ink) 9%, transparent)",
-                    }}
-                  >
-                    <StatIcon size={14} stroke="var(--ink)" strokeWidth={2} />
-                  </div>
-                  <p style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>{value}</p>
-                  <p style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{unit}</p>
+          <section id="objectif" className={`${cardClass} lg:col-span-2`}>
+            {!goalLoaded ? (
+              <p className="m-0 text-sm text-muted">Chargement…</p>
+            ) : (
+              <>
+                <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
+                  <SectionHeader
+                    icon={Clock}
+                    title="Objectif hebdomadaire"
+                    subtitle="Combien de mots veux-tu maîtriser cette semaine ?"
+                    className="mb-0 min-w-0 flex-1"
+                  />
+                  <span className="inline-flex items-center whitespace-nowrap rounded-full border-[1.5px] border-line px-3 py-1.5 text-[13px] font-medium text-ink">
+                    Actuel : {weeklyGoal} mots / sem.
+                  </span>
                 </div>
-              ))}
-            </div>
 
-            {/* Aperçu semaine */}
-            <div style={{ padding: "16px 16px 0" }}>
-              <p
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "var(--ink)",
-                  marginBottom: 10,
-                }}
-              >
-                Répartition suggérée
-              </p>
-              <div
-                style={{
-                  height: 52,
-                  display: "flex",
-                  alignItems: "flex-end",
-                  gap: 8,
-                }}
-              >
-                {WEEK_PREVIEW.map(({ label, pct, dow }) => {
-                  const isToday = todayDow === dow;
-                  const h = Math.max(
-                    3,
-                    (weeklyGoal / WEEKLY_GOAL_MAX) * 52 * (pct / 20)
-                  );
-                  return (
-                    <div
-                      key={label}
-                      className="flex min-w-0 flex-1 flex-col items-center justify-end"
-                      style={{ height: 52 }}
-                    >
-                      <div
+                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
+                  <div className="min-w-0">
+                    <p className="m-0 text-sm font-medium text-ink">
+                      Ton objectif : saisis le nombre de ton choix
+                    </p>
+                    <div className="mt-3 flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        aria-label="Diminuer l'objectif"
+                        disabled={weeklyGoal <= WEEKLY_GOAL_MIN}
+                        onClick={() =>
+                          setWeeklyGoal((current) => snapWeeklyGoal(current - WEEKLY_GOAL_STEP))
+                        }
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-surface text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Minus size={18} aria-hidden />
+                      </button>
+                      <input
+                        type="number"
+                        className="lexiva-goal-input w-[112px] shrink-0 rounded-2xl border-[1.5px] border-line bg-surface text-center text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
                         style={{
-                          width: "100%",
-                          maxWidth: 40,
-                          height: h,
-                          borderRadius: "5px 5px 0 0",
-                          background: isToday ? "var(--ink)" : "var(--background-subtle)",
-                          transition:
-                            "height 350ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                          height: 76,
+                          fontFamily: "var(--font-heading)",
+                          fontWeight: 700,
+                          fontSize: 40,
+                          letterSpacing: "-0.03em",
+                        }}
+                        min={WEEKLY_GOAL_MIN}
+                        max={WEEKLY_GOAL_MAX}
+                        step={WEEKLY_GOAL_STEP}
+                        value={weeklyGoal}
+                        aria-label="Nombre de mots par semaine"
+                        onWheel={(e) => e.currentTarget.blur()}
+                        onChange={(e) => {
+                          const n = Number(e.target.value);
+                          if (Number.isNaN(n)) return;
+                          setWeeklyGoal(snapWeeklyGoal(n));
                         }}
                       />
-                      <span style={{ fontSize: 9, color: "var(--muted)", marginTop: 4 }}>
-                        {label}
-                      </span>
+                      <button
+                        type="button"
+                        aria-label="Augmenter l'objectif"
+                        disabled={weeklyGoal >= WEEKLY_GOAL_MAX}
+                        onClick={() =>
+                          setWeeklyGoal((current) => snapWeeklyGoal(current + WEEKLY_GOAL_STEP))
+                        }
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-surface text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-40"
+                      >
+                        <Plus size={18} aria-hidden />
+                      </button>
+                      <span className="text-sm text-muted">mots par semaine</span>
                     </div>
-                  );
-                })}
-              </div>
-            </div>
 
-            {/* Personnalisé */}
-            <div style={{ padding: "16px 16px 0" }}>
-              <div
-                className="param-weekly-custom flex items-center gap-3"
-                style={{
-                  border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
-                  borderRadius: 12,
-                  padding: "11px 14px",
-                  background: "color-mix(in srgb, var(--ink) 4%, transparent)",
-                }}
-              >
-                <div
-                  className="flex shrink-0 items-center justify-center"
-                  style={{
-                    width: 30,
-                    height: 30,
-                    background: "color-mix(in srgb, var(--ink) 9%, transparent)",
-                    borderRadius: 8,
-                  }}
-                >
-                  <Pencil size={14} stroke="var(--ink)" strokeWidth={2} />
+                    <p className="mb-2 mt-5 text-[13px] text-muted">Ou choisis un préréglage</p>
+                    <div className="grid w-max max-w-full grid-cols-2 gap-2">
+                      {GOAL_PRESETS.map((preset) => {
+                        const active = weeklyGoal === preset.value;
+                        return (
+                          <button
+                            key={preset.value}
+                            type="button"
+                            aria-pressed={active}
+                            onClick={() => setWeeklyGoal(preset.value)}
+                            className="inline-flex min-h-11 items-center rounded-full px-3.5 text-sm font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                            style={{
+                              background: active ? "var(--mark)" : "var(--surface)",
+                              border: active ? "1.5px solid var(--mark)" : "1.5px solid var(--line)",
+                            }}
+                          >
+                            {preset.value} · {preset.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    <div className="relative mt-5 flex h-11 items-center">
+                      <div
+                        className="pointer-events-none absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full"
+                        style={{ background: "var(--background-subtle)" }}
+                      />
+                      <div
+                        className="pointer-events-none absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full"
+                        style={{
+                          width: `${sliderFillPct}%`,
+                          background: "var(--ink)",
+                          transition: reducedMotion ? "none" : "width 60ms ease",
+                        }}
+                      />
+                      <input
+                        type="range"
+                        className="lexiva-weekly-range relative z-[1]"
+                        min={WEEKLY_GOAL_MIN}
+                        max={WEEKLY_GOAL_MAX}
+                        step={WEEKLY_GOAL_STEP}
+                        value={weeklyGoal}
+                        onChange={(e) => setWeeklyGoal(snapWeeklyGoal(Number(e.target.value)))}
+                        aria-label="Objectif hebdomadaire en mots"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="min-w-0">
+                    <p className="m-0 text-sm font-medium text-ink">Avec cet objectif</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      {[
+                        { icon: Calendar, value: String(wordsPerDay), unit: "mots par jour" },
+                        { icon: Zap, value: `${minutesPerDay} min`, unit: "estimées par jour" },
+                        { icon: Activity, value: wordsPerYear, unit: "mots maîtrisés par an" },
+                      ].map(({ icon: StatIcon, value, unit }) => (
+                        <div
+                          key={unit}
+                          className="flex flex-col items-center rounded-2xl border-[1.5px] border-line bg-surface px-2 py-3 text-center"
+                        >
+                          <StatIcon size={18} strokeWidth={1.75} color="var(--ink)" aria-hidden />
+                          <p
+                            className="m-0 mt-2 text-ink"
+                            style={{
+                              fontFamily: "var(--font-heading)",
+                              fontWeight: 700,
+                              fontSize: 22,
+                              lineHeight: 1.1,
+                            }}
+                          >
+                            {value}
+                          </p>
+                          <p className="m-0 mt-1 text-[11px] leading-snug text-muted">{unit}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <p className="mb-3 mt-5 text-sm font-medium text-ink">Répartition suggérée</p>
+                    <div className="flex h-14 items-end gap-2" aria-hidden>
+                      {WEEK_PREVIEW.map(({ label, pct, dow }) => {
+                        const isToday = todayDow === dow;
+                        const h = Math.max(3, (weeklyGoal / WEEKLY_GOAL_MAX) * 52 * (pct / 20));
+                        return (
+                          <div key={label} className="flex h-14 min-w-0 flex-1 items-end justify-center">
+                            <div
+                              className="w-full max-w-10 rounded-t-[5px]"
+                              style={{
+                                height: h,
+                                background: isToday ? "var(--ink)" : "var(--background-subtle)",
+                                transition: reducedMotion
+                                  ? "none"
+                                  : "height 350ms cubic-bezier(0.34, 1.56, 0.64, 1)",
+                              }}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div className="mt-1.5 flex gap-2">
+                      {WEEK_PREVIEW.map(({ label }) => (
+                        <span key={label} className="min-w-0 flex-1 text-center text-[11px] text-muted">
+                          {label}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-                <span className="min-w-0 flex-1" style={{ fontSize: 12, color: "var(--muted)" }}>
-                  Valeur personnalisée
-                </span>
-                <input
-                  type="number"
-                  min={WEEKLY_GOAL_MIN}
-                  max={WEEKLY_GOAL_MAX}
-                  step={WEEKLY_GOAL_STEP}
-                  value={weeklyGoal}
-                  onChange={(e) => {
-                    const n = Number(e.target.value);
-                    if (Number.isNaN(n)) return;
-                    setWeeklyGoal(snapWeeklyGoal(n));
-                  }}
+
+                <div className="mt-6 flex flex-wrap items-center justify-end gap-3 border-t border-line pt-5">
+                  <button
+                    type="button"
+                    onClick={cancelWeeklyGoalDraft}
+                    disabled={goalSaving}
+                    className="inline-flex min-h-11 items-center justify-center rounded-full border-[1.5px] border-line bg-surface px-5 text-sm font-medium text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Annuler
+                  </button>
+                  <button
+                    type="button"
+                    onClick={persistWeeklyGoal}
+                    disabled={goalSaving}
+                    className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-medium text-surface outline-none hover:bg-ink-hover focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Check size={16} strokeWidth={2.5} color="var(--surface)" aria-hidden />
+                    Enregistrer l&apos;objectif
+                  </button>
+                </div>
+              </>
+            )}
+          </section>
+
+          <section id="rappels" className={cardClass}>
+            <SectionHeader
+              icon={Bell}
+              title="Rappels"
+              subtitle="Choisis quand et comment on te rappelle de réviser."
+            />
+            {!remindersLoaded ? (
+              <p className="m-0 text-sm text-muted">Chargement…</p>
+            ) : (
+              <>
+                <div className="flex min-h-11 items-center justify-between gap-3">
+                  <p className="m-0 text-[15px] font-medium text-ink">Recevoir des rappels</p>
+                  <ToggleSwitch
+                    checked={reminders.enabled}
+                    onChange={(v) => updateReminders({ enabled: v })}
+                    reducedMotion={reducedMotion}
+                    ariaLabel="Recevoir des rappels"
+                  />
+                </div>
+
+                <div
                   style={{
-                    width: 52,
-                    fontSize: 16,
-                    fontWeight: 500,
-                    color: "var(--ink)",
-                    textAlign: "center",
-                    border: "none",
-                    background: "transparent",
-                    padding: 0,
-                  }}
-                  aria-label="Valeur personnalisée mots par semaine"
-                />
-                <span className="shrink-0" style={{ fontSize: 11, color: "var(--muted)" }}>
-                  mots / sem.
-                </span>
-              </div>
-            </div>
-
-            <div style={{ padding: "16px", display: "flex", gap: 10 }}>
-              <button
-                type="button"
-                onClick={cancelWeeklyGoalDraft}
-                disabled={goalSaving}
-                className="flex-1 transition hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)]"
-                style={{
-                  border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
-                  background: "transparent",
-                  color: "var(--muted)",
-                  borderRadius: 12,
-                  padding: 12,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: "pointer",
-                }}
-              >
-                Annuler
-              </button>
-              <button
-                type="button"
-                onClick={persistWeeklyGoal}
-                disabled={goalSaving}
-                className="flex flex-[2] items-center justify-center gap-2 border-0 text-surface transition hover:brightness-95 disabled:opacity-50"
-                style={{
-                  background: "var(--ink)",
-                  borderRadius: 12,
-                  padding: 12,
-                  fontSize: 13,
-                  fontWeight: 600,
-                  cursor: "pointer",
-                }}
-              >
-                <Check size={13} stroke="white" strokeWidth={2.5} />
-                Enregistrer l&apos;objectif
-              </button>
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* -------- Section Rappels -------- */}
-      <div className="mb-3" style={SECTION_CARD_STYLE}>
-        <SectionHeader
-          icon={Bell}
-          title="Rappels"
-          subtitle="Choisis quand et comment on te rappelle de réviser."
-        />
-
-        {!remindersLoaded ? (
-          <p style={{ fontSize: 13, color: "var(--muted)" }}>Chargement…</p>
-        ) : (
-          <>
-            <div
-              className="mb-3 flex items-center justify-between gap-3"
-              style={{
-                padding: "10px 12px",
-                borderRadius: 12,
-                background: "color-mix(in srgb, var(--ink) 4%, transparent)",
-              }}
-            >
-              <div>
-                <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", margin: 0 }}>
-                  Recevoir des rappels
-                </p>
-              </div>
-              <ToggleSwitch
-                checked={reminders.enabled}
-                onChange={(v) => updateReminders({ enabled: v })}
-                reducedMotion={reducedMotion}
-                ariaLabel="Recevoir des rappels"
-              />
-            </div>
-
-            <div
-              style={{
-                opacity: reminders.enabled ? 1 : 0.45,
-                pointerEvents: reminders.enabled ? "auto" : "none",
-                transition: reducedMotion ? "none" : "opacity 150ms ease",
-              }}
-            >
-              <ReminderTypeRow
-                icon={AlarmClock}
-                label="Rappel de révision"
-                description="Chaque jour, si tu as des mots à revoir."
-                checked={reminders.revisionEnabled}
-                onChange={(v) => updateReminders({ revisionEnabled: v })}
-                reducedMotion={reducedMotion}
-                disabled={!reminders.enabled}
-                trailing={
-                  reminders.revisionEnabled ? (
-                    <input
-                      type="time"
-                      value={reminders.revisionTime}
-                      onChange={(e) => updateReminders({ revisionTime: e.target.value })}
-                      disabled={!reminders.enabled}
-                      aria-label="Heure du rappel de révision"
-                      style={{
-                        border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
-                        borderRadius: 8,
-                        padding: "4px 8px",
-                        fontSize: 12,
-                        color: "var(--ink)",
-                        background: "var(--surface)",
-                        outline: "none",
-                      }}
-                    />
-                  ) : null
-                }
-              />
-
-              <ReminderTypeRow
-                icon={Flame}
-                label="Alerte de série"
-                description="Quand ta série est sur le point de sauter."
-                checked={reminders.streakEnabled}
-                onChange={(v) => updateReminders({ streakEnabled: v })}
-                reducedMotion={reducedMotion}
-                disabled={!reminders.enabled}
-              />
-
-              <ReminderTypeRow
-                icon={TrendingUp}
-                label="Bilan hebdomadaire"
-                description="Un récap de tes progrès chaque semaine."
-                checked={reminders.weeklyRecapEnabled}
-                onChange={(v) => updateReminders({ weeklyRecapEnabled: v })}
-                reducedMotion={reducedMotion}
-                disabled={!reminders.enabled}
-                className="mb-4"
-              />
-
-              <p
-                style={{
-                  fontSize: 12,
-                  fontWeight: 600,
-                  color: "var(--ink)",
-                  marginBottom: 8,
-                }}
-              >
-                Canaux
-              </p>
-
-              <ReminderChannelRow
-                icon={Mail}
-                label="E-mail"
-                checked={reminders.emailChannel}
-                onChange={(v) => updateReminders({ emailChannel: v })}
-                reducedMotion={reducedMotion}
-                disabled={!reminders.enabled}
-              />
-
-              <ReminderChannelRow
-                icon={Smartphone}
-                label="Notifications push"
-                checked={reminders.pushChannel}
-                onChange={(v) => updateReminders({ pushChannel: v })}
-                reducedMotion={reducedMotion}
-                disabled={!reminders.enabled}
-              />
-            </div>
-          </>
-        )}
-      </div>
-
-      {/* -------- Section Son -------- */}
-      <div className="mb-3" style={SECTION_CARD_STYLE}>
-        <SectionHeader
-          icon={Volume2}
-          title="Son"
-          subtitle="Gère les sons de l'application."
-        />
-
-        {!soundPrefsLoaded ? (
-          <p style={{ fontSize: 13, color: "var(--muted)" }}>Chargement…</p>
-        ) : (
-          <ReminderTypeRow
-            icon={Music}
-            label="Sons de feedback"
-            description="Un son quand ta réponse est juste ou fausse, pendant la révision."
-            checked={feedbackSoundsEnabled}
-            onChange={updateFeedbackSounds}
-            reducedMotion={reducedMotion}
-            className="mb-0"
-          />
-        )}
-      </div>
-
-      <SubscriptionSettingsCard />
-
-      {/* -------- Section Ma classe -------- */}
-      <div className="mb-3" style={SECTION_CARD_STYLE}>
-        <SectionHeader
-          icon={GraduationCap}
-          title="Ma classe"
-          subtitle="Rejoins une classe avec le code fourni par ton professeur."
-        />
-
-        {classesLoading ? (
-          <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px" }}>Chargement…</p>
-        ) : mesClasses.length === 0 ? (
-          <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px" }}>
-            Tu n&apos;as pas encore rejoint de classe.
-          </p>
-        ) : (
-          <ul className="m-0 mb-3 list-none space-y-2 p-0">
-            {mesClasses.map((c, idx) => (
-              <li
-                key={c.id}
-                style={{
-                  borderBottom:
-                    idx === mesClasses.length - 1
-                      ? "none"
-                      : "0.5px solid color-mix(in srgb, var(--ink) 10%, transparent)",
-                  paddingBottom: idx === mesClasses.length - 1 ? 0 : 8,
-                }}
-              >
-                <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: 0 }}>
-                  {c.title}
-                </p>
-                <p
-                  style={{
-                    fontSize: 11,
-                    color: "var(--muted)",
-                    margin: "4px 0 0",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    alignItems: "center",
-                    gap: 6,
+                    opacity: reminders.enabled ? 1 : 0.45,
+                    pointerEvents: reminders.enabled ? "auto" : "none",
+                    transition: reducedMotion ? "none" : "opacity 150ms ease",
                   }}
                 >
-                  {c.schoolLevel ? <span>{c.schoolLevel}</span> : null}
-                  {c.schoolLevel ? (
-                    <span style={{ color: "color-mix(in srgb, var(--ink) 20%, transparent)" }} aria-hidden>
-                      ·
-                    </span>
-                  ) : null}
-                  {c.status === "accepted" ? (
-                    <span
-                      style={{
-                        background: "var(--surface)",
-                        color: "var(--ink)",
-                        border: "1px solid var(--line)",
-                        borderRadius: 999,
-                        padding: "2px 8px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      Membre
-                    </span>
-                  ) : (
-                    <span
-                      style={{
-                        background: "var(--mark)",
-                        color: "var(--ink)",
-                        borderRadius: 999,
-                        padding: "2px 8px",
-                        fontSize: 11,
-                        fontWeight: 600,
-                      }}
-                    >
-                      En attente
-                    </span>
-                  )}
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
+                  <ReminderTypeRow
+                    icon={AlarmClock}
+                    label="Rappel de révision"
+                    description="Chaque jour, si tu as des mots à revoir."
+                    checked={reminders.revisionEnabled}
+                    onChange={(v) => updateReminders({ revisionEnabled: v })}
+                    reducedMotion={reducedMotion}
+                    disabled={!reminders.enabled}
+                    trailing={
+                      reminders.revisionEnabled ? (
+                        <input
+                          type="time"
+                          value={reminders.revisionTime}
+                          onChange={(e) => updateReminders({ revisionTime: e.target.value })}
+                          disabled={!reminders.enabled}
+                          aria-label="Heure du rappel de révision"
+                          lang="fr-FR"
+                          className="min-h-11 rounded-xl border-[1.5px] border-line bg-surface px-2 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                        />
+                      ) : null
+                    }
+                  />
+                  <ReminderTypeRow
+                    icon={Flame}
+                    label="Alerte de série"
+                    description="Quand ta série est sur le point de sauter."
+                    checked={reminders.streakEnabled}
+                    onChange={(v) => updateReminders({ streakEnabled: v })}
+                    reducedMotion={reducedMotion}
+                    disabled={!reminders.enabled}
+                  />
+                  <ReminderTypeRow
+                    icon={TrendingUp}
+                    label="Bilan hebdomadaire"
+                    description="Un récap de tes progrès chaque semaine."
+                    checked={reminders.weeklyRecapEnabled}
+                    onChange={(v) => updateReminders({ weeklyRecapEnabled: v })}
+                    reducedMotion={reducedMotion}
+                    disabled={!reminders.enabled}
+                  />
 
-        <form onSubmit={handleJoinClass} className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-          <input
-            type="text"
-            value={joinCode}
-            onChange={(e) => {
-              setJoinCode(e.target.value);
-              setJoinError(null);
-              setJoinSuccess(null);
-            }}
-            onFocus={() => setJoinInputFocused(true)}
-            onBlur={() => setJoinInputFocused(false)}
-            placeholder="Code de la classe (ex. LX-F2H2QU)"
-            disabled={joinLoading}
-            className="min-w-0 flex-1"
-            style={{
-              border: joinInputFocused
-                ? "1px solid var(--ink)"
-                : "1px solid color-mix(in srgb, var(--ink) 20%, transparent)",
-              boxShadow: joinInputFocused ? "0 0 0 2px color-mix(in srgb, var(--ink) 25%, transparent)" : "none",
-              outline: "none",
-              borderRadius: 10,
-              padding: "10px 12px",
-              fontSize: 14,
-              color: "var(--ink)",
-              background: "color-mix(in srgb, var(--ink) 4%, transparent)",
-            }}
-            autoComplete="off"
-            aria-label="Code de la classe"
-          />
-          <button
-            type="submit"
-            disabled={joinLoading || !joinCodeReady}
-            className="shrink-0 transition hover:brightness-95 disabled:cursor-not-allowed"
-            style={{
-              background: joinCodeReady ? "var(--ink)" : "color-mix(in srgb, var(--ink) 8%, transparent)",
-              color: joinCodeReady ? "white" : "var(--muted)",
-              borderRadius: 10,
-              padding: "10px 18px",
-              fontSize: 13,
-              fontWeight: 600,
-              border: "none",
-              cursor: joinCodeReady && !joinLoading ? "pointer" : "not-allowed",
-              opacity: joinLoading && joinCodeReady ? 0.7 : 1,
-            }}
-          >
-            {joinLoading ? "Rejoindre…" : "Rejoindre"}
-          </button>
-        </form>
+                  <p className="mb-1 mt-4 text-[13px] font-medium text-ink">Canaux</p>
+                  <ReminderChannelRow
+                    icon={Mail}
+                    label="E-mail"
+                    checked={reminders.emailChannel}
+                    onChange={(v) => updateReminders({ emailChannel: v })}
+                    reducedMotion={reducedMotion}
+                    disabled={!reminders.enabled}
+                  />
+                  <ReminderChannelRow
+                    icon={Smartphone}
+                    label="Notifications push"
+                    checked={reminders.pushChannel}
+                    onChange={(v) => updateReminders({ pushChannel: v })}
+                    reducedMotion={reducedMotion}
+                    disabled={!reminders.enabled}
+                  />
+                </div>
+              </>
+            )}
+          </section>
 
-        {joinSuccess ? (
-          <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink)" }}>{joinSuccess}</p>
-        ) : null}
-        {joinError ? (
-          <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--false-text)" }}>{joinError}</p>
-        ) : null}
+          <div className="flex flex-col gap-5">
+            <section id="son" className={cardClass}>
+              <SectionHeader icon={Volume2} title="Son" subtitle="Gère les sons de l'application." />
+              {!soundPrefsLoaded ? (
+                <p className="m-0 text-sm text-muted">Chargement…</p>
+              ) : (
+                <ReminderTypeRow
+                  icon={Music}
+                  label="Sons de feedback"
+                  description="Un son quand ta réponse est juste ou fausse, pendant la révision."
+                  checked={feedbackSoundsEnabled}
+                  onChange={updateFeedbackSounds}
+                  reducedMotion={reducedMotion}
+                />
+              )}
+            </section>
+
+            <section id="ma-classe" className={cardClass} aria-disabled="true">
+              <div className="mb-4 flex items-start justify-between gap-3">
+                <SectionHeader
+                  icon={GraduationCap}
+                  title="Ma classe"
+                  subtitle="Rejoins une classe avec le code fourni par ton professeur."
+                  className="mb-0 min-w-0 flex-1"
+                />
+                <span className="inline-flex shrink-0 items-center rounded-full bg-mark px-3 py-1 text-[13px] font-medium text-ink">
+                  À venir
+                </span>
+              </div>
+              <p id="ma-classe-bientot" className="m-0 mb-4 text-sm leading-relaxed text-ink">
+                L&apos;espace professeur n&apos;est pas encore ouvert. Tu pourras bientôt rejoindre la
+                classe de ton professeur ici.
+              </p>
+              <fieldset disabled className="m-0 min-w-0 border-0 p-0" style={{ opacity: 0.72 }}>
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <input
+                    type="text"
+                    disabled
+                    readOnly
+                    placeholder="Code de la classe"
+                    aria-label="Code de la classe"
+                    aria-describedby="ma-classe-bientot"
+                    className="min-h-[50px] min-w-0 flex-1 cursor-not-allowed rounded-[14px] border-[1.5px] border-line bg-page px-3.5 text-[15px] text-muted outline-none"
+                  />
+                  <button
+                    type="button"
+                    disabled
+                    className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-full border-[1.5px] border-line bg-page px-5 text-sm font-medium text-muted"
+                  >
+                    Rejoindre
+                  </button>
+                </div>
+              </fieldset>
+            </section>
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-/* ------------------------------------------------------------------ */
-
 function SectionHeader({
   icon: Icon,
   title,
   subtitle,
-  trailing,
+  className,
 }: {
   icon: LucideIcon;
   title: string;
   subtitle?: string;
-  trailing?: ReactNode;
+  className?: string;
 }) {
   return (
-    <div className="mb-4 flex items-start gap-3">
-      <div
-        className="flex shrink-0 items-center justify-center"
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 9,
-          background: "color-mix(in srgb, var(--ink) 9%, transparent)",
-        }}
-      >
-        <Icon size={16} stroke="var(--ink)" />
+    <div className={`flex items-start gap-3 ${className ?? "mb-4"}`}>
+      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-surface">
+        <Icon size={16} strokeWidth={1.75} color="var(--ink)" aria-hidden />
+      </span>
+      <div className="min-w-0">
+        <h2 className="m-0 text-xl leading-tight text-ink">{title}</h2>
+        {subtitle ? <p className="m-0 mt-1 text-sm leading-snug text-muted">{subtitle}</p> : null}
       </div>
-      <div className="min-w-0 flex-1">
-        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</p>
-        {subtitle ? (
-          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
-        ) : null}
-      </div>
-      {trailing}
     </div>
   );
 }
@@ -1231,50 +752,36 @@ function ToggleSwitch({
       aria-checked={checked}
       aria-label={ariaLabel}
       disabled={disabled}
-      onClick={() => !disabled && onChange(!checked)}
-      style={{
-        width: 44,
-        height: 26,
-        borderRadius: 999,
-        border: "none",
-        padding: 2,
-        flexShrink: 0,
-        background: checked ? "var(--ink)" : "color-mix(in srgb, var(--ink) 15%, transparent)",
-        cursor: disabled ? "not-allowed" : "pointer",
-        opacity: disabled ? 0.45 : 1,
-        transition: reducedMotion ? "none" : "background 150ms ease",
+      onClick={() => {
+        if (!disabled) onChange(!checked);
       }}
+      className="inline-flex h-11 w-[52px] shrink-0 items-center justify-center border-0 bg-transparent p-0 outline-none focus-visible:rounded-full focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed"
+      style={{ cursor: disabled ? "not-allowed" : "pointer", opacity: disabled ? 0.45 : 1 }}
     >
       <span
         aria-hidden
+        className="flex h-[26px] w-[46px] items-center rounded-full border-[1.5px] border-ink px-0.5"
         style={{
-          display: "block",
-          width: 22,
-          height: 22,
-          borderRadius: "50%",
-          background: "var(--surface)",
-          transform: checked ? "translateX(18px)" : "translateX(0)",
-          transition: reducedMotion ? "none" : "transform 150ms ease",
-          boxShadow: "0 1px 3px color-mix(in srgb, var(--ink) 15%, transparent)",
+          boxSizing: "border-box",
+          justifyContent: checked ? "flex-end" : "flex-start",
+          background: checked ? "var(--ink)" : "var(--surface)",
+          transition: reducedMotion ? "none" : "background 150ms ease",
         }}
-      />
+      >
+        <span
+          className="block h-[18px] w-[18px] rounded-full"
+          style={{ background: checked ? "var(--surface)" : "var(--ink)" }}
+        />
+      </span>
     </button>
   );
 }
 
-function ReminderIconTile({ icon: Icon }: { icon: LucideIcon }) {
+function RowIcon({ icon: Icon }: { icon: LucideIcon }) {
   return (
-    <div
-      className="flex shrink-0 items-center justify-center"
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: 8,
-        background: "color-mix(in srgb, var(--ink) 8%, transparent)",
-      }}
-    >
-      <Icon size={15} stroke="var(--ink)" aria-hidden />
-    </div>
+    <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] border-[1.5px] border-line bg-surface">
+      <Icon size={16} strokeWidth={1.75} color="var(--ink)" aria-hidden />
+    </span>
   );
 }
 
@@ -1287,7 +794,6 @@ function ReminderTypeRow({
   reducedMotion,
   disabled,
   trailing,
-  className,
 }: {
   icon: LucideIcon;
   label: string;
@@ -1297,23 +803,13 @@ function ReminderTypeRow({
   reducedMotion?: boolean;
   disabled?: boolean;
   trailing?: ReactNode;
-  className?: string;
 }) {
   return (
-    <div
-      className={`mb-2 flex items-center gap-2.5 ${className ?? ""}`}
-      style={{
-        padding: "10px 12px",
-        borderRadius: 12,
-        background: "color-mix(in srgb, var(--ink) 4%, transparent)",
-      }}
-    >
-      <ReminderIconTile icon={icon} />
+    <div className="flex min-h-11 items-center gap-3 py-2">
+      <RowIcon icon={icon} />
       <div className="min-w-0 flex-1">
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{label}</p>
-        <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "2px 0 0", lineHeight: 1.35 }}>
-          {description}
-        </p>
+        <p className="m-0 text-[15px] font-medium leading-snug text-ink">{label}</p>
+        <p className="m-0 mt-0.5 text-[13px] leading-snug text-muted">{description}</p>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         {trailing}
@@ -1345,18 +841,9 @@ function ReminderChannelRow({
   disabled?: boolean;
 }) {
   return (
-    <div
-      className="mb-2 flex items-center gap-2.5"
-      style={{
-        padding: "9px 12px",
-        borderRadius: 12,
-        background: "color-mix(in srgb, var(--ink) 4%, transparent)",
-      }}
-    >
-      <ReminderIconTile icon={icon} />
-      <span className="min-w-0 flex-1" style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink)" }}>
-        {label}
-      </span>
+    <div className="flex min-h-11 items-center gap-3 py-1.5">
+      <RowIcon icon={icon} />
+      <span className="min-w-0 flex-1 text-[15px] font-medium text-ink">{label}</span>
       <ToggleSwitch
         checked={checked}
         onChange={onChange}
