@@ -1,22 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 import { BackLink } from "@/components/back-link";
-import { PawPrint, FileText, X, Plus, ListPlus, Languages, Search, Check } from "lucide-react";
+import { PawPrint, X, Plus, ListPlus } from "lucide-react";
 import { AppModal } from "@/components/app-modal";
 import { ListNameInput } from "@/components/list-name-input";
-import {
-  fetchExistingLists,
-  type VocabListOption,
-} from "@/lib/vocab-list-save";
+import { LanguageOnboardingCard } from "@/components/language-onboarding-card";
+import { nouvelleListePath } from "@/lib/nouvelle-liste-path";
 import { useLeaveForAbonnement } from "@/components/paywall-gate";
-
-type ImportDestMode = "create" | "existing";
 
 type BibliothequeList = {
   id: string;
@@ -74,22 +70,9 @@ export function BibliothequeClient() {
   const [sort, setSort] = useState<"alpha" | "created" | "updated">("alpha");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-  const [addModal, setAddModal] = useState<"list" | "sauvages" | null>(null);
-  const [families, setFamilies] = useState<{ id: string; name: string }[]>([]);
-  /** Langue choisie dans la modale « Liste de mots » pour la liste à créer. */
-  const [newListLanguage, setNewListLanguage] = useState<string>("");
-  /** Nom de la liste saisi dans la modale (prérempli en bas sur « Réviser les mots extraits »). */
-  const [newListName, setNewListName] = useState("");
-  const [creatingFamily, setCreatingFamily] = useState(false);
-  const [importDestMode, setImportDestMode] = useState<ImportDestMode>("create");
-  const [importCatalog, setImportCatalog] = useState<VocabListOption[]>([]);
-  const [importCatalogLoading, setImportCatalogLoading] = useState(false);
-  const [selectedImportListId, setSelectedImportListId] = useState<string | null>(null);
   const [deletingFamilyId, setDeletingFamilyId] = useState<string | null>(null);
   const [preferredLanguages, setPreferredLanguages] = useState<string[]>([]);
   const [prefsLoaded, setPrefsLoaded] = useState(false);
-  const [onboardingLang, setOnboardingLang] = useState("");
-  const [onboardingLangSearch, setOnboardingLangSearch] = useState("");
   const [savingPreferredLang, setSavingPreferredLang] = useState(false);
   const [preferredLangError, setPreferredLangError] = useState<string | null>(null);
   const [flagMenuOpen, setFlagMenuOpen] = useState(false);
@@ -210,47 +193,11 @@ export function BibliothequeClient() {
 
   useEffect(() => {
     if (searchParams.get("ajouter") !== "liste") return;
+    if (!prefsLoaded) return;
     if (leaveForAbonnement()) return;
-    setAddModal("list");
-    router.replace(pathname, { scroll: false });
-  }, [searchParams, pathname, router, leaveForAbonnement]);
-
-  const prevAddModalRef = useRef<typeof addModal>(null);
-
-  useEffect(() => {
-    const justOpened = addModal === "list" && prevAddModalRef.current !== "list";
-    prevAddModalRef.current = addModal;
-    if (!justOpened) return;
-    setImportDestMode("create");
-    setSelectedImportListId(null);
-    setNewListLanguage(activeLanguage || preferredLanguages[0] || "");
-    fetch("/api/familles")
-      .then((r) => r.json())
-      .then((arr) => setFamilies(Array.isArray(arr) ? arr : []))
-      .catch(() => setFamilies([]));
-  }, [addModal, activeLanguage, preferredLanguages]);
-
-  useEffect(() => {
-    if (addModal !== "list") return;
-    setImportCatalogLoading(true);
-    fetchExistingLists()
-      .then((catalog) => {
-        setImportCatalog(catalog);
-        if (catalog.length > 0) {
-          const filtered = activeLanguage
-            ? catalog.filter((l) => l.language === activeLanguage)
-            : catalog;
-          const pool = filtered.length > 0 ? filtered : catalog;
-          setSelectedImportListId((prev) =>
-            prev && pool.some((l) => l.id === prev) ? prev : pool[0]?.id ?? null
-          );
-        } else {
-          setSelectedImportListId(null);
-        }
-      })
-      .catch(() => setImportCatalog([]))
-      .finally(() => setImportCatalogLoading(false));
-  }, [addModal, activeLanguage]);
+    const lang = langToApply || preferredLanguages[0] || null;
+    router.replace(nouvelleListePath(lang));
+  }, [searchParams, prefsLoaded, leaveForAbonnement, langToApply, preferredLanguages, router]);
 
   useEffect(() => {
     const close = () => setMenuOpenId(null);
@@ -331,8 +278,7 @@ export function BibliothequeClient() {
     }
   }
 
-  async function handleSavePreferredLanguage() {
-    const code = (onboardingLang || PREFERRED_LANGUAGE_OPTIONS[0]?.value) ?? "";
+  async function handleSavePreferredLanguage(code: string) {
     if (!code) return;
     setPreferredLangError(null);
     setSavingPreferredLang(true);
@@ -345,6 +291,10 @@ export function BibliothequeClient() {
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setPreferredLanguages(Array.isArray(data.preferredLanguages) ? data.preferredLanguages : [code]);
+        setActiveLanguage(code);
+        if (lists.length === 0) {
+          router.push(nouvelleListePath(code));
+        }
       } else {
         const errMsg = (data.error as string) || "Impossible d'enregistrer la langue.";
         setPreferredLangError(
@@ -354,6 +304,11 @@ export function BibliothequeClient() {
     } finally {
       setSavingPreferredLang(false);
     }
+  }
+
+  function goToNewList() {
+    if (leaveForAbonnement()) return;
+    router.push(nouvelleListePath(activeLanguage || preferredLanguages[0] || null));
   }
 
   async function handleAddSecondLanguage(code: string) {
@@ -399,10 +354,6 @@ export function BibliothequeClient() {
 
   const showOnboardingBubble = prefsLoaded && preferredLanguages.length === 0;
   const showDashboard = (lists.length > 0 || prefsLoaded) && !showOnboardingBubble;
-  const onboardingLangQuery = onboardingLangSearch.trim().toLowerCase();
-  const filteredOnboardingLangs = PREFERRED_LANGUAGE_OPTIONS.filter((opt) =>
-    onboardingLangQuery === "" || opt.label.toLowerCase().includes(onboardingLangQuery)
-  );
 
   const totalLists = lists.length;
   const totalWords = lists.reduce((s, l) => s + l.wordCount, 0);
@@ -437,218 +388,13 @@ export function BibliothequeClient() {
         <p className="text-sm text-[var(--foreground-muted)]">Chargement…</p>
       )}
 
-      {/* Bulle première visite : choix de la langue à enrichir */}
+      {/* Première visite : choix de la langue, puis enchaînement vers la création de liste */}
       {showOnboardingBubble && (
-        <div
-          className="flex items-center justify-center px-4 py-8 sm:py-12"
-          style={{ minHeight: "min(72vh, calc(100dvh - 140px))" }}
-        >
-          <div
-            className="flex w-full flex-col text-center"
-            style={{
-              maxWidth: 440,
-              maxHeight: "min(92dvh, 720px)",
-              background: "#FFFFFF",
-              borderRadius: 16,
-              border: "1px solid rgba(108, 63, 200, 0.14)",
-              boxShadow: "0 8px 40px rgba(108, 63, 200, 0.1)",
-              padding: "36px 28px 28px",
-            }}
-            role="dialog"
-            aria-labelledby="onboarding-lang-title"
-            aria-describedby="onboarding-lang-desc"
-          >
-            <div
-              className="mx-auto mb-5 flex shrink-0 items-center justify-center"
-              style={{
-                width: 52,
-                height: 52,
-                borderRadius: 14,
-                background: "#EEEDFE",
-              }}
-              aria-hidden
-            >
-              <Languages size={26} strokeWidth={2} color="#6C3FC8" />
-            </div>
-
-            <h2
-              id="onboarding-lang-title"
-              className="shrink-0"
-              style={{
-                fontSize: 18,
-                fontWeight: 500,
-                color: "#1F1235",
-                lineHeight: 1.35,
-                marginBottom: 8,
-              }}
-            >
-              Quelle langue veux-tu enrichir en vocabulaire ?
-            </h2>
-            <p
-              id="onboarding-lang-desc"
-              className="shrink-0"
-              style={{
-                fontSize: 14,
-                color: "var(--foreground-muted)",
-                lineHeight: 1.5,
-                marginBottom: 20,
-              }}
-            >
-              Choisis une langue dans la liste ci-dessous.
-            </p>
-
-            {preferredLangError && (
-              <p
-                className="mb-4 shrink-0 text-left text-sm text-red-600"
-                role="alert"
-                style={{ fontSize: 13 }}
-              >
-                {preferredLangError}
-              </p>
-            )}
-
-            <label htmlFor="onboarding-lang-search" className="sr-only">
-              Rechercher une langue
-            </label>
-            <div className="relative mb-4 w-full shrink-0 text-left">
-              <Search
-                className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2"
-                size={16}
-                strokeWidth={2}
-                color="var(--foreground-muted)"
-                aria-hidden
-              />
-              <input
-                id="onboarding-lang-search"
-                type="search"
-                value={onboardingLangSearch}
-                onChange={(e) => setOnboardingLangSearch(e.target.value)}
-                placeholder="Rechercher une langue…"
-                autoComplete="off"
-                className="w-full transition-colors"
-                style={{
-                  fontFamily: "DM Sans, sans-serif",
-                  fontSize: 14,
-                  color: "var(--foreground)",
-                  padding: "11px 14px 11px 40px",
-                  borderRadius: 10,
-                  border: "1.5px solid var(--input-border)",
-                  background: "var(--input-bg)",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.currentTarget.style.borderColor = "#6C3FC8";
-                  e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
-                }}
-                onBlur={(e) => {
-                  e.currentTarget.style.borderColor = "var(--input-border)";
-                  e.currentTarget.style.boxShadow = "none";
-                }}
-              />
-            </div>
-
-            <div
-              className="mb-5 min-h-0 flex-1 overflow-y-auto text-left"
-              style={{ maxHeight: "min(42vh, 320px)" }}
-              role="listbox"
-              aria-label="Langues disponibles"
-            >
-              {filteredOnboardingLangs.length === 0 ? (
-                <p
-                  className="py-6 text-center"
-                  style={{ fontSize: 13, color: "var(--foreground-muted)" }}
-                >
-                  Aucune langue ne correspond à ta recherche.
-                </p>
-              ) : (
-                <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
-                  {filteredOnboardingLangs.map((opt) => {
-                    const selected = onboardingLang === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        role="option"
-                        aria-selected={selected}
-                        onClick={() => setOnboardingLang(opt.value)}
-                        className="relative flex flex-col items-center gap-2 transition-colors"
-                        style={{
-                          padding: "14px 10px",
-                          borderRadius: 10,
-                          border: selected
-                            ? "2px solid #6C3FC8"
-                            : "1.5px solid var(--border)",
-                          background: selected ? "rgba(108, 63, 200, 0.08)" : "#FFFFFF",
-                          cursor: "pointer",
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!selected) {
-                            e.currentTarget.style.background = "rgba(108, 63, 200, 0.05)";
-                            e.currentTarget.style.borderColor = "rgba(108, 63, 200, 0.35)";
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!selected) {
-                            e.currentTarget.style.background = "#FFFFFF";
-                            e.currentTarget.style.borderColor = "var(--border)";
-                          }
-                        }}
-                      >
-                        {selected && (
-                          <span
-                            className="absolute flex items-center justify-center"
-                            style={{
-                              top: 6,
-                              right: 6,
-                              width: 18,
-                              height: 18,
-                              borderRadius: "50%",
-                              background: "#6C3FC8",
-                            }}
-                            aria-hidden
-                          >
-                            <Check size={11} strokeWidth={3} color="#FFFFFF" />
-                          </span>
-                        )}
-                        <FlagDisplay langCode={opt.value} size={28} />
-                        <span
-                          style={{
-                            fontSize: 13,
-                            fontWeight: selected ? 500 : 400,
-                            color: selected ? "#6C3FC8" : "var(--foreground)",
-                            lineHeight: 1.2,
-                            textAlign: "center",
-                          }}
-                        >
-                          {opt.label}
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSavePreferredLanguage}
-              disabled={savingPreferredLang || !onboardingLang}
-              className="w-full shrink-0 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
-              style={{
-                background: "#6C3FC8",
-                color: "#FFFFFF",
-                borderRadius: 10,
-                padding: "13px 16px",
-                fontSize: 14,
-                fontWeight: 500,
-                border: "none",
-                cursor: "pointer",
-              }}
-            >
-              {savingPreferredLang ? "Enregistrement…" : "Valider"}
-            </button>
-          </div>
-        </div>
+        <LanguageOnboardingCard
+          saving={savingPreferredLang}
+          error={preferredLangError}
+          onSubmit={handleSavePreferredLanguage}
+        />
       )}
 
       {/* Tableau de bord : affiché dès que les listes sont chargées (ou préférences prêtes), sauf si onboarding */}
@@ -710,8 +456,7 @@ export function BibliothequeClient() {
           <button
             type="button"
             onClick={() => {
-              if (leaveForAbonnement()) return;
-              setAddModal("list");
+              goToNewList();
             }}
             title="J'ai déjà mes paires mot/traduction."
             aria-label="Liste de vocabulaire — J'ai déjà mes paires mot/traduction."
@@ -829,7 +574,7 @@ export function BibliothequeClient() {
       </div>
 
       {/* Contenu */}
-      {loading ? (
+      {loading && lists.length === 0 ? (
         <p className="text-[var(--foreground-muted)]">Chargement…</p>
       ) : (
         <>
@@ -967,8 +712,7 @@ export function BibliothequeClient() {
               <button
                 type="button"
                 onClick={() => {
-              if (leaveForAbonnement()) return;
-              setAddModal("list");
+              goToNewList();
             }}
                 className="mx-auto mt-5 inline-flex items-center gap-1.5 transition hover:brightness-95"
                 style={{
@@ -1090,8 +834,7 @@ export function BibliothequeClient() {
             <button
               type="button"
               onClick={() => {
-              if (leaveForAbonnement()) return;
-              setAddModal("list");
+              goToNewList();
             }}
               className="flex h-full w-full flex-col items-center justify-center gap-2 transition hover:bg-[var(--hover-bg)]"
               style={{ border: "1.5px dashed var(--border)", borderRadius: 12, background: "transparent", padding: "32px 12px", cursor: "pointer" }}
@@ -1416,279 +1159,6 @@ export function BibliothequeClient() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* Modal Liste de mots : langue + nom, puis Créer ma liste ou Annuler */}
-      {addModal === "list" && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden bg-[rgba(80,60,120,0.32)] p-4 pt-[max(1rem,env(safe-area-inset-top))] pb-[max(1rem,env(safe-area-inset-bottom))] pl-[max(16px,env(safe-area-inset-left))] pr-[max(16px,env(safe-area-inset-right))]"
-          onClick={() => setAddModal(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="bib-new-list-modal-title"
-        >
-            <div
-              className="flex w-full max-w-[420px] max-h-[min(85dvh,calc(100dvh-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px)-2rem))] flex-col overflow-hidden rounded-[20px] shadow-lg"
-              style={{
-                background: "var(--background-card)",
-                border: "0.5px solid rgba(108,63,200,0.15)",
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header violet */}
-              <div
-                className="flex shrink-0 items-center gap-2.5 px-4 py-3.5 sm:gap-3 sm:px-6 sm:py-5"
-                style={{ background: "#6C3FC8" }}
-              >
-                <div
-                  className="flex shrink-0 items-center justify-center sm:h-10 sm:w-10"
-                  style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.15)", border: "1.5px solid rgba(255,255,255,0.2)" }}
-                >
-                  <FileText size={18} stroke="white" className="sm:h-5 sm:w-5" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p id="bib-new-list-modal-title" style={{ color: "white", fontSize: 15, fontWeight: 500, marginBottom: 2 }}>
-                    {importDestMode === "existing" ? "Importer dans une liste" : "Nouvelle liste de mots"}
-                  </p>
-                  <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 11, lineHeight: 1.35 }}>
-                    {importDestMode === "existing"
-                      ? "Ajoute des paires à une liste que tu as déjà"
-                      : "Elle apparaîtra dans ta bibliothèque"}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setAddModal(null)}
-                  className="flex shrink-0 items-center justify-center transition hover:brightness-90"
-                  style={{ width: 28, height: 28, borderRadius: "50%", background: "rgba(255,255,255,0.15)", border: "none", cursor: "pointer" }}
-                  aria-label="Fermer"
-                >
-                  <X size={12} stroke="white" />
-                </button>
-              </div>
-
-              {/* Corps — zone défilable */}
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-3.5 sm:px-6 sm:py-[22px]">
-                <div
-                  className="mb-3 flex gap-1.5 sm:mb-4 sm:gap-2"
-                  role="tablist"
-                  aria-label="Destination de l'import"
-                >
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={importDestMode === "create"}
-                    onClick={() => setImportDestMode("create")}
-                    className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5 sm:text-sm"
-                    style={{
-                      background: importDestMode === "create" ? "#6C3FC8" : "var(--background-subtle)",
-                      color: importDestMode === "create" ? "white" : "var(--foreground-muted)",
-                    }}
-                  >
-                    Nouvelle liste
-                  </button>
-                  <button
-                    type="button"
-                    role="tab"
-                    aria-selected={importDestMode === "existing"}
-                    onClick={() => setImportDestMode("existing")}
-                    className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5 sm:text-sm"
-                    style={{
-                      background: importDestMode === "existing" ? "#6C3FC8" : "var(--background-subtle)",
-                      color: importDestMode === "existing" ? "white" : "var(--foreground-muted)",
-                    }}
-                  >
-                    Liste existante
-                  </button>
-                </div>
-
-                {importDestMode === "create" ? (
-                <>
-                <p style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 6 }}>
-                  Langue
-                </p>
-                <div className="mb-3 grid grid-cols-4 gap-1.5 sm:gap-[7px]">
-                  {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
-                    const sel = newListLanguage === opt.value;
-                    return (
-                      <button
-                        key={opt.value}
-                        type="button"
-                        onClick={() => setNewListLanguage(opt.value)}
-                        className="flex flex-col items-center gap-0.5 transition-all sm:gap-1"
-                        style={{
-                          borderRadius: 10,
-                          padding: "6px 3px",
-                          border: `1.5px solid ${sel ? "#6C3FC8" : "var(--border)"}`,
-                          background: "var(--background-subtle)",
-                          cursor: "pointer",
-                          transition: "border-color 120ms, background 120ms",
-                        }}
-                        onMouseEnter={(e) => { if (!sel) { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
-                        onMouseLeave={(e) => { if (!sel) { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--background-subtle)"; } }}
-                      >
-                        <FlagDisplay langCode={opt.value} size={16} />
-                        <span style={{ fontSize: 9, fontWeight: 500, color: sel ? "#6C3FC8" : "var(--foreground-muted)" }} className="sm:text-[10px]">{opt.label}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <label
-                  htmlFor="bib-new-list-title"
-                  style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 6, display: "block" }}
-                >
-                  Nom de la liste
-                </label>
-                <ListNameInput
-                  id="bib-new-list-title"
-                  value={newListName}
-                  onChange={(e) => setNewListName(e.target.value)}
-                  placeholder="ex. Chapitre 3 — La Révolution"
-                  className="w-full transition-colors"
-                  style={{
-                    fontSize: 13,
-                    padding: "10px 12px",
-                    borderRadius: 10,
-                    border: "1.5px solid var(--input-border)",
-                    background: "var(--input-bg)",
-                    color: "var(--foreground)",
-                    outline: "none",
-                    width: "100%",
-                  }}
-                  onFocus={(e) => { e.currentTarget.style.borderColor = "#6C3FC8"; e.currentTarget.style.background = "var(--input-bg)"; }}
-                  onBlur={(e) => { e.currentTarget.style.borderColor = "var(--input-border)"; e.currentTarget.style.background = "var(--input-bg)"; }}
-                />
-                <p style={{ fontSize: 11, color: "var(--foreground-disabled)", marginTop: 4 }}>Un nom précis t&apos;aidera à retrouver ta liste.</p>
-                </>
-                ) : importCatalogLoading ? (
-                  <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "4px 0 0" }}>
-                    Chargement de tes listes…
-                  </p>
-                ) : (() => {
-                  const filtered = activeLanguage
-                    ? importCatalog.filter((l) => l.language === activeLanguage)
-                    : importCatalog;
-                  const options = filtered.length > 0 ? filtered : importCatalog;
-                  return options.length === 0 ? (
-                    <p style={{ fontSize: 13, color: "var(--foreground-muted)", margin: "4px 0 0" }}>
-                      Tu n&apos;as pas encore de liste. Passe à « Nouvelle liste » pour en créer une.
-                    </p>
-                  ) : (
-                    <>
-                      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)", marginBottom: 6 }}>
-                        Liste de destination
-                      </p>
-                      {activeLanguage && filtered.length > 0 && (
-                        <p style={{ fontSize: 11, color: "var(--foreground-muted)", marginBottom: 6 }}>
-                          Listes en {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === activeLanguage)?.label ?? activeLanguage}
-                        </p>
-                      )}
-                      <ul
-                        className="max-h-[min(28vh,168px)] space-y-1 overflow-y-auto overscroll-contain pr-0.5 sm:max-h-[min(40vh,240px)] sm:space-y-1.5 sm:pr-1"
-                        aria-label="Listes existantes"
-                      >
-                        {options.map((list) => {
-                          const selected = selectedImportListId === list.id;
-                          return (
-                            <li key={list.id}>
-                              <button
-                                type="button"
-                                onClick={() => setSelectedImportListId(list.id)}
-                                className="flex w-full items-center gap-2 rounded-xl border px-2.5 py-2 text-left transition-colors sm:gap-2.5 sm:px-3 sm:py-2.5"
-                                style={{
-                                  borderColor: selected ? "#6C3FC8" : "var(--border)",
-                                  background: selected ? "rgba(108, 63, 200, 0.1)" : "var(--background-card)",
-                                  boxShadow: selected ? "0 0 0 1px rgba(108, 63, 200, 0.25)" : undefined,
-                                  cursor: "pointer",
-                                }}
-                                aria-pressed={selected}
-                              >
-                                {list.language ? (
-                                  <FlagDisplay langCode={list.language} size={16} />
-                                ) : null}
-                                <span
-                                  className="min-w-0 flex-1 text-[13px] font-medium sm:text-sm"
-                                  style={{ color: selected ? "#4B3A9E" : "var(--foreground)" }}
-                                >
-                                  {list.name}
-                                </span>
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </>
-                  );
-                })()}
-              </div>
-
-              {/* Footer — toujours visible, dégagement bulle support sur mobile */}
-              <div
-                className="flex shrink-0 gap-2 px-4 pt-2.5 max-sm:pr-[max(80px,calc(16px+env(safe-area-inset-right,0px)))] pb-[max(14px,calc(12px+env(safe-area-inset-bottom,0px)))] sm:gap-[10px] sm:px-6 sm:pb-[22px] sm:pt-0"
-              >
-                <button
-                  type="button"
-                  onClick={() => setAddModal(null)}
-                  className="flex-1 transition hover:bg-[var(--hover-bg)] sm:py-[11px]"
-                  style={{ fontSize: 13, fontWeight: 500, padding: "10px 12px", borderRadius: 10, border: "1.5px solid var(--border)", background: "transparent", color: "var(--foreground-muted)", cursor: "pointer" }}
-                >
-                  Annuler
-                </button>
-                <button
-                  type="button"
-                  disabled={
-                    importDestMode === "create"
-                      ? creatingFamily || !newListName.trim() || !newListLanguage.trim()
-                      : importCatalogLoading || !selectedImportListId
-                  }
-                  onClick={async () => {
-                    if (leaveForAbonnement()) return;
-                    if (importDestMode === "existing") {
-                      const list = importCatalog.find((l) => l.id === selectedImportListId);
-                      if (!list) return;
-                      const params = new URLSearchParams();
-                      params.set("listId", list.id);
-                      params.set("name", list.name);
-                      if (list.language) params.set("lang", list.language);
-                      router.push(
-                        `/app/familles/${list.familyId}/nouvelle-liste?${params.toString()}`
-                      );
-                      setAddModal(null);
-                      return;
-                    }
-                    if (creatingFamily || !newListName.trim()) return;
-                    setCreatingFamily(true);
-                    const listName = newListName.trim();
-                    const res = await fetch("/api/familles", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ name: listName }),
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    setCreatingFamily(false);
-                    if (res.ok && data.id) {
-                      const params = new URLSearchParams();
-                      if (newListLanguage?.trim()) params.set("lang", newListLanguage.trim());
-                      params.set("name", newListName.trim());
-                      const qs = params.toString() ? `?${params.toString()}` : "";
-                      router.push(`/app/familles/${data.id}/nouvelle-liste${qs}`);
-                      setAddModal(null);
-                    }
-                  }}
-                  className="flex flex-[2] items-center justify-center gap-[6px] transition active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-60 sm:gap-[7px] sm:py-[11px]"
-                  style={{ fontSize: 13, fontWeight: 500, padding: "10px 12px", borderRadius: 10, border: "none", background: "#6C3FC8", color: "white", cursor: "pointer" }}
-                >
-                  <Plus size={14} stroke="white" />
-                  {importDestMode === "existing"
-                    ? "Continuer"
-                    : creatingFamily
-                      ? "Création…"
-                      : "Créer ma liste"}
-                </button>
-              </div>
-            </div>
         </div>
       )}
         </div></section></div>

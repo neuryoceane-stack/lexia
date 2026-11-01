@@ -147,7 +147,7 @@ function buildStudentSteps(
         {
           text: "Importe ta première liste",
           action: () => {
-            void finishTourAndGo(tour, router, onComplete, "/app/familles");
+            void finishTourAndGo(tour, router, onComplete, "/app/familles/nouvelle-liste");
           },
         },
       ],
