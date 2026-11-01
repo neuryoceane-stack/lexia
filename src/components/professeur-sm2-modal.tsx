@@ -46,10 +46,10 @@ function ProfSvg({ size = 48 }: { size?: number }) {
   return (
     <svg width={size} height={size} viewBox="0 0 64 64" fill="none">
       {/* Corps */}
-      <rect x="18" y="30" width="28" height="26" rx="8" fill="#6C3FC8" />
+      <rect x="18" y="30" width="28" height="26" rx="8" fill="var(--ink)" />
       {/* Bras */}
-      <rect x="10" y="34" width="8" height="4" rx="2" fill="#6C3FC8" />
-      <rect x="46" y="32" width="12" height="3" rx="1.5" fill="#6C3FC8" transform="rotate(-30 46 32)" />
+      <rect x="10" y="34" width="8" height="4" rx="2" fill="var(--ink)" />
+      <rect x="46" y="32" width="12" height="3" rx="1.5" fill="var(--ink)" transform="rotate(-30 46 32)" />
       {/* Baguette */}
       <rect x="52" y="22" width="2.5" height="16" rx="1" fill="#F5A623" transform="rotate(-30 53 30)" />
       <circle cx="56" cy="19" r="3" fill="#F5A623" opacity="0.7" />
@@ -147,21 +147,21 @@ function AnimatedChart({ play }: { play: boolean }) {
       <path ref={forgetRef} d={FORGET_PATH} fill="none" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round" />
 
       {/* Courbe Lexiva */}
-      <path ref={lexivaRef} d={LEXIVA_PATH} fill="none" stroke="#6C3FC8" strokeWidth="2.5" strokeLinecap="round" />
+      <path ref={lexivaRef} d={LEXIVA_PATH} fill="none" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" />
 
       {/* Jalons */}
       {showMilestones && MILESTONES.map((d) => (
         <g key={d}>
-          <line x1={x(d)} y1={PAD.top} x2={x(d)} y2={PAD.top + GH} stroke="#6C3FC8" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.4" />
-          <rect x={x(d) - 14} y={PAD.top - 14} width="28" height="14" rx="4" fill="var(--background-subtle)" stroke="#DDD6F5" strokeWidth="0.5" />
-          <text x={x(d)} y={PAD.top - 4} textAnchor="middle" fill="#6C3FC8" fontSize="8" fontWeight="500">J+{d}</text>
+          <line x1={x(d)} y1={PAD.top} x2={x(d)} y2={PAD.top + GH} stroke="var(--ink)" strokeWidth="0.5" strokeDasharray="3 3" opacity="0.4" />
+          <rect x={x(d) - 14} y={PAD.top - 14} width="28" height="14" rx="4" fill="var(--background-subtle)" stroke="var(--background-subtle)" strokeWidth="0.5" />
+          <text x={x(d)} y={PAD.top - 4} textAnchor="middle" fill="var(--ink)" fontSize="8" fontWeight="500">J+{d}</text>
         </g>
       ))}
 
       {/* Légende */}
       <circle cx={PAD.left + 4} cy={CH - 7} r="3" fill="#E24B4A" />
       <text x={PAD.left + 12} y={CH - 4} fill="var(--foreground-muted)" fontSize="8">Oubli naturel</text>
-      <circle cx={PAD.left + 90} cy={CH - 7} r="3" fill="#6C3FC8" />
+      <circle cx={PAD.left + 90} cy={CH - 7} r="3" fill="var(--ink)" />
       <text x={PAD.left + 98} y={CH - 4} fill="var(--foreground-muted)" fontSize="8">Avec Lexiva</text>
     </svg>
   );
@@ -198,7 +198,7 @@ export function ProfesseurSM2Modal({
   return (
     <div
       className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto p-4 sm:items-center"
-      style={{ background: "rgba(80,60,120,0.22)" }}
+      style={{ background: "color-mix(in srgb, var(--ink) 22%, transparent)" }}
       onClick={onClose}
     >
       <div
@@ -207,7 +207,7 @@ export function ProfesseurSM2Modal({
           maxWidth: 500,
           borderRadius: 20,
           background: "var(--background-card)",
-          border: "0.5px solid rgba(108,63,200,0.15)",
+          border: "0.5px solid color-mix(in srgb, var(--ink) 15%, transparent)",
           margin: "24px 0",
         }}
         onClick={(e) => e.stopPropagation()}
@@ -215,7 +215,7 @@ export function ProfesseurSM2Modal({
         {/* ── Header violet ── */}
         <div
           className="flex items-center gap-3"
-          style={{ background: "#6C3FC8", padding: "20px 22px" }}
+          style={{ background: "var(--ink)", padding: "20px 22px" }}
         >
           <ProfSvg size={52} />
           <div className="min-w-0 flex-1">
@@ -266,7 +266,7 @@ export function ProfesseurSM2Modal({
                     padding: "3px 10px",
                     borderRadius: 8,
                     background: "var(--background-subtle)",
-                    color: "#4B3A9E",
+                    color: "var(--ink)",
                   }}
                 >
                   {t}
@@ -329,7 +329,7 @@ export function ProfesseurSM2Modal({
                 padding: "7px 14px",
                 borderRadius: 10,
                 border: "none",
-                background: "#6C3FC8",
+                background: "var(--ink)",
                 color: "white",
                 cursor: "pointer",
               }}

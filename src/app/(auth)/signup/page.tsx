@@ -42,16 +42,16 @@ const GOAL_OPTIONS = [
   { value: 50, label: "50 mots", sub: "Mode champion" },
 ];
 
-const V = "#6C3FC8";
-const V_LIGHT = "#F0EDF8";
-const V_BORDER = "rgba(108,63,200,0.18)";
+const V = "var(--ink)";
+const V_LIGHT = "var(--background-subtle)";
+const V_BORDER = "color-mix(in srgb, var(--ink) 18%, transparent)";
 const GOLD = "#F5A623";
 const GOLD_LIGHT = "#FEF4E0";
 const GREEN = "#1D9E75";
 const GREEN_LIGHT = "#E1F5EE";
-const FOND = "#F8F7FF";
-const TEXT = "#1A1033";
-const MUTED = "#7C6FA3";
+const FOND = "var(--page)";
+const TEXT = "var(--ink)";
+const MUTED = "var(--muted)";
 
 const inputStyle: CSSProperties = {
   fontSize: 14,
@@ -62,7 +62,7 @@ const inputStyle: CSSProperties = {
   color: TEXT,
   outline: "none",
   width: "100%",
-  fontFamily: "DM Sans, sans-serif",
+  fontFamily: "var(--font-sans), sans-serif",
 };
 
 function handleFocus(e: FocusEvent<HTMLInputElement>) {
@@ -165,7 +165,7 @@ function CTA({ children, onClick, disabled, gold }: { children: ReactNode; onCli
       style={{
         width: "100%", padding: "13px", borderRadius: 20, border: "none",
         background: gold ? GOLD : V, color: "white", fontSize: 14, fontWeight: 500,
-        cursor: "pointer", marginTop: 16, fontFamily: "DM Sans, sans-serif",
+        cursor: "pointer", marginTop: 16, fontFamily: "var(--font-sans), sans-serif",
         opacity: disabled ? 0.5 : 1,
       }}>
       {children}
@@ -341,7 +341,7 @@ export default function SignupPage() {
 
   const wrap = (content: ReactNode, progressCurrent?: number, progressTotal?: number) => (
     <div style={{ width: "100%", maxWidth: 360, margin: "0 auto" }}>
-      <div style={{ background: "white", borderRadius: 20, padding: "28px 24px", border: `1px solid ${V_BORDER}`, boxShadow: "0 2px 24px rgba(108,63,200,0.07)" }}>
+      <div style={{ background: "white", borderRadius: 20, padding: "28px 24px", border: `1px solid ${V_BORDER}`, boxShadow: "0 2px 24px color-mix(in srgb, var(--ink) 7%, transparent)" }}>
         {progressCurrent !== undefined && progressTotal !== undefined && (
           <ProgressBar current={progressCurrent} total={progressTotal} />
         )}
@@ -425,7 +425,7 @@ export default function SignupPage() {
             borderRadius: 24,
             padding: "32px 28px 24px",
             border: `1px solid ${V_BORDER}`,
-            boxShadow: "0 8px 32px rgba(108,63,200,0.1)",
+            boxShadow: "0 8px 32px color-mix(in srgb, var(--ink) 10%, transparent)",
           }}
         >
           <div style={{ position: "absolute", top: 16, left: 22, fontSize: 12, color: GOLD, opacity: 0.45 }}>✦</div>
@@ -441,7 +441,7 @@ export default function SignupPage() {
               height={64}
               style={{ objectFit: "contain", display: "block", margin: "0 auto 10px" }}
             />
-            <p style={{ fontSize: 28, fontWeight: 600, color: "#1F1235", letterSpacing: "-0.02em" }}>Lexiva</p>
+            <p style={{ fontSize: 28, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>Lexiva</p>
             <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "8px 0 4px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: V }} />
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD }} />
@@ -450,17 +450,17 @@ export default function SignupPage() {
             <p style={{ fontSize: 12, color: "#6B6B7B", letterSpacing: "0.02em", marginBottom: 24 }}>Apprends le vocabulaire autrement</p>
           </div>
 
-          <p style={{ fontSize: 20, fontWeight: 600, color: "#1F1235", textAlign: "center", marginBottom: 6 }}>Qui êtes-vous ?</p>
+          <p style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", textAlign: "center", marginBottom: 6 }}>Qui êtes-vous ?</p>
           <p style={{ fontSize: 13, color: MUTED, textAlign: "center", marginBottom: 22 }}>Choisissez votre rôle pour commencer</p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
             <button type="button"
               onClick={() => { setRole("eleve"); setEleveStep("source"); }}
               style={{
-                background: "linear-gradient(160deg,#F8F7FF 0%,#F0EDF8 100%)",
+                background: "linear-gradient(160deg,var(--page) 0%,var(--background-subtle) 100%)",
                 border: `2px solid ${V_BORDER}`, borderRadius: 20,
                 padding: "18px 10px 14px", cursor: "pointer", textAlign: "center",
-                transition: "all 0.25s", fontFamily: "DM Sans, sans-serif",
+                transition: "all 0.25s", fontFamily: "var(--font-sans), sans-serif",
                 width: "100%", minWidth: 0,
               }}>
               <GraduationCap size={40} color={V} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
@@ -474,7 +474,7 @@ export default function SignupPage() {
                 background: "linear-gradient(160deg,#E2F5EE 0%,#D8F0E7 100%)",
                 border: "2px solid rgba(29,158,117,0.15)", borderRadius: 20,
                 padding: "18px 10px 14px", cursor: "pointer", textAlign: "center",
-                transition: "all 0.25s", fontFamily: "DM Sans, sans-serif",
+                transition: "all 0.25s", fontFamily: "var(--font-sans), sans-serif",
                 width: "100%", minWidth: 0,
               }}>
               <Users size={40} color={GREEN} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
@@ -484,9 +484,9 @@ export default function SignupPage() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
-            <div style={{ flex: 1, height: 1, background: "rgba(108,63,200,0.08)" }} />
-            <span style={{ fontSize: 11, color: "#9A95A8", whiteSpace: "nowrap" }}>Bienvenue dans la magie du vocabulaire</span>
-            <div style={{ flex: 1, height: 1, background: "rgba(108,63,200,0.08)" }} />
+            <div style={{ flex: 1, height: 1, background: "color-mix(in srgb, var(--ink) 8%, transparent)" }} />
+            <span style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>Bienvenue dans la magie du vocabulaire</span>
+            <div style={{ flex: 1, height: 1, background: "color-mix(in srgb, var(--ink) 8%, transparent)" }} />
           </div>
 
           <p style={{ textAlign: "center", fontSize: 12, color: MUTED }}>

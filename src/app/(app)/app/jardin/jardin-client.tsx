@@ -60,8 +60,8 @@ type SyntheseData = {
   avatarState: number;
 };
 
-const VIOLET = "#6C3FC8";
-const VIOLET_DARK = "#4B3A9E";
+const VIOLET = "var(--ink)";
+const VIOLET_DARK = "var(--ink)";
 const GOLD = "#F5A623";
 const GOLD_DARK = "#A06800";
 const GREEN = "#1D9E75";
@@ -253,7 +253,7 @@ function getLevelVisual(level: number): {
       accentSoft: "#EAF4EF",
       ring: "rgba(29, 158, 117, 0.35)",
       heroGradient:
-        "linear-gradient(135deg, rgba(29,158,117,0.12) 0%, rgba(108,63,200,0.08) 55%, rgba(245,166,35,0.06) 100%)",
+        "linear-gradient(135deg, rgba(29,158,117,0.12) 0%, color-mix(in srgb, var(--ink) 8%, transparent) 55%, rgba(245,166,35,0.06) 100%)",
     };
   }
   if (level <= 4) {
@@ -261,10 +261,10 @@ function getLevelVisual(level: number): {
       Icon: TreePine,
       iconSize: 40,
       accent: VIOLET,
-      accentSoft: "#F0EDF8",
-      ring: "rgba(108, 63, 200, 0.35)",
+      accentSoft: "var(--background-subtle)",
+      ring: "color-mix(in srgb, var(--ink) 35%, transparent)",
       heroGradient:
-        "linear-gradient(135deg, rgba(108,63,200,0.14) 0%, rgba(108,63,200,0.06) 50%, rgba(245,166,35,0.08) 100%)",
+        "linear-gradient(135deg, color-mix(in srgb, var(--ink) 14%, transparent) 0%, color-mix(in srgb, var(--ink) 6%, transparent) 50%, rgba(245,166,35,0.08) 100%)",
     };
   }
   return {
@@ -274,7 +274,7 @@ function getLevelVisual(level: number): {
     accentSoft: "#FEF3DC",
     ring: "rgba(245, 166, 35, 0.45)",
     heroGradient:
-      "linear-gradient(135deg, rgba(245,166,35,0.16) 0%, rgba(108,63,200,0.1) 50%, rgba(245,166,35,0.12) 100%)",
+      "linear-gradient(135deg, rgba(245,166,35,0.16) 0%, color-mix(in srgb, var(--ink) 10%, transparent) 50%, rgba(245,166,35,0.12) 100%)",
   };
 }
 
@@ -339,7 +339,7 @@ export function JardinClient() {
   return (
     <div
       className="mx-auto w-full max-w-6xl space-y-6 px-0 sm:px-1"
-      style={{ fontFamily: "DM Sans, sans-serif" }}
+      style={{ fontFamily: "var(--font-sans), sans-serif" }}
     >
       <BackLink href="/app" />
 
@@ -365,9 +365,9 @@ export function JardinClient() {
           <section
             className="relative overflow-hidden rounded-[20px] border"
             style={{
-              borderColor: "rgba(108, 63, 200, 0.18)",
+              borderColor: "color-mix(in srgb, var(--ink) 18%, transparent)",
               background: levelVisual.heroGradient,
-              boxShadow: "0 8px 32px rgba(108, 63, 200, 0.08)",
+              boxShadow: "0 8px 32px color-mix(in srgb, var(--ink) 8%, transparent)",
             }}
           >
             <HoneycombPattern />
@@ -379,7 +379,7 @@ export function JardinClient() {
                   height: 108,
                   borderRadius: "50%",
                   background: levelVisual.accentSoft,
-                  boxShadow: `0 0 0 4px ${levelVisual.ring}, 0 12px 28px rgba(108,63,200,0.12)`,
+                  boxShadow: `0 0 0 4px ${levelVisual.ring}, 0 12px 28px color-mix(in srgb, var(--ink) 12%, transparent)`,
                 }}
               >
                 <LevelIcon
@@ -390,7 +390,7 @@ export function JardinClient() {
                 />
                 <span
                   className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                  style={{ background: VIOLET, boxShadow: "0 2px 8px rgba(108,63,200,0.35)" }}
+                  style={{ background: VIOLET, boxShadow: "0 2px 8px color-mix(in srgb, var(--ink) 35%, transparent)" }}
                 >
                   {level}
                 </span>
@@ -430,15 +430,15 @@ export function JardinClient() {
                     style={{
                       height: 12,
                       background: "rgba(255,255,255,0.65)",
-                      border: "1px solid rgba(108, 63, 200, 0.15)",
+                      border: "1px solid color-mix(in srgb, var(--ink) 15%, transparent)",
                     }}
                   >
                     <div
                       className="h-full rounded-full transition-all duration-500"
                       style={{
                         width: `${xpPct}%`,
-                        background: `linear-gradient(90deg, ${VIOLET} 0%, #9B6FE8 55%, ${GOLD} 100%)`,
-                        boxShadow: xpPct > 0 ? "0 0 12px rgba(108,63,200,0.35)" : undefined,
+                        background: `linear-gradient(90deg, ${VIOLET} 0%, var(--ink) 55%, ${GOLD} 100%)`,
+                        boxShadow: xpPct > 0 ? "0 0 12px color-mix(in srgb, var(--ink) 35%, transparent)" : undefined,
                       }}
                     />
                   </div>
@@ -473,7 +473,7 @@ export function JardinClient() {
               <StatCard
                 icon={Clock}
                 accent={VIOLET}
-                accentBg="rgba(108, 63, 200, 0.1)"
+                accentBg="color-mix(in srgb, var(--ink) 10%, transparent)"
                 label="Temps total"
                 value={String(formatMinutes(data.totalDurationSeconds))}
                 unit="min"
@@ -514,8 +514,8 @@ export function JardinClient() {
                 className="rounded-[16px] border p-4 sm:p-5"
                 style={{
                   background: "var(--background-card)",
-                  borderColor: "rgba(108, 63, 200, 0.12)",
-                  boxShadow: "0 4px 20px rgba(108, 63, 200, 0.04)",
+                  borderColor: "color-mix(in srgb, var(--ink) 12%, transparent)",
+                  boxShadow: "0 4px 20px color-mix(in srgb, var(--ink) 4%, transparent)",
                 }}
               >
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
@@ -549,14 +549,14 @@ export function JardinClient() {
                   className="relative shrink-0 overflow-hidden rounded-[12px]"
                   style={{
                     ...CHART_FRAME_STYLE,
-                    background: "rgba(108, 63, 200, 0.04)",
+                    background: "color-mix(in srgb, var(--ink) 4%, transparent)",
                   }}
                 >
                   {chartEmpty ? (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
                       <div
                         className="flex h-11 w-11 items-center justify-center rounded-full"
-                        style={{ background: "rgba(108, 63, 200, 0.1)" }}
+                        style={{ background: "color-mix(in srgb, var(--ink) 10%, transparent)" }}
                       >
                         <Sprout size={22} stroke={VIOLET} strokeWidth={1.75} aria-hidden />
                       </div>
@@ -615,10 +615,10 @@ export function JardinClient() {
                                     width: chartPeriod === "7j" ? "100%" : colWidth,
                                     minWidth: chartPeriod === "7j" ? 4 : colWidth,
                                     background: isToday
-                                      ? `linear-gradient(180deg, ${VIOLET} 0%, #9B6FE8 100%)`
-                                      : "rgba(108, 63, 200, 0.2)",
+                                      ? `linear-gradient(180deg, ${VIOLET} 0%, var(--ink) 100%)`
+                                      : "color-mix(in srgb, var(--ink) 20%, transparent)",
                                     borderRadius: "6px 6px 2px 2px",
-                                    boxShadow: isToday ? "0 4px 12px rgba(108,63,200,0.25)" : undefined,
+                                    boxShadow: isToday ? "0 4px 12px color-mix(in srgb, var(--ink) 25%, transparent)" : undefined,
                                   }}
                                   title={`${d.label}: ${d.mots} mots`}
                                 />
@@ -670,12 +670,12 @@ export function JardinClient() {
                         style={{
                           background: isGold
                             ? "linear-gradient(160deg, #FEF3DC 0%, #FAE5B0 100%)"
-                            : "linear-gradient(160deg, #F0EDF8 0%, #E8E0F5 100%)",
-                          borderColor: isGold ? "#F5D08A" : "#DDD6F5",
+                            : "linear-gradient(160deg, var(--background-subtle) 0%, var(--background-subtle) 100%)",
+                          borderColor: isGold ? "#F5D08A" : "var(--line)",
                           padding: "14px 8px",
                           boxShadow: isGold
                             ? "0 4px 16px rgba(245,166,35,0.2)"
-                            : "0 4px 16px rgba(108,63,200,0.12)",
+                            : "0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent)",
                         }}
                       >
                         <div
@@ -767,7 +767,7 @@ export function JardinClient() {
                       className="rounded-[14px] border p-4"
                       style={{
                         background: "var(--background-card)",
-                        borderColor: "rgba(108, 63, 200, 0.1)",
+                        borderColor: "color-mix(in srgb, var(--ink) 10%, transparent)",
                       }}
                     >
                       <div className="flex items-center justify-between">
@@ -792,7 +792,7 @@ export function JardinClient() {
                           className="h-full rounded-full transition-all duration-300"
                           style={{
                             width: `${pct}%`,
-                            background: `linear-gradient(90deg, ${VIOLET}, #9B6FE8)`,
+                            background: `linear-gradient(90deg, ${VIOLET}, var(--ink))`,
                           }}
                         />
                       </div>
@@ -818,7 +818,7 @@ export function JardinClient() {
         >
           <div
             className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full"
-            style={{ background: "rgba(108, 63, 200, 0.08)" }}
+            style={{ background: "color-mix(in srgb, var(--ink) 8%, transparent)" }}
           >
             <BarChart3 size={32} stroke={VIOLET} strokeWidth={1.5} aria-hidden />
           </div>
@@ -854,7 +854,7 @@ function HoneycombPattern() {
       className="pointer-events-none absolute inset-0 opacity-[0.35]"
       aria-hidden
       style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cpath fill='none' stroke='%236C3FC8' stroke-width='0.6' opacity='0.35' d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/svg%3E")`,
+        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cpath fill='none' stroke='%2312332B' stroke-width='0.6' opacity='0.35' d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/svg%3E")`,
         backgroundSize: "56px 48px",
       }}
     />

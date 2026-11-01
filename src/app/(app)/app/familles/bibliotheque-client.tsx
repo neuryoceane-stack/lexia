@@ -443,7 +443,7 @@ export function BibliothequeClient() {
             }
             title="Pioche des mots dans un texte, un livre, une photo."
             aria-label="Mots sauvages — Pioche des mots dans un texte, un livre, une photo."
-            className={`${BIB_HEADER_ACTION_BTN} border-[#6C3FC8] text-[#6C3FC8] no-underline`}
+            className={`${BIB_HEADER_ACTION_BTN} border-ink text-ink no-underline`}
           >
             <span className={`${BIB_HEADER_ACTION_TITLE} whitespace-nowrap`}>
               <PawPrint size={16} className="shrink-0" aria-hidden />
@@ -460,7 +460,7 @@ export function BibliothequeClient() {
             }}
             title="J'ai déjà mes paires mot/traduction."
             aria-label="Liste de vocabulaire — J'ai déjà mes paires mot/traduction."
-            className={`${BIB_HEADER_ACTION_BTN} cursor-pointer border-transparent bg-[#6C3FC8] text-white`}
+            className={`${BIB_HEADER_ACTION_BTN} cursor-pointer border-transparent bg-ink text-white`}
           >
             <span className={BIB_HEADER_ACTION_TITLE}>
               <ListPlus size={16} className="shrink-0" aria-hidden />
@@ -481,10 +481,10 @@ export function BibliothequeClient() {
         <div>
           <div className="flex items-center justify-between">
             <span style={{ fontSize: 11, color: "var(--foreground-muted)" }}>Maîtrise globale — toutes langues</span>
-            <span style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8" }}>{avgMastery}%</span>
+            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)" }}>{avgMastery}%</span>
           </div>
           <div style={{ height: 5, background: "var(--background-subtle)", borderRadius: 3, marginTop: 4 }}>
-            <div className="transition-all duration-300" style={{ height: "100%", width: `${avgMastery}%`, background: "#6C3FC8", borderRadius: 3 }} />
+            <div className="transition-all duration-300" style={{ height: "100%", width: `${avgMastery}%`, background: "var(--ink)", borderRadius: 3 }} />
           </div>
         </div>
       )}
@@ -503,18 +503,18 @@ export function BibliothequeClient() {
 
       {/* Filtres langue (chips scrollable) */}
       <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-        <button type="button" onClick={() => setActiveLanguage(null)} className="shrink-0" style={{ background: activeLanguage === null ? "#6C3FC8" : "var(--background-card)", color: activeLanguage === null ? "white" : "var(--foreground-muted)", border: activeLanguage === null ? "1px solid #6C3FC8" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: activeLanguage === null ? 500 : 400, cursor: "pointer" }}>Toutes les langues</button>
+        <button type="button" onClick={() => setActiveLanguage(null)} className="shrink-0" style={{ background: activeLanguage === null ? "var(--ink)" : "var(--background-card)", color: activeLanguage === null ? "white" : "var(--foreground-muted)", border: activeLanguage === null ? "1px solid var(--ink)" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: activeLanguage === null ? 500 : 400, cursor: "pointer" }}>Toutes les langues</button>
         {preferredLanguages.map((code) => {
           const active = activeLanguage === code;
           const label = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code;
           return (
-            <button key={code} type="button" onClick={() => setActiveLanguage(code)} className="inline-flex shrink-0 items-center gap-1.5" style={{ background: active ? "#6C3FC8" : "var(--background-card)", color: active ? "white" : "var(--foreground-muted)", border: active ? "1px solid #6C3FC8" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: active ? 500 : 400, cursor: "pointer" }}>
+            <button key={code} type="button" onClick={() => setActiveLanguage(code)} className="inline-flex shrink-0 items-center gap-1.5" style={{ background: active ? "var(--ink)" : "var(--background-card)", color: active ? "white" : "var(--foreground-muted)", border: active ? "1px solid var(--ink)" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: active ? 500 : 400, cursor: "pointer" }}>
               <FlagDisplay langCode={code} size={16} />
               {label}
             </button>
           );
         })}
-        <button type="button" onClick={() => setLangModalOpen(true)} className="shrink-0 transition hover:text-[#6C3FC8]" style={{ background: "transparent", border: "0.5px dashed var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "var(--foreground-disabled)", cursor: "pointer" }}>+ Langue</button>
+        <button type="button" onClick={() => setLangModalOpen(true)} className="shrink-0 transition hover:text-ink" style={{ background: "transparent", border: "0.5px dashed var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "var(--foreground-disabled)", cursor: "pointer" }}>+ Langue</button>
       </div>
 
       {/* Toolbar : recherche + filtres état + vue */}
@@ -537,9 +537,9 @@ export function BibliothequeClient() {
               type="button"
               onClick={() => setStatusFilter(val)}
               style={{
-                background: statusFilter === val ? "#6C3FC8" : "var(--background-card)",
+                background: statusFilter === val ? "var(--ink)" : "var(--background-card)",
                 color: statusFilter === val ? "white" : "var(--foreground-muted)",
-                border: statusFilter === val ? "1px solid #6C3FC8" : "0.5px solid var(--border)",
+                border: statusFilter === val ? "1px solid var(--ink)" : "0.5px solid var(--border)",
                 borderRadius: 20,
                 padding: "5px 12px",
                 fontSize: 12,
@@ -556,7 +556,7 @@ export function BibliothequeClient() {
             type="button"
             onClick={() => setViewMode("grid")}
             className="px-2.5 py-2 transition"
-            style={{ background: viewMode === "grid" ? "#6C3FC8" : "var(--background-card)", color: viewMode === "grid" ? "white" : "var(--foreground-disabled)" }}
+            style={{ background: viewMode === "grid" ? "var(--ink)" : "var(--background-card)", color: viewMode === "grid" ? "white" : "var(--foreground-disabled)" }}
             title="Vue mosaïque"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
@@ -565,7 +565,7 @@ export function BibliothequeClient() {
             type="button"
             onClick={() => setViewMode("list")}
             className="px-2.5 py-2 transition"
-            style={{ background: viewMode === "list" ? "#6C3FC8" : "var(--background-card)", color: viewMode === "list" ? "white" : "var(--foreground-disabled)" }}
+            style={{ background: viewMode === "list" ? "var(--ink)" : "var(--background-card)", color: viewMode === "list" ? "white" : "var(--foreground-disabled)" }}
             title="Vue liste"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
@@ -716,7 +716,7 @@ export function BibliothequeClient() {
             }}
                 className="mx-auto mt-5 inline-flex items-center gap-1.5 transition hover:brightness-95"
                 style={{
-                  background: "#6C3FC8",
+                  background: "var(--ink)",
                   color: "#FFFFFF",
                   borderRadius: 20,
                   padding: "10px 18px",
@@ -753,8 +753,8 @@ export function BibliothequeClient() {
                 </p>
                 {(() => {
                   const pct = list.progressPercent;
-                  const trackBg = pct < 30 ? "#FEF3DC" : pct < 80 ? "#EAF4EF" : "#F0EDF8";
-                  const fillBg = pct < 30 ? "#F5A623" : pct < 80 ? "#1D9E75" : "#6C3FC8";
+                  const trackBg = pct < 30 ? "#FEF3DC" : pct < 80 ? "#EAF4EF" : "var(--background-subtle)";
+                  const fillBg = pct < 30 ? "#F5A623" : pct < 80 ? "#1D9E75" : "var(--ink)";
                   return (
                     <div className="mt-2">
                       <div style={{ height: 4, background: trackBg, borderRadius: 3 }}>
@@ -839,7 +839,7 @@ export function BibliothequeClient() {
               className="flex h-full w-full flex-col items-center justify-center gap-2 transition hover:bg-[var(--hover-bg)]"
               style={{ border: "1.5px dashed var(--border)", borderRadius: 12, background: "transparent", padding: "32px 12px", cursor: "pointer" }}
             >
-              <div className="flex h-7 w-7 items-center justify-center" style={{ background: "var(--background-subtle)", borderRadius: "50%", color: "#6C3FC8", fontSize: 16, fontWeight: 600 }}>+</div>
+              <div className="flex h-7 w-7 items-center justify-center" style={{ background: "var(--background-subtle)", borderRadius: "50%", color: "var(--ink)", fontSize: 16, fontWeight: 600 }}>+</div>
               <span style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)" }}>Nouvelle liste</span>
             </button>
           </li>

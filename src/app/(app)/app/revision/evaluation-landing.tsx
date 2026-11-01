@@ -102,15 +102,15 @@ export function EvaluationLanding() {
           className="relative flex flex-col overflow-hidden no-underline card-hover"
           style={{
             background: "var(--background-subtle)",
-            border: "1.5px solid #C4B5F4",
+            border: "1.5px solid var(--line)",
             borderRadius: 16,
             padding: "20px 16px 16px",
           }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.borderColor = "#6C3FC8")
+            (e.currentTarget.style.borderColor = "var(--ink)")
           }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.borderColor = "#C4B5F4")
+            (e.currentTarget.style.borderColor = "var(--line)")
           }
         >
           {/* Cercle icône */}
@@ -120,7 +120,7 @@ export function EvaluationLanding() {
               width: 48,
               height: 48,
               borderRadius: "50%",
-              background: "#6C3FC8",
+              background: "var(--ink)",
             }}
           >
             <FlashcardIcon />
@@ -134,8 +134,8 @@ export function EvaluationLanding() {
                 style={{
                   fontSize: 10,
                   fontWeight: 500,
-                  color: "#4B3A9E",
-                  background: "#DDD6F5",
+                  color: "var(--ink)",
+                  background: "var(--background-subtle)",
                   borderRadius: 8,
                   padding: "2px 7px",
                 }}
@@ -164,7 +164,7 @@ export function EvaluationLanding() {
             <span
               className="inline-flex items-center gap-1.5"
               style={{
-                background: "#6C3FC8",
+                background: "var(--ink)",
                 color: "white",
                 borderRadius: 20,
                 padding: "8px 16px",
@@ -181,10 +181,10 @@ export function EvaluationLanding() {
                 width: 28,
                 height: 28,
                 borderRadius: "50%",
-                background: "#DDD6F5",
+                background: "var(--background-subtle)",
               }}
             >
-              <ArrowIcon color="#6C3FC8" />
+              <ArrowIcon color="var(--ink)" />
             </span>
           </div>
 
@@ -197,7 +197,7 @@ export function EvaluationLanding() {
               width: 70,
               height: 70,
               borderRadius: "50%",
-              background: "#6C3FC8",
+              background: "var(--ink)",
               opacity: 0.1,
               pointerEvents: "none",
             }}

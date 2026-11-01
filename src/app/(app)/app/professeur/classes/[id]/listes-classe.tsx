@@ -4,11 +4,11 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, FileText, Plus } from "lucide-react";
 
-const PRIMARY = "#6C3FC8";
+const PRIMARY = "var(--ink)";
 const GREEN = "#1D9E75";
 const GOLD = "#F5A623";
-const BORDER_TERTIARY = "#E2DCF5";
-const OVERLAY = "rgba(80,60,120,0.18)";
+const BORDER_TERTIARY = "var(--line)";
+const OVERLAY = "color-mix(in srgb, var(--ink) 18%, transparent)";
 const RED_BORDER = "#F09595";
 const RED_TEXT = "#E24B4A";
 const ICON_ORANGE = "#C47D0A";
@@ -359,7 +359,7 @@ export function ListesClasse({
             role="dialog"
             aria-labelledby="assign-liste-title"
             className="w-full max-w-[400px] rounded-[20px] border bg-white p-5 shadow-lg"
-            style={{ borderColor: "rgba(108,63,200,0.15)" }}
+            style={{ borderColor: "color-mix(in srgb, var(--ink) 15%, transparent)" }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2

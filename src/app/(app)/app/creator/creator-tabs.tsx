@@ -425,9 +425,9 @@ export function CreatorTabs() {
                     <Line
                       type="monotone"
                       dataKey="revenue"
-                      stroke="#6C3FC8"
+                      stroke="var(--ink)"
                       strokeWidth={2}
-                      dot={{ fill: "#6C3FC8", r: 4 }}
+                      dot={{ fill: "var(--ink)", r: 4 }}
                       activeDot={{ r: 6 }}
                     />
                   </LineChart>

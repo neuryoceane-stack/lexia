@@ -20,7 +20,7 @@ const loginCardShellStyle: React.CSSProperties = {
   width: "100%",
   maxWidth: 320,
   padding: "26px 22px",
-  border: "0.5px solid rgba(108,63,200,0.15)",
+  border: "0.5px solid color-mix(in srgb, var(--ink) 15%, transparent)",
 };
 
 function LoginPageFallback() {
@@ -95,7 +95,7 @@ function LoginPageContent() {
             className="mx-auto mb-2"
             style={{ objectFit: "contain" }}
           />
-          <p style={{ fontSize: 17, fontWeight: 500, color: "#6C3FC8", marginBottom: 2 }}>
+          <p style={{ fontSize: 17, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>
             LEXIVA
           </p>
           <p style={{ fontSize: 11, color: "#71717a" }}>
@@ -161,7 +161,7 @@ function LoginPageContent() {
         <Link
           href="/forgot-password"
           className="mb-3 block text-right no-underline transition hover:opacity-70"
-          style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8", marginTop: 5 }}
+          style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", marginTop: 5 }}
         >
           Mot de passe oublié ?
         </Link>
@@ -192,7 +192,7 @@ function LoginPageContent() {
             padding: 11,
             borderRadius: 10,
             border: "none",
-            background: "#6C3FC8",
+            background: "var(--ink)",
             color: "white",
             cursor: "pointer",
             margin: "16px 0 12px",
@@ -206,7 +206,7 @@ function LoginPageContent() {
       {/* Lien signup */}
       <p className="mb-3.5 mt-4 text-center" style={{ fontSize: 12, color: "#71717a" }}>
         Pas encore de compte ?{" "}
-        <Link href={signupHref} className="no-underline" style={{ fontWeight: 500, color: "#6C3FC8" }}>
+        <Link href={signupHref} className="no-underline" style={{ fontWeight: 500, color: "var(--ink)" }}>
           S&apos;inscrire
         </Link>
       </p>
@@ -223,8 +223,8 @@ function LoginPageContent() {
                 fontWeight: 500,
                 padding: "2px 7px",
                 borderRadius: 8,
-                background: "#F0EDF8",
-                color: "#4B3A9E",
+                background: "var(--background-subtle)",
+                color: "var(--ink)",
               }}
             >
               {c.emoji} {c.label}
@@ -258,7 +258,7 @@ const inputStyle: React.CSSProperties = {
 };
 
 function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "#6C3FC8";
+  e.currentTarget.style.borderColor = "var(--ink)";
   e.currentTarget.style.background = "white";
 }
 

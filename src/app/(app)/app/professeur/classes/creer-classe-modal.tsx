@@ -3,10 +3,10 @@
 import { useEffect, useId, useState } from "react";
 import { Plus, Users, X } from "lucide-react";
 
-const PRIMARY = "#6C3FC8";
-const OVERLAY = "rgba(80,60,120,0.18)";
+const PRIMARY = "var(--ink)";
+const OVERLAY = "color-mix(in srgb, var(--ink) 18%, transparent)";
 const BORDER_SECONDARY = "var(--border)";
-const BORDER_TERTIARY = "#E2DCF5";
+const BORDER_TERTIARY = "var(--line)";
 const BG_SECONDARY = "var(--background-subtle)";
 
 const QUICK_LANGS = [
@@ -144,7 +144,7 @@ export function CreerClasseModal({
         style={{
           background: "white",
           borderRadius: 20,
-          border: "0.5px solid rgba(108,63,200,0.15)",
+          border: "0.5px solid color-mix(in srgb, var(--ink) 15%, transparent)",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -281,7 +281,7 @@ export function CreerClasseModal({
                       padding: "8px 4px",
                       gap: 4,
                       border: `1.5px solid ${selected ? PRIMARY : BORDER_TERTIARY}`,
-                      background: selected ? "#F0EDF8" : BG_SECONDARY,
+                      background: selected ? "var(--background-subtle)" : BG_SECONDARY,
                     }}
                   >
                     <span style={{ fontSize: 18 }} aria-hidden>
@@ -345,7 +345,7 @@ export function CreerClasseModal({
                       borderRadius: 8,
                       padding: "7px 6px",
                       border: `1.5px solid ${selected ? PRIMARY : BORDER_TERTIARY}`,
-                      background: selected ? "#F0EDF8" : BG_SECONDARY,
+                      background: selected ? "var(--background-subtle)" : BG_SECONDARY,
                       fontSize: 11,
                       fontWeight: 500,
                       color: selected ? PRIMARY : "var(--foreground-muted)",

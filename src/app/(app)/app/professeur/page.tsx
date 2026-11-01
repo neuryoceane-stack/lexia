@@ -10,10 +10,10 @@ import {
 import { getUser } from "@/lib/auth";
 import { getTeacherDashboardStats } from "@/lib/teacher-dashboard-stats";
 
-const PRIMARY = "#6C3FC8";
+const PRIMARY = "var(--ink)";
 const GOLD = "#F5A623";
 const GREEN = "#1D9E75";
-const BORDER_TERTIARY = "#E2DCF5";
+const BORDER_TERTIARY = "var(--line)";
 
 export default async function ProfesseurAccueilPage() {
   const user = await getUser();
@@ -73,7 +73,7 @@ export default async function ProfesseurAccueilPage() {
                 width: 28,
                 height: 28,
                 borderRadius: 7,
-                background: "#F0EDF8",
+                background: "var(--background-subtle)",
               }}
             >
               <Users size={14} stroke={PRIMARY} strokeWidth={2} aria-hidden />
@@ -188,8 +188,8 @@ export default async function ProfesseurAccueilPage() {
           <div
             className="flex items-center gap-3"
             style={{
-              background: "#F0EDF8",
-              border: "0.5px solid #DDD6F5",
+              background: "var(--background-subtle)",
+              border: "0.5px solid var(--line)",
               borderRadius: 10,
               padding: "12px 14px",
               marginBottom: 16,
@@ -201,7 +201,7 @@ export default async function ProfesseurAccueilPage() {
                 style={{
                   fontSize: 13,
                   fontWeight: 500,
-                  color: "#4B3A9E",
+                  color: "var(--ink)",
                   margin: "0 0 2px",
                 }}
               >
@@ -262,8 +262,8 @@ export default async function ProfesseurAccueilPage() {
             href="/app/professeur/classes"
             className="group relative flex flex-col overflow-hidden no-underline transition-transform duration-150 hover:-translate-y-0.5"
             style={{
-              background: "#F0EDF8",
-              border: "1.5px solid #C4B5F4",
+              background: "var(--background-subtle)",
+              border: "1.5px solid var(--line)",
               borderRadius: 14,
               padding: "18px 16px 16px",
             }}
@@ -343,7 +343,7 @@ export default async function ProfesseurAccueilPage() {
                 style={{
                   width: 28,
                   height: 28,
-                  background: "#DDD6F5",
+                  background: "var(--background-subtle)",
                   borderRadius: "50%",
                 }}
               >

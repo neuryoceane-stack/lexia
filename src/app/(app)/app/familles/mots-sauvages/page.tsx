@@ -78,7 +78,7 @@ function getBibliothequeContextLang(langParam: string | null): string | null {
 
 type SelectedWord = { word: string; translation: string; example: string };
 
-const PICKED_WORD_BG = "rgba(108, 63, 200, 0.28)";
+const PICKED_WORD_BG = "color-mix(in srgb, var(--ink) 28%, transparent)";
 
 function ReadingSelectionPanel({
   words,
@@ -98,13 +98,13 @@ function ReadingSelectionPanel({
   return (
     <div
       className={`flex flex-col ${className}`}
-      style={{ fontFamily: "DM Sans, sans-serif" }}
+      style={{ fontFamily: "var(--font-sans), sans-serif" }}
     >
       <div className="mb-3 flex shrink-0 items-center justify-between gap-2">
-        <h2 style={{ fontSize: 14, fontWeight: 600, color: "#1F1235" }}>
+        <h2 style={{ fontSize: 14, fontWeight: 600, color: "var(--ink)" }}>
           Ta sélection
         </h2>
-        <span style={{ fontSize: 13, fontWeight: 500, color: "#6C3FC8" }}>
+        <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>
           {words.length} mot{words.length !== 1 ? "s" : ""}
         </span>
       </div>
@@ -119,7 +119,7 @@ function ReadingSelectionPanel({
             style={{
               fontSize: 13,
               color: "var(--foreground-muted)",
-              background: "rgba(108, 63, 200, 0.05)",
+              background: "color-mix(in srgb, var(--ink) 5%, transparent)",
               lineHeight: 1.5,
             }}
           >
@@ -132,8 +132,8 @@ function ReadingSelectionPanel({
                 key={`${sw.word.toLowerCase()}-${idx}`}
                 className="flex items-start gap-2 rounded-xl border px-3 py-2.5"
                 style={{
-                  borderColor: "rgba(108, 63, 200, 0.18)",
-                  background: "rgba(108, 63, 200, 0.06)",
+                  borderColor: "color-mix(in srgb, var(--ink) 18%, transparent)",
+                  background: "color-mix(in srgb, var(--ink) 6%, transparent)",
                 }}
               >
                 <div className="min-w-0 flex-1">
@@ -142,7 +142,7 @@ function ReadingSelectionPanel({
                     style={{
                       fontSize: 14,
                       fontWeight: 600,
-                      color: "#1F1235",
+                      color: "var(--ink)",
                       lineHeight: 1.3,
                     }}
                   >
@@ -152,7 +152,7 @@ function ReadingSelectionPanel({
                     className="mt-0.5 line-clamp-2"
                     style={{
                       fontSize: 12,
-                      color: "#6C3FC8",
+                      color: "var(--ink)",
                       lineHeight: 1.4,
                     }}
                   >
@@ -162,10 +162,10 @@ function ReadingSelectionPanel({
                 <button
                   type="button"
                   onClick={() => onRemove(sw.word)}
-                  className="shrink-0 rounded-md p-1 transition hover:bg-[rgba(108,63,200,0.12)]"
+                  className="shrink-0 rounded-md p-1 transition hover:bg-[color-mix(in_srgb,var(--ink)_12%,transparent)]"
                   aria-label={`Retirer « ${sw.word} » de la sélection`}
                 >
-                  <X size={16} strokeWidth={2} color="#6C3FC8" aria-hidden />
+                  <X size={16} strokeWidth={2} color="var(--ink)" aria-hidden />
                 </button>
               </li>
             ))}
@@ -178,7 +178,7 @@ function ReadingSelectionPanel({
         onClick={onSave}
         disabled={words.length === 0}
         className={`btn-relief mt-4 w-full shrink-0 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45 ${hideSaveButton ? "hidden" : ""}`}
-        style={{ background: "#6C3FC8" }}
+        style={{ background: "var(--ink)" }}
       >
         Enregistrer dans une liste →
       </button>
@@ -224,7 +224,7 @@ function StyledLanguageSelect({
           onChange={(e) => onChange(e.target.value)}
           className="w-full cursor-pointer transition-colors"
           style={{
-            fontFamily: "DM Sans, sans-serif",
+            fontFamily: "var(--font-sans), sans-serif",
             fontSize: 14,
             fontWeight: 500,
             color: "var(--foreground)",
@@ -238,8 +238,8 @@ function StyledLanguageSelect({
             MozAppearance: "none",
           }}
           onFocus={(e) => {
-            e.currentTarget.style.borderColor = "#6C3FC8";
-            e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+            e.currentTarget.style.borderColor = "var(--ink)";
+            e.currentTarget.style.boxShadow = "0 0 0 3px color-mix(in srgb, var(--ink) 12%, transparent)";
           }}
           onBlur={(e) => {
             e.currentTarget.style.borderColor = "var(--input-border)";
@@ -732,7 +732,7 @@ export default function MotsSauvagesPage() {
             className="w-full max-w-[480px] rounded-2xl border bg-white text-center"
             style={{
               borderColor: "var(--border)",
-              boxShadow: "0 4px 24px rgba(31, 18, 53, 0.08)",
+              boxShadow: "0 4px 24px color-mix(in srgb, var(--ink) 8%, transparent)",
               padding: "28px 24px 24px",
             }}
           >
@@ -746,14 +746,14 @@ export default function MotsSauvagesPage() {
               }}
               aria-hidden
             >
-              <Languages size={26} strokeWidth={2} color="#6C3FC8" />
+              <Languages size={26} strokeWidth={2} color="var(--ink)" />
             </div>
 
             <h1
               style={{
                 fontSize: 18,
                 fontWeight: 500,
-                color: "#1F1235",
+                color: "var(--ink)",
                 lineHeight: 1.35,
                 marginBottom: 8,
               }}
@@ -785,7 +785,7 @@ export default function MotsSauvagesPage() {
                 <ArrowRight
                   size={20}
                   strokeWidth={2}
-                  color="#6C3FC8"
+                  color="var(--ink)"
                   className="rotate-90 sm:rotate-0"
                 />
               </div>
@@ -820,7 +820,7 @@ export default function MotsSauvagesPage() {
                 onClick={() => setStep("select")}
                 disabled={langsConflict}
                 className="btn-relief w-full rounded-lg px-5 py-2.5 text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                style={{ background: "#6C3FC8", fontWeight: 500 }}
+                style={{ background: "var(--ink)", fontWeight: 500 }}
               >
                 Afficher le texte
               </button>
@@ -835,7 +835,7 @@ export default function MotsSauvagesPage() {
             className="w-full max-w-[640px] rounded-2xl border bg-white"
             style={{
               borderColor: "var(--border)",
-              boxShadow: "0 4px 24px rgba(31, 18, 53, 0.08)",
+              boxShadow: "0 4px 24px color-mix(in srgb, var(--ink) 8%, transparent)",
               padding: "28px 24px 24px",
             }}
           >
@@ -849,7 +849,7 @@ export default function MotsSauvagesPage() {
               }}
               aria-hidden
             >
-              <Languages size={26} strokeWidth={2} color="#6C3FC8" />
+              <Languages size={26} strokeWidth={2} color="var(--ink)" />
             </div>
 
             <h1
@@ -857,7 +857,7 @@ export default function MotsSauvagesPage() {
               style={{
                 fontSize: 18,
                 fontWeight: 500,
-                color: "#1F1235",
+                color: "var(--ink)",
                 lineHeight: 1.35,
                 marginBottom: 8,
               }}
@@ -882,8 +882,8 @@ export default function MotsSauvagesPage() {
               <div
                 className="mb-5 flex items-center justify-center gap-2 rounded-xl border px-4 py-6"
                 style={{
-                  borderColor: "rgba(108, 63, 200, 0.25)",
-                  background: "rgba(108, 63, 200, 0.05)",
+                  borderColor: "color-mix(in srgb, var(--ink) 25%, transparent)",
+                  background: "color-mix(in srgb, var(--ink) 5%, transparent)",
                 }}
                 role="status"
                 aria-live="polite"
@@ -891,10 +891,10 @@ export default function MotsSauvagesPage() {
                 <Loader2
                   size={20}
                   className="animate-spin"
-                  color="#6C3FC8"
+                  color="var(--ink)"
                   aria-hidden
                 />
-                <span style={{ fontSize: 14, color: "#4B3A9E" }}>
+                <span style={{ fontSize: 14, color: "var(--ink)" }}>
                   Analyse des passages en cours…
                 </span>
               </div>
@@ -916,7 +916,7 @@ export default function MotsSauvagesPage() {
                       style={{
                         fontSize: 12,
                         fontWeight: 500,
-                        color: "#6C3FC8",
+                        color: "var(--ink)",
                         background: "none",
                         border: "none",
                         cursor: "pointer",
@@ -967,10 +967,10 @@ export default function MotsSauvagesPage() {
                           padding: "14px 14px 14px 12px",
                           borderRadius: 12,
                           border: checked
-                            ? "1.5px solid rgba(108, 63, 200, 0.45)"
+                            ? "1.5px solid color-mix(in srgb, var(--ink) 45%, transparent)"
                             : "1.5px solid var(--border)",
                           background: checked
-                            ? "rgba(108, 63, 200, 0.08)"
+                            ? "color-mix(in srgb, var(--ink) 8%, transparent)"
                             : "var(--background-subtle)",
                           opacity: checked ? 1 : 0.72,
                           cursor: "pointer",
@@ -984,9 +984,9 @@ export default function MotsSauvagesPage() {
                             height: 22,
                             borderRadius: 6,
                             border: checked
-                              ? "2px solid #6C3FC8"
+                              ? "2px solid var(--ink)"
                               : "1.5px solid var(--border)",
-                            background: checked ? "#6C3FC8" : "#FFFFFF",
+                            background: checked ? "var(--ink)" : "#FFFFFF",
                           }}
                           aria-hidden
                         >
@@ -1000,9 +1000,9 @@ export default function MotsSauvagesPage() {
                             style={{
                               fontSize: 11,
                               fontWeight: 500,
-                              color: isTargetLang ? "#6C3FC8" : "var(--foreground-muted)",
+                              color: isTargetLang ? "var(--ink)" : "var(--foreground-muted)",
                               background: isTargetLang
-                                ? "rgba(108, 63, 200, 0.12)"
+                                ? "color-mix(in srgb, var(--ink) 12%, transparent)"
                                 : "rgba(0,0,0,0.04)",
                             }}
                           >
@@ -1015,7 +1015,7 @@ export default function MotsSauvagesPage() {
                           <span
                             className="block whitespace-pre-wrap leading-relaxed"
                             style={{
-                              fontFamily: "DM Sans, sans-serif",
+                              fontFamily: "var(--font-sans), sans-serif",
                               fontSize: 14,
                               color: checked
                                 ? "var(--foreground)"
@@ -1038,7 +1038,7 @@ export default function MotsSauvagesPage() {
                 value={rawText}
                 className="mb-5 block min-h-[40vh] max-h-[52vh] w-full resize-none overflow-y-auto rounded-xl border p-4 leading-relaxed"
                 style={{
-                  fontFamily: "DM Sans, sans-serif",
+                  fontFamily: "var(--font-sans), sans-serif",
                   fontSize: 14,
                   borderColor: "var(--border)",
                   background: "var(--input-bg)",
@@ -1070,7 +1070,7 @@ export default function MotsSauvagesPage() {
                     onClick={applyBlockSelection}
                     disabled={selectedBlockIds.size === 0}
                     className="btn-relief w-full rounded-lg px-5 py-2.5 text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
-                    style={{ background: "#6C3FC8", fontWeight: 500 }}
+                    style={{ background: "var(--ink)", fontWeight: 500 }}
                   >
                     Utiliser ma sélection →
                   </button>
@@ -1091,7 +1091,7 @@ export default function MotsSauvagesPage() {
                       }
                     }}
                     className="btn-relief w-full rounded-lg px-5 py-2.5 text-white transition hover:brightness-95 sm:w-auto"
-                    style={{ background: "#6C3FC8", fontWeight: 500 }}
+                    style={{ background: "var(--ink)", fontWeight: 500 }}
                   >
                     Utiliser ma sélection →
                   </button>
@@ -1139,9 +1139,9 @@ export default function MotsSauvagesPage() {
                   className="mb-4 rounded-lg px-3 py-2 text-sm"
                   role="status"
                   style={{
-                    background: "rgba(108, 63, 200, 0.08)",
-                    color: "#4B3A9E",
-                    border: "1px solid rgba(108, 63, 200, 0.2)",
+                    background: "color-mix(in srgb, var(--ink) 8%, transparent)",
+                    color: "var(--ink)",
+                    border: "1px solid color-mix(in srgb, var(--ink) 20%, transparent)",
                   }}
                 >
                   {singleLangNotice}
@@ -1152,7 +1152,7 @@ export default function MotsSauvagesPage() {
                 className="rounded-2xl border bg-white p-5 sm:p-6"
                 style={{
                   borderColor: "var(--border)",
-                  boxShadow: "0 2px 16px rgba(31, 18, 53, 0.06)",
+                  boxShadow: "0 2px 16px color-mix(in srgb, var(--ink) 6%, transparent)",
                 }}
               >
                 <div
@@ -1162,7 +1162,7 @@ export default function MotsSauvagesPage() {
                   <p
                     className="text-[var(--foreground)]"
                     style={{
-                      fontFamily: "DM Sans, sans-serif",
+                      fontFamily: "var(--font-sans), sans-serif",
                       fontSize: 16,
                       lineHeight: 1.8,
                     }}
@@ -1194,24 +1194,24 @@ export default function MotsSauvagesPage() {
                           }
                           className="mx-0.5 inline-flex min-h-[32px] min-w-[28px] items-center justify-center rounded-md px-1 py-1 align-baseline font-medium transition-colors"
                           style={{
-                            fontFamily: "DM Sans, sans-serif",
+                            fontFamily: "var(--font-sans), sans-serif",
                             fontSize: 16,
                             lineHeight: 1.4,
-                            color: isPicked ? "#4B3A9E" : "#6C3FC8",
+                            color: isPicked ? "var(--ink)" : "var(--ink)",
                             background: isPicked
                               ? PICKED_WORD_BG
                               : isActive
-                                ? "rgba(108, 63, 200, 0.12)"
+                                ? "color-mix(in srgb, var(--ink) 12%, transparent)"
                                 : "transparent",
                             boxShadow: isActive
-                              ? "0 0 0 2px rgba(108, 63, 200, 0.28)"
+                              ? "0 0 0 2px color-mix(in srgb, var(--ink) 28%, transparent)"
                               : undefined,
                             textDecoration: isPicked
                               ? "underline"
                               : "underline dotted",
                             textDecorationColor: isPicked
-                              ? "rgba(108, 63, 200, 0.6)"
-                              : "rgba(108, 63, 200, 0.45)",
+                              ? "color-mix(in srgb, var(--ink) 60%, transparent)"
+                              : "color-mix(in srgb, var(--ink) 45%, transparent)",
                             textUnderlineOffset: "3px",
                           }}
                           aria-pressed={isPicked}
@@ -1230,7 +1230,7 @@ export default function MotsSauvagesPage() {
               className="hidden lg:flex lg:w-[min(100%,300px)] lg:shrink-0 lg:sticky lg:top-4 lg:max-h-[calc(100vh-2rem)] lg:flex-col rounded-2xl border bg-white p-4"
               style={{
                 borderColor: "var(--border)",
-                boxShadow: "0 2px 16px rgba(31, 18, 53, 0.06)",
+                boxShadow: "0 2px 16px color-mix(in srgb, var(--ink) 6%, transparent)",
               }}
               aria-label="Sélection en cours"
             >
@@ -1259,19 +1259,19 @@ export default function MotsSauvagesPage() {
                   popoverPos.placement === "above"
                     ? "translate(-50%, calc(-100% - 10px))"
                     : "translate(-50%, 10px)",
-                borderColor: "rgba(108, 63, 200, 0.25)",
-                boxShadow: "0 8px 32px rgba(31, 18, 53, 0.14)",
-                fontFamily: "DM Sans, sans-serif",
+                borderColor: "color-mix(in srgb, var(--ink) 25%, transparent)",
+                boxShadow: "0 8px 32px color-mix(in srgb, var(--ink) 14%, transparent)",
+                fontFamily: "var(--font-sans), sans-serif",
               }}
             >
               <span
                 className="pointer-events-none absolute left-1/2 h-2.5 w-2.5 -translate-x-1/2 rotate-45 border bg-white"
                 style={{
                   ...(popoverPos.placement === "above"
-                    ? { bottom: -6, borderColor: "rgba(108, 63, 200, 0.25)" }
+                    ? { bottom: -6, borderColor: "color-mix(in srgb, var(--ink) 25%, transparent)" }
                     : {
                         top: -6,
-                        borderColor: "rgba(108, 63, 200, 0.25)",
+                        borderColor: "color-mix(in srgb, var(--ink) 25%, transparent)",
                       }),
                   borderTop: "none",
                   borderLeft: "none",
@@ -1284,10 +1284,10 @@ export default function MotsSauvagesPage() {
                   <Loader2
                     size={18}
                     className="animate-spin"
-                    color="#6C3FC8"
+                    color="var(--ink)"
                     aria-hidden
                   />
-                  <span style={{ fontSize: 13, color: "#4B3A9E" }}>
+                  <span style={{ fontSize: 13, color: "var(--ink)" }}>
                     Traduction…
                   </span>
                 </div>
@@ -1297,7 +1297,7 @@ export default function MotsSauvagesPage() {
                     style={{
                       fontSize: 15,
                       fontWeight: 600,
-                      color: "#1F1235",
+                      color: "var(--ink)",
                       lineHeight: 1.3,
                     }}
                   >
@@ -1308,7 +1308,7 @@ export default function MotsSauvagesPage() {
                     style={{
                       fontSize: 15,
                       fontWeight: 600,
-                      color: "#6C3FC8",
+                      color: "var(--ink)",
                       lineHeight: 1.4,
                     }}
                   >
@@ -1330,11 +1330,11 @@ export default function MotsSauvagesPage() {
                     <button
                       type="button"
                       onClick={() => removeWordFromSelection(bubble.word)}
-                      className="btn-relief mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition hover:bg-[rgba(108,63,200,0.06)]"
+                      className="btn-relief mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg border px-3 py-2.5 text-sm font-medium transition hover:bg-[color-mix(in_srgb,var(--ink)_6%,transparent)]"
                       style={{
-                        borderColor: "rgba(108, 63, 200, 0.35)",
-                        color: "#6C3FC8",
-                        background: "rgba(108, 63, 200, 0.08)",
+                        borderColor: "color-mix(in srgb, var(--ink) 35%, transparent)",
+                        color: "var(--ink)",
+                        background: "color-mix(in srgb, var(--ink) 8%, transparent)",
                       }}
                     >
                       <Check size={16} strokeWidth={2.5} aria-hidden />
@@ -1345,7 +1345,7 @@ export default function MotsSauvagesPage() {
                       type="button"
                       onClick={addBubbleWordToSelection}
                       className="btn-relief mt-3 inline-flex w-full items-center justify-center gap-1.5 rounded-lg px-3 py-2.5 text-sm font-medium text-white transition hover:brightness-95"
-                      style={{ background: "#6C3FC8" }}
+                      style={{ background: "var(--ink)" }}
                     >
                       <Plus size={16} strokeWidth={2.5} aria-hidden />
                       Ajouter
@@ -1364,7 +1364,7 @@ export default function MotsSauvagesPage() {
           >
             {mobileSelectionOpen && (
               <div
-                className="overflow-hidden rounded-t-2xl border-t border-x bg-white shadow-[0_-8px_32px_rgba(31,18,53,0.12)]"
+                className="overflow-hidden rounded-t-2xl border-t border-x bg-white shadow-[0_-8px_32px_color-mix(in_srgb,var(--ink)_12%,transparent)]"
                 style={{ borderColor: "var(--border)", maxHeight: "min(52vh, 320px)" }}
               >
                 <div className="overflow-y-auto p-4">
@@ -1385,7 +1385,7 @@ export default function MotsSauvagesPage() {
                 borderColor: "var(--border)",
                 boxShadow: mobileSelectionOpen
                   ? undefined
-                  : "0 -4px 20px rgba(31, 18, 53, 0.08)",
+                  : "0 -4px 20px color-mix(in srgb, var(--ink) 8%, transparent)",
               }}
             >
               <button
@@ -1395,11 +1395,11 @@ export default function MotsSauvagesPage() {
                 aria-expanded={mobileSelectionOpen}
               >
                 {mobileSelectionOpen ? (
-                  <ChevronDown size={18} color="#6C3FC8" aria-hidden />
+                  <ChevronDown size={18} color="var(--ink)" aria-hidden />
                 ) : (
-                  <ChevronUp size={18} color="#6C3FC8" aria-hidden />
+                  <ChevronUp size={18} color="var(--ink)" aria-hidden />
                 )}
-                <span className="min-w-0 truncate" style={{ fontSize: 14, fontWeight: 500, color: "#4B3A9E" }}>
+                <span className="min-w-0 truncate" style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>
                   {selectedWords.length} mot{selectedWords.length !== 1 ? "s" : ""} ·{" "}
                   {mobileSelectionOpen ? "Masquer" : "Voir la sélection"}
                 </span>
@@ -1409,7 +1409,7 @@ export default function MotsSauvagesPage() {
                 onClick={() => openAddModal()}
                 disabled={selectedWords.length === 0}
                 className="btn-relief shrink-0 rounded-lg px-3 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
-                style={{ background: "#6C3FC8" }}
+                style={{ background: "var(--ink)" }}
               >
                 Enregistrer →
               </button>

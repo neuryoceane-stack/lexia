@@ -5,13 +5,13 @@ import type { CSSProperties, FocusEvent } from "react";
 import Link from "next/link";
 import { CheckCircle, Users } from "lucide-react";
 
-const V = "#6C3FC8";
+const V = "var(--ink)";
 const GREEN = "#1D9E75";
 const GREEN_LIGHT = "#E1F5EE";
-const FOND = "#F8F7FF";
-const TEXT = "#1A1033";
-const MUTED = "#7C6FA3";
-const V_BORDER = "rgba(108,63,200,0.18)";
+const FOND = "var(--page)";
+const TEXT = "var(--ink)";
+const MUTED = "var(--muted)";
+const V_BORDER = "color-mix(in srgb, var(--ink) 18%, transparent)";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,7 +24,7 @@ const inputStyle: CSSProperties = {
   color: TEXT,
   outline: "none",
   width: "100%",
-  fontFamily: "DM Sans, sans-serif",
+  fontFamily: "var(--font-sans), sans-serif",
 };
 
 function handleFocus(e: FocusEvent<HTMLInputElement>) {
@@ -97,7 +97,7 @@ export default function TeacherWaitlistPage() {
         alignItems: "center",
         justifyContent: "center",
         padding: "24px 16px",
-        fontFamily: "DM Sans, sans-serif",
+        fontFamily: "var(--font-sans), sans-serif",
       }}
     >
       <div
@@ -108,7 +108,7 @@ export default function TeacherWaitlistPage() {
           borderRadius: 16,
           overflow: "hidden",
           border: `1px solid ${V_BORDER}`,
-          boxShadow: "0 8px 40px rgba(108,63,200,0.1)",
+          boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
         }}
       >
         <div style={{ background: V, padding: "28px 24px", textAlign: "center" }}>
@@ -141,7 +141,7 @@ export default function TeacherWaitlistPage() {
           {success || alreadyRegistered ? (
             <div
               style={{
-                background: alreadyRegistered ? "rgba(108,63,200,0.06)" : GREEN_LIGHT,
+                background: alreadyRegistered ? "color-mix(in srgb, var(--ink) 6%, transparent)" : GREEN_LIGHT,
                 borderRadius: 16,
                 padding: "28px 20px",
                 textAlign: "center",
@@ -180,7 +180,7 @@ export default function TeacherWaitlistPage() {
                   textAlign: "center",
                   textDecoration: "none",
                   marginTop: 16,
-                  fontFamily: "DM Sans, sans-serif",
+                  fontFamily: "var(--font-sans), sans-serif",
                 }}
               >
                 Retour à l&apos;accueil
@@ -241,7 +241,7 @@ export default function TeacherWaitlistPage() {
                   fontWeight: 500,
                   cursor: loading ? "default" : "pointer",
                   marginTop: 16,
-                  fontFamily: "DM Sans, sans-serif",
+                  fontFamily: "var(--font-sans), sans-serif",
                   opacity: loading ? 0.5 : 1,
                 }}
               >

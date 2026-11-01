@@ -1,8 +1,8 @@
 import type { TeacherClassListRow } from "@/lib/teacher-classes-list-stats";
 
-export const PAGE_BG = "#F8F7FF";
-export const PRIMARY = "#6C3FC8";
-export const BORDER_TERTIARY = "#E2DCF5";
+export const PAGE_BG = "var(--page)";
+export const PRIMARY = "var(--ink)";
+export const BORDER_TERTIARY = "var(--line)";
 export const GREEN = "#1D9E75";
 export const GOLD = "#F5A623";
 
@@ -26,7 +26,7 @@ export function masteryColors(pct: number): { text: string; fill: string } {
 
 export function badgePalette(index: number): { bg: string; color: string } {
   const palettes = [
-    { bg: "#F0EDF8", color: "#4B3A9E" },
+    { bg: "var(--background-subtle)", color: "var(--ink)" },
     { bg: "#FEF3DC", color: "#A06800" },
     { bg: "#EAF4EF", color: "#1A6645" },
   ] as const;

@@ -1,13 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import { DM_Sans } from "next/font/google";
-
-const dmSans = DM_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500"],
-  display: "swap",
-});
 
 export interface SessionEndScreenProps {
   wordsSeen: number;
@@ -26,10 +19,10 @@ export interface SessionEndScreenProps {
   onHome: () => void;
 }
 
-const VIOLET = "#6C3FC8";
+const VIOLET = "var(--ink)";
 const GOLD = "#F5A623";
 const GREEN = "#1D9E75";
-const BG_PAGE = "#F8F7FF";
+const BG_PAGE = "var(--page)";
 
 const CONFETTI_COLORS = [VIOLET, GOLD, GREEN] as const;
 /** Positions left % (5–95), déterministes pour SSR. */
@@ -54,9 +47,9 @@ function performanceBadge(percent: number): {
   if (percent <= 80) {
     return {
       label: "Super !",
-      bg: "#EDE9FD",
+      bg: "var(--background-subtle)",
       text: VIOLET,
-      border: "#C4B5FD",
+      border: "var(--line)",
     };
   }
   return {
@@ -138,7 +131,7 @@ export default function SessionEndScreen({
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center p-4 ${dmSans.className}`}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-page p-4 font-sans"
       style={{ backgroundColor: BG_PAGE }}
     >
       <div
@@ -233,7 +226,7 @@ export default function SessionEndScreen({
                     style={{
                       fontSize: 48,
                       fontWeight: 500,
-                      color: "#C4B5FD",
+                      color: "var(--ink)",
                       lineHeight: 1.1,
                     }}
                   >
@@ -287,7 +280,7 @@ export default function SessionEndScreen({
                 fontWeight: 500,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "#5a35a8";
+                e.currentTarget.style.backgroundColor = "var(--ink)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = VIOLET;
@@ -310,7 +303,7 @@ export default function SessionEndScreen({
                     fontWeight: 500,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = "#EDE9FD";
+                    e.currentTarget.style.backgroundColor = "var(--background-subtle)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = "transparent";

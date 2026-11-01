@@ -265,7 +265,7 @@ export function RevueImport({
               onClick={() => void handleDirectSave()}
               disabled={items.length === 0 || directSaving}
               className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
-              style={{ background: "#6C3FC8" }}
+              style={{ background: "var(--ink)" }}
             >
               {directSaving ? "Enregistrement…" : "Ajouter à la liste →"}
             </button>
@@ -275,7 +275,7 @@ export function RevueImport({
               onClick={() => setSaveModalOpen(true)}
               disabled={items.length === 0}
               className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
-              style={{ background: "#6C3FC8" }}
+              style={{ background: "var(--ink)" }}
             >
               Enregistrer dans une liste →
             </button>

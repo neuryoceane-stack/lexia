@@ -56,7 +56,7 @@ function formatDateDisplay(value: string): string {
 const PROFILE_HONEYCOMB = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='0.65'%3E%3Cpath d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z'/%3E%3Cpath d='M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/g%3E%3C/svg%3E")`;
 
 const PANEL_SHADOW =
-  "0 4px 24px rgba(108,63,200,.12), 0 1px 3px rgba(108,63,200,.08)";
+  "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)";
 
 type ProfileForm = {
   firstName: string;
@@ -230,24 +230,24 @@ export function InformationPersonnelleClient({
   }
 
   const editInputClass =
-    "w-full text-[13px] text-[#1A1A1A] placeholder:text-[#6B6478] outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-0";
+    "w-full text-[13px] text-[#1A1A1A] placeholder:text-muted outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-0";
 
   return (
-    <div className="mx-auto max-w-lg" style={{ fontFamily: "DM Sans, sans-serif" }}>
+    <div className="mx-auto max-w-lg" style={{ fontFamily: "var(--font-sans), sans-serif" }}>
       <button
         type="button"
         onClick={() => router.push("/app/parametres")}
         className="mb-5 flex items-center gap-1 transition hover:opacity-70"
         style={{
           fontSize: 12,
-          color: "#6B6478",
+          color: "var(--muted)",
           background: "none",
           border: "none",
           cursor: "pointer",
           width: "fit-content",
         }}
       >
-        <ChevronLeft size={14} stroke="#6B6478" />
+        <ChevronLeft size={14} stroke="var(--muted)" />
         Retour
       </button>
 
@@ -259,7 +259,7 @@ export function InformationPersonnelleClient({
           padding: "20px 18px",
           boxShadow: PANEL_SHADOW,
           background:
-            "linear-gradient(150deg, #7B4AD4 0%, #6C3FC8 55%, #5A32A8 100%)",
+            "linear-gradient(150deg, var(--ink) 0%, var(--ink) 55%, var(--ink) 100%)",
         }}
       >
         <div
@@ -337,7 +337,7 @@ export function InformationPersonnelleClient({
       </div>
 
       {!loaded ? (
-        <p style={{ fontSize: 13, color: "#6B6478" }}>Chargement…</p>
+        <p style={{ fontSize: 13, color: "var(--muted)" }}>Chargement…</p>
       ) : (
         <form onSubmit={submit}>
           <SectionCard title="Informations personnelles">
@@ -401,7 +401,7 @@ export function InformationPersonnelleClient({
                     onChange={(v) => update({ city: v })}
                     placeholder="Ta ville"
                     disabled={saving}
-                    className={`${editInputClass} !rounded-[10px] !border !border-[rgba(108,63,200,.25)] !bg-white !px-3 !py-[9px]`}
+                    className={`${editInputClass} !rounded-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !bg-white !px-3 !py-[9px]`}
                   />
                 ) : (
                   <ReadValue value={form.city} placeholder="Ajoute ta ville" />
@@ -418,7 +418,7 @@ export function InformationPersonnelleClient({
                     placeholder="6 12 34 56 78"
                     disabled={saving}
                     className="w-full min-w-0 flex-1"
-                    inputClassName="!rounded-r-[10px] !border !border-[rgba(108,63,200,.25)] !border-l-0 !bg-white !text-[13px] !py-[9px] focus-visible:!ring-2 focus-visible:!ring-[#6C3FC8]"
+                    inputClassName="!rounded-r-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !border-l-0 !bg-white !text-[13px] !py-[9px] focus-visible:!ring-2 focus-visible:!ring-ink"
                   />
                 ) : (
                   <ReadValue value={form.phone} placeholder="Ajoute un numéro" />
@@ -432,7 +432,7 @@ export function InformationPersonnelleClient({
               <FieldValueRow icon={Mail}>
                 <LockedField value={email ?? "—"} />
               </FieldValueRow>
-              <p style={{ fontSize: 11, color: "#6B6478", marginTop: 4, paddingLeft: 38 }}>
+              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, paddingLeft: 38 }}>
                 L&apos;adresse mail ne peut pas être modifiée ici.
               </p>
             </FieldBlock>
@@ -441,7 +441,7 @@ export function InformationPersonnelleClient({
               <FieldValueRow icon={User}>
                 <LockedField value={getRoleLabel(role)} />
               </FieldValueRow>
-              <p style={{ fontSize: 11, color: "#6B6478", marginTop: 4, paddingLeft: 38 }}>
+              <p style={{ fontSize: 11, color: "var(--muted)", marginTop: 4, paddingLeft: 38 }}>
                 Le statut ne peut pas être modifié.
               </p>
             </FieldBlock>
@@ -506,14 +506,14 @@ export function InformationPersonnelleClient({
                 onClick={startEditing}
                 onMouseEnter={() => setPrimaryHover(true)}
                 onMouseLeave={() => setPrimaryHover(false)}
-                className="flex w-full items-center justify-center gap-2 outline-none transition focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+                className="flex w-full items-center justify-center gap-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
                 style={{
                   fontSize: 14,
                   fontWeight: 600,
                   padding: "12px 16px",
                   borderRadius: 12,
                   border: "none",
-                  background: primaryHover ? "#5A32A8" : "#6C3FC8",
+                  background: primaryHover ? "var(--ink)" : "var(--ink)",
                   color: "white",
                   cursor: "pointer",
                 }}
@@ -528,14 +528,14 @@ export function InformationPersonnelleClient({
                   disabled={saving}
                   onMouseEnter={() => setPrimaryHover(true)}
                   onMouseLeave={() => setPrimaryHover(false)}
-                  className="flex w-full items-center justify-center gap-2 outline-none transition focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 disabled:opacity-50"
+                  className="flex w-full items-center justify-center gap-2 outline-none transition focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-50"
                   style={{
                     fontSize: 14,
                     fontWeight: 600,
                     padding: "12px 16px",
                     borderRadius: 12,
                     border: "none",
-                    background: primaryHover ? "#5A32A8" : "#6C3FC8",
+                    background: primaryHover ? "var(--ink)" : "var(--ink)",
                     color: "white",
                     cursor: "pointer",
                   }}
@@ -546,15 +546,15 @@ export function InformationPersonnelleClient({
                 <button
                   type="button"
                   onClick={cancelEditing}
-                  className="flex w-full items-center justify-center outline-none transition hover:bg-[rgba(108,63,200,.04)] focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+                  className="flex w-full items-center justify-center outline-none transition hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)] focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
                   style={{
                     fontSize: 14,
                     fontWeight: 500,
                     padding: "12px 16px",
                     borderRadius: 12,
-                    border: "1px solid rgba(108,63,200,.25)",
+                    border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
                     background: "transparent",
-                    color: "#6B6478",
+                    color: "var(--muted)",
                     cursor: "pointer",
                   }}
                 >
@@ -589,7 +589,7 @@ export function InformationPersonnelleClient({
           <p style={{ fontSize: 12, fontWeight: 600, color: "#E5484D", marginBottom: 4 }}>
             Zone dangereuse
           </p>
-          <p style={{ fontSize: 11, color: "#6B6478", lineHeight: 1.5, marginBottom: 12 }}>
+          <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.5, marginBottom: 12 }}>
             La suppression de ton compte est définitive. Toutes tes listes, progressions et données
             seront perdues.
           </p>
@@ -630,7 +630,7 @@ export function InformationPersonnelleClient({
               borderRadius: 18,
               background: "white",
               boxShadow: PANEL_SHADOW,
-              border: "0.5px solid rgba(108,63,200,.12)",
+              border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -638,7 +638,7 @@ export function InformationPersonnelleClient({
               <h2 style={{ fontSize: 16, fontWeight: 600, color: "#1A1A1A", marginBottom: 8 }}>
                 Supprimer mon compte
               </h2>
-              <p style={{ fontSize: 13, color: "#6B6478", lineHeight: 1.5, marginBottom: 16 }}>
+              <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5, marginBottom: 16 }}>
                 Cette action est irréversible. Toutes tes données seront définitivement supprimées :
                 listes, mots, révisions, progression.
               </p>
@@ -648,7 +648,7 @@ export function InformationPersonnelleClient({
                   style={{
                     fontSize: 12,
                     fontWeight: 500,
-                    color: "#6B6478",
+                    color: "var(--muted)",
                     marginBottom: 5,
                     display: "block",
                   }}
@@ -660,7 +660,7 @@ export function InformationPersonnelleClient({
                   value={deleteConfirmEmail}
                   onChange={(e) => setDeleteConfirmEmail(e.target.value)}
                   placeholder={email ?? ""}
-                  className="w-full outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8]"
+                  className="w-full outline-none focus-visible:ring-2 focus-visible:ring-ink"
                   style={{ ...fieldStyle(true), borderColor: "rgba(229,72,77,.35)" }}
                 />
               </label>
@@ -685,15 +685,15 @@ export function InformationPersonnelleClient({
                   type="button"
                   disabled={deleteStatus === "loading"}
                   onClick={() => setDeleteModalOpen(false)}
-                  className="flex-1 transition hover:bg-[rgba(108,63,200,.04)]"
+                  className="flex-1 transition hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)]"
                   style={{
                     fontSize: 13,
                     fontWeight: 500,
                     padding: 11,
                     borderRadius: 10,
-                    border: "1px solid rgba(108,63,200,.25)",
+                    border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
                     background: "transparent",
-                    color: "#6B6478",
+                    color: "var(--muted)",
                     cursor: "pointer",
                   }}
                 >
@@ -752,8 +752,8 @@ function fieldStyle(editable: boolean): CSSProperties {
     padding: "9px 12px",
     borderRadius: 10,
     width: "100%",
-    border: editable ? "1px solid rgba(108,63,200,.25)" : "1px solid transparent",
-    background: editable ? "white" : "rgba(108,63,200,.04)",
+    border: editable ? "1px solid color-mix(in srgb, var(--ink) 25%, transparent)" : "1px solid transparent",
+    background: editable ? "white" : "color-mix(in srgb, var(--ink) 4%, transparent)",
     outline: "none",
     color: "#1A1A1A",
   };
@@ -765,7 +765,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
       className="mb-3"
       style={{
         background: "white",
-        border: "0.5px solid rgba(108,63,200,.12)",
+        border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
         borderRadius: 12,
         padding: 16,
         boxShadow: PANEL_SHADOW,
@@ -799,14 +799,14 @@ function IconTile({ icon: Icon }: { icon: LucideIcon }) {
         width: 28,
         height: 28,
         borderRadius: 8,
-        background: "rgba(108,63,200,.08)",
+        background: "color-mix(in srgb, var(--ink) 8%, transparent)",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         flexShrink: 0,
       }}
     >
-      <Icon size={16} stroke="#6C3FC8" aria-hidden />
+      <Icon size={16} stroke="var(--ink)" aria-hidden />
     </div>
   );
 }
@@ -822,7 +822,7 @@ function FieldBlock({
 }) {
   return (
     <div className={className}>
-      <p style={{ fontSize: 12, fontWeight: 500, color: "#6B6478", marginBottom: 6 }}>
+      <p style={{ fontSize: 12, fontWeight: 500, color: "var(--muted)", marginBottom: 6 }}>
         {label}
       </p>
       {children}
@@ -845,7 +845,7 @@ function ReadValue({ value, placeholder }: { value?: string; placeholder?: strin
     <div
       style={{
         ...fieldStyle(false),
-        color: empty ? "#6B6478" : "#1A1A1A",
+        color: empty ? "var(--muted)" : "#1A1A1A",
       }}
     >
       {empty ? placeholder ?? "—" : value}
@@ -859,7 +859,7 @@ function LockedField({ value }: { value: string }) {
       <div
         style={{
           ...fieldStyle(false),
-          background: "rgba(108,63,200,.06)",
+          background: "color-mix(in srgb, var(--ink) 6%, transparent)",
           paddingRight: 36,
           cursor: "default",
         }}
@@ -868,7 +868,7 @@ function LockedField({ value }: { value: string }) {
       </div>
       <Lock
         size={14}
-        stroke="#6B6478"
+        stroke="var(--muted)"
         aria-hidden
         style={{
           position: "absolute",
@@ -901,15 +901,15 @@ function ProfileSectionHeader({
           width: 30,
           height: 30,
           borderRadius: 9,
-          background: "rgba(108,63,200,.09)",
+          background: "color-mix(in srgb, var(--ink) 9%, transparent)",
         }}
       >
-        <Icon size={16} stroke="#6C3FC8" aria-hidden />
+        <Icon size={16} stroke="var(--ink)" aria-hidden />
       </div>
       <div>
         <p style={{ fontSize: 15, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>{title}</p>
         {subtitle ? (
-          <p style={{ fontSize: 12, color: "#6B6478", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
         ) : null}
       </div>
     </div>
@@ -950,7 +950,7 @@ function ReferralSection({
       className="mb-3 mt-3"
       style={{
         background: "white",
-        border: "0.5px solid rgba(108,63,200,.12)",
+        border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
         borderRadius: 12,
         padding: 14,
         boxShadow: PANEL_SHADOW,
@@ -968,12 +968,12 @@ function ReferralSection({
           style={{
             height: 40,
             borderRadius: 10,
-            background: "rgba(108,63,200,.06)",
+            background: "color-mix(in srgb, var(--ink) 6%, transparent)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             fontSize: 13,
-            color: "#6B6478",
+            color: "var(--muted)",
           }}
         >
           …
@@ -995,8 +995,8 @@ function ReferralSection({
                 alignItems: "center",
                 width: "fit-content",
                 flexShrink: 0,
-                background: "rgba(108,63,200,.05)",
-                border: "1px solid rgba(108,63,200,.12)",
+                background: "color-mix(in srgb, var(--ink) 5%, transparent)",
+                border: "1px solid color-mix(in srgb, var(--ink) 12%, transparent)",
                 borderRadius: 10,
                 padding: "7px 14px",
                 height: 36,
@@ -1021,15 +1021,15 @@ function ReferralSection({
               type="button"
               onClick={onCopyCode}
               disabled={!referralCode}
-              className="outline-none transition focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              className="outline-none transition focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 ...referralBtnBase,
                 flexShrink: 0,
                 border: copiedCode
                   ? "1px solid rgba(29,158,117,.35)"
-                  : "1px solid rgba(108,63,200,.12)",
+                  : "1px solid color-mix(in srgb, var(--ink) 12%, transparent)",
                 background: copiedCode ? "rgba(29,158,117,.08)" : "transparent",
-                color: copiedCode ? "#1D9E75" : "#6B6478",
+                color: copiedCode ? "#1D9E75" : "var(--muted)",
               }}
             >
               {copiedCode ? (
@@ -1039,7 +1039,7 @@ function ReferralSection({
                 </>
               ) : (
                 <>
-                  <Copy size={13} stroke="#6B6478" />
+                  <Copy size={13} stroke="var(--muted)" />
                   Copier
                 </>
               )}
@@ -1047,11 +1047,11 @@ function ReferralSection({
           </div>
 
           <div className="flex items-center gap-2">
-            <Users size={13} stroke="#6B6478" aria-hidden />
-            <span style={{ fontSize: 12, color: "#6B6478" }}>{referralLabel}</span>
+            <Users size={13} stroke="var(--muted)" aria-hidden />
+            <span style={{ fontSize: 12, color: "var(--muted)" }}>{referralLabel}</span>
           </div>
 
-          <p style={{ fontSize: 11.5, color: "#6B6478", margin: 0, lineHeight: 1.35 }}>
+          <p style={{ fontSize: 11.5, color: "var(--muted)", margin: 0, lineHeight: 1.35 }}>
             Bientôt : des avantages à débloquer en parrainant.
           </p>
         </div>

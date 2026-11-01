@@ -42,8 +42,8 @@ export default function ForgotPasswordPage() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "#f5f3ff",
-      fontFamily: "'DM Sans', Arial, sans-serif",
+      background: "var(--page)",
+      fontFamily: "var(--font-sans), sans-serif",
       padding: "24px",
     }}>
       <div style={{
@@ -52,7 +52,7 @@ export default function ForgotPasswordPage() {
         padding: "40px",
         width: "100%",
         maxWidth: "420px",
-        boxShadow: "0 4px 24px rgba(108, 63, 200, 0.1)",
+        boxShadow: "0 4px 24px color-mix(in srgb, var(--ink) 10%, transparent)",
       }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
           <Image
@@ -62,7 +62,7 @@ export default function ForgotPasswordPage() {
             height={52}
             style={{ objectFit: "contain", display: "block", margin: "0 auto 12px" }}
           />
-          <h1 style={{ color: "#6C3FC8", fontSize: "28px", margin: "0 0 8px" }}>Lexiva</h1>
+          <h1 style={{ color: "var(--ink)", fontSize: "28px", margin: "0 0 8px" }}>Lexiva</h1>
           <h2 style={{ color: "#1a1a1a", fontSize: "20px", fontWeight: 600, margin: 0 }}>
             Mot de passe oublié
           </h2>
@@ -77,7 +77,7 @@ export default function ForgotPasswordPage() {
             <Link href="/login" style={{
               display: "inline-block",
               marginTop: "24px",
-              color: "#6C3FC8",
+              color: "var(--ink)",
               fontWeight: 600,
               textDecoration: "none",
             }}>
@@ -125,7 +125,7 @@ export default function ForgotPasswordPage() {
               style={{
                 width: "100%",
                 padding: "14px",
-                background: status === "loading" ? "#a78bda" : "#6C3FC8",
+                background: status === "loading" ? "var(--ink-soft)" : "var(--ink)",
                 color: "#ffffff",
                 border: "none",
                 borderRadius: "8px",
@@ -139,7 +139,7 @@ export default function ForgotPasswordPage() {
             </button>
 
             <div style={{ textAlign: "center", marginTop: "24px" }}>
-              <Link href="/login" style={{ color: "#6C3FC8", fontWeight: 600, textDecoration: "none", fontSize: "14px" }}>
+              <Link href="/login" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "none", fontSize: "14px" }}>
                 ← Retour à la connexion
               </Link>
             </div>

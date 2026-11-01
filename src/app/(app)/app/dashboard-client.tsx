@@ -89,7 +89,7 @@ export function DashboardClient() {
         ? "Tu progresses — continue comme ça."
         : "Tu es dans le rythme — ne lâche pas.";
 
-  const streakBorderTertiary = "rgba(108, 63, 200, 0.14)";
+  const streakBorderTertiary = "color-mix(in srgb, var(--ink) 14%, transparent)";
 
   return (
     <div className="flex flex-col gap-[10px]">
@@ -261,19 +261,19 @@ export function DashboardClient() {
           className="card-hover flex flex-col gap-2 no-underline"
           style={{
             background: "var(--background-subtle)",
-            border: "0.5px solid #DDD6F5",
+            border: "0.5px solid var(--line)",
             borderRadius: 10,
             padding: "14px 12px",
             cursor: "pointer",
           }}
         >
-          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#DDD6F5" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6C3FC8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "var(--background-subtle)" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
             </svg>
           </div>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Bibliothèque</p>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#6C3FC8", background: "#DDD6F5", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", background: "var(--background-subtle)", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
             {listsCount} liste{listsCount !== 1 ? "s" : ""}
           </span>
         </Link>
