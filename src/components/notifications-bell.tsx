@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { Bell } from "lucide-react";
 
 type NotificationItem = {
   id: string;
@@ -12,28 +13,6 @@ type NotificationItem = {
   feedbackId: string | null;
   createdAt: string;
 };
-
-const bellIconClass =
-  "h-5 w-5 flex-shrink-0 text-slate-600 transition-colors group-hover:text-primary";
-
-function IconBell() {
-  return (
-    <svg
-      className={bellIconClass}
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-      aria-hidden
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-      />
-    </svg>
-  );
-}
 
 export function NotificationsBell() {
   const router = useRouter();
@@ -137,11 +116,12 @@ export function NotificationsBell() {
           setOpen((o) => !o);
           if (!open) fetchNotifications();
         }}
-        className="group btn-relief relative flex h-9 w-9 items-center justify-center rounded-lg text-slate-600 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+        className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[var(--surface)] outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+        style={{ border: "1.5px solid var(--ink)" }}
         aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} non lues)` : ""}`}
         aria-expanded={open}
       >
-        <IconBell />
+        <Bell size={20} strokeWidth={1.8} color="var(--ink)" aria-hidden />
         {unreadCount > 0 && (
           <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
             {unreadCount > 99 ? "99+" : unreadCount}

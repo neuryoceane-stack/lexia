@@ -53,7 +53,7 @@ export function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition hover:scale-105"
+        className="fixed bottom-[92px] right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition hover:scale-105 md:bottom-6"
         style={{ backgroundColor: "var(--ink)", color: "white" }}
         aria-label="Donner un retour"
       >
@@ -62,7 +62,7 @@ export function FeedbackWidget() {
 
       {open && (
         <div
-          className="fixed bottom-20 right-6 z-50 w-80 animate-[feedback-slide-up_0.2s_ease-out]"
+          className="fixed bottom-[152px] right-6 z-50 w-80 animate-[feedback-slide-up_0.2s_ease-out] md:bottom-20"
           role="dialog"
           aria-labelledby="feedback-title"
         >

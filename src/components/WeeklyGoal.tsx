@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, Check, PartyPopper } from "lucide-react";
 
 interface LangProgress {
   language: string | null;
@@ -14,120 +13,103 @@ interface WeeklyData {
   byLanguage: LangProgress[];
 }
 
+const cardStyle = {
+  background: "var(--surface)",
+  borderRadius: 20,
+  border: "1.5px solid var(--line)",
+  padding: 20,
+} as const;
+
 export default function WeeklyGoal() {
   const [data, setData] = useState<WeeklyData | null>(null);
+  const [error, setError] = useState(false);
   const [selectedLang, setSelectedLang] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/weekly-progress")
-      .then((r) => r.json())
-      .then((d: WeeklyData) => setData(d))
-      .catch(() => {});
+    fetch("/api/weekly-progress", { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error("weekly-progress");
+        return r.json() as Promise<WeeklyData>;
+      })
+      .then((d) => {
+        if (!Number.isFinite(Number(d.weeklyGoal)) || Number(d.weeklyGoal) <= 0) {
+          throw new Error("weekly-goal");
+        }
+        setData(d);
+      })
+      .catch(() => setError(true));
   }, []);
 
-  if (!data) return null;
+  if (error) {
+    return (
+      <p role="alert" style={{ ...cardStyle, color: "var(--false-text)", fontSize: 14 }}>
+        L&apos;objectif de la semaine n&apos;a pas pu être chargé.
+      </p>
+    );
+  }
+
+  if (!data) {
+    return <div className="skeleton h-full min-h-[220px]" style={{ borderRadius: 20 }} />;
+  }
 
   const languages = data.byLanguage.filter((l) => l.language && l.count > 0);
-  const hasMultipleLangs = languages.length > 1;
 
   const currentCount =
     selectedLang !== null
       ? (data.byLanguage.find((l) => l.language === selectedLang)?.count ?? 0)
       : data.totalCount;
 
-  const goal = Math.max(1, Number(data.weeklyGoal) || 20);
+  const goal = Number(data.weeklyGoal);
   const progress = Math.min(1, currentCount / goal);
   const isComplete = currentCount >= goal;
   const remaining = Math.max(0, goal - currentCount);
 
-  const midMarker = Math.round(goal / 2);
+  function pillStyle(active: boolean) {
+    return {
+      display: "inline-flex",
+      alignItems: "center",
+      minHeight: 44,
+      padding: "0 14px",
+      borderRadius: 999,
+      border: "1.5px solid var(--ink)",
+      background: active ? "var(--mark)" : "var(--surface)",
+      color: "var(--ink)",
+      fontSize: 14,
+      fontWeight: 500,
+      fontFamily: "var(--font-sans)",
+      cursor: "pointer",
+    } as const;
+  }
 
   return (
-    <div
-      className="flex min-h-0 min-w-0 flex-col gap-[10px]"
-      style={{
-        background: "var(--surface)",
-        borderRadius: 16,
-        border: "1px solid var(--line)",
-        padding: 16,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        className="relative z-[1] flex justify-between gap-2"
-        style={{ alignItems: "flex-start" }}
-      >
-        <div>
-          <p
-            style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: "var(--foreground-muted)",
-              marginBottom: 4,
-            }}
-          >
-            Objectif semaine
-          </p>
-          <p
-            style={{
-              fontFamily: "var(--font-heading)",
-              fontSize: 26,
-              fontWeight: 700,
-              color: "var(--ink)",
-              lineHeight: 1,
-            }}
-          >
-            {currentCount}
-            <span
-              style={{
-                fontFamily: "var(--font-sans)",
-                fontSize: 13,
-                color: "var(--foreground-muted)",
-                fontWeight: 400,
-              }}
-            >
-              {" "}
-              / {goal} mots
-            </span>
-          </p>
-        </div>
-        <div
-          className="flex shrink-0 items-center justify-center"
+    <div className="flex h-full min-h-0 min-w-0 flex-col gap-3" style={cardStyle}>
+      <div>
+        <p
           style={{
-            width: 44,
-            height: 44,
-            background: "var(--surface)",
-            border: "1.5px solid var(--line)",
-            borderRadius: 12,
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--muted)",
+            marginBottom: 6,
           }}
         >
-          <Clock className="h-5 w-5 shrink-0 text-ink" strokeWidth={1.8} />
-        </div>
+          Objectif semaine
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontWeight: 700,
+            color: "var(--ink)",
+            lineHeight: 1,
+          }}
+        >
+          <span style={{ fontSize: 32 }}>{currentCount}</span>
+          <span style={{ fontSize: 18 }}> / {goal} mots</span>
+        </p>
       </div>
 
-      {hasMultipleLangs && (
-        <div
-          className="relative z-[1] flex flex-wrap gap-2"
-          style={{ marginTop: -4 }}
-        >
-          <button
-            type="button"
-            onClick={() => setSelectedLang(null)}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              minHeight: 44,
-              padding: "0 12px",
-              borderRadius: 8,
-              border: "1.5px solid var(--ink)",
-              background: selectedLang === null ? "var(--mark)" : "var(--surface)",
-              color: selectedLang === null ? "var(--ink)" : "var(--muted)",
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
+      {languages.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setSelectedLang(null)} style={pillStyle(selectedLang === null)}>
             Toutes
           </button>
           {languages.map((l) => (
@@ -135,19 +117,7 @@ export default function WeeklyGoal() {
               key={l.language}
               type="button"
               onClick={() => setSelectedLang(l.language)}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                minHeight: 44,
-                padding: "0 12px",
-                borderRadius: 8,
-                border: "1.5px solid var(--ink)",
-                background: selectedLang === l.language ? "var(--mark)" : "var(--surface)",
-                color: selectedLang === l.language ? "var(--ink)" : "var(--muted)",
-                fontSize: 13,
-                fontWeight: 500,
-                cursor: "pointer",
-              }}
+              style={pillStyle(selectedLang === l.language)}
             >
               {l.language} ({l.count})
             </button>
@@ -156,15 +126,15 @@ export default function WeeklyGoal() {
       )}
 
       <div
-        className="relative z-[1]"
         style={{
-          height: 18,
+          height: 12,
           boxSizing: "border-box",
           background: "var(--surface)",
           border: "1.5px solid var(--ink)",
           borderRadius: 999,
           position: "relative",
           overflow: "hidden",
+          marginTop: 4,
         }}
       >
         {progress > 0 && (
@@ -182,43 +152,19 @@ export default function WeeklyGoal() {
         )}
       </div>
 
-      <div
-        className="relative z-[1] flex justify-between"
-        style={{
-          fontSize: 10,
-          color: "var(--foreground-muted)",
-        }}
-      >
-        <span>0</span>
-        <span>{midMarker}</span>
-        <span>{goal}</span>
-      </div>
-
-      <div
-        className="relative z-[1] flex items-center gap-1.5"
+      <p
         style={{
           fontFamily: "var(--font-sans)",
-          fontSize: 13,
+          fontSize: 14,
           color: "var(--muted)",
-          fontWeight: 500,
-          minHeight: 44,
+          fontWeight: 400,
+          marginTop: "auto",
         }}
       >
-        {isComplete ? (
-          <>
-            <PartyPopper className="h-[18px] w-[18px] shrink-0 text-ink" strokeWidth={1.8} aria-hidden />
-            <span>Objectif atteint</span>
-          </>
-        ) : (
-          <>
-            <Check className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} aria-hidden />
-            <span>
-              {remaining} mot{remaining !== 1 ? "s" : ""} restant
-              {remaining !== 1 ? "s" : ""} cette semaine
-            </span>
-          </>
-        )}
-      </div>
+        {isComplete
+          ? "Objectif atteint"
+          : `${remaining} mot${remaining !== 1 ? "s" : ""} restant${remaining !== 1 ? "s" : ""} cette semaine`}
+      </p>
     </div>
   );
 }

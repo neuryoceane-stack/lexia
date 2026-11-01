@@ -117,6 +117,18 @@ h3,
   box-decoration-break: clone;
 }
 
+/* Surligneur de contenu : bande jaune derrière le bas des mots, texte encre au-dessus. */
+.home-mark {
+  padding-inline: 0.12em;
+  background-image: linear-gradient(var(--mark), var(--mark));
+  background-repeat: no-repeat;
+  background-size: 100% 0.62em;
+  background-position: 0 82%;
+  border-radius: 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
 /* Cartes Évaluation (révision) : fonds or et vert historiques, laissés pour D2 */
 .card-dictee-bg {
   background: #FEF8EC;
