@@ -161,46 +161,46 @@ function ShopContent() {
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{
-              background: "rgba(255,255,255,0.2)", borderRadius: 12,
+              background: "color-mix(in srgb, var(--surface) 20%, transparent)", borderRadius: 12,
               width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
             }}>
               <ShoppingBag size={22} color="white" />
             </div>
             <div>
-              <div style={{ color: "white", fontWeight: 500, fontSize: 18 }}>Lexiva Shop</div>
-              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 13 }}>
+              <div style={{ color: "var(--surface)", fontWeight: 500, fontSize: 18 }}>Lexiva Shop</div>
+              <div style={{ color: "color-mix(in srgb, var(--surface) 75%, transparent)", fontSize: 13 }}>
                 Packs thématiques prêts à réviser — 60 mots + 20 expressions par pack.
               </div>
             </div>
           </div>
           {ownedCount > 0 && (
             <div style={{
-              background: "rgba(255,255,255,0.2)", borderRadius: 12,
+              background: "color-mix(in srgb, var(--surface) 20%, transparent)", borderRadius: 12,
               padding: "8px 14px", textAlign: "center", flexShrink: 0,
             }}>
-              <div style={{ color: "white", fontWeight: 500, fontSize: 20 }}>{ownedCount}</div>
-              <div style={{ color: "rgba(255,255,255,0.75)", fontSize: 11 }}>packs achetés</div>
+              <div style={{ color: "var(--surface)", fontWeight: 500, fontSize: 20 }}>{ownedCount}</div>
+              <div style={{ color: "color-mix(in srgb, var(--surface) 75%, transparent)", fontSize: 11 }}>packs achetés</div>
             </div>
           )}
         </div>
 
         {/* Bandeau Bundle */}
         <div style={{
-          background: "white", borderRadius: 16, padding: "16px 20px",
+          background: "var(--surface)", borderRadius: 16, padding: "16px 20px",
           border: "1.5px solid var(--line)", marginBottom: 20,
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <div style={{ fontWeight: 500, fontSize: 15, color: "#1a1a1a" }}>
+            <div style={{ fontWeight: 500, fontSize: 15, color: "var(--ink)" }}>
               Bundle — 5 packs au choix
             </div>
             <div style={{
-              background: "#F5A623", borderRadius: 20, padding: "3px 10px",
-              fontSize: 11, fontWeight: 500, color: "white",
+              background: "var(--mark)", borderRadius: 20, padding: "3px 10px",
+              fontSize: 11, fontWeight: 500, color: "var(--ink)",
             }}>
               Meilleure offre
             </div>
           </div>
-          <div style={{ fontSize: 13, color: "#666", marginBottom: 10 }}>
+          <div style={{ fontSize: 13, color: "var(--muted)", marginBottom: 10 }}>
             Choisis 5 packs thématiques dans n'importe quelle langue et économise 4€.
           </div>
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
@@ -213,12 +213,12 @@ function ShopContent() {
           </div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-              <span style={{ fontSize: 22, fontWeight: 500, color: "#1a1a1a" }}>16€</span>
-              <span style={{ fontSize: 13, color: "#999", textDecoration: "line-through" }}>20€</span>
-              <span style={{ fontSize: 12, color: "#1D9E75", fontWeight: 500 }}>-20%</span>
+              <span style={{ fontSize: 22, fontWeight: 500, color: "var(--ink)" }}>16€</span>
+              <span style={{ fontSize: 13, color: "var(--muted)", textDecoration: "line-through" }}>20€</span>
+              <span style={{ fontSize: 12, color: "var(--ink)", fontWeight: 500 }}>-20%</span>
             </div>
             <button style={{
-              background: "var(--ink)", color: "white", border: "none",
+              background: "var(--ink)", color: "var(--surface)", border: "none",
               borderRadius: 20, padding: "10px 20px", fontSize: 14,
               fontWeight: 500, cursor: "pointer",
             }}>
@@ -232,7 +232,7 @@ function ShopContent() {
           {LANGUAGES.map((lang) => (
             <button key={lang.code} onClick={() => setSelectedLang(lang.code)} style={{
               background: selectedLang === lang.code ? "var(--ink)" : "white",
-              color: selectedLang === lang.code ? "white" : "#444",
+              color: selectedLang === lang.code ? "white" : "var(--muted)",
               border: "1.5px solid", borderColor: selectedLang === lang.code ? "var(--ink)" : "var(--line)",
               borderRadius: 20, padding: "6px 14px", fontSize: 13,
               fontWeight: 400, cursor: "pointer", whiteSpace: "nowrap",
@@ -245,7 +245,7 @@ function ShopContent() {
         </div>
 
         {/* Titre section */}
-        <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "#888", textTransform: "uppercase", marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "var(--muted)", textTransform: "uppercase", marginBottom: 12 }}>
           Packs thématiques — 4€ chacun
         </div>
 
@@ -253,23 +253,23 @@ function ShopContent() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           {filtered.map((pack) => (
             <div key={pack.id} onClick={() => setSelectedPack(pack)} style={{
-              background: "white", borderRadius: 16, padding: "16px",
+              background: "var(--surface)", borderRadius: 16, padding: "16px",
               border: "1.5px solid var(--line)", cursor: "pointer",
               position: "relative", transition: "box-shadow 0.15s",
             }}>
               {pack.owned && (
                 <div style={{
                   position: "absolute", top: 12, right: 12,
-                  fontSize: 11, fontWeight: 500, color: "#1D9E75",
+                  fontSize: 11, fontWeight: 500, color: "var(--ink)",
                 }}>
                   Possédé ✓
                 </div>
               )}
               <div style={{ fontSize: 28, marginBottom: 8 }}>{pack.emoji}</div>
-              <div style={{ fontWeight: 500, fontSize: 14, color: "#1a1a1a", marginBottom: 4 }}>
+              <div style={{ fontWeight: 500, fontSize: 14, color: "var(--ink)", marginBottom: 4 }}>
                 {pack.title}
               </div>
-              <div style={{ fontSize: 12, color: "#888", marginBottom: 8 }}>
+              <div style={{ fontSize: 12, color: "var(--muted)", marginBottom: 8 }}>
                 {pack.wordCount} mots · {pack.expressionCount} expressions
               </div>
               <div style={{ marginBottom: 12 }}>
@@ -282,13 +282,13 @@ function ShopContent() {
               </div>
               {pack.owned ? (
                 <div>
-                  <div style={{ fontSize: 13, fontWeight: 500, color: "#1D9E75", marginBottom: 8 }}>
+                  <div style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)", marginBottom: 8 }}>
                     Dans ta bibliothèque
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); router.push("/app/familles"); }}
                     style={{
-                      width: "100%", background: "#1D9E75", color: "white",
+                      width: "100%", background: "var(--ink)", color: "var(--surface)",
                       border: "none", borderRadius: 20, padding: "8px 0",
                       fontSize: 13, fontWeight: 500, cursor: "pointer",
                     }}>
@@ -298,13 +298,13 @@ function ShopContent() {
               ) : (
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div>
-                    <div style={{ fontWeight: 500, fontSize: 15, color: "#1a1a1a" }}>4€</div>
-                    <div style={{ fontSize: 11, color: "#888" }}>{pack.wordCount + pack.expressionCount} contenus</div>
+                    <div style={{ fontWeight: 500, fontSize: 15, color: "var(--ink)" }}>4€</div>
+                    <div style={{ fontSize: 11, color: "var(--muted)" }}>{pack.wordCount + pack.expressionCount} contenus</div>
                   </div>
                   <button
                     onClick={(e) => { e.stopPropagation(); handleBuy(pack); }}
                     style={{
-                      background: "var(--ink)", color: "white", border: "none",
+                      background: "var(--ink)", color: "var(--surface)", border: "none",
                       borderRadius: 20, padding: "8px 16px",
                       fontSize: 13, fontWeight: 500, cursor: "pointer",
                     }}>
@@ -322,14 +322,14 @@ function ShopContent() {
         <div
           onClick={() => setSelectedPack(null)}
           style={{
-            position: "fixed", inset: 0, background: "rgba(0,0,0,0.45)",
+            position: "fixed", inset: 0, background: "color-mix(in srgb, var(--ink) 45%, transparent)",
             display: "flex", alignItems: "flex-end", justifyContent: "center",
             zIndex: 50, padding: "0 0 0 0",
           }}>
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: "white", borderRadius: "20px 20px 0 0",
+              background: "var(--surface)", borderRadius: "20px 20px 0 0",
               width: "100%", maxWidth: 600, maxHeight: "90vh",
               overflowY: "auto",
             }}>
@@ -338,18 +338,18 @@ function ShopContent() {
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{
-                    background: "rgba(255,255,255,0.2)", borderRadius: 12,
+                    background: "color-mix(in srgb, var(--surface) 20%, transparent)", borderRadius: 12,
                     width: 44, height: 44, display: "flex", alignItems: "center",
                     justifyContent: "center", fontSize: 22,
                   }}>
                     {selectedPack.emoji}
                   </div>
-                  <div style={{ color: "white", fontWeight: 500, fontSize: 18 }}>
+                  <div style={{ color: "var(--surface)", fontWeight: 500, fontSize: 18 }}>
                     {selectedPack.title}
                   </div>
                 </div>
                 <button onClick={() => setSelectedPack(null)} style={{
-                  background: "rgba(255,255,255,0.2)", border: "none", borderRadius: 20,
+                  background: "color-mix(in srgb, var(--surface) 20%, transparent)", border: "none", borderRadius: 20,
                   width: 32, height: 32, cursor: "pointer",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
@@ -363,8 +363,8 @@ function ShopContent() {
                   `💬 ${selectedPack.expressionCount} expressions`,
                 ].map((pill) => (
                   <span key={pill} style={{
-                    background: "rgba(255,255,255,0.2)", borderRadius: 20,
-                    padding: "4px 10px", fontSize: 12, color: "white",
+                    background: "color-mix(in srgb, var(--surface) 20%, transparent)", borderRadius: 20,
+                    padding: "4px 10px", fontSize: 12, color: "var(--surface)",
                   }}>{pill}</span>
                 ))}
               </div>
@@ -385,8 +385,8 @@ function ShopContent() {
                     background: "var(--page)", borderRadius: 12, padding: "12px",
                     textAlign: "center",
                   }}>
-                    <div style={{ fontWeight: 500, fontSize: 20, color: "#1a1a1a" }}>{stat.value}</div>
-                    <div style={{ fontSize: 12, color: "#888" }}>{stat.label}</div>
+                    <div style={{ fontWeight: 500, fontSize: 20, color: "var(--ink)" }}>{stat.value}</div>
+                    <div style={{ fontSize: 12, color: "var(--muted)" }}>{stat.label}</div>
                   </div>
                 ))}
               </div>
@@ -394,7 +394,7 @@ function ShopContent() {
               {/* Aperçu mots */}
               {previewWords.length > 0 && (
                 <div style={{ marginBottom: 20 }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "#888", textTransform: "uppercase", marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "var(--muted)", textTransform: "uppercase", marginBottom: 10 }}>
                     Aperçu des mots
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
@@ -405,8 +405,8 @@ function ShopContent() {
                         filter: i >= 6 ? "blur(4px)" : "none",
                         userSelect: i >= 6 ? "none" : "auto",
                       }}>
-                        <div style={{ fontWeight: 500, fontSize: 13, color: "#1a1a1a" }}>{w.term}</div>
-                        <div style={{ fontSize: 12, color: "#888" }}>{w.definition}</div>
+                        <div style={{ fontWeight: 500, fontSize: 13, color: "var(--ink)" }}>{w.term}</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{w.definition}</div>
                       </div>
                     ))}
                   </div>
@@ -421,7 +421,7 @@ function ShopContent() {
               {/* Aperçu expressions */}
               {previewExpressions.length > 0 && (
                 <div style={{ marginBottom: 24 }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "#888", textTransform: "uppercase", marginBottom: 10 }}>
+                  <div style={{ fontSize: 11, fontWeight: 500, letterSpacing: "0.06em", color: "var(--muted)", textTransform: "uppercase", marginBottom: 10 }}>
                     Aperçu des expressions
                   </div>
                   {previewExpressions.map((w, i) => (
@@ -436,8 +436,8 @@ function ShopContent() {
                         background: "var(--ink)", flexShrink: 0, marginTop: 5,
                       }} />
                       <div>
-                        <div style={{ fontWeight: 500, fontSize: 13, color: "#1a1a1a" }}>{w.term}</div>
-                        <div style={{ fontSize: 12, color: "#888" }}>{w.definition}</div>
+                        <div style={{ fontWeight: 500, fontSize: 13, color: "var(--ink)" }}>{w.term}</div>
+                        <div style={{ fontSize: 12, color: "var(--muted)" }}>{w.definition}</div>
                       </div>
                     </div>
                   ))}
@@ -456,10 +456,10 @@ function ShopContent() {
                 marginBottom: 12,
               }}>
                 <div>
-                  <div style={{ fontWeight: 500, fontSize: 18, color: "#1a1a1a" }}>4€</div>
-                  <div style={{ fontSize: 12, color: "#888" }}>Accès illimité · dans ta bibliothèque</div>
+                  <div style={{ fontWeight: 500, fontSize: 18, color: "var(--ink)" }}>4€</div>
+                  <div style={{ fontSize: 12, color: "var(--muted)" }}>Accès illimité · dans ta bibliothèque</div>
                 </div>
-                <div style={{ fontSize: 12, color: "#888", textAlign: "right" }}>
+                <div style={{ fontSize: 12, color: "var(--muted)", textAlign: "right" }}>
                   Paiement sécurisé<br />via Stripe
                 </div>
               </div>
@@ -467,7 +467,7 @@ function ShopContent() {
                 <button
                   onClick={() => router.push("/app/familles")}
                   style={{
-                    width: "100%", background: "#1D9E75", color: "white",
+                    width: "100%", background: "var(--ink)", color: "var(--surface)",
                     border: "none", borderRadius: 20, padding: "14px 0",
                     fontSize: 15, fontWeight: 500, cursor: "pointer",
                   }}>
@@ -478,7 +478,7 @@ function ShopContent() {
                   onClick={() => handleBuy(selectedPack)}
                   disabled={loading}
                   style={{
-                    width: "100%", background: "var(--ink)", color: "white",
+                    width: "100%", background: "var(--ink)", color: "var(--surface)",
                     border: "none", borderRadius: 20, padding: "14px 0",
                     fontSize: 15, fontWeight: 500, cursor: "pointer",
                     opacity: loading ? 0.7 : 1,
@@ -517,7 +517,7 @@ function ShopComingSoon() {
         style={{
           width: "100%",
           maxWidth: 460,
-          background: "white",
+          background: "var(--surface)",
           borderRadius: 16,
           border: "1px solid color-mix(in srgb, var(--ink) 18%, transparent)",
           boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
@@ -532,7 +532,7 @@ function ShopComingSoon() {
                 width: 76,
                 height: 76,
                 borderRadius: 20,
-                background: "#EEEDFE",
+                background: "var(--surface)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -545,8 +545,8 @@ function ShopComingSoon() {
                 position: "absolute",
                 top: -8,
                 right: -14,
-                background: "#F5A623",
-                color: "white",
+                background: "var(--mark)",
+                color: "var(--ink)",
                 fontSize: 11,
                 fontWeight: 500,
                 borderRadius: 12,
@@ -558,10 +558,10 @@ function ShopComingSoon() {
           </div>
         </div>
 
-        <p style={{ fontSize: 22, fontWeight: 500, color: "#2C2C2A", marginBottom: 12 }}>
+        <p style={{ fontSize: 22, fontWeight: 500, color: "var(--ink)", marginBottom: 12 }}>
           Le Lexi Shop arrive bientôt
         </p>
-        <p style={{ fontSize: 15, fontWeight: 400, color: "#6b6b6b", lineHeight: 1.6, marginBottom: 28 }}>
+        <p style={{ fontSize: 15, fontWeight: 400, color: "var(--muted)", lineHeight: 1.6, marginBottom: 28 }}>
           Des listes de vocabulaire prêtes à réviser, conçues par des experts :
           philosophie, littérature, prépa, et bien plus. Prépare tes révisions, la
           boutique ouvre très prochainement.
@@ -570,8 +570,8 @@ function ShopComingSoon() {
         <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 32, textAlign: "left" }}>
           {ARGUMENTS.map((arg) => (
             <div key={arg} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <CheckCircle size={18} color="#1D9E75" style={{ flexShrink: 0 }} />
-              <span style={{ fontSize: 14, fontWeight: 400, color: "#2C2C2A" }}>{arg}</span>
+              <CheckCircle size={18} color="var(--ink)" style={{ flexShrink: 0 }} />
+              <span style={{ fontSize: 14, fontWeight: 400, color: "var(--ink)" }}>{arg}</span>
             </div>
           ))}
         </div>
@@ -586,7 +586,7 @@ function ShopComingSoon() {
             height: 50,
             borderRadius: 20,
             background: "var(--ink)",
-            color: "white",
+            color: "var(--surface)",
             fontSize: 14,
             fontWeight: 500,
             textDecoration: "none",

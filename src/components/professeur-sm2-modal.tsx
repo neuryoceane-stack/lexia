@@ -51,19 +51,19 @@ function ProfSvg({ size = 48 }: { size?: number }) {
       <rect x="10" y="34" width="8" height="4" rx="2" fill="var(--ink)" />
       <rect x="46" y="32" width="12" height="3" rx="1.5" fill="var(--ink)" transform="rotate(-30 46 32)" />
       {/* Baguette */}
-      <rect x="52" y="22" width="2.5" height="16" rx="1" fill="#F5A623" transform="rotate(-30 53 30)" />
-      <circle cx="56" cy="19" r="3" fill="#F5A623" opacity="0.7" />
+      <rect x="52" y="22" width="2.5" height="16" rx="1" fill="var(--mark)" transform="rotate(-30 53 30)" />
+      <circle cx="56" cy="19" r="3" fill="var(--mark)" opacity="0.7" />
       {/* Tête */}
-      <circle cx="32" cy="22" r="13" fill="#F5DEB3" />
+      <circle cx="32" cy="22" r="13" fill="var(--mark)" />
       {/* Yeux */}
-      <circle cx="27" cy="20" r="2" fill="#1a1a1a" />
-      <circle cx="37" cy="20" r="2" fill="#1a1a1a" />
+      <circle cx="27" cy="20" r="2" fill="var(--ink)" />
+      <circle cx="37" cy="20" r="2" fill="var(--ink)" />
       {/* Bouche */}
-      <path d="M28 26 Q32 30 36 26" stroke="#1a1a1a" strokeWidth="1.5" fill="none" strokeLinecap="round" />
+      <path d="M28 26 Q32 30 36 26" stroke="var(--ink)" strokeWidth="1.5" fill="none" strokeLinecap="round" />
       {/* Toque */}
-      <rect x="20" y="8" width="24" height="6" rx="2" fill="#F5A623" />
-      <rect x="24" y="4" width="16" height="6" rx="2" fill="#F5A623" />
-      <rect x="28" y="2" width="8" height="4" rx="1" fill="#F5A623" />
+      <rect x="20" y="8" width="24" height="6" rx="2" fill="var(--mark)" />
+      <rect x="24" y="4" width="16" height="6" rx="2" fill="var(--mark)" />
+      <rect x="28" y="2" width="8" height="4" rx="1" fill="var(--mark)" />
     </svg>
   );
 }
@@ -144,7 +144,7 @@ function AnimatedChart({ play }: { play: boolean }) {
       ))}
 
       {/* Courbe oubli */}
-      <path ref={forgetRef} d={FORGET_PATH} fill="none" stroke="#E24B4A" strokeWidth="2.5" strokeLinecap="round" />
+      <path ref={forgetRef} d={FORGET_PATH} fill="none" stroke="var(--false-sign)" strokeWidth="2.5" strokeLinecap="round" />
 
       {/* Courbe Lexiva */}
       <path ref={lexivaRef} d={LEXIVA_PATH} fill="none" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" />
@@ -159,7 +159,7 @@ function AnimatedChart({ play }: { play: boolean }) {
       ))}
 
       {/* Légende */}
-      <circle cx={PAD.left + 4} cy={CH - 7} r="3" fill="#E24B4A" />
+      <circle cx={PAD.left + 4} cy={CH - 7} r="3" fill="var(--false-sign)" />
       <text x={PAD.left + 12} y={CH - 4} fill="var(--foreground-muted)" fontSize="8">Oubli naturel</text>
       <circle cx={PAD.left + 90} cy={CH - 7} r="3" fill="var(--ink)" />
       <text x={PAD.left + 98} y={CH - 4} fill="var(--foreground-muted)" fontSize="8">Avec Lexiva</text>
@@ -219,10 +219,10 @@ export function ProfesseurSM2Modal({
         >
           <ProfSvg size={52} />
           <div className="min-w-0 flex-1">
-            <p style={{ color: "white", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>
+            <p style={{ color: "var(--surface)", fontSize: 16, fontWeight: 500, marginBottom: 2 }}>
               Professeur SM-2
             </p>
-            <p style={{ color: "rgba(255,255,255,0.75)", fontSize: 12 }}>
+            <p style={{ color: "color-mix(in srgb, var(--surface) 75%, transparent)", fontSize: 12 }}>
               L&apos;algorithme qui connaît ton cerveau mieux que toi
             </p>
           </div>
@@ -330,7 +330,7 @@ export function ProfesseurSM2Modal({
                 borderRadius: 10,
                 border: "none",
                 background: "var(--ink)",
-                color: "white",
+                color: "var(--surface)",
                 cursor: "pointer",
               }}
             >

@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function CgvPage() {
   return (
     <>
-      <div className="mb-8 rounded-xl border border-[#F5A623]/40 bg-[#FEF8EC] px-5 py-4 text-sm leading-relaxed text-ink">
+      <div className="mb-8 rounded-xl border border-line/40 bg-surface px-5 py-4 text-sm leading-relaxed text-ink">
         <ARemplir>à faire relire par un juriste avant mise en production</ARemplir>
       </div>
 

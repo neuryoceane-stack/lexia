@@ -9,7 +9,7 @@ function FlashcardIcon() {
       height="22"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="white"
+      stroke="var(--surface)"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -29,7 +29,7 @@ function PenIcon() {
       height="22"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="white"
+      stroke="var(--ink)"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -48,7 +48,7 @@ function MicIcon() {
       height="22"
       viewBox="0 0 24 24"
       fill="none"
-      stroke="white"
+      stroke="var(--muted)"
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
@@ -165,7 +165,7 @@ export function EvaluationLanding() {
               className="inline-flex items-center gap-1.5"
               style={{
                 background: "var(--ink)",
-                color: "white",
+                color: "var(--surface)",
                 borderRadius: 20,
                 padding: "8px 16px",
                 fontSize: 12,
@@ -173,7 +173,7 @@ export function EvaluationLanding() {
               }}
             >
               Commencer
-              <ArrowIcon color="white" />
+              <ArrowIcon color="var(--surface)" />
             </span>
             <span
               className="flex items-center justify-center"
@@ -209,15 +209,15 @@ export function EvaluationLanding() {
           href="/app/revision/dictee"
           className="card-dictee-bg relative flex flex-col overflow-hidden no-underline card-hover"
           style={{
-            border: "1.5px solid #F5D08A",
+            border: "1.5px solid var(--line)",
             borderRadius: 16,
             padding: "20px 16px 16px",
           }}
           onMouseEnter={(e) =>
-            (e.currentTarget.style.borderColor = "#F5A623")
+            (e.currentTarget.style.borderColor = "var(--ink)")
           }
           onMouseLeave={(e) =>
-            (e.currentTarget.style.borderColor = "#F5D08A")
+            (e.currentTarget.style.borderColor = "var(--line)")
           }
         >
           <div
@@ -226,7 +226,7 @@ export function EvaluationLanding() {
               width: 48,
               height: 48,
               borderRadius: "50%",
-              background: "#F5A623",
+              background: "var(--mark)",
             }}
           >
             <PenIcon />
@@ -239,8 +239,8 @@ export function EvaluationLanding() {
                 style={{
                   fontSize: 10,
                   fontWeight: 500,
-                  color: "#A06800",
-                  background: "#FAE5B0",
+                  color: "var(--ink)",
+                  background: "var(--mark)",
                   borderRadius: 8,
                   padding: "2px 7px",
                 }}
@@ -266,8 +266,8 @@ export function EvaluationLanding() {
             <span
               className="inline-flex items-center gap-1.5"
               style={{
-                background: "#F5A623",
-                color: "white",
+                background: "var(--ink)",
+                color: "var(--surface)",
                 borderRadius: 20,
                 padding: "8px 16px",
                 fontSize: 12,
@@ -275,7 +275,7 @@ export function EvaluationLanding() {
               }}
             >
               Commencer
-              <ArrowIcon color="white" />
+              <ArrowIcon color="var(--surface)" />
             </span>
             <span
               className="flex items-center justify-center"
@@ -283,10 +283,10 @@ export function EvaluationLanding() {
                 width: 28,
                 height: 28,
                 borderRadius: "50%",
-                background: "#FAE5B0",
+                background: "var(--mark)",
               }}
             >
-              <ArrowIcon color="#C47D0A" />
+              <ArrowIcon color="var(--ink)" />
             </span>
           </div>
 
@@ -298,7 +298,7 @@ export function EvaluationLanding() {
               width: 70,
               height: 70,
               borderRadius: "50%",
-              background: "#F5A623",
+              background: "var(--ink)",
               opacity: 0.1,
               pointerEvents: "none",
             }}
@@ -309,10 +309,10 @@ export function EvaluationLanding() {
         <div
           className="card-prononciation-bg relative flex flex-col overflow-hidden"
           style={{
-            border: "0.5px solid #6EE7B7",
+            border: "1.5px solid var(--line)",
             borderRadius: 16,
             padding: "20px 16px 16px",
-            opacity: 0.7,
+            opacity: 0.55,
             cursor: "default",
           }}
         >
@@ -324,8 +324,9 @@ export function EvaluationLanding() {
               right: 12,
               fontSize: 10,
               fontWeight: 500,
-              color: "#1A6645",
-              background: "#C3E6D6",
+              color: "var(--muted)",
+              background: "var(--surface)",
+              border: "1px solid var(--line)",
               borderRadius: 100,
               padding: "2px 8px",
             }}
@@ -339,8 +340,8 @@ export function EvaluationLanding() {
               width: 48,
               height: 48,
               borderRadius: "50%",
-              background: "var(--background-subtle)",
-              border: "0.5px solid var(--border)",
+              background: "var(--surface)",
+              border: "1.5px solid var(--line)",
             }}
           >
             <MicIcon />

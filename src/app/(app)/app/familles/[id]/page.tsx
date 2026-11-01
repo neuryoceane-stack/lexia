@@ -40,19 +40,19 @@ export default async function FamilleDetailPage({
     <div>
       <BackLink href="/app/familles">Retour à la bibliothèque</BackLink>
       <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-slate-800">
+        <h1 className="text-2xl font-semibold text-ink">
           {listesList.length === 0 ? "Nouvelle liste" : "Tes listes"}
         </h1>
         <ListesClient familyId={familyId} />
       </div>
-      <p className="mb-6 text-slate-600">
+      <p className="mb-6 text-muted">
         {listesList.length === 0
           ? "Ajoute tes mots à la main, depuis un PDF ou une image."
           : "Choisis une liste pour la consulter ou la modifier."}
       </p>
       {listesList.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-8 text-center">
-          <p className="text-slate-600">
+        <div className="rounded-xl border border-dashed border-line bg-surface p-8 text-center">
+          <p className="text-muted">
             Aucun mot pour l&apos;instant. Commence par ajouter du vocabulaire.
           </p>
         </div>
@@ -62,12 +62,12 @@ export default async function FamilleDetailPage({
             <li key={list.id}>
               <Link
                 href={`/app/familles/${familyId}/listes/${list.id}`}
-                className="block rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition hover:border-primary hover:shadow"
+                className="block rounded-xl border border-line bg-surface p-4 shadow-sm transition hover:border-primary hover:shadow"
               >
-                <span className="font-medium text-slate-800">
+                <span className="font-medium text-ink">
                   {list.name}
                 </span>
-                <span className="mt-1 block text-xs text-slate-500">
+                <span className="mt-1 block text-xs text-muted">
                   {list.source === "manual"
                     ? "Manuel"
                     : list.source === "pdf"

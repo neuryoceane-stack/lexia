@@ -31,7 +31,7 @@ export function LanguageOnboardingCard({
         style={{
           maxWidth: 440,
           maxHeight: "min(92dvh, 720px)",
-          background: "#FFFFFF",
+          background: "var(--surface)",
           borderRadius: 16,
           border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
           boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
@@ -47,7 +47,7 @@ export function LanguageOnboardingCard({
             width: 52,
             height: 52,
             borderRadius: 14,
-            background: "#EEEDFE",
+            background: "var(--surface)",
           }}
           aria-hidden
         >
@@ -82,7 +82,7 @@ export function LanguageOnboardingCard({
 
         {error && (
           <p
-            className="mb-4 shrink-0 text-left text-sm text-red-600"
+            className="mb-4 shrink-0 text-left text-sm text-false-text"
             role="alert"
             style={{ fontSize: 13 }}
           >
@@ -161,7 +161,7 @@ export function LanguageOnboardingCard({
                       border: isSelected
                         ? "2px solid var(--ink)"
                         : "1.5px solid var(--border)",
-                      background: isSelected ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "#FFFFFF",
+                      background: isSelected ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "var(--surface)",
                       cursor: "pointer",
                     }}
                     onMouseEnter={(e) => {
@@ -172,7 +172,7 @@ export function LanguageOnboardingCard({
                     }}
                     onMouseLeave={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.background = "#FFFFFF";
+                        e.currentTarget.style.background = "var(--surface)";
                         e.currentTarget.style.borderColor = "var(--border)";
                       }
                     }}
@@ -190,7 +190,7 @@ export function LanguageOnboardingCard({
                         }}
                         aria-hidden
                       >
-                        <Check size={11} strokeWidth={3} color="#FFFFFF" />
+                        <Check size={11} strokeWidth={3} color="var(--surface)" />
                       </span>
                     )}
                     <FlagDisplay langCode={opt.value} size={28} />
@@ -222,7 +222,7 @@ export function LanguageOnboardingCard({
           className="w-full shrink-0 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           style={{
             background: "var(--ink)",
-            color: "#FFFFFF",
+            color: "var(--surface)",
             borderRadius: 10,
             padding: "13px 16px",
             fontSize: 14,

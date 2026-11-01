@@ -102,7 +102,7 @@ export function DashboardClient() {
           className="relative flex min-h-0 min-w-0 flex-col overflow-hidden"
           style={{
             gap: 10,
-            background: "#FFFFFF",
+            background: "var(--surface)",
             borderRadius: 14,
             border: `0.5px solid ${streakBorderTertiary}`,
             padding: 16,
@@ -117,7 +117,7 @@ export function DashboardClient() {
               width: 70,
               height: 70,
               borderRadius: "50%",
-              background: "#F5A623",
+              background: "var(--ink)",
               opacity: 0.07,
             }}
           />
@@ -131,7 +131,7 @@ export function DashboardClient() {
                 style={{
                   fontSize: 42,
                   fontWeight: 500,
-                  color: "#F5A623",
+                  color: "var(--ink)",
                   lineHeight: 1,
                 }}
               >
@@ -180,7 +180,7 @@ export function DashboardClient() {
             }}
             className="relative z-[1] flex cursor-pointer items-center justify-between no-underline transition hover:brightness-95"
             style={{
-              background: "#F5A623",
+              background: "var(--ink)",
               borderRadius: 10,
               padding: "8px 12px",
             }}
@@ -189,13 +189,13 @@ export function DashboardClient() {
               <div className="flex items-center gap-1.5" style={{ gap: 6 }}>
                 {libraryEmpty ? (
                   <Plus
-                    className="h-[11px] w-[11px] shrink-0 text-white"
+                    className="h-[11px] w-[11px] shrink-0 text-surface"
                     strokeWidth={2.2}
                     aria-hidden
                   />
                 ) : (
                   <Zap
-                    className="h-[11px] w-[11px] shrink-0 text-white"
+                    className="h-[11px] w-[11px] shrink-0 text-surface"
                     strokeWidth={2.2}
                     aria-hidden
                   />
@@ -204,7 +204,7 @@ export function DashboardClient() {
                   style={{
                     fontSize: 12,
                     fontWeight: 500,
-                    color: "#FFFFFF",
+                    color: "var(--surface)",
                   }}
                 >
                   {libraryEmpty ? "Crée ta première liste →" : "Révision express"}
@@ -213,7 +213,7 @@ export function DashboardClient() {
               <p
                 style={{
                   fontSize: 10,
-                  color: "rgba(255,255,255,0.8)",
+                  color: "color-mix(in srgb, var(--surface) 80%, transparent)",
                   paddingLeft: 17,
                 }}
               >
@@ -223,7 +223,7 @@ export function DashboardClient() {
               </p>
             </div>
             <ArrowRight
-              className="h-[13px] w-[13px] shrink-0 text-white"
+              className="h-[13px] w-[13px] shrink-0 text-surface"
               strokeWidth={2.2}
               aria-hidden
             />
@@ -284,21 +284,21 @@ export function DashboardClient() {
           className="card-hover flex flex-col gap-2 no-underline"
           style={{
             background: "var(--background-card)",
-            border: "0.5px solid #FAE5B0",
+            border: "0.5px solid var(--mark)",
             borderRadius: 10,
             padding: "14px 12px",
             cursor: "pointer",
           }}
         >
-          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#FAE5B0" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C47D0A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "var(--mark)" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
           </div>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Révision</p>
           <span
             className={dueCount > 0 ? "badge-urgent" : ""}
-            style={{ fontSize: 11, fontWeight: 500, color: "#C47D0A", background: "#FAE5B0", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}
+            style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", background: "var(--mark)", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}
           >
             {dueCount} mot{dueCount !== 1 ? "s" : ""} à revoir
           </span>
@@ -310,19 +310,19 @@ export function DashboardClient() {
           className="card-hover flex flex-col gap-2 no-underline"
           style={{
             background: "var(--background-card)",
-            border: "0.5px solid #C3E6D6",
+            border: "0.5px solid var(--surface)",
             borderRadius: 10,
             padding: "14px 12px",
             cursor: "pointer",
           }}
         >
-          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "#C3E6D6" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "var(--surface)" }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />
             </svg>
           </div>
           <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>Synthèse</p>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "#1D9E75", background: "#C3E6D6", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
+          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", background: "var(--surface)", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
             {masteredCount} mot{masteredCount !== 1 ? "s" : ""} maîtrisé{masteredCount !== 1 ? "s" : ""}
           </span>
         </Link>

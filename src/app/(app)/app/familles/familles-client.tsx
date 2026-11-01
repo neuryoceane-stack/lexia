@@ -46,7 +46,7 @@ export function FamillesClient() {
           if (leaveForAbonnement()) return;
           setOpen(true);
         }}
-        className="btn-relief rounded-lg bg-accent px-4 py-2 text-sm font-medium text-vocab-gray hover:bg-accent/90"
+        className="btn-relief rounded-full bg-ink px-4 py-2 text-sm font-medium text-surface hover:bg-ink-hover"
       >
         Créer une liste
       </button>
@@ -75,7 +75,7 @@ export function FamillesClient() {
                 />
               </div>
               {error && (
-                <p className="text-sm text-red-600">{error}</p>
+                <p className="text-sm text-false-text">{error}</p>
               )}
               <div className="flex gap-2">
                 <button
@@ -88,7 +88,7 @@ export function FamillesClient() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="btn-relief flex-1 rounded-lg bg-primary py-2 text-white hover:bg-primary-dark disabled:opacity-50"
+                  className="btn-relief flex-1 rounded-lg bg-primary py-2 text-surface hover:bg-primary-dark disabled:opacity-50"
                 >
                   {loading ? "Création…" : "Créer"}
                 </button>

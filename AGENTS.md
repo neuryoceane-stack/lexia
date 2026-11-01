@@ -13,7 +13,7 @@ Interface élève et Creator Dashboard uniquement. Ne touche pas au mode profess
 - Paywall : `PAYWALL_ENABLED=true` l’active ; si absent, il est éteint. Un élève sans abonnement actif ni essai voit sa bibliothèque mais est redirigé vers `/app/abonnement` pour toute action d’ajout ou de révision. Les rôles `creator` et `professeur` sont exemptés.
 
 ## Design system
-L’identité se pose par étapes. **D1** centralise les couleurs et les polices (variables CSS, thème Tailwind, `next/font`). **D2** applique la charte écran par écran : surligneur, états juste / faux, rayons, boutons en pilule, pastilles de langue. Jusque-là, l’or `#F5A623` et le vert `#1D9E75` historiques restent en place. Ne pas inventer un hex hors de cette charte, ni hors de ces deux restes.
+L’identité se pose par étapes. **D1** centralise les couleurs et les polices (variables CSS, thème Tailwind, `next/font`). **D2** applique la charte écran par écran : surligneur, états juste / faux, rayons, boutons en pilule, pastilles de langue. **D2b** retire l’or `#F5A623` et le vert `#1D9E75` historiques de l’interface. Ne pas réintroduire un hex hors charte. Les seules exceptions sont les illustrations d’avatars (Arbre, Phénix, Cristal), le logo et les drapeaux.
 
 - Fond de page `#F7F9F6` (`--page`). Surface des cartes `#FFFFFF` (`--surface`).
 - Encre `#12332B` (`--ink`) : texte, boutons principaux, bordures actives. Bouton principal : fond encre, texte blanc.

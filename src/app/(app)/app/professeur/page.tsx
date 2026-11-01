@@ -11,8 +11,8 @@ import { getUser } from "@/lib/auth";
 import { getTeacherDashboardStats } from "@/lib/teacher-dashboard-stats";
 
 const PRIMARY = "var(--ink)";
-const GOLD = "#F5A623";
-const GREEN = "#1D9E75";
+const GOLD = "var(--ink)";
+const GREEN = "var(--ink)";
 const BORDER_TERTIARY = "var(--line)";
 
 export default async function ProfesseurAccueilPage() {
@@ -61,7 +61,7 @@ export default async function ProfesseurAccueilPage() {
         >
           <div
             style={{
-              background: "white",
+              background: "var(--surface)",
               border: `0.5px solid ${BORDER_TERTIARY}`,
               borderRadius: 12,
               padding: "14px 12px",
@@ -102,7 +102,7 @@ export default async function ProfesseurAccueilPage() {
 
           <div
             style={{
-              background: "white",
+              background: "var(--surface)",
               border: `0.5px solid ${BORDER_TERTIARY}`,
               borderRadius: 12,
               padding: "14px 12px",
@@ -114,7 +114,7 @@ export default async function ProfesseurAccueilPage() {
                 width: 28,
                 height: 28,
                 borderRadius: 7,
-                background: "#FEF3DC",
+                background: "var(--mark)",
               }}
             >
               <Zap size={14} stroke={GOLD} strokeWidth={2} aria-hidden />
@@ -143,7 +143,7 @@ export default async function ProfesseurAccueilPage() {
 
           <div
             style={{
-              background: "white",
+              background: "var(--surface)",
               border: `0.5px solid ${BORDER_TERTIARY}`,
               borderRadius: 12,
               padding: "14px 12px",
@@ -155,7 +155,7 @@ export default async function ProfesseurAccueilPage() {
                 width: 28,
                 height: 28,
                 borderRadius: 7,
-                background: "#EAF4EF",
+                background: "var(--surface)",
               }}
             >
               <FileText size={14} stroke={GREEN} strokeWidth={2} aria-hidden />
@@ -229,7 +229,7 @@ export default async function ProfesseurAccueilPage() {
               className="shrink-0 no-underline"
               style={{
                 background: PRIMARY,
-                color: "white",
+                color: "var(--surface)",
                 fontSize: 12,
                 fontWeight: 500,
                 padding: "6px 14px",
@@ -327,7 +327,7 @@ export default async function ProfesseurAccueilPage() {
                 className="inline-flex items-center gap-1.5"
                 style={{
                   background: PRIMARY,
-                  color: "white",
+                  color: "var(--surface)",
                   borderRadius: 20,
                   border: "none",
                   padding: "7px 14px",
@@ -356,8 +356,8 @@ export default async function ProfesseurAccueilPage() {
             href="/app/familles"
             className="group relative flex flex-col overflow-hidden no-underline transition-transform duration-150 hover:-translate-y-0.5"
             style={{
-              background: "#FEF8EC",
-              border: "1.5px solid #F5D08A",
+              background: "var(--surface)",
+              border: "1.5px solid var(--line)",
               borderRadius: 14,
               padding: "18px 16px 16px",
             }}
@@ -421,7 +421,7 @@ export default async function ProfesseurAccueilPage() {
                 className="inline-flex items-center gap-1.5"
                 style={{
                   background: GOLD,
-                  color: "white",
+                  color: "var(--surface)",
                   borderRadius: 20,
                   border: "none",
                   padding: "7px 14px",
@@ -437,7 +437,7 @@ export default async function ProfesseurAccueilPage() {
                 style={{
                   width: 28,
                   height: 28,
-                  background: "#FAE5B0",
+                  background: "var(--mark)",
                   borderRadius: "50%",
                 }}
               >

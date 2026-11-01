@@ -134,7 +134,7 @@ export function CreatorShopTab() {
             background: "var(--page)", borderRadius: 12, padding: "14px 16px", textAlign: "center",
           }}>
             <div style={{ fontWeight: 500, fontSize: 22, color: "var(--ink)" }}>{stat.value}</div>
-            <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{stat.label}</div>
+            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{stat.label}</div>
           </div>
         ))}
       </div>
@@ -144,7 +144,7 @@ export function CreatorShopTab() {
         <button
           onClick={() => setShowForm((v) => !v)}
           style={{
-            background: "var(--ink)", color: "white", border: "none",
+            background: "var(--ink)", color: "var(--surface)", border: "none",
             borderRadius: 20, padding: "10px 20px", fontSize: 14,
             fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
           }}>
@@ -155,45 +155,45 @@ export function CreatorShopTab() {
       {/* Formulaire création */}
       {showForm && (
         <div style={{
-          background: "white", borderRadius: 16, padding: 20,
+          background: "var(--surface)", borderRadius: 16, padding: 20,
           border: "1.5px solid var(--line)", marginBottom: 24,
         }}>
-          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 16, color: "#1a1a1a" }}>
+          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 16, color: "var(--ink)" }}>
             Créer un nouveau pack
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
             <div>
-              <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Titre</label>
+              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Titre</label>
               <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
                 placeholder="Ex: Voyages & transports"
                 style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div>
-              <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Emoji</label>
+              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Emoji</label>
               <input value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })}
                 placeholder="✈️"
                 style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div style={{ gridColumn: "1 / -1" }}>
-              <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Description</label>
+              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Description</label>
               <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Ex: Tout le vocabulaire pour voyager sereinement."
                 style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
             </div>
             <div>
-              <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Langue</label>
+              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Langue</label>
               <select value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })}
-                style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box", background: "white" }}>
+                style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box", background: "var(--surface)" }}>
                 {Object.entries(LANGUAGE_LABELS).map(([code, label]) => (
                   <option key={code} value={code}>{label}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label style={{ fontSize: 12, color: "#888", display: "block", marginBottom: 4 }}>Prix (centimes)</label>
+              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Prix (centimes)</label>
               <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
                 style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-              <div style={{ fontSize: 11, color: "#888", marginTop: 3 }}>400 = 4€</div>
+              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>400 = 4€</div>
             </div>
           </div>
 
@@ -209,24 +209,24 @@ export function CreatorShopTab() {
                 ✅ {words.filter((w) => !w.isExpression).length} mots + {words.filter((w) => w.isExpression).length} expressions importés
               </div>
             ) : (
-              <div style={{ fontSize: 13, color: "#888" }}>
+              <div style={{ fontSize: 13, color: "var(--muted)" }}>
                 Importer un fichier Excel (.xlsx)<br />
                 <span style={{ fontSize: 11 }}>Colonnes : terme | definition | type (mot/expression)</span>
               </div>
             )}
             <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
           </div>
-          {importError && <div style={{ fontSize: 12, color: "#E24B4A", marginBottom: 8 }}>{importError}</div>}
+          {importError && <div style={{ fontSize: 12, color: "var(--false-sign)", marginBottom: 8 }}>{importError}</div>}
 
           <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
             <button onClick={() => setShowForm(false)}
-              style={{ background: "#f4f4f5", color: "#444", border: "none", borderRadius: 20, padding: "9px 18px", fontSize: 13, cursor: "pointer" }}>
+              style={{ background: "var(--page)", color: "var(--muted)", border: "none", borderRadius: 20, padding: "9px 18px", fontSize: 13, cursor: "pointer" }}>
               Annuler
             </button>
             <button onClick={handleSubmit} disabled={saving || !form.title || !form.description || words.length === 0}
               style={{
                 background: saving || !form.title || !form.description || words.length === 0 ? "var(--ink-soft)" : "var(--ink)",
-                color: "white", border: "none", borderRadius: 20, padding: "9px 18px",
+                color: "var(--surface)", border: "none", borderRadius: 20, padding: "9px 18px",
                 fontSize: 13, cursor: "pointer", fontWeight: 500,
               }}>
               {saving ? "Création…" : "Créer le pack"}
@@ -237,9 +237,9 @@ export function CreatorShopTab() {
 
       {/* Liste des packs */}
       {loading ? (
-        <div style={{ textAlign: "center", color: "#888", padding: 40 }}>Chargement…</div>
+        <div style={{ textAlign: "center", color: "var(--muted)", padding: 40 }}>Chargement…</div>
       ) : packs.length === 0 ? (
-        <div style={{ textAlign: "center", color: "#888", padding: 40 }}>
+        <div style={{ textAlign: "center", color: "var(--muted)", padding: 40 }}>
           <ShoppingBag size={32} color="var(--ink)" style={{ margin: "0 auto 8px" }} />
           <div>Aucun pack pour l'instant</div>
         </div>
@@ -247,18 +247,18 @@ export function CreatorShopTab() {
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {packs.map((pack) => (
             <div key={pack.id} style={{
-              background: "white", borderRadius: 14, padding: "14px 16px",
-              border: `1.5px solid ${pack.isActive ? "#C4E8D8" : "var(--line)"}`,
+              background: "var(--surface)", borderRadius: 14, padding: "14px 16px",
+              border: `1.5px solid ${pack.isActive ? "var(--line)" : "var(--line)"}`,
               display: "flex", alignItems: "center", gap: 12,
             }}>
               <div style={{ fontSize: 24, flexShrink: 0 }}>{pack.emoji}</div>
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500, fontSize: 14, color: "#1a1a1a" }}>{pack.title}</div>
-                <div style={{ fontSize: 12, color: "#888" }}>
+                <div style={{ fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>{pack.title}</div>
+                <div style={{ fontSize: 12, color: "var(--muted)" }}>
                   {LANGUAGE_LABELS[pack.language]} · {pack.wordCount ?? 0} mots · {pack.expressionCount ?? 0} expressions · {(pack.price / 100).toFixed(2)}€
                 </div>
                 <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-                  <span style={{ fontSize: 11, color: "#1D9E75", fontWeight: 500 }}>
+                  <span style={{ fontSize: 11, color: "var(--ink)", fontWeight: 500 }}>
                     {pack.sales ?? 0} vente{(pack.sales ?? 0) > 1 ? "s" : ""}
                   </span>
                   <span style={{ fontSize: 11, color: "var(--ink)", fontWeight: 500 }}>
@@ -269,18 +269,18 @@ export function CreatorShopTab() {
               <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
                 <span style={{
                   fontSize: 11, fontWeight: 500, padding: "3px 10px", borderRadius: 20,
-                  background: pack.isActive ? "#E1F5EE" : "#F4F4F5",
-                  color: pack.isActive ? "#1D9E75" : "#888",
+                  background: pack.isActive ? "var(--surface)" : "var(--page)",
+                  color: pack.isActive ? "var(--ink)" : "var(--muted)",
                 }}>
                   {pack.isActive ? "Actif" : "Inactif"}
                 </span>
                 <button onClick={() => toggleActive(pack)} title={pack.isActive ? "Désactiver" : "Activer"}
                   style={{ background: "var(--page)", border: "none", borderRadius: 8, padding: "6px", cursor: "pointer" }}>
-                  {pack.isActive ? <EyeOff size={14} color="#888" /> : <Eye size={14} color="var(--ink)" />}
+                  {pack.isActive ? <EyeOff size={14} color="var(--muted)" /> : <Eye size={14} color="var(--ink)" />}
                 </button>
                 <button onClick={() => deletePack(pack.id)} title="Supprimer"
-                  style={{ background: "#FCEBEB", border: "none", borderRadius: 8, padding: "6px", cursor: "pointer" }}>
-                  <Trash2 size={14} color="#E24B4A" />
+                  style={{ background: "var(--false-bg)", border: "none", borderRadius: 8, padding: "6px", cursor: "pointer" }}>
+                  <Trash2 size={14} color="var(--false-sign)" />
                 </button>
               </div>
             </div>

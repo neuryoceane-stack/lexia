@@ -22,13 +22,13 @@ import {
 import { useLeaveForAbonnement } from "@/components/paywall-gate";
 
 const VIOLET = "var(--ink)";
-const GOLD = "#F5A623";
-const GREEN = "#1D9E75";
+const GOLD = "var(--ink)";
+const GREEN = "var(--ink)";
 const BORDER_SECONDARY = "var(--line)";
 const BORDER_TERTIARY = "var(--line)";
 const BANNER_BG = "var(--background-subtle)";
-const RED_BORDER = "#F09595";
-const RED_TEXT = "#E24B4A";
+const RED_BORDER = "var(--false-sign)";
+const RED_TEXT = "var(--false-sign)";
 const DOT_NEW = "var(--background-subtle)";
 
 export type MotWithSm2 = {
@@ -309,7 +309,7 @@ export function MotsClient({
                   setEditingTitle(false);
                 }
               }}
-              className="min-w-0 max-w-full rounded-lg border border-line bg-white px-2 py-1 outline-none focus:ring-2 focus:ring-ink/20"
+              className="min-w-0 max-w-full rounded-lg border border-line bg-surface px-2 py-1 outline-none focus:ring-2 focus:ring-ink/20"
               style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}
               aria-label="Nom de la liste"
             />
@@ -383,7 +383,7 @@ export function MotsClient({
                 </button>
                 {langOpen && (
                   <ul
-                    className="absolute left-0 z-20 mt-1 max-h-64 overflow-auto rounded-xl border bg-white py-1 shadow-md"
+                    className="absolute left-0 z-20 mt-1 max-h-64 overflow-auto rounded-xl border bg-surface py-1 shadow-md"
                     style={{
                       borderColor: BORDER_SECONDARY,
                       minWidth: 180,
@@ -459,7 +459,7 @@ export function MotsClient({
               if (leaveForAbonnement()) return;
               setReviseOpen((o) => !o);
             }}
-            className="inline-flex items-center gap-1 border-none font-medium text-white"
+            className="inline-flex items-center gap-1 border-none font-medium text-surface"
             style={{
               background: VIOLET,
               borderRadius: 20,
@@ -475,7 +475,7 @@ export function MotsClient({
 
           {reviseOpen && (
             <div
-              className="absolute z-10 overflow-hidden bg-white"
+              className="absolute z-10 overflow-hidden bg-surface"
               style={{
                 top: "calc(100% + 6px)",
                 right: 0,
@@ -519,11 +519,11 @@ export function MotsClient({
                   style={{
                     width: 28,
                     height: 28,
-                    background: "#FEF3DC",
+                    background: "var(--mark)",
                     borderRadius: 7,
                   }}
                 >
-                  <Pencil size={14} stroke="#C47D0A" strokeWidth={2} />
+                  <Pencil size={14} stroke="var(--ink)" strokeWidth={2} />
                 </div>
                 <span
                   className="font-medium"
@@ -593,7 +593,7 @@ export function MotsClient({
 
       {canEdit && adding && (
         <div
-          className="mb-[14px] flex flex-wrap items-end gap-2 rounded-[12px] border bg-white p-3"
+          className="mb-[14px] flex flex-wrap items-end gap-2 rounded-[12px] border bg-surface p-3"
           style={{ borderColor: BORDER_TERTIARY, marginBottom: 14 }}
         >
           <input
@@ -616,7 +616,7 @@ export function MotsClient({
             type="button"
             onClick={addWord}
             disabled={loading || !newTerm.trim()}
-            className="rounded-full px-4 py-2 text-xs font-medium text-white disabled:opacity-50"
+            className="rounded-full px-4 py-2 text-xs font-medium text-surface disabled:opacity-50"
             style={{ background: VIOLET }}
           >
             Enregistrer
@@ -646,7 +646,7 @@ export function MotsClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher…"
-            className="w-full rounded-[20px] border bg-white py-2 pr-3 text-sm outline-none focus:ring-2 focus:ring-ink/25"
+            className="w-full rounded-[20px] border bg-surface py-2 pr-3 text-sm outline-none focus:ring-2 focus:ring-ink/25"
             style={{
               borderColor: BORDER_SECONDARY,
               paddingLeft: 28,
@@ -656,7 +656,7 @@ export function MotsClient({
         <button
           type="button"
           onClick={() => setSortAsc((v) => !v)}
-          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border bg-white px-3 py-1.5"
+          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border bg-surface px-3 py-1.5"
           style={{ borderColor: BORDER_SECONDARY, fontSize: 11 }}
         >
           <ArrowUpDown size={11} strokeWidth={2} className="text-[var(--foreground-muted)]" />
@@ -666,7 +666,7 @@ export function MotsClient({
           <button
             type="button"
             onClick={() => setFilterOpen((o) => !o)}
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border bg-white px-3 py-1.5"
+            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border bg-surface px-3 py-1.5"
             style={{ borderColor: BORDER_SECONDARY, fontSize: 11 }}
           >
             <Filter size={11} strokeWidth={2} className="text-[var(--foreground-muted)]" />
@@ -674,7 +674,7 @@ export function MotsClient({
           </button>
           {filterOpen && (
             <div
-              className="absolute right-0 z-10 mt-1 overflow-hidden rounded-xl border bg-white py-1 shadow-md"
+              className="absolute right-0 z-10 mt-1 overflow-hidden rounded-xl border bg-surface py-1 shadow-md"
               style={{ borderColor: BORDER_SECONDARY, minWidth: 140 }}
             >
               {(
@@ -721,7 +721,7 @@ export function MotsClient({
 
       {/* Liste */}
       <div
-        className="overflow-hidden bg-white"
+        className="overflow-hidden bg-surface"
         style={{
           borderRadius: 12,
           border: `0.5px solid ${BORDER_TERTIARY}`,
@@ -764,7 +764,7 @@ export function MotsClient({
                       type="button"
                       onClick={() => updateWord(m.id, editTerm, editDef)}
                       disabled={loading}
-                      className="rounded-lg px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
+                      className="rounded-lg px-3 py-1 text-xs font-medium text-surface disabled:opacity-50"
                       style={{ background: VIOLET }}
                     >
                       OK

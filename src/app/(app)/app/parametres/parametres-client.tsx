@@ -74,16 +74,17 @@ function getLevelInfo(val: number) {
   if (val <= 20) {
     return {
       label: "Régulier",
-      pillBg: "rgba(245,166,35,.15)",
-      pillColor: "#B8791A",
+      pillBg: "var(--mark)",
+      pillColor: "var(--ink)",
       time: "~4 min / jour",
     };
   }
   if (val <= 35) {
     return {
       label: "Soutenu",
-      pillBg: "rgba(29,158,117,.12)",
-      pillColor: "#1D9E75",
+      pillBg: "var(--surface)",
+      pillColor: "var(--ink)",
+      pillBorder: "1.5px solid var(--line)",
       time: "~7 min / jour",
     };
   }
@@ -114,13 +115,11 @@ const WEEK_PREVIEW = [
 
 const BORDER_TERTIARY = "color-mix(in srgb, var(--ink) 14%, transparent)";
 
-const PROFILE_HONEYCOMB = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='0.65'%3E%3Cpath d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z'/%3E%3Cpath d='M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/g%3E%3C/svg%3E")`;
-
 const PANEL_SHADOW =
   "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)";
 
 const SECTION_CARD_STYLE: CSSProperties = {
-  background: "white",
+  background: "var(--surface)",
   border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
   borderRadius: 16,
   padding: 16,
@@ -356,43 +355,22 @@ export function ParametresClient() {
           borderRadius: 18,
           padding: "20px 18px",
           boxShadow: PANEL_SHADOW,
-          background:
-            "linear-gradient(150deg, var(--ink) 0%, var(--ink) 55%, var(--ink) 100%)",
+          background: "var(--ink)",
         }}
       >
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-          style={{
-            zIndex: 0,
-            background:
-              "radial-gradient(circle at 100% 120%, rgba(245,166,35,.18), transparent 60%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-          style={{
-            zIndex: 1,
-            opacity: 0.06,
-            backgroundImage: PROFILE_HONEYCOMB,
-            backgroundSize: "56px 48px",
-            backgroundPosition: "14px 10px",
-          }}
-        />
         <div className="relative z-[2]">
           <h1
             style={{
               fontSize: 20,
               fontWeight: 600,
-              color: "white",
+              color: "var(--surface)",
               letterSpacing: "-0.01em",
               marginBottom: 4,
             }}
           >
             Paramètres
           </h1>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,.75)", margin: 0 }}>
+          <p style={{ fontSize: 13, color: "color-mix(in srgb, var(--surface) 75%, transparent)", margin: 0 }}>
             Personnalise ton expérience
           </p>
         </div>
@@ -447,7 +425,7 @@ export function ParametresClient() {
                     style={{
                       fontSize: 12,
                       fontWeight: 600,
-                      color: selected ? "var(--ink)" : "#1A1A1A",
+                      color: selected ? "var(--ink)" : "var(--ink)",
                     }}
                   >
                     {label}
@@ -588,6 +566,7 @@ export function ParametresClient() {
                     borderRadius: 999,
                     background: levelInfo.pillBg,
                     color: levelInfo.pillColor,
+                    border: "pillBorder" in levelInfo ? levelInfo.pillBorder : "none",
                   }}
                 >
                   {levelInfo.label}
@@ -599,8 +578,8 @@ export function ParametresClient() {
                   <Clock size={11} stroke="var(--muted)" strokeWidth={2} />
                   <span>{levelInfo.time}</span>
                 </div>
-                <div className="flex items-center gap-1" style={{ color: "#1D9E75" }}>
-                  <Activity size={11} stroke="#1D9E75" strokeWidth={2} />
+                <div className="flex items-center gap-1" style={{ color: "var(--ink)" }}>
+                  <Activity size={11} stroke="var(--ink)" strokeWidth={2} />
                   <span style={{ fontSize: 11, fontWeight: 500 }}>
                     ~{(weeklyGoal * 52).toLocaleString("fr-FR")} mots / an
                   </span>
@@ -752,7 +731,7 @@ export function ParametresClient() {
                   >
                     <StatIcon size={14} stroke="var(--ink)" strokeWidth={2} />
                   </div>
-                  <p style={{ fontSize: 18, fontWeight: 600, color: "#1A1A1A" }}>{value}</p>
+                  <p style={{ fontSize: 18, fontWeight: 600, color: "var(--ink)" }}>{value}</p>
                   <p style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{unit}</p>
                 </div>
               ))}
@@ -764,7 +743,7 @@ export function ParametresClient() {
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
-                  color: "#1A1A1A",
+                  color: "var(--ink)",
                   marginBottom: 10,
                 }}
               >
@@ -887,7 +866,7 @@ export function ParametresClient() {
                 type="button"
                 onClick={persistWeeklyGoal}
                 disabled={goalSaving}
-                className="flex flex-[2] items-center justify-center gap-2 border-0 text-white transition hover:brightness-95 disabled:opacity-50"
+                className="flex flex-[2] items-center justify-center gap-2 border-0 text-surface transition hover:brightness-95 disabled:opacity-50"
                 style={{
                   background: "var(--ink)",
                   borderRadius: 12,
@@ -926,7 +905,7 @@ export function ParametresClient() {
               }}
             >
               <div>
-                <p style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>
+                <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", margin: 0 }}>
                   Recevoir des rappels
                 </p>
               </div>
@@ -966,8 +945,8 @@ export function ParametresClient() {
                         borderRadius: 8,
                         padding: "4px 8px",
                         fontSize: 12,
-                        color: "#1A1A1A",
-                        background: "white",
+                        color: "var(--ink)",
+                        background: "var(--surface)",
                         outline: "none",
                       }}
                     />
@@ -1000,7 +979,7 @@ export function ParametresClient() {
                 style={{
                   fontSize: 12,
                   fontWeight: 600,
-                  color: "#1A1A1A",
+                  color: "var(--ink)",
                   marginBottom: 8,
                 }}
               >
@@ -1081,7 +1060,7 @@ export function ParametresClient() {
                   paddingBottom: idx === mesClasses.length - 1 ? 0 : 8,
                 }}
               >
-                <p style={{ fontSize: 13, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>
+                <p style={{ fontSize: 13, fontWeight: 600, color: "var(--ink)", margin: 0 }}>
                   {c.title}
                 </p>
                 <p
@@ -1104,8 +1083,9 @@ export function ParametresClient() {
                   {c.status === "accepted" ? (
                     <span
                       style={{
-                        background: "rgba(29,158,117,.12)",
-                        color: "#1D9E75",
+                        background: "var(--surface)",
+                        color: "var(--ink)",
+                        border: "1px solid var(--line)",
                         borderRadius: 999,
                         padding: "2px 8px",
                         fontSize: 11,
@@ -1117,8 +1097,8 @@ export function ParametresClient() {
                   ) : (
                     <span
                       style={{
-                        background: "rgba(245,166,35,.15)",
-                        color: "#B8791A",
+                        background: "var(--mark)",
+                        color: "var(--ink)",
                         borderRadius: 999,
                         padding: "2px 8px",
                         fontSize: 11,
@@ -1157,7 +1137,7 @@ export function ParametresClient() {
               borderRadius: 10,
               padding: "10px 12px",
               fontSize: 14,
-              color: "#1A1A1A",
+              color: "var(--ink)",
               background: "color-mix(in srgb, var(--ink) 4%, transparent)",
             }}
             autoComplete="off"
@@ -1184,10 +1164,10 @@ export function ParametresClient() {
         </form>
 
         {joinSuccess ? (
-          <p style={{ margin: "10px 0 0", fontSize: 12, color: "#1D9E75" }}>{joinSuccess}</p>
+          <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--ink)" }}>{joinSuccess}</p>
         ) : null}
         {joinError ? (
-          <p style={{ margin: "10px 0 0", fontSize: 12, color: "#E5484D" }}>{joinError}</p>
+          <p style={{ margin: "10px 0 0", fontSize: 12, color: "var(--false-text)" }}>{joinError}</p>
         ) : null}
       </div>
     </div>
@@ -1221,7 +1201,7 @@ function SectionHeader({
         <Icon size={16} stroke="var(--ink)" />
       </div>
       <div className="min-w-0 flex-1">
-        <p style={{ fontSize: 15, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>{title}</p>
+        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</p>
         {subtitle ? (
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
         ) : null}
@@ -1272,7 +1252,7 @@ function ToggleSwitch({
           width: 22,
           height: 22,
           borderRadius: "50%",
-          background: "white",
+          background: "var(--surface)",
           transform: checked ? "translateX(18px)" : "translateX(0)",
           transition: reducedMotion ? "none" : "transform 150ms ease",
           boxShadow: "0 1px 3px color-mix(in srgb, var(--ink) 15%, transparent)",
@@ -1330,7 +1310,7 @@ function ReminderTypeRow({
     >
       <ReminderIconTile icon={icon} />
       <div className="min-w-0 flex-1">
-        <p style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>{label}</p>
+        <p style={{ fontSize: 13.5, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{label}</p>
         <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "2px 0 0", lineHeight: 1.35 }}>
           {description}
         </p>
@@ -1374,7 +1354,7 @@ function ReminderChannelRow({
       }}
     >
       <ReminderIconTile icon={icon} />
-      <span className="min-w-0 flex-1" style={{ fontSize: 13.5, fontWeight: 500, color: "#1A1A1A" }}>
+      <span className="min-w-0 flex-1" style={{ fontSize: 13.5, fontWeight: 500, color: "var(--ink)" }}>
         {label}
       </span>
       <ToggleSwitch

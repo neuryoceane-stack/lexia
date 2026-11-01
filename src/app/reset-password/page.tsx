@@ -59,7 +59,7 @@ function ResetPasswordForm() {
     return (
       <div style={{ textAlign: "center" }}>
         <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
-        <p style={{ color: "#555" }}>Lien invalide ou manquant.</p>
+        <p style={{ color: "var(--muted)" }}>Lien invalide ou manquant.</p>
         <Link href="/forgot-password" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "none" }}>
           Faire une nouvelle demande
         </Link>
@@ -78,7 +78,7 @@ function ResetPasswordForm() {
           style={{ objectFit: "contain", display: "block", margin: "0 auto 12px" }}
         />
         <h1 style={{ color: "var(--ink)", fontSize: "28px", margin: "0 0 8px" }}>Lexiva</h1>
-        <h2 style={{ color: "#1a1a1a", fontSize: "20px", fontWeight: 600, margin: 0 }}>
+        <h2 style={{ color: "var(--ink)", fontSize: "20px", fontWeight: 600, margin: 0 }}>
           Nouveau mot de passe
         </h2>
       </div>
@@ -86,14 +86,14 @@ function ResetPasswordForm() {
       {status === "success" ? (
         <div style={{ textAlign: "center" }}>
           <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
-          <p style={{ color: "#555", lineHeight: 1.6 }}>
+          <p style={{ color: "var(--muted)", lineHeight: 1.6 }}>
             Ton mot de passe a été réinitialisé ! Tu vas être redirigé vers la connexion...
           </p>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "#1a1a1a" }}>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "var(--ink)" }}>
               Nouveau mot de passe
             </label>
             <input
@@ -106,7 +106,7 @@ function ResetPasswordForm() {
                 width: "100%",
                 padding: "12px 16px",
                 borderRadius: "8px",
-                border: "1.5px solid #ddd",
+                border: "1.5px solid var(--line)",
                 fontSize: "16px",
                 outline: "none",
                 boxSizing: "border-box",
@@ -116,7 +116,7 @@ function ResetPasswordForm() {
           </div>
 
           <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "#1a1a1a" }}>
+            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "var(--ink)" }}>
               Confirmer le mot de passe
             </label>
             <input
@@ -129,7 +129,7 @@ function ResetPasswordForm() {
                 width: "100%",
                 padding: "12px 16px",
                 borderRadius: "8px",
-                border: "1.5px solid #ddd",
+                border: "1.5px solid var(--line)",
                 fontSize: "16px",
                 outline: "none",
                 boxSizing: "border-box",
@@ -139,7 +139,7 @@ function ResetPasswordForm() {
           </div>
 
           {(status === "error" || errorMsg) && (
-            <p style={{ color: "#e53e3e", fontSize: "14px", marginBottom: "16px" }}>
+            <p style={{ color: "var(--false-text)", fontSize: "14px", marginBottom: "16px" }}>
               {errorMsg}
             </p>
           )}
@@ -151,7 +151,7 @@ function ResetPasswordForm() {
               width: "100%",
               padding: "14px",
               background: status === "loading" ? "var(--ink-soft)" : "var(--ink)",
-              color: "#ffffff",
+              color: "var(--surface)",
               border: "none",
               borderRadius: "8px",
               fontSize: "16px",
@@ -186,7 +186,7 @@ export default function ResetPasswordPage() {
       padding: "24px",
     }}>
       <div style={{
-        background: "#ffffff",
+        background: "var(--surface)",
         borderRadius: "16px",
         padding: "40px",
         width: "100%",

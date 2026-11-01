@@ -10,7 +10,7 @@ export function NavSignOut() {
     <button
       type="button"
       onClick={handleLogout}
-      className="btn-relief rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+      className="btn-relief rounded px-2 py-1 text-sm text-muted hover:bg-surface hover:border-ink hover:text-ink"
     >
       Déconnexion
     </button>

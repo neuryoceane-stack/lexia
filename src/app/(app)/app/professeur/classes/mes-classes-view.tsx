@@ -123,7 +123,7 @@ export function MesClassesView({
               className="inline-flex shrink-0 cursor-pointer items-center justify-center gap-1.5 border-0"
               style={{
                 background: PRIMARY,
-                color: "white",
+                color: "var(--surface)",
                 borderRadius: 20,
                 padding: "8px 16px",
                 fontSize: 12,
@@ -208,7 +208,7 @@ export function MesClassesView({
           {!hasClasses ? (
             <div
               style={{
-                background: "white",
+                background: "var(--surface)",
                 border: "1.5px dashed var(--border)",
                 borderRadius: 14,
                 padding: "40px 20px",
@@ -255,7 +255,7 @@ export function MesClassesView({
                 className="inline-flex cursor-pointer items-center gap-1.5 border-0"
                 style={{
                   background: PRIMARY,
-                  color: "white",
+                  color: "var(--surface)",
                   borderRadius: 20,
                   padding: "10px 20px",
                   fontSize: 13,
@@ -292,7 +292,7 @@ export function MesClassesView({
                     <article
                       className="border-[0.5px] border-solid transition-all duration-150 hover:-translate-y-0.5 hover:border-line"
                       style={{
-                        background: "white",
+                        background: "var(--surface)",
                         borderColor: BORDER_TERTIARY,
                         borderRadius: 14,
                         padding: 16,
@@ -381,7 +381,7 @@ export function MesClassesView({
                               width: 18,
                               height: 18,
                               borderRadius: 5,
-                              background: "#FEF3DC",
+                              background: "var(--mark)",
                             }}
                           >
                             <FileText
@@ -449,7 +449,7 @@ export function MesClassesView({
                           className="inline-flex flex-1 items-center justify-center gap-1 no-underline"
                           style={{
                             background: PRIMARY,
-                            color: "white",
+                            color: "var(--surface)",
                             borderRadius: 16,
                             border: "none",
                             padding: 7,
@@ -540,7 +540,7 @@ export function MesClassesView({
           className="fixed bottom-6 left-1/2 z-[60] -translate-x-1/2 rounded-full px-4 py-2.5 text-[13px] font-medium shadow-lg"
           style={{
             background: PRIMARY,
-            color: "white",
+            color: "var(--surface)",
           }}
           role="status"
         >

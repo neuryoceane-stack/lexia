@@ -142,7 +142,7 @@ export function CreerClasseModal({
         aria-labelledby={dialogLabelId}
         className="w-full max-w-[400px] overflow-hidden"
         style={{
-          background: "white",
+          background: "var(--surface)",
           borderRadius: 20,
           border: "0.5px solid color-mix(in srgb, var(--ink) 15%, transparent)",
         }}
@@ -161,8 +161,8 @@ export function CreerClasseModal({
               width: 40,
               height: 40,
               borderRadius: 10,
-              background: "rgba(255,255,255,0.15)",
-              border: "1.5px solid rgba(255,255,255,0.2)",
+              background: "color-mix(in srgb, var(--surface) 15%, transparent)",
+              border: "1.5px solid color-mix(in srgb, var(--surface) 20%, transparent)",
             }}
           >
             <Users size={20} stroke="white" strokeWidth={2} aria-hidden />
@@ -173,7 +173,7 @@ export function CreerClasseModal({
               style={{
                 fontSize: 15,
                 fontWeight: 500,
-                color: "white",
+                color: "var(--surface)",
                 margin: 0,
               }}
             >
@@ -182,7 +182,7 @@ export function CreerClasseModal({
             <p
               style={{
                 fontSize: 11,
-                color: "rgba(255,255,255,0.7)",
+                color: "color-mix(in srgb, var(--surface) 70%, transparent)",
                 margin: "4px 0 0",
               }}
             >
@@ -198,7 +198,7 @@ export function CreerClasseModal({
               width: 28,
               height: 28,
               borderRadius: "50%",
-              background: "rgba(255,255,255,0.15)",
+              background: "color-mix(in srgb, var(--surface) 15%, transparent)",
             }}
           >
             <X size={12} stroke="white" strokeWidth={2} aria-hidden />
@@ -211,9 +211,9 @@ export function CreerClasseModal({
               role="alert"
               className="mb-4 rounded-[10px] border px-3 py-2 text-[13px]"
               style={{
-                borderColor: "rgba(220,38,38,0.35)",
-                background: "rgba(254,226,226,0.35)",
-                color: "#b91c1c",
+                borderColor: "var(--false-sign)",
+                background: "var(--false-bg)",
+                color: "var(--false-text)",
               }}
             >
               {error}
@@ -390,7 +390,7 @@ export function CreerClasseModal({
               padding: 11,
               borderRadius: 10,
               background: PRIMARY,
-              color: "white",
+              color: "var(--surface)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",

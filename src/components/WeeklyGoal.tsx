@@ -48,7 +48,7 @@ export default function WeeklyGoal() {
     <div
       className="flex min-h-0 min-w-0 flex-col gap-[10px]"
       style={{
-        background: "#FFFFFF",
+        background: "var(--surface)",
         borderRadius: 14,
         border: `0.5px solid ${BORDER_TERTIARY}`,
         padding: 16,
@@ -131,9 +131,9 @@ export default function WeeklyGoal() {
               padding: "2px 8px",
               borderRadius: 16,
               border: "1px solid",
-              borderColor: selectedLang === null ? "var(--ink)" : "#E5E5E5",
+              borderColor: selectedLang === null ? "var(--ink)" : "var(--line)",
               background: selectedLang === null ? "var(--background-subtle)" : "white",
-              color: selectedLang === null ? "var(--ink)" : "#999",
+              color: selectedLang === null ? "var(--ink)" : "var(--muted)",
               fontSize: 10,
               cursor: "pointer",
             }}
@@ -149,9 +149,9 @@ export default function WeeklyGoal() {
                 padding: "2px 8px",
                 borderRadius: 16,
                 border: "1px solid",
-                borderColor: selectedLang === l.language ? "var(--ink)" : "#E5E5E5",
+                borderColor: selectedLang === l.language ? "var(--ink)" : "var(--line)",
                 background: selectedLang === l.language ? "var(--background-subtle)" : "white",
-                color: selectedLang === l.language ? "var(--ink)" : "#999",
+                color: selectedLang === l.language ? "var(--ink)" : "var(--muted)",
                 fontSize: 10,
                 cursor: "pointer",
               }}
@@ -166,7 +166,7 @@ export default function WeeklyGoal() {
         className="relative z-[1]"
         style={{
           height: 14,
-          background: "#F3EDDF",
+          background: "var(--surface)",
           borderRadius: 8,
           position: "relative",
           overflow: "visible",
@@ -180,7 +180,7 @@ export default function WeeklyGoal() {
               top: 0,
               width: `${progress * 100}%`,
               height: "100%",
-              background: "#F5A623",
+              background: "var(--ink)",
               borderRadius: 8,
               transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
               overflow: "visible",
@@ -192,7 +192,7 @@ export default function WeeklyGoal() {
                 position: "absolute",
                 inset: 0,
                 background:
-                  "repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 10px, rgba(255,255,255,0.18) 10px 20px)",
+                  "repeating-linear-gradient(115deg, color-mix(in srgb, var(--surface) 0%, transparent) 0 10px, color-mix(in srgb, var(--surface) 18%, transparent) 10px 20px)",
                 animation: "honeyShimmer 2.5s linear infinite",
                 borderRadius: 8,
                 pointerEvents: "none",
@@ -206,7 +206,7 @@ export default function WeeklyGoal() {
                 top: 11,
                 width: 8,
                 height: 10,
-                background: "#E89512",
+                background: "var(--mark)",
                 borderRadius: "50% 50% 50% 0",
                 transform: "rotate(45deg)",
                 animation: "honeyDrip 2.8s ease-in infinite",
@@ -221,7 +221,7 @@ export default function WeeklyGoal() {
                 top: 12,
                 width: 8,
                 height: 10,
-                background: "#E89512",
+                background: "var(--mark)",
                 borderRadius: "50% 50% 50% 0",
                 transform: "rotate(45deg)",
                 animation: "honeyDrip 2.8s ease-in 1.2s infinite",
@@ -248,7 +248,7 @@ export default function WeeklyGoal() {
         className="relative z-[1] flex items-center gap-1.5"
         style={{
           fontSize: 11,
-          color: "#1D9E75",
+          color: "var(--ink)",
           fontWeight: 500,
         }}
       >
@@ -256,7 +256,7 @@ export default function WeeklyGoal() {
           <span>Objectif atteint 🎉</span>
         ) : (
           <>
-            <Check className="h-[11px] w-[11px] shrink-0 text-[#1D9E75]" strokeWidth={2.5} />
+            <Check className="h-[11px] w-[11px] shrink-0 text-ink" strokeWidth={2.5} />
             <span>
               {remaining} mot{remaining !== 1 ? "s" : ""} restant
               {remaining !== 1 ? "s" : ""} cette semaine

@@ -117,7 +117,7 @@ export function MotsSauvagesSource({
 
       {extractLoading && (
         <div
-          className="mb-6 rounded-[12px] border-2 bg-white p-4 font-sans shadow-sm"
+          className="mb-6 rounded-[12px] border-2 bg-surface p-4 font-sans shadow-sm"
           style={{ borderColor: "var(--ink)" }}
           role="status"
           aria-live="polite"
@@ -155,7 +155,7 @@ export function MotsSauvagesSource({
 
       {extractError && !extractLoading ? (
         <p
-          className="mb-6 rounded-[12px] border border-red-200 bg-red-50 px-4 py-3 font-sans text-[13px] font-medium text-red-700"
+          className="mb-6 rounded-[12px] border border-false-sign bg-false-bg px-4 py-3 font-sans text-[13px] font-medium text-false-text"
         >
           {extractError}
         </p>
@@ -196,13 +196,13 @@ export function MotsSauvagesSource({
         {/* Photo */}
         <ActiveCard
           bg="var(--background-card)"
-          border="#F5D08A"
-          hoverBorder="#F5A623"
-          iconBg="#FAE5B0"
-          icon={<Camera size={18} stroke="#C47D0A" />}
+          border="var(--line)"
+          hoverBorder="var(--ink)"
+          iconBg="var(--mark)"
+          icon={<Camera size={18} stroke="var(--ink)" />}
           title="Photo"
           description="Prends en photo une affiche, un menu, un livre."
-          btnBg="#F5A623"
+          btnBg="var(--ink)"
           btnLabel="Ouvrir"
           btnIcon={<Camera size={13} stroke="white" />}
           onClick={() => cameraInputRef.current?.click()}
@@ -212,13 +212,13 @@ export function MotsSauvagesSource({
         {/* Galerie */}
         <ActiveCard
           bg="var(--background-card)"
-          border="#C3E6D6"
-          hoverBorder="#1D9E75"
-          iconBg="#C3E6D6"
-          icon={<Image size={18} stroke="#1D9E75" />}
+          border="var(--line)"
+          hoverBorder="var(--ink)"
+          iconBg="var(--surface)"
+          icon={<Image size={18} stroke="var(--ink)" />}
           title="Galerie"
           description="Importe une image depuis ta bibliothèque photo."
-          btnBg="#1D9E75"
+          btnBg="var(--ink)"
           btnLabel="Importer"
           btnIcon={<Upload size={13} stroke="white" />}
           onClick={() => imageInputRef.current?.click()}
@@ -295,7 +295,7 @@ export function MotsSauvagesSource({
           padding: "11px 14px",
         }}
       >
-        <PawPrint size={15} stroke="#F5A623" className="mt-0.5 shrink-0" />
+        <PawPrint size={15} stroke="var(--ink)" className="mt-0.5 shrink-0" />
         <p style={{ fontSize: 12, color: "var(--foreground-muted)", lineHeight: 1.5 }}>
           Touche n&apos;importe quel mot que tu ne connais pas — la traduction
           apparaît instantanément et tu peux l&apos;ajouter à ta liste en un
@@ -379,7 +379,7 @@ function ActiveCard({
           alignItems: "center",
           gap: 5,
           background: btnBg,
-          color: "white",
+          color: "var(--surface)",
           borderRadius: 20,
           border: "none",
           padding: "7px 14px",

@@ -45,10 +45,10 @@ const GOAL_OPTIONS = [
 const V = "var(--ink)";
 const V_LIGHT = "var(--background-subtle)";
 const V_BORDER = "color-mix(in srgb, var(--ink) 18%, transparent)";
-const GOLD = "#F5A623";
-const GOLD_LIGHT = "#FEF4E0";
-const GREEN = "#1D9E75";
-const GREEN_LIGHT = "#E1F5EE";
+const GOLD = "var(--ink)";
+const GOLD_LIGHT = "var(--surface)";
+const GREEN = "var(--ink)";
+const GREEN_LIGHT = "var(--surface)";
 const FOND = "var(--page)";
 const TEXT = "var(--ink)";
 const MUTED = "var(--muted)";
@@ -133,7 +133,7 @@ function FieldLabel({ children, required }: { children: ReactNode; required?: bo
   return (
     <p style={{ fontSize: 11, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: MUTED, marginBottom: 6 }}>
       {children}
-      {required && <span style={{ color: "#dc2626" }}> *</span>}
+      {required && <span style={{ color: "var(--false-text)" }}> *</span>}
     </p>
   );
 }
@@ -141,7 +141,7 @@ function FieldLabel({ children, required }: { children: ReactNode; required?: bo
 function EmailTakenNotice({ email }: { email: string }) {
   const loginHref = `/login?email=${encodeURIComponent(email.trim().toLowerCase())}`;
   return (
-    <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 14, lineHeight: 1.45 }}>
+    <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 14, lineHeight: 1.45 }}>
       Cette adresse est déjà utilisée.{" "}
       <Link href={loginHref} style={{ color: V, fontWeight: 500, textDecoration: "underline" }}>
         Connecte-toi
@@ -164,7 +164,7 @@ function CTA({ children, onClick, disabled, gold }: { children: ReactNode; onCli
     <button type={onClick ? "button" : "submit"} onClick={onClick} disabled={disabled}
       style={{
         width: "100%", padding: "13px", borderRadius: 20, border: "none",
-        background: gold ? GOLD : V, color: "white", fontSize: 14, fontWeight: 500,
+        background: gold ? GOLD : V, color: "var(--surface)", fontSize: 14, fontWeight: 500,
         cursor: "pointer", marginTop: 16, fontFamily: "var(--font-sans), sans-serif",
         opacity: disabled ? 0.5 : 1,
       }}>
@@ -341,7 +341,7 @@ export default function SignupPage() {
 
   const wrap = (content: ReactNode, progressCurrent?: number, progressTotal?: number) => (
     <div style={{ width: "100%", maxWidth: 360, margin: "0 auto" }}>
-      <div style={{ background: "white", borderRadius: 20, padding: "28px 24px", border: `1px solid ${V_BORDER}`, boxShadow: "0 2px 24px color-mix(in srgb, var(--ink) 7%, transparent)" }}>
+      <div style={{ background: "var(--surface)", borderRadius: 20, padding: "28px 24px", border: `1px solid ${V_BORDER}`, boxShadow: "0 2px 24px color-mix(in srgb, var(--ink) 7%, transparent)" }}>
         {progressCurrent !== undefined && progressTotal !== undefined && (
           <ProgressBar current={progressCurrent} total={progressTotal} />
         )}
@@ -421,7 +421,7 @@ export default function SignupPage() {
           style={{
             position: "relative",
             zIndex: 1,
-            background: "white",
+            background: "var(--surface)",
             borderRadius: 24,
             padding: "32px 28px 24px",
             border: `1px solid ${V_BORDER}`,
@@ -447,7 +447,7 @@ export default function SignupPage() {
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD }} />
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: GREEN }} />
             </div>
-            <p style={{ fontSize: 12, color: "#6B6B7B", letterSpacing: "0.02em", marginBottom: 24 }}>Apprends le vocabulaire autrement</p>
+            <p style={{ fontSize: 12, color: "var(--muted)", letterSpacing: "0.02em", marginBottom: 24 }}>Apprends le vocabulaire autrement</p>
           </div>
 
           <p style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", textAlign: "center", marginBottom: 6 }}>Qui êtes-vous ?</p>
@@ -464,21 +464,21 @@ export default function SignupPage() {
                 width: "100%", minWidth: 0,
               }}>
               <GraduationCap size={40} color={V} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
-              <div style={{ display: "inline-block", background: V, color: "white", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Élève</div>
+              <div style={{ display: "inline-block", background: V, color: "var(--surface)", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Élève</div>
               <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.4 }}>J&apos;apprends du vocabulaire</p>
             </button>
 
             <button type="button"
               onClick={() => router.push("/signup/professeur")}
               style={{
-                background: "linear-gradient(160deg,#E2F5EE 0%,#D8F0E7 100%)",
-                border: "2px solid rgba(29,158,117,0.15)", borderRadius: 20,
+                background: "var(--page)",
+                border: "1.5px solid var(--line)", borderRadius: 20,
                 padding: "18px 10px 14px", cursor: "pointer", textAlign: "center",
                 transition: "all 0.25s", fontFamily: "var(--font-sans), sans-serif",
                 width: "100%", minWidth: 0,
               }}>
               <Users size={40} color={GREEN} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
-              <div style={{ display: "inline-block", background: GREEN, color: "white", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Professeur</div>
+              <div style={{ display: "inline-block", background: GREEN, color: "var(--surface)", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Professeur</div>
               <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.4 }}>Je crée des listes pour mes élèves</p>
             </button>
           </div>
@@ -561,9 +561,9 @@ export default function SignupPage() {
           style={{ ...inputStyle, marginBottom: 4 }}
           onFocus={handleFocus} onBlur={handleBlur} />
         <p style={{ fontSize: 11, color: MUTED, marginBottom: identityError ? 8 : 4 }}>
-          <span style={{ color: "#dc2626" }}>*</span> Champs obligatoires
+          <span style={{ color: "var(--false-text)" }}>*</span> Champs obligatoires
         </p>
-        {identityError && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{identityError}</p>}
+        {identityError && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{identityError}</p>}
         <CTA
           onClick={() => {
             const check = validateIdentityStep(firstName, lastName, birthDate);
@@ -607,9 +607,9 @@ export default function SignupPage() {
         </div>
         <p style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>8 caractères min. · 1 majuscule · 1 chiffre</p>
         <p style={{ fontSize: 11, color: MUTED, marginBottom: error ? 8 : 4 }}>
-          <span style={{ color: "#dc2626" }}>*</span> Champs obligatoires
+          <span style={{ color: "var(--false-text)" }}>*</span> Champs obligatoires
         </p>
-        {error && !emailTaken && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>}
+        {error && !emailTaken && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{error}</p>}
         <CTA
           onClick={handleAccountContinue}
           disabled={
@@ -654,7 +654,7 @@ export default function SignupPage() {
           {emailTaken ? (
             <EmailTakenNotice email={email} />
           ) : error ? (
-            <p style={{ fontSize: 12, color: "#dc2626", marginTop: 8 }}>{error}</p>
+            <p style={{ fontSize: 12, color: "var(--false-text)", marginTop: 8 }}>{error}</p>
           ) : null}
         </>,
         5, 5
@@ -705,7 +705,7 @@ export default function SignupPage() {
           </button>
         </div>
         <p style={{ fontSize: 11, color: MUTED, marginBottom: 8 }}>8 caractères min. · 1 majuscule · 1 chiffre</p>
-        {error && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>}
+        {error && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{error}</p>}
         <CTA onClick={() => {
           setError("");
           if (!email.trim() || !password) { setError("Email et mot de passe requis."); return; }
@@ -761,7 +761,7 @@ export default function SignupPage() {
           {[
             { icon: "📝", title: "Créer vos listes de vocabulaire", sub: "En quelques clics, depuis un PDF ou une URL", color: V, bg: V_LIGHT },
             { icon: "👥", title: "Suivre la progression de vos élèves", sub: "Statistiques par élève et par liste", color: GREEN, bg: GREEN_LIGHT },
-            { icon: "📅", title: "Assigner des révisions ciblées", sub: "Programmez des sessions adaptées", color: "#B87A10", bg: GOLD_LIGHT },
+            { icon: "📅", title: "Assigner des révisions ciblées", sub: "Programmez des sessions adaptées", color: "var(--ink)", bg: GOLD_LIGHT },
           ].map(item => (
             <div key={item.title} style={{ background: item.bg, borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "flex-start", gap: 12 }}>
               <span style={{ fontSize: 20 }}>{item.icon}</span>
@@ -772,7 +772,7 @@ export default function SignupPage() {
             </div>
           ))}
         </div>
-        {error && <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 8 }}>{error}</p>}
+        {error && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{error}</p>}
         <CTA onClick={handleRegister} disabled={loading} gold>
           {loading ? "Création du compte…" : "C'est parti ! 🎉"}
         </CTA>

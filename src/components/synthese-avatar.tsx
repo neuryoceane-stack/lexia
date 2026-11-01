@@ -40,7 +40,7 @@ export function SyntheseAvatar({
         {type === "koala" && <AvatarKoala state={state} opacity={opacity} />}
       </div>
       {showLabel && (
-        <p className="mt-2 text-center text-sm font-medium text-slate-600">
+        <p className="mt-2 text-center text-sm font-medium text-muted">
           {stateLabels[state]}
         </p>
       )}

@@ -15,7 +15,7 @@ const FEATURE_CHIPS = [
 ];
 
 const loginCardShellStyle: React.CSSProperties = {
-  background: "white",
+  background: "var(--surface)",
   borderRadius: 20,
   width: "100%",
   maxWidth: 320,
@@ -26,7 +26,7 @@ const loginCardShellStyle: React.CSSProperties = {
 function LoginPageFallback() {
   return (
     <div style={loginCardShellStyle} aria-busy="true" aria-label="Chargement">
-      <p className="text-center" style={{ fontSize: 13, color: "#71717a" }}>
+      <p className="text-center" style={{ fontSize: 13, color: "var(--muted)" }}>
         Chargement…
       </p>
     </div>
@@ -98,14 +98,14 @@ function LoginPageContent() {
           <p style={{ fontSize: 17, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>
             LEXIVA
           </p>
-          <p style={{ fontSize: 11, color: "#71717a" }}>
+          <p style={{ fontSize: 11, color: "var(--muted)" }}>
             Apprends le vocabulaire autrement
           </p>
         </Link>
       </div>
 
       {/* Titre */}
-      <p className="mb-4" style={{ fontSize: 15, fontWeight: 500, color: "#1a1a1a" }}>
+      <p className="mb-4" style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>
         Bon retour 👋
       </p>
 
@@ -150,7 +150,7 @@ function LoginPageContent() {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#a1a1aa",
+              color: "var(--muted)",
             }}
             aria-label={showPassword ? "Masquer" : "Afficher"}
           >
@@ -172,7 +172,7 @@ function LoginPageContent() {
             className="mb-2 flex items-center gap-1.5"
             style={{
               fontSize: 12,
-              color: isRateLimited ? "#d97706" : "#dc2626",
+              color: isRateLimited ? "var(--ink)" : "var(--false-text)",
               lineHeight: 1.4,
             }}
           >
@@ -193,7 +193,7 @@ function LoginPageContent() {
             borderRadius: 10,
             border: "none",
             background: "var(--ink)",
-            color: "white",
+            color: "var(--surface)",
             cursor: "pointer",
             margin: "16px 0 12px",
           }}
@@ -204,7 +204,7 @@ function LoginPageContent() {
       </form>
 
       {/* Lien signup */}
-      <p className="mb-3.5 mt-4 text-center" style={{ fontSize: 12, color: "#71717a" }}>
+      <p className="mb-3.5 mt-4 text-center" style={{ fontSize: 12, color: "var(--muted)" }}>
         Pas encore de compte ?{" "}
         <Link href={signupHref} className="no-underline" style={{ fontWeight: 500, color: "var(--ink)" }}>
           S&apos;inscrire
@@ -212,7 +212,7 @@ function LoginPageContent() {
       </p>
 
       {/* Chips features */}
-      <div style={{ borderTop: "0.5px solid #e4e4e7", paddingTop: 12 }}>
+      <div style={{ borderTop: "0.5px solid var(--line)", paddingTop: 12 }}>
         <div className="flex flex-wrap justify-center gap-[5px]">
           {FEATURE_CHIPS.map((c) => (
             <span
@@ -250,9 +250,9 @@ const inputStyle: React.CSSProperties = {
   fontSize: 13,
   padding: "10px 12px",
   borderRadius: 10,
-  border: "1.5px solid #e4e4e7",
-  background: "#FAFAFA",
-  color: "#1a1a1a",
+  border: "1.5px solid var(--line)",
+  background: "var(--surface)",
+  color: "var(--ink)",
   outline: "none",
   width: "100%",
 };
@@ -263,8 +263,8 @@ function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
 }
 
 function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "#e4e4e7";
-  e.currentTarget.style.background = "#FAFAFA";
+  e.currentTarget.style.borderColor = "var(--line)";
+  e.currentTarget.style.background = "var(--surface)";
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
@@ -275,7 +275,7 @@ function FieldLabel({ children }: { children: React.ReactNode }) {
         fontWeight: 500,
         textTransform: "uppercase",
         letterSpacing: "0.04em",
-        color: "#71717a",
+        color: "var(--muted)",
         marginBottom: 5,
       }}
     >

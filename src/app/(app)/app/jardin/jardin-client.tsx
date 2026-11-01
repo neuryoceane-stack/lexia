@@ -62,9 +62,9 @@ type SyntheseData = {
 
 const VIOLET = "var(--ink)";
 const VIOLET_DARK = "var(--ink)";
-const GOLD = "#F5A623";
-const GOLD_DARK = "#A06800";
-const GREEN = "#1D9E75";
+const GOLD = "var(--ink)";
+const GOLD_DARK = "var(--ink)";
+const GREEN = "var(--ink)";
 
 const LANG_LABELS: Record<string, string> = {
   eng: "Anglais",
@@ -250,10 +250,9 @@ function getLevelVisual(level: number): {
       Icon: Sprout,
       iconSize: 44,
       accent: GREEN,
-      accentSoft: "#EAF4EF",
-      ring: "rgba(29, 158, 117, 0.35)",
-      heroGradient:
-        "linear-gradient(135deg, rgba(29,158,117,0.12) 0%, color-mix(in srgb, var(--ink) 8%, transparent) 55%, rgba(245,166,35,0.06) 100%)",
+      accentSoft: "var(--surface)",
+      ring: "color-mix(in srgb, var(--ink) 28%, transparent)",
+      heroGradient: "var(--page)",
     };
   }
   if (level <= 4) {
@@ -262,19 +261,17 @@ function getLevelVisual(level: number): {
       iconSize: 40,
       accent: VIOLET,
       accentSoft: "var(--background-subtle)",
-      ring: "color-mix(in srgb, var(--ink) 35%, transparent)",
-      heroGradient:
-        "linear-gradient(135deg, color-mix(in srgb, var(--ink) 14%, transparent) 0%, color-mix(in srgb, var(--ink) 6%, transparent) 50%, rgba(245,166,35,0.08) 100%)",
+      ring: "color-mix(in srgb, var(--ink) 28%, transparent)",
+      heroGradient: "var(--page)",
     };
   }
   return {
     Icon: Flame,
     iconSize: 40,
     accent: GOLD,
-    accentSoft: "#FEF3DC",
-    ring: "rgba(245, 166, 35, 0.45)",
-    heroGradient:
-      "linear-gradient(135deg, rgba(245,166,35,0.16) 0%, color-mix(in srgb, var(--ink) 10%, transparent) 50%, rgba(245,166,35,0.12) 100%)",
+    accentSoft: "var(--mark)",
+    ring: "color-mix(in srgb, var(--mark) 80%, var(--ink))",
+    heroGradient: "var(--page)",
   };
 }
 
@@ -389,7 +386,7 @@ export function JardinClient() {
                   aria-hidden
                 />
                 <span
-                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                  className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full text-[11px] font-bold text-surface"
                   style={{ background: VIOLET, boxShadow: "0 2px 8px color-mix(in srgb, var(--ink) 35%, transparent)" }}
                 >
                   {level}
@@ -429,7 +426,7 @@ export function JardinClient() {
                     className="overflow-hidden rounded-full"
                     style={{
                       height: 12,
-                      background: "rgba(255,255,255,0.65)",
+                      background: "var(--line)",
                       border: "1px solid color-mix(in srgb, var(--ink) 15%, transparent)",
                     }}
                   >
@@ -447,7 +444,7 @@ export function JardinClient() {
                 <div className="mt-3 flex flex-wrap items-center justify-center gap-2 sm:justify-start">
                   <span
                     className="inline-flex items-center gap-1 rounded-full px-2.5 py-1"
-                    style={{ background: "#EAF4EF", color: "#1A6645", fontSize: 11, fontWeight: 600 }}
+                    style={{ background: "var(--surface)", color: "var(--ink)", fontSize: 11, fontWeight: 600 }}
                   >
                     <Check size={12} strokeWidth={2.5} aria-hidden />
                     {data.wordsRetained} mots maîtrisés
@@ -455,7 +452,7 @@ export function JardinClient() {
                   {streak > 0 && (
                     <span
                       className="inline-flex items-center gap-1 rounded-full px-2.5 py-1"
-                      style={{ background: "#FEF3DC", color: GOLD_DARK, fontSize: 11, fontWeight: 600 }}
+                      style={{ background: "var(--mark)", color: GOLD_DARK, fontSize: 11, fontWeight: 600 }}
                     >
                       <Flame size={12} strokeWidth={2.5} aria-hidden />
                       Série de {streak} jour{streak !== 1 ? "s" : ""}
@@ -482,7 +479,7 @@ export function JardinClient() {
               <StatCard
                 icon={Zap}
                 accent={GOLD}
-                accentBg="rgba(245, 166, 35, 0.12)"
+                accentBg="var(--surface)"
                 label="Sessions"
                 value={String(totalSessions)}
                 subLabel="sessions complétées"
@@ -490,15 +487,15 @@ export function JardinClient() {
               <StatCard
                 icon={Check}
                 accent={GREEN}
-                accentBg="rgba(29, 158, 117, 0.12)"
+                accentBg="var(--surface)"
                 label="Mots mémorisés"
                 value={String(data.wordsRetained)}
                 subLabel="par flashcards"
               />
               <StatCard
                 icon={Pencil}
-                accent="#0F6E56"
-                accentBg="rgba(15, 110, 86, 0.1)"
+                accent="var(--ink)"
+                accentBg="var(--surface)"
                 label="Mots écrits"
                 value={String(data.wordsWritten)}
                 subLabel="par dictée"
@@ -669,20 +666,20 @@ export function JardinClient() {
                         className="flex flex-col items-center gap-2 rounded-[14px] border text-center transition-transform hover:scale-[1.02]"
                         style={{
                           background: isGold
-                            ? "linear-gradient(160deg, #FEF3DC 0%, #FAE5B0 100%)"
+                            ? "var(--surface)"
                             : "linear-gradient(160deg, var(--background-subtle) 0%, var(--background-subtle) 100%)",
-                          borderColor: isGold ? "#F5D08A" : "var(--line)",
+                          borderColor: isGold ? "var(--line)" : "var(--line)",
                           padding: "14px 8px",
                           boxShadow: isGold
-                            ? "0 4px 16px rgba(245,166,35,0.2)"
+                            ? "0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent)"
                             : "0 4px 16px color-mix(in srgb, var(--ink) 12%, transparent)",
                         }}
                       >
                         <div
                           className="flex h-11 w-11 items-center justify-center rounded-full"
                           style={{
-                            background: isGold ? "#F5A623" : VIOLET,
-                            boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
+                            background: isGold ? "var(--ink)" : VIOLET,
+                            boxShadow: "0 2px 8px color-mix(in srgb, var(--ink) 8%, transparent)",
                           }}
                         >
                           <BadgeIcon size={20} stroke="white" strokeWidth={2} aria-hidden />
@@ -833,7 +830,7 @@ export function JardinClient() {
             className="mt-4 inline-flex items-center justify-center no-underline transition hover:brightness-95"
             style={{
               background: VIOLET,
-              color: "white",
+              color: "var(--surface)",
               borderRadius: 20,
               padding: "10px 22px",
               fontSize: 13,
@@ -900,7 +897,7 @@ function StatCard({
       className="relative overflow-hidden rounded-[14px] border p-4"
       style={{
         background: accentBg,
-        borderColor: `${accent}22`,
+        borderColor: "var(--line)",
       }}
     >
       <div
@@ -911,7 +908,7 @@ function StatCard({
       <div className="relative flex items-start justify-between gap-2">
         <div
           className="flex h-10 w-10 items-center justify-center rounded-[12px]"
-          style={{ background: "rgba(255,255,255,0.75)", boxShadow: `0 2px 8px ${accent}22` }}
+          style={{ background: "var(--surface)", border: "1.5px solid var(--line)", boxShadow: "0 2px 8px color-mix(in srgb, var(--ink) 8%, transparent)" }}
         >
           <Icon size={20} stroke={accent} strokeWidth={2} aria-hidden />
         </div>

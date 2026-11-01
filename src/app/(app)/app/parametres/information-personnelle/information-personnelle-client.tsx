@@ -53,8 +53,6 @@ function formatDateDisplay(value: string): string {
   return d.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
 }
 
-const PROFILE_HONEYCOMB = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='0.65'%3E%3Cpath d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z'/%3E%3Cpath d='M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/g%3E%3C/svg%3E")`;
-
 const PANEL_SHADOW =
   "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)";
 
@@ -230,7 +228,7 @@ export function InformationPersonnelleClient({
   }
 
   const editInputClass =
-    "w-full text-[13px] text-[#1A1A1A] placeholder:text-muted outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-0";
+    "w-full text-[13px] text-ink placeholder:text-muted outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-0";
 
   return (
     <div className="mx-auto max-w-lg" style={{ fontFamily: "var(--font-sans), sans-serif" }}>
@@ -258,30 +256,9 @@ export function InformationPersonnelleClient({
           borderRadius: 18,
           padding: "20px 18px",
           boxShadow: PANEL_SHADOW,
-          background:
-            "linear-gradient(150deg, var(--ink) 0%, var(--ink) 55%, var(--ink) 100%)",
+          background: "var(--ink)",
         }}
       >
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-          style={{
-            zIndex: 0,
-            background:
-              "radial-gradient(circle at 100% 120%, rgba(245,166,35,.20), transparent 60%)",
-          }}
-        />
-        <div
-          className="pointer-events-none absolute inset-0"
-          aria-hidden
-          style={{
-            zIndex: 1,
-            opacity: 0.06,
-            backgroundImage: PROFILE_HONEYCOMB,
-            backgroundSize: "56px 48px",
-            backgroundPosition: "14px 10px",
-          }}
-        />
         <div className="relative z-[2] flex items-center gap-4">
           <div
             className="flex shrink-0 items-center justify-center"
@@ -289,12 +266,12 @@ export function InformationPersonnelleClient({
               width: 72,
               height: 72,
               borderRadius: "50%",
-              background: "rgba(255,255,255,.18)",
-              color: "white",
+              background: "color-mix(in srgb, var(--surface) 18%, transparent)",
+              color: "var(--surface)",
               fontSize: 28,
               fontWeight: 600,
               boxShadow:
-                "0 0 0 2px rgba(245,166,35,.85), inset 0 0 0 1px rgba(255,255,255,.35)",
+                "0 0 0 2px var(--mark), inset 0 0 0 1px color-mix(in srgb, var(--surface) 35%, transparent)",
             }}
           >
             {initial}
@@ -305,7 +282,7 @@ export function InformationPersonnelleClient({
               style={{
                 fontSize: 18,
                 fontWeight: 600,
-                color: "white",
+                color: "var(--surface)",
                 letterSpacing: "-0.01em",
                 marginBottom: 3,
               }}
@@ -314,22 +291,22 @@ export function InformationPersonnelleClient({
             </p>
             <p
               className="truncate"
-              style={{ fontSize: 12.5, color: "rgba(255,255,255,.75)", marginBottom: 10 }}
+              style={{ fontSize: 12.5, color: "color-mix(in srgb, var(--surface) 75%, transparent)", marginBottom: 10 }}
             >
               {email ?? "—"}
             </p>
             <span
               className="inline-flex items-center gap-1"
               style={{
-                background: "rgba(255,255,255,.16)",
-                color: "white",
+                background: "color-mix(in srgb, var(--surface) 16%, transparent)",
+                color: "var(--surface)",
                 fontSize: 10.5,
                 fontWeight: 600,
                 padding: "3px 9px",
                 borderRadius: 999,
               }}
             >
-              <Star size={11} stroke="#F7B733" fill="#F7B733" aria-hidden />
+              <Star size={11} stroke="var(--mark)" fill="var(--mark)" aria-hidden />
               Niveau {userLevel} — {getLevelName(userLevel)}
             </span>
           </div>
@@ -401,7 +378,7 @@ export function InformationPersonnelleClient({
                     onChange={(v) => update({ city: v })}
                     placeholder="Ta ville"
                     disabled={saving}
-                    className={`${editInputClass} !rounded-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !bg-white !px-3 !py-[9px]`}
+                    className={`${editInputClass} !rounded-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !bg-surface !px-3 !py-[9px]`}
                   />
                 ) : (
                   <ReadValue value={form.city} placeholder="Ajoute ta ville" />
@@ -418,7 +395,7 @@ export function InformationPersonnelleClient({
                     placeholder="6 12 34 56 78"
                     disabled={saving}
                     className="w-full min-w-0 flex-1"
-                    inputClassName="!rounded-r-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !border-l-0 !bg-white !text-[13px] !py-[9px] focus-visible:!ring-2 focus-visible:!ring-ink"
+                    inputClassName="!rounded-r-[10px] !border !border-[color-mix(in_srgb,var(--ink)_25%,transparent)] !border-l-0 !bg-surface !text-[13px] !py-[9px] focus-visible:!ring-2 focus-visible:!ring-ink"
                   />
                 ) : (
                   <ReadValue value={form.phone} placeholder="Ajoute un numéro" />
@@ -472,12 +449,12 @@ export function InformationPersonnelleClient({
             <div
               className="mb-3"
               style={{
-                background: "rgba(29,158,117,.10)",
-                border: "0.5px solid rgba(29,158,117,.25)",
+                background: "var(--surface)",
+                border: "1px solid var(--line)",
                 borderRadius: 10,
                 padding: "8px 12px",
                 fontSize: 12,
-                color: "#1D9E75",
+                color: "var(--ink)",
               }}
             >
               Informations mises à jour !
@@ -487,12 +464,12 @@ export function InformationPersonnelleClient({
             <div
               className="mb-3"
               style={{
-                background: "rgba(229,72,77,.08)",
-                border: "0.5px solid rgba(229,72,77,.25)",
+                background: "var(--false-bg)",
+                border: "1px solid var(--false-sign)",
                 borderRadius: 10,
                 padding: "8px 12px",
                 fontSize: 12,
-                color: "#E5484D",
+                color: "var(--false-sign)",
               }}
             >
               Erreur lors de l&apos;enregistrement.
@@ -514,7 +491,7 @@ export function InformationPersonnelleClient({
                   borderRadius: 12,
                   border: "none",
                   background: primaryHover ? "var(--ink)" : "var(--ink)",
-                  color: "white",
+                  color: "var(--surface)",
                   cursor: "pointer",
                 }}
               >
@@ -536,7 +513,7 @@ export function InformationPersonnelleClient({
                     borderRadius: 12,
                     border: "none",
                     background: primaryHover ? "var(--ink)" : "var(--ink)",
-                    color: "white",
+                    color: "var(--surface)",
                     cursor: "pointer",
                   }}
                 >
@@ -580,13 +557,13 @@ export function InformationPersonnelleClient({
         <div
           className="mt-5"
           style={{
-            background: "rgba(229,72,77,.08)",
-            border: "0.5px solid rgba(229,72,77,.20)",
+            background: "var(--false-bg)",
+            border: "1px solid var(--false-sign)",
             borderRadius: 12,
             padding: "14px 16px",
           }}
         >
-          <p style={{ fontSize: 12, fontWeight: 600, color: "#E5484D", marginBottom: 4 }}>
+          <p style={{ fontSize: 12, fontWeight: 600, color: "var(--false-sign)", marginBottom: 4 }}>
             Zone dangereuse
           </p>
           <p style={{ fontSize: 11, color: "var(--muted)", lineHeight: 1.5, marginBottom: 12 }}>
@@ -601,15 +578,15 @@ export function InformationPersonnelleClient({
               setDeleteError("");
               setDeleteModalOpen(true);
             }}
-            className="transition hover:bg-[rgba(229,72,77,.12)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E5484D]"
+            className="transition hover:bg-false-bg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--false-sign)]"
             style={{
               fontSize: 12,
               fontWeight: 500,
               padding: "8px 16px",
               borderRadius: 10,
-              border: "1px solid rgba(229,72,77,.35)",
+              border: "1px solid var(--false-sign)",
               background: "transparent",
-              color: "#E5484D",
+              color: "var(--false-sign)",
               cursor: "pointer",
             }}
           >
@@ -621,21 +598,21 @@ export function InformationPersonnelleClient({
       {deleteModalOpen && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(26,26,26,.45)" }}
+          style={{ background: "color-mix(in srgb, var(--ink) 45%, transparent)" }}
           onClick={() => deleteStatus !== "loading" && setDeleteModalOpen(false)}
         >
           <div
             className="w-full max-w-md overflow-hidden"
             style={{
               borderRadius: 18,
-              background: "white",
+              background: "var(--surface)",
               boxShadow: PANEL_SHADOW,
               border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div style={{ padding: "20px" }}>
-              <h2 style={{ fontSize: 16, fontWeight: 600, color: "#1A1A1A", marginBottom: 8 }}>
+              <h2 style={{ fontSize: 16, fontWeight: 600, color: "var(--ink)", marginBottom: 8 }}>
                 Supprimer mon compte
               </h2>
               <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5, marginBottom: 16 }}>
@@ -661,7 +638,7 @@ export function InformationPersonnelleClient({
                   onChange={(e) => setDeleteConfirmEmail(e.target.value)}
                   placeholder={email ?? ""}
                   className="w-full outline-none focus-visible:ring-2 focus-visible:ring-ink"
-                  style={{ ...fieldStyle(true), borderColor: "rgba(229,72,77,.35)" }}
+                  style={{ ...fieldStyle(true), borderColor: "var(--false-sign)" }}
                 />
               </label>
 
@@ -669,11 +646,11 @@ export function InformationPersonnelleClient({
                 <div
                   className="mt-3"
                   style={{
-                    background: "rgba(229,72,77,.08)",
+                    background: "var(--false-bg)",
                     borderRadius: 8,
                     padding: "6px 10px",
                     fontSize: 12,
-                    color: "#E5484D",
+                    color: "var(--false-sign)",
                   }}
                 >
                   {deleteError}
@@ -730,8 +707,8 @@ export function InformationPersonnelleClient({
                     padding: 11,
                     borderRadius: 10,
                     border: "none",
-                    background: "#E5484D",
-                    color: "white",
+                    background: "var(--false-sign)",
+                    color: "var(--surface)",
                     cursor: "pointer",
                   }}
                 >
@@ -755,7 +732,7 @@ function fieldStyle(editable: boolean): CSSProperties {
     border: editable ? "1px solid color-mix(in srgb, var(--ink) 25%, transparent)" : "1px solid transparent",
     background: editable ? "white" : "color-mix(in srgb, var(--ink) 4%, transparent)",
     outline: "none",
-    color: "#1A1A1A",
+    color: "var(--ink)",
   };
 }
 
@@ -764,7 +741,7 @@ function SectionCard({ title, children }: { title: string; children: ReactNode }
     <div
       className="mb-3"
       style={{
-        background: "white",
+        background: "var(--surface)",
         border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
         borderRadius: 12,
         padding: 16,
@@ -783,7 +760,7 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       style={{
         fontSize: 13,
         fontWeight: 600,
-        color: "#1A1A1A",
+        color: "var(--ink)",
         marginBottom: 14,
       }}
     >
@@ -845,7 +822,7 @@ function ReadValue({ value, placeholder }: { value?: string; placeholder?: strin
     <div
       style={{
         ...fieldStyle(false),
-        color: empty ? "var(--muted)" : "#1A1A1A",
+        color: empty ? "var(--muted)" : "var(--ink)",
       }}
     >
       {empty ? placeholder ?? "—" : value}
@@ -907,7 +884,7 @@ function ProfileSectionHeader({
         <Icon size={16} stroke="var(--ink)" aria-hidden />
       </div>
       <div>
-        <p style={{ fontSize: 15, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>{title}</p>
+        <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)", margin: 0 }}>{title}</p>
         {subtitle ? (
           <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
         ) : null}
@@ -949,7 +926,7 @@ function ReferralSection({
     <div
       className="mb-3 mt-3"
       style={{
-        background: "white",
+        background: "var(--surface)",
         border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
         borderRadius: 12,
         padding: 14,
@@ -1008,7 +985,7 @@ function ReferralSection({
                   fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "#1A1A1A",
+                  color: "var(--ink)",
                   letterSpacing: "1.5px",
                   lineHeight: 1.2,
                   whiteSpace: "nowrap",
@@ -1026,15 +1003,15 @@ function ReferralSection({
                 ...referralBtnBase,
                 flexShrink: 0,
                 border: copiedCode
-                  ? "1px solid rgba(29,158,117,.35)"
+                  ? "1.5px solid var(--ink)"
                   : "1px solid color-mix(in srgb, var(--ink) 12%, transparent)",
-                background: copiedCode ? "rgba(29,158,117,.08)" : "transparent",
-                color: copiedCode ? "#1D9E75" : "var(--muted)",
+                background: copiedCode ? "var(--surface)" : "transparent",
+                color: copiedCode ? "var(--ink)" : "var(--muted)",
               }}
             >
               {copiedCode ? (
                 <>
-                  <Check size={13} stroke="#1D9E75" />
+                  <Check size={13} stroke="var(--ink)" />
                   Copié ✓
                 </>
               ) : (

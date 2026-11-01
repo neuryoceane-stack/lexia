@@ -48,7 +48,7 @@ export default async function AbonnementPage({
   if (!subscription) {
     return (
       <div className={dmSans.className}>
-        <p role="alert" style={{ fontSize: 15, color: "#B42318" }}>
+        <p role="alert" style={{ fontSize: 15, color: "var(--false-text)" }}>
           {loadError ?? "Impossible de lire ton abonnement."}
         </p>
       </div>
