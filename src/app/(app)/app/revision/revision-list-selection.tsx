@@ -43,38 +43,39 @@ function isoCode(code: string): string {
   return toIso6391(code).toUpperCase();
 }
 
-/** « de l'italien » / « du français », puis « vers l'italien » / « vers le français ». */
-function senseTitle(fromCode: string, toCode: string): string {
-  const phrase = (code: string) => {
-    const name = languageLabel(code).toLowerCase();
-    const elided = /^[aeiouyhàâäéèêëîïôùûœ]/i.test(name);
-    return { name, elided };
-  };
-  const from = phrase(fromCode);
-  const to = phrase(toCode);
-  const de = from.elided ? `De l'${from.name}` : `Du ${from.name}`;
-  const vers = to.elided ? `vers l'${to.name}` : `vers le ${to.name}`;
-  return `${de} ${vers}`;
+function PillGroup({ codes }: { codes: string[] }) {
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1">
+      {codes.map((code, index) => (
+        <span key={code} className="inline-flex items-center gap-1">
+          {index > 0 ? (
+            <span className="text-xs text-muted" aria-hidden>
+              ·
+            </span>
+          ) : null}
+          <LanguagePill code={isoCode(code)} />
+        </span>
+      ))}
+    </span>
+  );
 }
 
+/** Le français est toujours d’un côté. `frenchFirst` = carte 2 (ancien « Traduction → Mot »). */
 function SenseDirectionMarks({
-  fromLang,
-  toLang,
+  studied,
+  frenchFirst,
 }: {
-  fromLang: string;
-  toLang: string;
+  studied: string[];
+  frenchFirst: boolean;
 }) {
+  const french = <LanguagePill code={isoCode("fra")} />;
+  const studiedMarks = <PillGroup codes={studied} />;
   return (
-    <>
-      <LanguagePill code={isoCode(fromLang)} />
-      <ArrowRight
-        size={14}
-        strokeWidth={2}
-        color={BORDER_TERTIARY}
-        aria-hidden
-      />
-      <LanguagePill code={isoCode(toLang)} />
-    </>
+    <span className="inline-flex shrink-0 items-center gap-1.5">
+      {frenchFirst ? french : studiedMarks}
+      <ArrowRight size={14} strokeWidth={2} color={BORDER_TERTIARY} aria-hidden />
+      {frenchFirst ? studiedMarks : french}
+    </span>
   );
 }
 
@@ -189,7 +190,6 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const [revisionDirection, setRevisionDirection] = useState<
     "term_to_def" | "def_to_term"
   >("term_to_def");
-  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(["fra"]);
 
   useEffect(() => {
     setSelected(new Set(initialListIds));
@@ -227,13 +227,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
         );
       })
       .catch(() => {
-        if (!cancelled) {
-          setError(
-            mode === "dictee"
-              ? "Impossible de charger vos listes."
-              : "Impossible de charger tes listes."
-          );
-        }
+        if (!cancelled) setError("Impossible de charger vos listes.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -241,25 +235,6 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/user/preferences")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data.preferredLanguages) && data.preferredLanguages.length) {
-          setPreferredLanguages(
-            data.preferredLanguages.map((code: string) => normLang(code))
-          );
-        } else if (data.preferredLanguage) {
-          setPreferredLanguages(
-            [data.preferredLanguage, data.preferredLanguage2]
-              .filter(Boolean)
-              .map((code: string) => normLang(code))
-          );
-        }
-      })
-      .catch(() => {});
   }, []);
 
   const selectedLang =
@@ -308,14 +283,18 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     return "eng";
   }, [selectedLang, langFilter, languages]);
 
-  const previewTranslationLang = useMemo(() => {
-    const fra = preferredLanguages.find((l) => normLang(l) === "fra");
-    if (fra && normLang(previewListLang) !== "fra") return "fra";
-    const other = preferredLanguages.find(
-      (l) => normLang(l) !== normLang(previewListLang)
-    );
-    return other ?? "fra";
-  }, [preferredLanguages, previewListLang]);
+  const studiedLanguages = useMemo(() => {
+    const selectedLists = lists.filter((list) => selected.has(list.id));
+    const source =
+      selectedLists.length > 0
+        ? selectedLists.map((list) => normLang(list.language))
+        : langFilter !== "all"
+          ? [normLang(langFilter)]
+          : lists.map((list) => normLang(list.language));
+    const unique = [...new Set(source)];
+    const studied = unique.filter((code) => code !== "fra").sort();
+    return (studied.length > 0 ? studied : unique.sort());
+  }, [lists, selected, langFilter]);
 
   const labelSource = languageLabel(previewListLang);
 
@@ -327,6 +306,10 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     return codes.size;
   }, [lists, selected]);
   const severalLanguages = selectedLanguageCount > 1;
+  const severalStudied = studiedLanguages.length !== 1;
+  const studiedLabel = severalStudied
+    ? "Langue étudiée"
+    : languageLabel(studiedLanguages[0] ?? "");
 
   const lockBannerLang = selectedLang ? labelSource : "";
   const isFlashcardMode = mode === "flashcard";
@@ -335,21 +318,13 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     ? "Sens des flashcards"
     : "Sens de la dictée";
   const senseSub1 = isFlashcardMode
-    ? "On affiche le mot, tu retrouves la traduction"
+    ? "Le mot s'affiche, vous retrouvez la traduction"
     : "Vous voyez le mot, vous écrivez la traduction";
   const senseSub2 = isFlashcardMode
-    ? "On affiche la traduction, tu retrouves le mot"
+    ? "La traduction s'affiche, vous retrouvez le mot"
     : "Vous voyez la traduction, vous écrivez le mot";
-  const senseTitle1 = !isFlashcardMode
-    ? severalLanguages
-      ? "Langue étudiée → Français"
-      : senseTitle(previewListLang, previewTranslationLang)
-    : "Mot → Traduction";
-  const senseTitle2 = !isFlashcardMode
-    ? severalLanguages
-      ? "Français → Langue étudiée"
-      : senseTitle(previewTranslationLang, previewListLang)
-    : "Traduction → Mot";
+  const senseTitle1 = `${studiedLabel} → Français`;
+  const senseTitle2 = `Français → ${studiedLabel}`;
 
   return (
     <div
@@ -447,9 +422,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             marginTop: 4,
           }}
         >
-          {isFlashcardMode
-            ? "Sélectionne une ou plusieurs listes pour lancer ta session."
-            : "Sélectionnez une ou plusieurs listes pour lancer votre session."}
+          Sélectionnez une ou plusieurs listes pour lancer votre session.
         </p>
 
         {/* Filtres langue */}
@@ -491,7 +464,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           })}
         </div>
 
-        {/* Sens : flashcards (violet) ou dictée (or) */}
+        {/* Sens : carte 1 = term_to_def, carte 2 = def_to_term. Seul l’affichage change. */}
         <div style={{ marginBottom: 14 }}>
           <p
             className="mb-2 font-medium tracking-wide uppercase"
@@ -523,12 +496,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             >
               <SelectionMark selected={revisionDirection === "term_to_def"} />
               <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                {severalLanguages ? null : (
-                  <SenseDirectionMarks
-                    fromLang={previewListLang}
-                    toLang={previewTranslationLang}
-                  />
-                )}
+                <SenseDirectionMarks studied={studiedLanguages} frenchFirst={false} />
                 <div className="min-w-0">
                   <div
                     style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}
@@ -563,12 +531,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             >
               <SelectionMark selected={revisionDirection === "def_to_term"} />
               <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                {severalLanguages ? null : (
-                  <SenseDirectionMarks
-                    fromLang={previewTranslationLang}
-                    toLang={previewListLang}
-                  />
-                )}
+                <SenseDirectionMarks studied={studiedLanguages} frenchFirst />
                 <div className="min-w-0">
                   <div
                     style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}
@@ -607,17 +570,8 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                 lineHeight: 1.5,
               }}
             >
-              {isFlashcardMode ? (
-                <>
-                  Tu as sélectionné une liste en {lockBannerLang} — seules les
-                  autres listes en {lockBannerLang} sont disponibles.
-                </>
-              ) : (
-                <>
-                  Vous avez sélectionné une liste en {lockBannerLang} — seules
-                  les autres listes en {lockBannerLang} sont disponibles.
-                </>
-              )}
+              Vous avez sélectionné une liste en {lockBannerLang} — seules les
+              autres listes en {lockBannerLang} sont disponibles.
             </p>
             <button
               type="button"
@@ -644,7 +598,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             marginBottom: 10,
           }}
         >
-          {isFlashcardMode ? "Tes listes" : "Vos listes"}
+          Vos listes
         </p>
 
         {error && (
@@ -656,9 +610,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           <p style={{ color: "var(--foreground-muted)" }}>Chargement…</p>
         ) : filteredLists.length === 0 ? (
           <p style={{ color: "var(--foreground-muted)" }}>
-            {isFlashcardMode
-              ? "Aucune liste à afficher. Crée des listes dans la bibliothèque."
-              : "Aucune liste à afficher. Créez des listes dans la bibliothèque."}
+            Aucune liste à afficher. Créez des listes dans la bibliothèque.
           </p>
         ) : (
           <ul className="space-y-0">
