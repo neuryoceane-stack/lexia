@@ -39,7 +39,7 @@ export default async function AppLayout({
     <PaywallBlockedProvider blocked={paywalled}>
       <div className="min-h-screen">
         <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
-        <main className="page-fade-in mx-auto max-w-[1200px] px-4 py-8 sm:px-6 sm:py-10">{children}</main>
+        <main className="page-fade-in mx-auto max-w-[1200px] px-4 pb-40 pt-8 sm:px-6 md:py-10">{children}</main>
         <FeedbackWidget />
         {/* Le tutoriel ouvre la révision : il attend que l'élève ait accès. */}
         {showOnboarding && !paywalled && <OnboardingWrapper role={userRole} />}

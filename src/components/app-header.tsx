@@ -1,11 +1,27 @@
 "use client";
 
-import { useState, useRef, useEffect, type CSSProperties } from "react";
+import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
-import { Star, User, Settings, LogOut, ChevronRight, ShoppingBag, CreditCard } from "lucide-react";
+import {
+  Star,
+  User,
+  Settings,
+  LogOut,
+  ChevronRight,
+  ShoppingBag,
+  CreditCard,
+  Home,
+  Library,
+  ClipboardList,
+  ChartColumn,
+  Users,
+  BookOpen,
+  Bolt,
+  type LucideIcon,
+} from "lucide-react";
 import { SHOP_ENABLED } from "@/lib/feature-flags";
 
 const LEVEL_NAMES: Record<number, string> = {
@@ -25,17 +41,26 @@ async function handleLogout() {
   window.location.href = "/login";
 }
 
-const navItemsStudent = [
-  { href: "/app/familles", label: "Bibliothèque", icon: "book" as const },
-  { href: "/app/revision", label: "Révision", icon: "clipboard" as const },
-  { href: "/app/jardin", label: "Synthèse", icon: "sparkles" as const },
-] as const;
+type NavItem = {
+  href: string;
+  label: string;
+  icon: LucideIcon;
+  /** Correspondance stricte : indispensable pour Accueil (/app), sinon toute l'app est active. */
+  exact?: boolean;
+};
 
-const navItemsProfesseur = [
-  { href: "/app/professeur", label: "Accueil", icon: "home" as const },
-  { href: "/app/professeur/classes", label: "Mes classes", icon: "users" as const },
-  { href: "/app/familles", label: "Ma bibliothèque", icon: "book" as const },
-] as const;
+const navItemsStudent: NavItem[] = [
+  { href: "/app", label: "Accueil", icon: Home, exact: true },
+  { href: "/app/familles", label: "Bibliothèque", icon: Library },
+  { href: "/app/revision", label: "Révision", icon: ClipboardList },
+  { href: "/app/jardin", label: "Synthèse", icon: ChartColumn },
+];
+
+const navItemsProfesseur: NavItem[] = [
+  { href: "/app/professeur", label: "Accueil", icon: Home, exact: true },
+  { href: "/app/professeur/classes", label: "Mes classes", icon: Users },
+  { href: "/app/familles", label: "Ma bibliothèque", icon: BookOpen },
+];
 
 
 function Avatar({ name, className }: { name: string; className?: string }) {
@@ -50,7 +75,7 @@ function Avatar({ name, className }: { name: string; className?: string }) {
 
   return (
     <span
-      className={`flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary ${className ?? ""}`}
+      className={`flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-ink bg-[var(--surface)] text-sm font-medium text-ink ${className ?? ""}`}
       aria-hidden
     >
       {initials}
@@ -174,7 +199,7 @@ function AvatarDropdown({
             right: 0,
             zIndex: 9999,
             width: 248,
-            backgroundColor: "white",
+            backgroundColor: "var(--surface)",
             borderRadius: 18,
             boxShadow:
               "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)",
@@ -226,7 +251,7 @@ function AvatarDropdown({
               >
                 {displayName}
               </p>
-              <p style={{ fontSize: 11.5, color: "color-mix(in srgb, var(--surface) 70%, transparent)", marginBottom: 8 }}>
+              <p style={{ fontSize: 11.5, color: "color-mix(in srgb, var(--surface) 75%, transparent)", marginBottom: 8 }}>
                 {isProfesseur ? "Professeur" : "Étudiant"}
               </p>
               <span
@@ -436,7 +461,23 @@ function AccountMenuLogoutButton({
   );
 }
 
-const navItemCreator = { href: "/app/creator", label: "Créateur", icon: "bolt" as const } as const;
+const navItemCreator: NavItem = { href: "/app/creator", label: "Créateur", icon: Bolt };
+
+function NavTabLabel({ active, children }: { active: boolean; children: ReactNode }) {
+  return (
+    <span
+      className="inline-flex items-center rounded-full px-3.5"
+      style={{
+        minHeight: 36,
+        background: active ? "var(--mark)" : "transparent",
+        color: "var(--ink)",
+        fontWeight: 500,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
 
 export function AppHeader({
   user,
@@ -448,197 +489,129 @@ export function AppHeader({
   isCreator?: boolean;
 }) {
   const pathname = usePathname();
-  const [burgerMounted, setBurgerMounted] = useState(false);
-  const [burgerOpen, setBurgerOpen] = useState(false);
-
-  useEffect(() => {
-    setBurgerMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (burgerOpen) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [burgerOpen]);
   const displayName = user?.name || user?.email?.split("@")[0] || "Utilisateur";
   const baseNavItems = isProfesseur ? navItemsProfesseur : navItemsStudent;
   const navItems = isCreator ? [...baseNavItems, navItemCreator] : baseNavItems;
   const homeHref = isProfesseur ? "/app/professeur" : "/app";
 
-  function isNavActive(href: string) {
-    return pathname === href || pathname.startsWith(href + "/");
+  function isNavActive(item: NavItem) {
+    if (item.exact) return pathname === item.href;
+    const matches = pathname === item.href || pathname.startsWith(item.href + "/");
+    if (!matches) return false;
+    const coveredByLonger = navItems.some(
+      (other) =>
+        other.href !== item.href &&
+        other.href.startsWith(item.href + "/") &&
+        (pathname === other.href || pathname.startsWith(other.href + "/"))
+    );
+    return !coveredByLonger;
   }
 
   return (
-    <header
-      className="sticky top-0 z-20 border-b border-line/90 bg-surface/95 backdrop-blur-md"
-      style={{ boxShadow: "0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent)" }}
-    >
-      <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 sm:gap-10 sm:px-6">
-        {/* Logo — gauche */}
-        <Link
-          href={homeHref}
-          className="inline-flex shrink-0 items-center gap-3 no-underline outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-          aria-label="Lexiva — Accueil"
-          style={{ fontFamily: "var(--font-sans), sans-serif" }}
-        >
-          <Image
-            src="/logo-mark.png"
-            alt=""
-            width={36}
-            height={36}
-            style={{ objectFit: "contain" }}
-            priority
-          />
-          <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
-            Lexiva
-          </span>
-        </Link>
+    <>
+      <header
+        className="sticky top-0 z-20 flex h-[72px] items-center border-b bg-[var(--surface)]"
+        style={{ borderColor: "var(--line)" }}
+      >
+        <div className="mx-auto flex h-full w-full max-w-[1200px] items-center gap-6 px-4 sm:px-6">
+          <Link
+            href={homeHref}
+            className="inline-flex shrink-0 items-center gap-3 no-underline outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+            aria-label="Lexiva — Accueil"
+            style={{ fontFamily: "var(--font-sans), sans-serif" }}
+          >
+            <Image
+              src="/logo-mark.png"
+              alt=""
+              width={36}
+              height={36}
+              style={{ objectFit: "contain" }}
+              priority
+            />
+            <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
+              Lexiva
+            </span>
+          </Link>
 
-        {/* Navigation — liens texte (desktop) */}
-        <nav
-          className="hidden flex-1 items-center gap-8 md:flex"
-          aria-label="Navigation principale"
-          style={{ fontFamily: "var(--font-sans), sans-serif" }}
-        >
-          {navItems.map(({ href, label }) => {
-            const active = isNavActive(href);
+          <nav
+            className="hidden flex-1 items-center gap-1 md:flex"
+            aria-label="Navigation principale"
+            style={{ fontFamily: "var(--font-sans), sans-serif" }}
+          >
+            {navItems.map((item) => {
+              const active = isNavActive(item);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className="inline-flex min-h-11 items-center text-[14px] no-underline outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+                >
+                  <NavTabLabel active={active}>{item.label}</NavTabLabel>
+                </Link>
+              );
+            })}
+          </nav>
+
+          <div className="flex-1 md:hidden" aria-hidden />
+
+          <div className="flex shrink-0 items-center gap-3">
+            <NotificationsBell />
+            <AvatarDropdown name={displayName} isProfesseur={isProfesseur} />
+          </div>
+        </div>
+      </header>
+
+      <nav
+        className="fixed inset-x-0 bottom-0 z-30 border-t bg-[var(--surface)] md:hidden"
+        style={{ height: 76, borderColor: "var(--line)" }}
+        aria-label="Navigation principale"
+      >
+        <ul className="mx-auto flex h-full max-w-[1200px] items-stretch px-1">
+          {navItems.map((item) => {
+            const active = isNavActive(item);
+            const Icon = item.icon;
             return (
-              <Link
-                key={href}
-                href={href}
-                className="relative py-1 text-[14px] font-medium no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-                style={{
-                  color: active ? "var(--ink)" : "var(--muted)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.color = "var(--ink)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.color = "var(--muted)";
-                }}
-              >
-                {label}
-                {active && (
+              <li key={item.href} className="flex min-w-0 flex-1">
+                <Link
+                  href={item.href}
+                  aria-current={active ? "page" : undefined}
+                  className="flex min-h-11 w-full flex-col items-center justify-center gap-0.5 no-underline outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                  style={{ fontFamily: "var(--font-sans), sans-serif" }}
+                >
                   <span
-                    aria-hidden
-                    className="absolute -bottom-1 left-0 right-0 mx-auto h-0.5 rounded-full"
-                    style={{ background: "var(--ink)", maxWidth: "100%" }}
-                  />
-                )}
-              </Link>
+                    className="inline-flex items-center justify-center"
+                    style={{
+                      minWidth: 36,
+                      height: 28,
+                      paddingInline: 8,
+                      borderRadius: 8,
+                      background: active ? "var(--mark)" : "transparent",
+                    }}
+                  >
+                    <Icon
+                      size={22}
+                      strokeWidth={1.8}
+                      color={active ? "var(--ink)" : "var(--muted)"}
+                      aria-hidden
+                    />
+                  </span>
+                  <span
+                    className="max-w-full truncate px-0.5 text-[11px]"
+                    style={{
+                      fontWeight: 500,
+                      color: active ? "var(--ink)" : "var(--muted)",
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {item.label}
+                  </span>
+                </Link>
+              </li>
             );
           })}
-        </nav>
-
-        <div className="flex-1 md:hidden" aria-hidden />
-
-        {/* Droite : notifications + avatar + menu mobile */}
-        <div className="flex shrink-0 items-center gap-3 sm:gap-4">
-          <NotificationsBell />
-          <AvatarDropdown name={displayName} isProfesseur={isProfesseur} />
-          <button
-            type="button"
-            onClick={() => setBurgerOpen((o) => !o)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-[var(--background-subtle)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 md:hidden"
-            aria-expanded={burgerOpen}
-            aria-controls="mobile-menu"
-            aria-label={burgerOpen ? "Fermer le menu" : "Ouvrir le menu"}
-          >
-            {burgerOpen ? (
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            )}
-          </button>
-        </div>
-      </div>
-
-      {/* Menu mobile */}
-      <div
-        id="mobile-menu"
-        className={`fixed inset-0 z-[9997] md:hidden ${
-          burgerOpen ? "pointer-events-auto" : "pointer-events-none"
-        }`}
-        aria-hidden={!burgerOpen}
-      >
-        {burgerMounted && burgerOpen && (
-          <>
-            <div
-              className="absolute inset-0 bg-black/40 opacity-100 transition-opacity duration-300"
-              onClick={() => setBurgerOpen(false)}
-              aria-hidden
-            />
-            <div
-              style={{
-                position: "fixed",
-                top: 0,
-                right: 0,
-                height: "100vh",
-                width: "min(280px, 88vw)",
-                backgroundColor: "white",
-                zIndex: 9998,
-                boxShadow: "-4px 0 24px color-mix(in srgb, var(--ink) 8%, transparent)",
-                transform: "translateX(0)",
-                transition: "transform 300ms ease",
-                overflowY: "auto",
-                display: "flex",
-                flexDirection: "column",
-                fontFamily: "var(--font-sans), sans-serif",
-              }}
-            >
-              <div className="flex shrink-0 items-center justify-between border-b border-line/90 px-4 py-4">
-                <Link
-                  href={homeHref}
-                  onClick={() => setBurgerOpen(false)}
-                  className="flex items-center gap-2.5 no-underline"
-                >
-                  <Image src="/logo-mark.png" alt="" width={32} height={32} />
-                  <span className="text-[17px] font-semibold text-ink">Lexiva</span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setBurgerOpen(false)}
-                  className="rounded-lg p-2 text-muted transition-colors hover:bg-[var(--background-subtle)]"
-                  aria-label="Fermer le menu"
-                >
-                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              </div>
-              <nav className="px-2 py-3" aria-label="Navigation mobile">
-                {navItems.map(({ href, label }) => {
-                  const active = isNavActive(href);
-                  return (
-                    <Link
-                      key={href}
-                      href={href}
-                      onClick={() => setBurgerOpen(false)}
-                      className="block rounded-lg px-4 py-3 text-[15px] font-medium no-underline transition-colors"
-                      style={{
-                        color: active ? "var(--ink)" : "var(--ink)",
-                        background: active ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "transparent",
-                      }}
-                    >
-                      {label}
-                    </Link>
-                  );
-                })}
-              </nav>
-            </div>
-          </>
-        )}
-      </div>
-    </header>
+        </ul>
+      </nav>
+    </>
   );
 }
