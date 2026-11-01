@@ -242,7 +242,7 @@ export function InformationPersonnelleClient({
     <div>
       <header className="mb-8">
         <h1 className="m-0 text-[46px] leading-[1.05] tracking-[-0.02em] text-ink">
-          Ton <span className="home-mark">profil</span>
+          Ton <span className="marker">profil</span>
         </h1>
       </header>
 
@@ -289,12 +289,11 @@ export function InformationPersonnelleClient({
             >
               {email ?? "—"}
             </p>
-            <span
-              className="mt-4 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-medium"
-              style={{ background: "var(--mark)", color: "var(--ink)" }}
-            >
-              <Sprout size={14} strokeWidth={1.75} color="var(--ink)" aria-hidden />
-              Niveau {userLevel} — {getLevelName(userLevel)}
+            <span className="mt-4 inline-flex items-center gap-1.5 text-[13px] font-medium">
+              <Sprout size={14} strokeWidth={1.75} color="var(--mark)" aria-hidden />
+              <span className="marker">
+                Niveau {userLevel} — {getLevelName(userLevel)}
+              </span>
             </span>
           </section>
 

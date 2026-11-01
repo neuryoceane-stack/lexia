@@ -300,10 +300,7 @@ export function ParametresClient() {
                     onClick={() => setActiveId(item.id)}
                     className="flex min-h-11 items-center rounded-lg px-1 text-[15px] font-medium text-ink no-underline outline-none focus-visible:ring-2 focus-visible:ring-ink"
                   >
-                    <span
-                      className="rounded-lg px-2 py-1"
-                      style={{ background: active ? "var(--mark)" : "transparent" }}
-                    >
+                    <span className={active ? "marker" : undefined} style={{ padding: active ? undefined : "0 7px" }}>
                       {item.label}
                     </span>
                   </a>
@@ -436,13 +433,13 @@ export function ParametresClient() {
                             type="button"
                             aria-pressed={active}
                             onClick={() => setWeeklyGoal(preset.value)}
-                            className="inline-flex min-h-11 items-center rounded-full px-3.5 text-sm font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                            className="inline-flex min-h-11 items-center justify-center rounded-full px-1 text-sm font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
                             style={{
-                              background: active ? "var(--mark)" : "var(--surface)",
-                              border: active ? "1.5px solid var(--mark)" : "1.5px solid var(--line)",
+                              background: "var(--surface)",
+                              border: active ? "1.5px solid transparent" : "1.5px solid var(--line)",
                             }}
                           >
-                            {preset.value} · {preset.label}
+                            <span className={active ? "marker" : "px-3"}>{preset.value} · {preset.label}</span>
                           </button>
                         );
                       })}

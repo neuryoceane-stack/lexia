@@ -235,7 +235,7 @@ export function DashboardClient() {
           {greetingName ? `Salut ${greetingName}, ` : "Salut, "}
           <br className="md:hidden" />
           {"tes "}
-          <span className="home-mark">mots du jour</span>
+          <span className="marker">mots du jour</span>
         </h1>
         {profileError && (
           <p role="alert" className="mt-2" style={{ color: "var(--false-text)", fontSize: 14 }}>
@@ -266,7 +266,9 @@ export function DashboardClient() {
                 color: "var(--surface)",
               }}
             >
-              {displayStreak} jour{displayStreak !== 1 ? "s" : ""} d&apos;affilée
+              <span className="marker">{displayStreak}</span>
+              {" "}
+              jour{displayStreak !== 1 ? "s" : ""} d&apos;affilée
             </p>
           </div>
           <p
@@ -303,7 +305,7 @@ export function DashboardClient() {
                 Révision express
               </p>
               <p style={{ marginTop: 4, fontSize: 14, color: "var(--ink)", fontWeight: 500 }}>
-                <span className="home-mark">
+                <span className="marker">
                   {dueCount} mot{dueCount !== 1 ? "s" : ""}
                 </span>{" "}
                 à revoir
@@ -444,7 +446,9 @@ export function DashboardClient() {
                       </div>
                     )}
                     {list.dueTodayCount > 0 ? (
-                      <span style={markChipStyle}>{list.dueTodayCount} à revoir</span>
+                      <span className="marker" style={{ fontSize: 13, fontWeight: 500 }}>
+                        {list.dueTodayCount} à revoir
+                      </span>
                     ) : (
                       <span style={{ fontSize: 13, color: "var(--muted)" }}>Rien à revoir</span>
                     )}
