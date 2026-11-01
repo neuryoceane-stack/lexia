@@ -1,5 +1,5 @@
 const CACHE_NAME = "lexiva-v1";
-const ASSET_PREFIXES = ["/logo.png", "/_next/static/", "/fonts/"];
+const ASSET_PREFIXES = ["/icons/", "/apple-touch-icon.png", "/favicon.ico", "/_next/static/", "/fonts/"];
 
 function isAssetRequest(url) {
   const path = new URL(url).pathname;
