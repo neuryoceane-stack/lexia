@@ -18,7 +18,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Thème Lexiva (dark mode)
+## Thème Kim Study
 
 Les couleurs neutres utilisent des variables CSS (`--background`, `--background-card`, `--background-subtle`, `--foreground`, `--foreground-muted`, `--foreground-disabled`, `--border`, `--input-bg`, `--input-border`) définies dans les styles globaux. Les accents violet, or, vert et les états d’erreur restent explicites.
 
@@ -30,7 +30,7 @@ Les couleurs neutres utilisent des variables CSS (`--background`, `--background-
 
 **Mes classes :** `src/app/(app)/app/professeur/classes/page.tsx` (Server) + `mes-classes-view.tsx` (Client). La **création de classe** se fait dans une **modale** (`creer-classe-modal.tsx`) : boutons « Créer une classe », état vide, carte « + ». L’ancienne URL `/app/professeur/classes/nouvelle` redirige vers `?creer=1`. Données agrégées : `src/lib/teacher-classes-list-stats.ts`. Colonne optionnelle **`school_level`** sur `classes` : appliquer `scripts/migrations/002_add_class_school_level.sql` si la base existait avant ce champ. La route `/app/professeur/classes/[id]/progression` redirige vers `?tab=eleves`.
 
-**Détail classe (prof)** : `src/app/(app)/app/professeur/classes/[id]/page.tsx` — stats et onglets Lexiva ; agrégations révisions / listes dans `src/lib/class-detail-analytics.ts`. **DELETE** `/api/classes/[id]/lists/[listId]` retire l’assignation d’une liste (bouton « Retirer »). Copie du **code d’accès** : identifiant brut (compatible `POST /api/classes/join`), affichage avec préfixe `LX-`.
+**Détail classe (prof)** : `src/app/(app)/app/professeur/classes/[id]/page.tsx` — stats et onglets Kim Study ; agrégations révisions / listes dans `src/lib/class-detail-analytics.ts`. **DELETE** `/api/classes/[id]/lists/[listId]` retire l’assignation d’une liste (bouton « Retirer »). Copie du **code d’accès** : identifiant brut (compatible `POST /api/classes/join`), affichage avec préfixe `LX-`.
 
 **Langues et drapeaux :** source unique `src/lib/language.ts` (`getFlagEmoji`, `getFlagImagePath`, `getFlagCountryCode`, `PREFERRED_LANGUAGE_OPTIONS`, `KNOWN_LANGUAGE_CODES`). Composant `FlagDisplay` (PNG + emoji) ; en-tête classe prof : emoji via `getFlagEmoji` + libellé via `PREFERRED_LANGUAGE_OPTIONS`. **Mots sauvages** : après import (PDF, image, URL, paroles) ou après « Utiliser ma sélection », la langue source est pré-remplie via `franc` + `resolvePreferredSourceLangFromText` (uniquement si la langue détectée figure dans les options préférées).
 

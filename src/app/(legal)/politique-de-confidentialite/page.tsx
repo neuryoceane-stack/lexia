@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { ARemplir } from "@/components/ARemplir";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Politique de confidentialité — Lexiva",
-  description: "Politique de protection des données personnelles du service Lexiva.",
+  title: `Politique de confidentialité — ${BRAND_NAME}`,
+  description: `Politique de protection des données personnelles du service ${BRAND_NAME}.`,
 };
 
 export default function PolitiqueConfidentialitePage() {
@@ -14,7 +15,7 @@ export default function PolitiqueConfidentialitePage() {
       <p>
         La présente politique de confidentialité a pour objet de vous informer, en toute
         transparence, sur la manière dont vos données personnelles sont collectées,
-        utilisées et protégées lorsque vous utilisez le service Lexiva.
+        utilisées et protégées lorsque vous utilisez le service {BRAND_NAME}.
       </p>
 
       <section>
@@ -120,7 +121,7 @@ export default function PolitiqueConfidentialitePage() {
         <h2>3. Finalités du traitement</h2>
         <p>Vos données sont traitées pour les finalités suivantes&nbsp;:</p>
         <ul>
-          <li>Fourniture et bon fonctionnement du service Lexiva.</li>
+          <li>Fourniture et bon fonctionnement du service {BRAND_NAME}.</li>
           <li>Suivi de votre progression et personnalisation de l&apos;expérience d&apos;apprentissage.</li>
           <li>Création, gestion et sécurisation de votre compte utilisateur.</li>
           <li>Facturation, gestion des abonnements et des achats.</li>
@@ -266,7 +267,7 @@ export default function PolitiqueConfidentialitePage() {
       <section>
         <h2>8. Mineurs</h2>
         <p>
-          Le service Lexiva s&apos;adresse principalement à un public majeur (18&nbsp;ans et
+          Le service {BRAND_NAME} s&apos;adresse principalement à un public majeur (18&nbsp;ans et
           plus). Toutefois, des mineurs peuvent s&apos;inscrire et utiliser la plateforme.
         </p>
         <p>

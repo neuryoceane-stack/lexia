@@ -1,4 +1,4 @@
-# Typographie – Lexia
+# Typographie – Kim Study
 
 Chargement : `next/font` dans `src/app/layout.tsx`. Pas d’import Google Fonts dans la CSS.
 

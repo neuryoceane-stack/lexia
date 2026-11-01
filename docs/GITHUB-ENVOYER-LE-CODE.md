@@ -1,4 +1,4 @@
-# Envoyer le projet Lexia sur GitHub
+# Envoyer le projet Kim Study sur GitHub
 
 Suis ces étapes **dans l’ordre**. Tout se fait depuis le terminal (ou Cursor) et le site github.com.
 

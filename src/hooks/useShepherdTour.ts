@@ -6,6 +6,7 @@ import Shepherd from "shepherd.js";
 import type { StepOptions, StepOptionsButton } from "shepherd.js";
 import "shepherd.js/dist/css/shepherd.css";
 import "@/styles/shepherd-lexiva.css";
+import { BRAND_NAME } from "@/lib/brand";
 
 type ShepherdTour = InstanceType<typeof Shepherd.Tour>;
 type AppRouter = ReturnType<typeof useRouter>;
@@ -86,7 +87,7 @@ function buildStudentSteps(
   return [
     {
       id: "welcome",
-      title: "Bienvenue sur Lexiva ✨",
+      title: `Bienvenue sur ${BRAND_NAME} ✨`,
       text: `
         <div class="lx-welcome">
           <p class="lx-intro">La méthode la plus efficace pour mémoriser du vocabulaire — enfin disponible.</p>
@@ -124,7 +125,7 @@ function buildStudentSteps(
         <p>Deux modes d'entraînement <strong>adaptés à ton niveau</strong> :</p>
         <ul class="lx-list">
           <li>🃏 <strong>Flashcards</strong> — recto/verso, mémorisation visuelle</li>
-          <li>✏️ <strong>Dictée</strong> — écris le mot, Lexiva corrige</li>
+          <li>✏️ <strong>Dictée</strong> — écris le mot, ${BRAND_NAME} corrige</li>
         </ul>
         <p class="lx-tip">🧠 L'algorithme SM-2 choisit les mots à revoir au bon moment.</p>
       `,
@@ -166,7 +167,7 @@ function buildTeacherSteps(
       title: "Bienvenue, professeur ✨",
       text: `
         <div class="lx-welcome">
-          <p class="lx-intro">Lexiva vous donne une vision complète de la progression de vos élèves.</p>
+          <p class="lx-intro">${BRAND_NAME} vous donne une vision complète de la progression de vos élèves.</p>
           <div class="lx-pills">
             <span class="lx-pill">🏫 Classes</span>
             <span class="lx-pill">📋 Listes</span>

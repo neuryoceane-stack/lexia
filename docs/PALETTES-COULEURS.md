@@ -1,4 +1,4 @@
-# Palettes de couleurs – Lexia
+# Palettes de couleurs – Kim Study
 
 Essais antérieurs, non branchés sur l’interface. La charte appliquée est celle de `AGENTS.md` et de `src/app/globals.css` (fond `#F7F9F6`, encre `#12332B`, texte secondaire `#4F615B`).
 

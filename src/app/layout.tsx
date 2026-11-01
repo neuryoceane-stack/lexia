@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { Providers } from "@/components/providers";
 import { PwaRegister } from "@/components/pwa-register";
+import { BRAND_NAME, BRAND_SHORT } from "@/lib/brand";
 import { designTokens } from "@/lib/design-tokens";
 import "./globals.css";
 
@@ -19,15 +20,29 @@ const bricolage = Bricolage_Grotesque({
   display: "swap",
 });
 
+const title = `${BRAND_NAME} — Apprendre du vocabulaire`;
+const description = "Listes de vocabulaire, révisions et suivi de progression";
+
 export const metadata: Metadata = {
-  title: "LEXIVA — Apprendre du vocabulaire",
-  description: "Listes de vocabulaire, révisions et suivi de progression",
+  title,
+  description,
+  applicationName: BRAND_NAME,
   manifest: "/manifest.json",
-  icons: { icon: "/logo.png", apple: "/logo.png" },
+  icons: {
+    icon: "/icons/icon-192.png",
+    apple: "/icons/icon-192.png",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Lexiva",
+    title: BRAND_SHORT,
+  },
+  openGraph: {
+    title,
+    description,
+    siteName: BRAND_NAME,
+    type: "website",
+    locale: "fr_FR",
   },
 };
 

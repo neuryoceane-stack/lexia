@@ -1,11 +1,12 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Brain, FileText, LineChart, ListPlus, Loader2, MousePointerClick, Users, type LucideIcon } from "lucide-react";
 import { OFFER_TRIAL_CARD_LABEL } from "@/lib/offer";
+import { BRAND_NAME } from "@/lib/brand";
+import { Logo } from "@/components/logo";
 
 const DEMO_CARDS = [
   { term: "distorto", def: "distorcere : déformer", lang: "it" },
@@ -29,7 +30,7 @@ const STEPS: {
     num: "01",
     Icon: FileText,
     title: "Importe ton texte",
-    desc: "PDF, photo ou texte brut. Lexiva extrait les mots pour toi.",
+    desc: `PDF, photo ou texte brut. ${BRAND_NAME} extrait les mots pour toi.`,
   },
   {
     num: "02",
@@ -183,7 +184,7 @@ export function LandingPage() {
     <div className="min-h-screen overflow-x-hidden">
       {showDeletedBanner && (
         <div className="relative flex items-center justify-center gap-2 bg-surface px-4 py-3 text-sm font-medium text-ink">
-          <span>✓ Ton compte a bien été supprimé. À bientôt sur Lexiva.</span>
+          <span>✓ Ton compte a bien été supprimé. À bientôt sur {BRAND_NAME}.</span>
           <button
             type="button"
             onClick={dismissBanner}
@@ -203,18 +204,8 @@ export function LandingPage() {
         }`}
       >
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:h-16 sm:px-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image
-              src="/logo-mark.png"
-              alt=""
-              width={36}
-              height={36}
-              style={{ objectFit: "contain" }}
-              className="h-9 w-9 shrink-0"
-            />
-            <span className="font-heading text-lg font-semibold text-ink">
-              Lexiva
-            </span>
+          <Link href="/" className="flex items-center no-underline" aria-label={BRAND_NAME}>
+            <Logo size="header" />
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
@@ -256,14 +247,7 @@ export function LandingPage() {
         </div>
 
         <div className="relative mx-auto max-w-4xl text-center">
-          <Image
-            src="/logo-mark.png"
-            alt=""
-            width={260}
-            height={260}
-            style={{ objectFit: "contain" }}
-            className="mx-auto mb-4"
-          />
+          <Logo size="hero" className="mb-6" />
           <h1 className="font-heading text-4xl font-bold leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
             Le vocabulaire{" "}
             <span className="bg-gradient-to-r from-ink to-ink bg-clip-text text-transparent">
@@ -273,8 +257,7 @@ export function LandingPage() {
             depuis tes vraies lectures
           </h1>
           <p className="mx-auto mt-5 max-w-2xl text-xl text-ink">
-            Importe n&apos;importe quel texte. Clique sur les mots inconnus.
-            Lexiva s&apos;occupe du reste.
+            Importe n&apos;importe quel texte. Clique sur les mots inconnus. {BRAND_NAME} s&apos;occupe du reste.
           </p>
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
@@ -589,23 +572,11 @@ export function LandingPage() {
       <footer className="bg-[var(--background-subtle)] px-4 py-8">
         <div className="mx-auto max-w-5xl">
           <div className="flex flex-col items-center justify-between gap-5 border-b border-line pb-6 sm:flex-row">
-            <div className="flex items-center gap-3">
-              <Image
-                src="/logo-mark.png"
-                alt=""
-                width={48}
-                height={48}
-                style={{ objectFit: "contain" }}
-                className="h-12 w-12 shrink-0"
-              />
-              <div>
-                <p className="font-heading text-lg font-semibold text-ink">
-                  Lexiva
-                </p>
-                <p className="mt-1 text-sm text-muted">
-                  Apprends le vocabulaire autrement
-                </p>
-              </div>
+            <div className="flex flex-col items-center gap-2 sm:items-start">
+              <Logo size="header" />
+              <p className="text-sm text-muted">
+                Apprends le vocabulaire autrement
+              </p>
             </div>
             <div className="flex gap-6">
               <Link

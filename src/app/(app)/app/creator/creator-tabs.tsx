@@ -11,6 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CreatorShopTab } from "./creator-shop-tab";
+import { BRAND_NAME } from "@/lib/brand";
 
 type FeedbackStatus = "pending" | "in_progress" | "done";
 type FeedbackWithUser = {
@@ -181,7 +182,7 @@ export function CreatorTabs() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `lexiva-paiements-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `${BRAND_NAME.toLowerCase().replace(/\s+/g, "-")}-paiements-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }

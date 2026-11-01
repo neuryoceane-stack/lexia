@@ -1,7 +1,7 @@
-# Lexiva : règles pour les agents
+# Kim Study : règles pour les agents
 
 ## Projet
-Lexiva est une app web de vocabulaire scolaire (élèves du collège à la prépa), créée par Océane, fondatrice solo. Production : lexiva.vercel.app.
+Kim Study est une app web de vocabulaire scolaire (élèves du collège à la prépa), créée par Océane, fondatrice solo. Production : lexiva.vercel.app. Le nom affiché vient de `src/lib/brand.ts`.
 Stack : Next.js (App Router), TypeScript strict, Tailwind, Turso/LibSQL, Drizzle ORM (schéma dans src/lib/db/schema.ts), auth maison JWT (cookie auth-token, getUser() dans src/lib/auth.ts), Resend, Stripe.
 
 ## Périmètre actuel

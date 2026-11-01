@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ARemplir } from "@/components/ARemplir";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Conditions Générales de Vente — Lexiva",
-  description: "Conditions générales de vente du service Lexiva.",
+  title: `Conditions Générales de Vente — ${BRAND_NAME}`,
+  description: `Conditions générales de vente du service ${BRAND_NAME}.`,
 };
 
 export default function CgvPage() {
@@ -18,7 +19,7 @@ export default function CgvPage() {
 
       <p>
         Les présentes Conditions Générales de Vente (ci-après «&nbsp;CGV&nbsp;») régissent
-        les ventes de produits et services numériques proposés sur le site Lexiva. En
+        les ventes de produits et services numériques proposés sur le site {BRAND_NAME}. En
         passant commande, vous reconnaissez avoir pris connaissance des présentes CGV et
         les accepter sans réserve.
       </p>
@@ -42,7 +43,7 @@ export default function CgvPage() {
 
       <section>
         <h2>2. Produits et services proposés</h2>
-        <p>Lexiva propose notamment&nbsp;:</p>
+        <p>{BRAND_NAME} propose notamment&nbsp;:</p>
         <ul>
           <li>
             <strong>Un abonnement</strong> donnant accès aux fonctionnalités premium du
@@ -70,7 +71,7 @@ export default function CgvPage() {
           Montants applicables&nbsp;: <ARemplir>montants des abonnements et des packs</ARemplir>
         </p>
         <p>
-          La TVA applicable est celle en vigueur au jour de la commande. Lexiva se réserve
+          La TVA applicable est celle en vigueur au jour de la commande. {BRAND_NAME} se réserve
           le droit de modifier ses tarifs à l&apos;avenir ; le prix applicable reste celui
           affiché au moment de la validation de votre commande.
         </p>
@@ -79,8 +80,7 @@ export default function CgvPage() {
       <section>
         <h2>4. Commande et paiement</h2>
         <p>
-          Le paiement s&apos;effectue en ligne, de manière sécurisée, via la plateforme Stripe.
-          Lexiva ne conserve pas vos coordonnées bancaires.
+          Le paiement s&apos;effectue en ligne, de manière sécurisée, via la plateforme Stripe. {BRAND_NAME} ne conserve pas vos coordonnées bancaires.
         </p>
         <p>Le tunnel de commande se déroule comme suit&nbsp;:</p>
         <ol>
@@ -98,7 +98,7 @@ export default function CgvPage() {
       <section>
         <h2>5. Codes d&apos;accès offerts</h2>
         <p>
-          Lexiva peut, à titre exceptionnel, mettre à disposition des codes d&apos;accès
+          {BRAND_NAME} peut, à titre exceptionnel, mettre à disposition des codes d&apos;accès
           spéciaux permettant de bénéficier du service ou de certaines fonctionnalités sans
           paiement (comptes offerts). L&apos;utilisation de ces codes est soumise aux
           conditions communiquées lors de leur attribution et ne confère aucun droit au-delà
@@ -164,15 +164,15 @@ export default function CgvPage() {
       <section>
         <h2>8. Responsabilité et disponibilité du service</h2>
         <p>
-          Lexiva s&apos;efforce d&apos;assurer la disponibilité et la fiabilité du service,
+          {BRAND_NAME} s&apos;efforce d&apos;assurer la disponibilité et la fiabilité du service,
           24&nbsp;heures sur 24 et 7&nbsp;jours sur 7, sous réserve des opérations de
-          maintenance et des cas de force majeure. Lexiva ne saurait être tenue responsable
+          maintenance et des cas de force majeure. {BRAND_NAME} ne saurait être tenue responsable
           des interruptions temporaires du service.
         </p>
         <p>
-          Lexiva ne pourra être tenue responsable des dommages indirects résultant de
+          {BRAND_NAME} ne pourra être tenue responsable des dommages indirects résultant de
           l&apos;utilisation ou de l&apos;impossibilité d&apos;utiliser le service. La
-          responsabilité de Lexiva est, en tout état de cause, limitée au montant payé par le
+          responsabilité de {BRAND_NAME} est, en tout état de cause, limitée au montant payé par le
           client au titre de la commande concernée.
         </p>
         <p>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { BRAND_NAME } from "@/lib/brand";
 
 /* ------------------------------------------------------------------ */
 /*  Données des courbes                                               */
@@ -162,7 +163,7 @@ function AnimatedChart({ play }: { play: boolean }) {
       <circle cx={PAD.left + 4} cy={CH - 7} r="3" fill="var(--false-sign)" />
       <text x={PAD.left + 12} y={CH - 4} fill="var(--foreground-muted)" fontSize="8">Oubli naturel</text>
       <circle cx={PAD.left + 90} cy={CH - 7} r="3" fill="var(--ink)" />
-      <text x={PAD.left + 98} y={CH - 4} fill="var(--foreground-muted)" fontSize="8">Avec Lexiva</text>
+      <text x={PAD.left + 98} y={CH - 4} fill="var(--foreground-muted)" fontSize="8">Avec {BRAND_NAME}</text>
     </svg>
   );
 }
@@ -299,7 +300,7 @@ export function ProfesseurSM2Modal({
           }}
         >
           <p style={{ fontSize: 11, color: "var(--foreground-muted)", lineHeight: 1.5, flex: 1 }}>
-            Lexiva calcule le moment exact où réviser — ni trop tôt, ni trop tard.
+            {BRAND_NAME} calcule le moment exact où réviser — ni trop tôt, ni trop tard.
           </p>
           <div className="flex shrink-0 gap-2">
             <button

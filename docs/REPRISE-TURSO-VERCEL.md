@@ -1,4 +1,4 @@
-# Où nous en sommes – Lexia (reprise)
+# Où nous en sommes – Kim Study (reprise)
 
 Dernière mise à jour : setup production Turso + Vercel **terminé**.
 

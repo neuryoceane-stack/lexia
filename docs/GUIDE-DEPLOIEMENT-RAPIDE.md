@@ -1,6 +1,6 @@
-# Déployer Lexia sur Vercel – Guide pas à pas
+# Déployer Kim Study sur Vercel – Guide pas à pas
 
-Suis ces étapes dans l’ordre pour mettre Lexia en ligne et le partager à tes amis.
+Suis ces étapes dans l’ordre pour mettre Kim Study en ligne et le partager à tes amis.
 
 ---
 
@@ -10,7 +10,7 @@ Suis ces étapes dans l’ordre pour mettre Lexia en ligne et le partager à tes
 2. Dans le dossier de ton projet, ouvre un terminal et exécute :
 
 ```bash
-cd /chemin/vers/projet-vocab   # ton dossier Lexia
+cd /chemin/vers/projet-vocab   # ton dossier du projet
 npm install                     # installe @libsql/client
 git add -A
 git commit -m "Prêt pour Vercel"

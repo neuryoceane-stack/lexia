@@ -1,4 +1,4 @@
-# Synthèse – Lexia
+# Synthèse – Kim Study
 
 Vue d’ensemble de la progression et statistiques d’apprentissage.
 
