@@ -2,8 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Mail } from "lucide-react";
 import { BRAND_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
+import { FloatingWords } from "@/components/auth/floating-words";
+import { AuthAlert } from "@/components/auth/auth-alert";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -38,108 +41,61 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "var(--page)",
-      fontFamily: "var(--font-sans), sans-serif",
-      padding: "24px",
-    }}>
-      <div style={{
-        background: "var(--surface)",
-        borderRadius: "16px",
-        padding: "40px",
-        width: "100%",
-        maxWidth: "420px",
-        boxShadow: "0 4px 24px color-mix(in srgb, var(--ink) 10%, transparent)",
-      }}>
-        <div style={{ textAlign: "center", marginBottom: "32px" }}>
+    <FloatingWords>
+      <div className="auth-card">
+        <div className="mb-6 text-center">
           <Logo size="auth" className="mb-3" />
-          <h2 style={{ color: "var(--ink)", fontSize: "20px", fontWeight: 600, margin: 0 }}>
-            Mot de passe oublié
-          </h2>
+          <h1 className="auth-step-title">Mot de passe oublié</h1>
         </div>
 
         {status === "success" ? (
-          <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>📬</div>
-            <p style={{ color: "var(--muted)", lineHeight: 1.6 }}>
-              Si cet e-mail est associé à un compte {BRAND_NAME}, tu recevras un lien de réinitialisation dans quelques minutes.
-            </p>
-            <Link href="/login" style={{
-              display: "inline-block",
-              marginTop: "24px",
-              color: "var(--ink)",
-              fontWeight: 600,
-              textDecoration: "none",
-            }}>
+          <div className="text-center">
+            <div className="auth-status auth-status-just" role="status">
+              <Mail size={28} strokeWidth={1.8} aria-hidden />
+              <p>
+                Si cet e-mail est associé à un compte {BRAND_NAME}, tu recevras un lien de réinitialisation dans quelques minutes.
+              </p>
+            </div>
+            <Link href="/login" className="auth-link mt-4 text-sm">
               ← Retour à la connexion
             </Link>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <p style={{ color: "var(--muted)", marginBottom: "24px", lineHeight: 1.6 }}>
-              Entre ton adresse email et on t'enverra un lien pour réinitialiser ton mot de passe.
+            <p className="mb-6 text-sm leading-relaxed text-muted">
+              Entre ton adresse email et on t&apos;enverra un lien pour réinitialiser ton mot de passe.
             </p>
 
-            <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "var(--ink)" }}>
+            <div className="mb-5">
+              <label className="auth-label" htmlFor="forgot-email">
                 Adresse email
               </label>
               <input
+                id="forgot-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 placeholder="ton@email.com"
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  borderRadius: "8px",
-                  border: "1.5px solid var(--line)",
-                  fontSize: "16px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                  fontFamily: "inherit",
-                }}
+                className="auth-field"
               />
             </div>
 
-            {status === "error" && (
-              <p style={{ color: "var(--false-text)", fontSize: "14px", marginBottom: "16px" }}>
-                {errorMsg}
-              </p>
-            )}
+            {status === "error" && <AuthAlert className="mb-4">{errorMsg}</AuthAlert>}
 
-            <button
-              type="submit"
-              disabled={status === "loading"}
-              style={{
-                width: "100%",
-                padding: "14px",
-                background: status === "loading" ? "var(--ink-soft)" : "var(--ink)",
-                color: "var(--surface)",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "16px",
-                fontWeight: 600,
-                cursor: status === "loading" ? "not-allowed" : "pointer",
-                fontFamily: "inherit",
-              }}
-            >
+            <button type="submit" disabled={status === "loading"} className="auth-submit">
               {status === "loading" ? "Envoi en cours..." : "Envoyer le lien"}
             </button>
 
-            <div style={{ textAlign: "center", marginTop: "24px" }}>
-              <Link href="/login" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "none", fontSize: "14px" }}>
+            <div className="mt-4 flex justify-center">
+              <Link href="/login" className="auth-link text-sm">
                 ← Retour à la connexion
               </Link>
             </div>
           </form>
         )}
       </div>
-    </div>
+    </FloatingWords>
   );
 }

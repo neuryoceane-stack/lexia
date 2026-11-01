@@ -3,10 +3,11 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { Brain, FileText, LineChart, ListPlus, Loader2, MousePointerClick, Users, type LucideIcon } from "lucide-react";
+import { Brain, Check, FileText, Heart, LineChart, ListPlus, Loader2, MousePointerClick, Pointer, School, Users, X, type LucideIcon } from "lucide-react";
 import { OFFER_TRIAL_CARD_LABEL } from "@/lib/offer";
 import { BRAND_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
+import { AuthAlert } from "@/components/auth/auth-alert";
 
 const DEMO_CARDS = [
   { term: "distorto", def: "distorcere : déformer", lang: "it" },
@@ -183,15 +184,16 @@ export function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden">
       {showDeletedBanner && (
-        <div className="relative flex items-center justify-center gap-2 bg-surface px-4 py-3 text-sm font-medium text-ink">
-          <span>✓ Ton compte a bien été supprimé. À bientôt sur {BRAND_NAME}.</span>
+        <div className="relative flex items-center justify-center gap-2 bg-just-bg px-14 py-3 text-sm font-medium text-just-text">
+          <Check size={18} strokeWidth={1.8} className="shrink-0 text-just-sign" aria-hidden />
+          <span>Ton compte a bien été supprimé. À bientôt sur {BRAND_NAME}.</span>
           <button
             type="button"
             onClick={dismissBanner}
-            className="absolute right-3 text-ink/60 transition hover:text-ink"
+            className="auth-icon-btn absolute right-2 text-ink"
             aria-label="Fermer"
           >
-            ✕
+            <X size={18} strokeWidth={1.8} aria-hidden />
           </button>
         </div>
       )}
@@ -203,21 +205,15 @@ export function LandingPage() {
             : "pointer-events-none -translate-y-full opacity-0"
         }`}
       >
-        <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4 sm:h-16 sm:px-6">
+        <div className="mx-auto flex min-h-[72px] max-w-5xl items-center justify-between gap-3 px-4 py-2 sm:px-6">
           <Link href="/" className="flex items-center no-underline" aria-label={BRAND_NAME}>
             <Logo size="header" />
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:text-ink sm:px-4"
-            >
+            <Link href="/login" className="auth-link text-sm">
               Se connecter
             </Link>
-            <Link
-              href="/signup"
-              className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-surface transition hover:bg-ink sm:px-5 sm:py-2.5"
-            >
+            <Link href="/signup" className="auth-submit auth-submit-nav">
               Commencer
             </Link>
           </div>
@@ -261,16 +257,10 @@ export function LandingPage() {
           </p>
 
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-            <Link
-              href="/signup"
-              className="group w-full rounded-xl bg-ink px-8 py-3.5 text-center font-semibold text-surface transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)] sm:w-auto"
-            >
+            <Link href="/signup" className="auth-submit auth-submit-inline">
               Commencer →
             </Link>
-            <Link
-              href="/login"
-              className="w-full rounded-xl border-2 border-ink px-8 py-3.5 text-center font-semibold text-ink transition-all duration-300 hover:bg-ink/5 sm:w-auto"
-            >
+            <Link href="/login" className="auth-submit-secondary auth-submit-inline">
               Se connecter
             </Link>
           </div>
@@ -373,8 +363,9 @@ export function LandingPage() {
           <h2 className="font-heading text-center text-2xl font-bold text-ink sm:text-3xl">
             Tes textes deviennent tes cours
           </h2>
-          <p className="mb-3 mt-6 text-center text-sm italic text-muted">
-            👆 Touche les mots surlignés pour voir la traduction
+          <p className="mb-3 mt-6 flex items-center justify-center gap-2 text-center text-sm italic text-muted">
+            <Pointer size={18} strokeWidth={1.8} className="shrink-0 text-ink" aria-hidden />
+            Touche les mots surlignés pour voir la traduction
           </p>
           <div className="relative rounded-2xl border border-line bg-surface p-6 shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)]">
             <p className="select-none text-lg leading-relaxed text-ink">
@@ -397,7 +388,7 @@ export function LandingPage() {
                     }
                     className={`relative ${
                       def
-                        ? "inline-block cursor-pointer touch-manipulation rounded px-2.5 py-2.5 -my-1.5 underline decoration-ink decoration-dotted underline-offset-2 hover:bg-ink/10 active:bg-ink/15"
+                        ? "inline-flex min-h-11 cursor-pointer touch-manipulation items-center rounded px-1.5 underline decoration-ink decoration-dotted underline-offset-2 hover:bg-ink/10 active:bg-ink/15"
                         : "inline"
                     }`}
                     onMouseEnter={() => def && setHoverWord(cleanWord)}
@@ -439,8 +430,9 @@ export function LandingPage() {
       {/* SECTION 5 — POUR LES PROFS */}
       <section className="bg-[var(--background-subtle)] px-4 py-10 sm:py-12">
         <div className="mx-auto max-w-4xl text-center">
-          <span className="inline-block rounded-full bg-ink/20 px-4 py-1.5 text-sm font-medium text-ink">
-            🏫 Espace professeur
+          <span className="inline-flex items-center gap-2 rounded-lg border-[1.5px] border-ink bg-surface px-3 py-1.5 text-sm font-medium text-ink">
+            <School size={16} strokeWidth={1.8} aria-hidden />
+            Espace professeur
           </span>
           <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
             <h2 className="font-heading text-2xl font-bold text-ink sm:text-3xl">
@@ -497,7 +489,7 @@ export function LandingPage() {
                   void submitTeacherWaitlist();
                 }}
               >
-                <div className="flex flex-col overflow-hidden rounded-xl border-2 border-line focus-within:border-ink sm:flex-row sm:items-stretch">
+                <div className="flex flex-col gap-3">
                   <label htmlFor="teacher-waitlist-email" className="sr-only">
                     Votre adresse email
                   </label>
@@ -517,12 +509,12 @@ export function LandingPage() {
                     placeholder="vous@etablissement.fr"
                     autoComplete="email"
                     disabled={teacherWaitlistStatus === "loading"}
-                    className="min-h-[52px] min-w-0 flex-1 border-0 bg-surface px-4 py-3.5 text-base text-ink outline-none placeholder:text-muted disabled:opacity-60 sm:rounded-none"
+                    className="auth-field"
                   />
                   <button
                     type="submit"
                     disabled={teacherWaitlistStatus === "loading"}
-                    className="inline-flex min-h-[52px] shrink-0 items-center justify-center gap-2 whitespace-nowrap border-t border-line bg-ink px-4 py-3.5 text-sm font-semibold text-surface transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60 sm:border-t-0 sm:border-l sm:border-ink/20 sm:px-4"
+                    className="auth-submit"
                   >
                     {teacherWaitlistStatus === "loading" ? (
                       <>
@@ -535,14 +527,10 @@ export function LandingPage() {
                   </button>
                 </div>
                 {teacherWaitlistStatus === "invalid" && (
-                  <p className="mt-2 text-sm text-false-text" role="alert">
-                    Veuillez saisir une adresse email valide.
-                  </p>
+                  <AuthAlert className="mt-3">Veuillez saisir une adresse email valide.</AuthAlert>
                 )}
                 {teacherWaitlistStatus === "error" && (
-                  <p className="mt-2 text-sm text-false-text" role="alert">
-                    Une erreur est survenue. Veuillez réessayer.
-                  </p>
+                  <AuthAlert className="mt-3">Une erreur est survenue. Veuillez réessayer.</AuthAlert>
                 )}
               </form>
             )}
@@ -556,10 +544,7 @@ export function LandingPage() {
           <h2 className="font-heading text-3xl font-bold text-ink sm:text-4xl">
             Envie d&apos;apprendre autrement ?
           </h2>
-          <Link
-            href="/signup"
-            className="mt-6 inline-block rounded-xl bg-ink px-12 py-4 text-xl font-semibold text-surface transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)]"
-          >
+          <Link href="/signup" className="auth-submit auth-submit-inline mt-6">
             Créer mon compte
           </Link>
           <p className="mt-4 text-sm text-muted">
@@ -579,16 +564,10 @@ export function LandingPage() {
               </p>
             </div>
             <div className="flex gap-6">
-              <Link
-                href="/login"
-                className="text-sm font-medium text-muted transition hover:text-ink"
-              >
+              <Link href="/login" className="auth-link text-sm">
                 Connexion
               </Link>
-              <Link
-                href="/signup"
-                className="text-sm font-medium text-muted transition hover:text-ink"
-              >
+              <Link href="/signup" className="auth-link text-sm">
                 Inscription
               </Link>
             </div>
@@ -597,24 +576,27 @@ export function LandingPage() {
             className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted"
             aria-label="Liens légaux"
           >
-            <Link href="/mentions-legales" className="transition hover:text-ink">
+            <Link href="/mentions-legales" className="auth-link text-xs">
               Mentions légales
             </Link>
             <span aria-hidden>·</span>
-            <Link href="/politique-de-confidentialite" className="transition hover:text-ink">
+            <Link href="/politique-de-confidentialite" className="auth-link text-xs">
               Politique de confidentialité
             </Link>
             <span aria-hidden>·</span>
-            <Link href="/cgv" className="transition hover:text-ink">
+            <Link href="/cgv" className="auth-link text-xs">
               CGV
             </Link>
             <span aria-hidden>·</span>
-            <Link href="/contact" className="transition hover:text-ink">
+            <Link href="/contact" className="auth-link text-xs">
               Contact
             </Link>
           </nav>
-          <p className="mt-4 text-center text-xs text-muted">
-            Fait avec ❤️ à Paris
+          <p className="mt-4 flex items-center justify-center gap-1.5 text-center text-xs text-muted">
+            Fait avec
+            <Heart size={14} strokeWidth={1.8} className="text-ink" aria-hidden />
+            <span className="sr-only">cœur</span>
+            à Paris
           </p>
         </div>
       </footer>

@@ -1,10 +1,12 @@
 "use client";
 
-import { Suspense } from "react";
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import { CircleAlert, CircleCheck } from "lucide-react";
 import { Logo } from "@/components/logo";
+import { FloatingWords } from "@/components/auth/floating-words";
+import { AuthAlert } from "@/components/auth/auth-alert";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -57,10 +59,13 @@ function ResetPasswordForm() {
 
   if (!token) {
     return (
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
-        <p style={{ color: "var(--muted)" }}>Lien invalide ou manquant.</p>
-        <Link href="/forgot-password" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "none" }}>
+      <div className="flex flex-col items-center text-center">
+        <Logo size="auth" className="mb-4" />
+        <div className="auth-status auth-status-false mb-2 w-full" role="alert">
+          <CircleAlert size={28} strokeWidth={1.8} aria-hidden />
+          <p>Lien invalide ou manquant.</p>
+        </div>
+        <Link href="/forgot-password" className="auth-link text-sm">
           Faire une nouvelle demande
         </Link>
       </div>
@@ -69,95 +74,58 @@ function ResetPasswordForm() {
 
   return (
     <>
-      <div style={{ textAlign: "center", marginBottom: "32px" }}>
+      <div className="mb-6 text-center">
         <Logo size="auth" className="mb-3" />
-        <h2 style={{ color: "var(--ink)", fontSize: "20px", fontWeight: 600, margin: 0 }}>
-          Nouveau mot de passe
-        </h2>
+        <h1 className="auth-step-title">Nouveau mot de passe</h1>
       </div>
 
       {status === "success" ? (
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
-          <p style={{ color: "var(--muted)", lineHeight: 1.6 }}>
-            Ton mot de passe a été réinitialisé ! Tu vas être redirigé vers la connexion...
-          </p>
+        <div className="auth-status auth-status-just" role="status">
+          <CircleCheck size={28} strokeWidth={1.8} aria-hidden />
+          <p>Ton mot de passe a été réinitialisé ! Tu vas être redirigé vers la connexion...</p>
         </div>
       ) : (
         <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "var(--ink)" }}>
+          <div className="mb-5">
+            <label className="auth-label" htmlFor="reset-password">
               Nouveau mot de passe
             </label>
             <input
+              id="reset-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
+              autoComplete="new-password"
               placeholder="8 caractères minimum"
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                borderRadius: "8px",
-                border: "1.5px solid var(--line)",
-                fontSize: "16px",
-                outline: "none",
-                boxSizing: "border-box",
-                fontFamily: "inherit",
-              }}
+              className="auth-field"
             />
           </div>
 
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "var(--ink)" }}>
+          <div className="mb-5">
+            <label className="auth-label" htmlFor="reset-confirm">
               Confirmer le mot de passe
             </label>
             <input
+              id="reset-confirm"
               type="password"
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
+              autoComplete="new-password"
               placeholder="Répète ton mot de passe"
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                borderRadius: "8px",
-                border: "1.5px solid var(--line)",
-                fontSize: "16px",
-                outline: "none",
-                boxSizing: "border-box",
-                fontFamily: "inherit",
-              }}
+              className="auth-field"
             />
           </div>
 
-          {(status === "error" || errorMsg) && (
-            <p style={{ color: "var(--false-text)", fontSize: "14px", marginBottom: "16px" }}>
-              {errorMsg}
-            </p>
-          )}
+          {(status === "error" || errorMsg) && <AuthAlert className="mb-4">{errorMsg}</AuthAlert>}
 
-          <button
-            type="submit"
-            disabled={status === "loading"}
-            style={{
-              width: "100%",
-              padding: "14px",
-              background: status === "loading" ? "var(--ink-soft)" : "var(--ink)",
-              color: "var(--surface)",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "16px",
-              fontWeight: 600,
-              cursor: status === "loading" ? "not-allowed" : "pointer",
-              fontFamily: "inherit",
-            }}
-          >
+          <button type="submit" disabled={status === "loading"} className="auth-submit">
             {status === "loading" ? "Enregistrement..." : "Enregistrer le mot de passe"}
           </button>
 
-          <div style={{ textAlign: "center", marginTop: "24px" }}>
-            <Link href="/login" style={{ color: "var(--ink)", fontWeight: 600, textDecoration: "none", fontSize: "14px" }}>
+          <div className="mt-4 flex justify-center">
+            <Link href="/login" className="auth-link text-sm">
               ← Retour à la connexion
             </Link>
           </div>
@@ -169,27 +137,12 @@ function ResetPasswordForm() {
 
 export default function ResetPasswordPage() {
   return (
-    <div style={{
-      minHeight: "100vh",
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      background: "var(--page)",
-      fontFamily: "var(--font-sans), sans-serif",
-      padding: "24px",
-    }}>
-      <div style={{
-        background: "var(--surface)",
-        borderRadius: "16px",
-        padding: "40px",
-        width: "100%",
-        maxWidth: "420px",
-        boxShadow: "0 4px 24px color-mix(in srgb, var(--ink) 10%, transparent)",
-      }}>
-        <Suspense fallback={<p style={{ textAlign: "center", color: "var(--ink)" }}>Chargement...</p>}>
+    <FloatingWords>
+      <div className="auth-card">
+        <Suspense fallback={<p className="text-center text-sm text-ink">Chargement...</p>}>
           <ResetPasswordForm />
         </Suspense>
       </div>
-    </div>
+    </FloatingWords>
   );
 }
