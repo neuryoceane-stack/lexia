@@ -3,32 +3,32 @@
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import {
+  CalendarClock,
+  Eye,
+  EyeOff,
+  Flame,
+  Languages,
+  LogIn,
+  PawPrint,
+  Timer,
+  type LucideIcon,
+} from "lucide-react";
 import { getSafeAppCallbackUrl } from "@/lib/safe-callback-url";
 import { Logo } from "@/components/logo";
+import { AuthAlert } from "@/components/auth/auth-alert";
 
-const FEATURE_CHIPS = [
-  { emoji: "⚡", label: "SM-2" },
-  { emoji: "🐾", label: "Mots sauvages" },
-  { emoji: "🔥", label: "Streaks" },
-  { emoji: "🌍", label: "Multi-langues" },
+const FEATURE_CHIPS: { Icon: LucideIcon; label: string }[] = [
+  { Icon: CalendarClock, label: "Révision espacée" },
+  { Icon: PawPrint, label: "Mots sauvages" },
+  { Icon: Flame, label: "Séries" },
+  { Icon: Languages, label: "Multi-langues" },
 ];
-
-const loginCardShellStyle: React.CSSProperties = {
-  background: "var(--surface)",
-  borderRadius: 20,
-  width: "100%",
-  maxWidth: 320,
-  padding: "26px 22px",
-  border: "0.5px solid color-mix(in srgb, var(--ink) 15%, transparent)",
-};
 
 function LoginPageFallback() {
   return (
-    <div style={loginCardShellStyle} aria-busy="true" aria-label="Chargement">
-      <p className="text-center" style={{ fontSize: 13, color: "var(--muted)" }}>
-        Chargement…
-      </p>
+    <div className="auth-card" aria-busy="true" aria-label="Chargement">
+      <p className="text-center text-sm text-muted">Chargement…</p>
     </div>
   );
 }
@@ -83,141 +83,90 @@ function LoginPageContent() {
   }
 
   return (
-    <div style={loginCardShellStyle}>
-      {/* Logo */}
-      <div className="mb-[18px] text-center">
+    <div className="auth-card">
+      <div className="mb-5 text-center">
         <Link href="/" className="inline-flex flex-col items-center gap-2 no-underline">
           <Logo size="auth" />
-          <p style={{ fontSize: 11, color: "var(--muted)", margin: 0 }}>
-            Apprends le vocabulaire autrement
-          </p>
+          <p className="m-0 text-xs text-muted">Apprends le vocabulaire autrement</p>
         </Link>
       </div>
 
-      {/* Titre */}
-      <p className="mb-4" style={{ fontSize: 15, fontWeight: 500, color: "var(--ink)" }}>
-        Bon retour 👋
-      </p>
+      <h1 className="auth-step-title mb-6">Content de te revoir</h1>
 
-      {/* Formulaire */}
       <form onSubmit={handleSubmit}>
-        {/* Email */}
-        <FieldLabel>Email</FieldLabel>
+        <label className="auth-label" htmlFor="login-email">
+          Email
+        </label>
         <input
+          id="login-email"
           type="email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
           placeholder="ton@email.com"
-          className="mb-3 w-full transition-colors"
-          style={inputStyle}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
+          className="auth-field mb-4"
         />
 
-        {/* Mot de passe */}
-        <FieldLabel>Mot de passe</FieldLabel>
+        <label className="auth-label" htmlFor="login-password">
+          Mot de passe
+        </label>
         <div className="relative mb-1">
           <input
+            id="login-password"
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             autoComplete="current-password"
             placeholder="••••••••"
-            className="w-full transition-colors"
-            style={{ ...inputStyle, paddingRight: 36 }}
-            onFocus={handleFocus}
-            onBlur={handleBlur}
+            className="auth-field"
+            style={{ paddingRight: 48 }}
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute top-1/2 flex -translate-y-1/2 items-center justify-center"
-            style={{
-              right: 10,
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--muted)",
-            }}
+            className="auth-icon-btn absolute top-1/2 right-1 -translate-y-1/2"
             aria-label={showPassword ? "Masquer" : "Afficher"}
           >
-            {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+            {showPassword ? <EyeOff size={18} strokeWidth={1.8} /> : <Eye size={18} strokeWidth={1.8} />}
           </button>
         </div>
 
-        <Link
-          href="/forgot-password"
-          className="mb-3 block text-right no-underline transition hover:opacity-70"
-          style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", marginTop: 5 }}
-        >
-          Mot de passe oublié ?
-        </Link>
+        <div className="mb-4 flex justify-end">
+          <Link href="/forgot-password" className="auth-link text-sm">
+            Mot de passe oublié ?
+          </Link>
+        </div>
 
-        {/* Erreurs */}
         {error && (
-          <p
-            className="mb-2 flex items-center gap-1.5"
-            style={{
-              fontSize: 12,
-              color: isRateLimited ? "var(--ink)" : "var(--false-text)",
-              lineHeight: 1.4,
-            }}
-          >
-            {isRateLimited && <span>⏱️</span>}
+          <AuthAlert icon={isRateLimited ? Timer : undefined} className="mb-4">
             {error}
-          </p>
+          </AuthAlert>
         )}
 
-        {/* Bouton connexion */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex w-full items-center justify-center gap-[7px] transition active:scale-[0.98] disabled:opacity-50"
-          style={{
-            fontSize: 13,
-            fontWeight: 500,
-            padding: 11,
-            borderRadius: 10,
-            border: "none",
-            background: "var(--ink)",
-            color: "var(--surface)",
-            cursor: "pointer",
-            margin: "16px 0 12px",
-          }}
-        >
-          <LogIn size={12} stroke="white" />
+        <button type="submit" disabled={loading} className="auth-submit">
+          <LogIn size={18} strokeWidth={1.8} aria-hidden />
           {loading ? "Connexion…" : "Se connecter"}
         </button>
       </form>
 
-      {/* Lien signup */}
-      <p className="mb-3.5 mt-4 text-center" style={{ fontSize: 12, color: "var(--muted)" }}>
-        Pas encore de compte ?{" "}
-        <Link href={signupHref} className="no-underline" style={{ fontWeight: 500, color: "var(--ink)" }}>
+      <p className="mt-5 mb-4 flex flex-wrap items-center justify-center gap-x-1 text-center text-sm text-muted">
+        Pas encore de compte ?
+        <Link href={signupHref} className="auth-link text-sm">
           S&apos;inscrire
         </Link>
       </p>
 
-      {/* Chips features */}
-      <div style={{ borderTop: "0.5px solid var(--line)", paddingTop: 12 }}>
-        <div className="flex flex-wrap justify-center gap-[5px]">
-          {FEATURE_CHIPS.map((c) => (
+      <div className="border-t border-line pt-4">
+        <div className="flex flex-wrap justify-center gap-2">
+          {FEATURE_CHIPS.map(({ Icon, label }) => (
             <span
-              key={c.label}
-              className="inline-flex items-center gap-[3px]"
-              style={{
-                fontSize: 10,
-                fontWeight: 500,
-                padding: "2px 7px",
-                borderRadius: 8,
-                background: "var(--background-subtle)",
-                color: "var(--ink)",
-              }}
+              key={label}
+              className="inline-flex items-center gap-1.5 rounded-lg border-[1.5px] border-ink bg-surface px-2.5 py-1.5 text-xs font-medium text-ink"
             >
-              {c.emoji} {c.label}
+              <Icon size={15} strokeWidth={1.8} aria-hidden />
+              {label}
             </span>
           ))}
         </div>
@@ -231,45 +180,5 @@ export default function LoginPage() {
     <Suspense fallback={<LoginPageFallback />}>
       <LoginPageContent />
     </Suspense>
-  );
-}
-
-/* ------------------------------------------------------------------ */
-
-const inputStyle: React.CSSProperties = {
-  fontSize: 13,
-  padding: "10px 12px",
-  borderRadius: 10,
-  border: "1.5px solid var(--line)",
-  background: "var(--surface)",
-  color: "var(--ink)",
-  outline: "none",
-  width: "100%",
-};
-
-function handleFocus(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "var(--ink)";
-  e.currentTarget.style.background = "white";
-}
-
-function handleBlur(e: React.FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = "var(--line)";
-  e.currentTarget.style.background = "var(--surface)";
-}
-
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      style={{
-        fontSize: 11,
-        fontWeight: 500,
-        textTransform: "uppercase",
-        letterSpacing: "0.04em",
-        color: "var(--muted)",
-        marginBottom: 5,
-      }}
-    >
-      {children}
-    </p>
   );
 }

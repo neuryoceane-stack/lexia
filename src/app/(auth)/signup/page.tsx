@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import type { CSSProperties, FocusEvent, ReactNode } from "react";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Eye, EyeOff, ChevronLeft, GraduationCap, KeyRound, MessageCircle, Rocket, Search, Share2, Smile, Sparkles, Users, type LucideIcon } from "lucide-react";
+import { Eye, EyeOff, CalendarDays, Check, ChevronLeft, FileText, GraduationCap, KeyRound, MessageCircle, PartyPopper, Rocket, Search, Share2, Smile, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
 import { BRAND_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
+import { AuthAlert } from "@/components/auth/auth-alert";
 
 type Role = "eleve" | "professeur";
 
@@ -45,35 +46,12 @@ const GOAL_OPTIONS = [
 
 const V = "var(--ink)";
 const V_LIGHT = "var(--background-subtle)";
-const V_BORDER = "color-mix(in srgb, var(--ink) 18%, transparent)";
 const GOLD = "var(--ink)";
 const GOLD_LIGHT = "var(--surface)";
 const GREEN = "var(--ink)";
 const GREEN_LIGHT = "var(--surface)";
-const FOND = "var(--page)";
 const TEXT = "var(--ink)";
 const MUTED = "var(--muted)";
-
-const inputStyle: CSSProperties = {
-  fontSize: 14,
-  padding: "11px 14px",
-  borderRadius: 12,
-  border: `1.5px solid ${V_BORDER}`,
-  background: FOND,
-  color: TEXT,
-  outline: "none",
-  width: "100%",
-  fontFamily: "var(--font-sans), sans-serif",
-};
-
-function handleFocus(e: FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = V;
-  e.currentTarget.style.background = "white";
-}
-function handleBlur(e: FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = V_BORDER;
-  e.currentTarget.style.background = FOND;
-}
 
 function todayDateInputMax(): string {
   const t = new Date();
@@ -132,7 +110,7 @@ function validateIdentityStep(
 
 function FieldLabel({ children, required }: { children: ReactNode; required?: boolean }) {
   return (
-    <p style={{ fontSize: 11, fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.06em", color: MUTED, marginBottom: 6 }}>
+    <p className="auth-label">
       {children}
       {required && <span style={{ color: "var(--false-text)" }}> *</span>}
     </p>
@@ -142,33 +120,41 @@ function FieldLabel({ children, required }: { children: ReactNode; required?: bo
 function EmailTakenNotice({ email }: { email: string }) {
   const loginHref = `/login?email=${encodeURIComponent(email.trim().toLowerCase())}`;
   return (
-    <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 14, lineHeight: 1.45 }}>
+    <AuthAlert className="mb-3.5">
       Cette adresse est déjà utilisée.{" "}
-      <Link href={loginHref} style={{ color: V, fontWeight: 500, textDecoration: "underline" }}>
+      <Link href={loginHref} className="auth-link">
         Connecte-toi
       </Link>
-    </p>
+    </AuthAlert>
   );
 }
 
 function BackBtn({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick}
-      style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 12, color: MUTED, background: "none", border: "none", cursor: "pointer", marginBottom: 16 }}>
-      <ChevronLeft size={14} stroke={MUTED} />Retour
+    <button type="button" onClick={onClick} className="auth-link mb-2 text-sm">
+      <ChevronLeft size={18} strokeWidth={1.8} aria-hidden />
+      Retour
     </button>
   );
 }
 
-function CTA({ children, onClick, disabled, gold }: { children: ReactNode; onClick?: () => void; disabled?: boolean; gold?: boolean }) {
+function CTA({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  disabled?: boolean;
+  gold?: boolean;
+}) {
   return (
-    <button type={onClick ? "button" : "submit"} onClick={onClick} disabled={disabled}
-      style={{
-        width: "100%", padding: "13px", borderRadius: 20, border: "none",
-        background: gold ? GOLD : V, color: "var(--surface)", fontSize: 14, fontWeight: 500,
-        cursor: "pointer", marginTop: 16, fontFamily: "var(--font-sans), sans-serif",
-        opacity: disabled ? 0.5 : 1,
-      }}>
+    <button
+      type={onClick ? "button" : "submit"}
+      onClick={onClick}
+      disabled={disabled}
+      className="auth-submit mt-4"
+    >
       {children}
     </button>
   );
@@ -176,8 +162,7 @@ function CTA({ children, onClick, disabled, gold }: { children: ReactNode; onCli
 
 function SkipLink({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick}
-      style={{ display: "block", width: "100%", textAlign: "center", marginTop: 10, fontSize: 12, color: MUTED, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+    <button type="button" onClick={onClick} className="auth-link mx-auto mt-1 text-sm">
       Passer cette étape
     </button>
   );
@@ -186,20 +171,44 @@ function SkipLink({ onClick }: { onClick: () => void }) {
 function ProgressBar({ current, total }: { current: number; total: number }) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
-      <div style={{ flex: 1, height: 4, background: V_LIGHT, borderRadius: 4, overflow: "hidden" }}>
-        <div style={{ height: "100%", width: `${(current / total) * 100}%`, background: V, borderRadius: 4, transition: "width 350ms ease" }} />
+      <div style={{ flex: 1, height: 8, background: "var(--background-subtle)", borderRadius: 999, overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${(current / total) * 100}%`, background: "var(--mark)", borderRadius: 999, transition: "width 350ms ease" }} />
       </div>
-      <span style={{ fontSize: 11, fontWeight: 500, color: V }}>{current}/{total}</span>
+      <span style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{current}/{total}</span>
     </div>
   );
 }
 
 function Card({ children, selected, onClick, accent }: { children: ReactNode; selected?: boolean; onClick?: () => void; accent?: string }) {
-  const border = selected ? (accent ?? V) : V_BORDER;
-  const bg = selected ? (accent === GOLD ? GOLD_LIGHT : accent === GREEN ? GREEN_LIGHT : V_LIGHT) : "white";
+  const border = selected ? (accent ?? V) : "var(--line)";
+  const bg = selected ? V_LIGHT : "var(--surface)";
+  const interactive = Boolean(onClick);
   return (
-    <div onClick={onClick}
-      style={{ background: bg, border: `1.5px solid ${border}`, borderRadius: 14, padding: "14px 16px", cursor: onClick ? "pointer" : "default", transition: "all 0.15s" }}>
+    <div
+      role={interactive ? "button" : undefined}
+      tabIndex={interactive ? 0 : undefined}
+      aria-pressed={interactive ? Boolean(selected) : undefined}
+      onClick={onClick}
+      onKeyDown={
+        interactive
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onClick?.();
+              }
+            }
+          : undefined
+      }
+      style={{
+        background: bg,
+        border: `1.5px solid ${border}`,
+        borderRadius: 14,
+        padding: "14px 16px",
+        minHeight: 52,
+        cursor: interactive ? "pointer" : "default",
+        transition: "border-color 0.15s, background-color 0.15s",
+      }}
+    >
       {children}
     </div>
   );
@@ -341,17 +350,17 @@ export default function SignupPage() {
   }
 
   const wrap = (content: ReactNode, progressCurrent?: number, progressTotal?: number) => (
-    <div style={{ width: "100%", maxWidth: 360, margin: "0 auto" }}>
-      <div style={{ background: "var(--surface)", borderRadius: 20, padding: "28px 24px", border: `1px solid ${V_BORDER}`, boxShadow: "0 2px 24px color-mix(in srgb, var(--ink) 7%, transparent)" }}>
+    <div className="mx-auto w-full">
+      <div className="auth-card">
         {progressCurrent !== undefined && progressTotal !== undefined && (
           <ProgressBar current={progressCurrent} total={progressTotal} />
         )}
         {content}
       </div>
       {(eleveStep !== "role" || profStep !== "role") && (
-        <p style={{ textAlign: "center", marginTop: 16, fontSize: 12, color: MUTED }}>
-          Déjà un compte ?{" "}
-          <Link href="/login" style={{ color: V, fontWeight: 500, textDecoration: "none" }}>Se connecter</Link>
+        <p className="mt-4 flex flex-wrap items-center justify-center gap-x-1 text-center text-sm text-muted">
+          Déjà un compte ?
+          <Link href="/login" className="auth-link text-sm">Se connecter</Link>
         </p>
       )}
     </div>
@@ -425,15 +434,10 @@ export default function SignupPage() {
             background: "var(--surface)",
             borderRadius: 24,
             padding: "32px 28px 24px",
-            border: `1px solid ${V_BORDER}`,
+            border: "1.5px solid var(--line)",
             boxShadow: "0 8px 32px color-mix(in srgb, var(--ink) 10%, transparent)",
           }}
         >
-          <div style={{ position: "absolute", top: 16, left: 22, fontSize: 12, color: GOLD, opacity: 0.45 }}>✦</div>
-          <div style={{ position: "absolute", top: 14, right: 26, fontSize: 10, color: V, opacity: 0.35 }}>✦</div>
-          <div style={{ position: "absolute", bottom: 88, left: 18, fontSize: 9, color: V, opacity: 0.28 }}>✦</div>
-          <div style={{ position: "absolute", bottom: 96, right: 20, fontSize: 11, color: GOLD, opacity: 0.32 }}>✦</div>
-
           <div style={{ textAlign: "center" }}>
             <Logo size="auth" className="mb-[10px]" />
             <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "8px 0 4px" }}>
@@ -444,20 +448,20 @@ export default function SignupPage() {
             <p style={{ fontSize: 12, color: "var(--muted)", letterSpacing: "0.02em", marginBottom: 24 }}>Apprends le vocabulaire autrement</p>
           </div>
 
-          <p style={{ fontSize: 20, fontWeight: 600, color: "var(--ink)", textAlign: "center", marginBottom: 6 }}>Qui êtes-vous ?</p>
+          <h1 className="auth-step-title">Qui êtes-vous ?</h1>
           <p style={{ fontSize: 13, color: MUTED, textAlign: "center", marginBottom: 22 }}>Choisissez votre rôle pour commencer</p>
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 22 }}>
             <button type="button"
               onClick={() => { setRole("eleve"); setEleveStep("source"); }}
               style={{
-                background: "linear-gradient(160deg,var(--page) 0%,var(--background-subtle) 100%)",
-                border: `2px solid ${V_BORDER}`, borderRadius: 20,
+                background: "var(--page)",
+                border: "1.5px solid var(--line)", borderRadius: 20,
                 padding: "18px 10px 14px", cursor: "pointer", textAlign: "center",
-                transition: "all 0.25s", fontFamily: "var(--font-sans), sans-serif",
-                width: "100%", minWidth: 0,
+                transition: "border-color 0.15s", fontFamily: "var(--font-sans), sans-serif",
+                width: "100%", minWidth: 0, minHeight: 44,
               }}>
-              <GraduationCap size={40} color={V} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
+              <GraduationCap size={40} color={V} strokeWidth={1.8} style={{ display: "block", margin: "0 auto 10px" }} />
               <div style={{ display: "inline-block", background: V, color: "var(--surface)", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Élève</div>
               <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.4 }}>J&apos;apprends du vocabulaire</p>
             </button>
@@ -468,10 +472,10 @@ export default function SignupPage() {
                 background: "var(--page)",
                 border: "1.5px solid var(--line)", borderRadius: 20,
                 padding: "18px 10px 14px", cursor: "pointer", textAlign: "center",
-                transition: "all 0.25s", fontFamily: "var(--font-sans), sans-serif",
-                width: "100%", minWidth: 0,
+                transition: "border-color 0.15s", fontFamily: "var(--font-sans), sans-serif",
+                width: "100%", minWidth: 0, minHeight: 44,
               }}>
-              <Users size={40} color={GREEN} strokeWidth={1.75} style={{ display: "block", margin: "0 auto 10px" }} />
+              <Users size={40} color={GREEN} strokeWidth={1.8} style={{ display: "block", margin: "0 auto 10px" }} />
               <div style={{ display: "inline-block", background: GREEN, color: "var(--surface)", fontSize: 10, fontWeight: 500, padding: "3px 10px", borderRadius: 20, marginBottom: 10 }}>Professeur</div>
               <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.4 }}>Je crée des listes pour mes élèves</p>
             </button>
@@ -479,13 +483,13 @@ export default function SignupPage() {
 
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 18 }}>
             <div style={{ flex: 1, height: 1, background: "color-mix(in srgb, var(--ink) 8%, transparent)" }} />
-            <span style={{ fontSize: 11, color: "var(--muted)", whiteSpace: "nowrap" }}>Bienvenue dans la magie du vocabulaire</span>
+            <span style={{ fontSize: 12, color: "var(--muted)", textAlign: "center" }}>Bienvenue dans la magie du vocabulaire</span>
             <div style={{ flex: 1, height: 1, background: "color-mix(in srgb, var(--ink) 8%, transparent)" }} />
           </div>
 
-          <p style={{ textAlign: "center", fontSize: 12, color: MUTED }}>
-            Déjà un compte ?{" "}
-            <Link href="/login" style={{ color: V, fontWeight: 500, textDecoration: "none" }}>Se connecter</Link>
+          <p className="flex flex-wrap items-center justify-center gap-x-1 text-center text-sm text-muted">
+            Déjà un compte ?
+            <Link href="/login" className="auth-link text-sm">Se connecter</Link>
           </p>
         </div>
       </div>
@@ -496,15 +500,15 @@ export default function SignupPage() {
     if (eleveStep === "source") return wrap(
       <>
         <BackBtn onClick={() => { setRole(null); setEleveStep("role"); setProfStep("role"); }} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4, textAlign: "center", textWrap: "balance" }}>Comment as-tu entendu parler de {BRAND_NAME} ?</p>
+        <h1 className="auth-step-title">Comment as-tu entendu parler de {BRAND_NAME} ?</h1>
         <p style={{ fontSize: 12, color: MUTED, marginBottom: 20, textAlign: "center", textWrap: "balance" }}>Cela nous aide à améliorer l&apos;application.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {ACQUISITION_OPTIONS.map(opt => (
             <Card key={opt.value} selected={acquisitionSource === opt.value} onClick={() => setAcquisitionSource(opt.value)}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <opt.Icon size={18} color={V} strokeWidth={1.75} aria-hidden />
+                <opt.Icon size={18} color={V} strokeWidth={1.8} aria-hidden />
                 <span style={{ fontSize: 14, color: TEXT }}>{opt.label}</span>
-                {acquisitionSource === opt.value && <span style={{ marginLeft: "auto", color: V, fontSize: 16 }}>✓</span>}
+                {acquisitionSource === opt.value && <Check size={18} strokeWidth={1.8} color={V} aria-hidden style={{ marginLeft: "auto" }} />}
               </div>
             </Card>
           ))}
@@ -518,12 +522,12 @@ export default function SignupPage() {
     if (eleveStep === "goal") return wrap(
       <>
         <BackBtn onClick={() => setEleveStep("source")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4, textAlign: "center", textWrap: "balance" }}>Quel est ton objectif de vocabulaire ?</p>
+        <h1 className="auth-step-title">Quel est ton objectif de vocabulaire ?</h1>
         <p style={{ fontSize: 12, color: MUTED, marginBottom: 20, textAlign: "center", textWrap: "balance" }}>Nombre de mots à apprendre par semaine.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {GOAL_OPTIONS.map(opt => (
             <Card key={opt.value} selected={weeklyGoal === opt.value} onClick={() => setWeeklyGoal(opt.value)} accent={V}>
-              <p style={{ fontSize: 20, fontWeight: 500, color: weeklyGoal === opt.value ? V : TEXT, marginBottom: 2 }}>{opt.label}</p>
+              <p className="font-heading" style={{ fontSize: 20, color: weeklyGoal === opt.value ? V : TEXT, marginBottom: 2 }}>{opt.label}</p>
               <p style={{ fontSize: 11, color: MUTED }}>{opt.sub}</p>
             </Card>
           ))}
@@ -538,26 +542,23 @@ export default function SignupPage() {
       <>
         <BackBtn onClick={() => setEleveStep("goal")} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
-          <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, textAlign: "center", textWrap: "balance", margin: 0 }}>Faisons connaissance</p>
-          <Smile size={20} color={TEXT} strokeWidth={1.75} aria-hidden />
+          <h1 className="auth-step-title" style={{ margin: 0 }}>Faisons connaissance</h1>
+          <Smile size={22} color={TEXT} strokeWidth={1.8} aria-hidden />
         </div>
         <FieldLabel required>Prénom</FieldLabel>
         <input type="text" value={firstName} onChange={e => { setFirstName(e.target.value); setIdentityError(""); }}
-          placeholder="Ton prénom" style={{ ...inputStyle, marginBottom: 14 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          placeholder="Ton prénom" className="auth-field mb-3.5" />
         <FieldLabel required>Nom</FieldLabel>
         <input type="text" value={lastName} onChange={e => { setLastName(e.target.value); setIdentityError(""); }}
-          placeholder="Ton nom" style={{ ...inputStyle, marginBottom: 14 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          placeholder="Ton nom" className="auth-field mb-3.5" />
         <FieldLabel required>Date de naissance</FieldLabel>
         <input type="date" value={birthDate} max={todayDateInputMax()} required
           onChange={e => { setBirthDate(e.target.value); setIdentityError(""); }}
-          style={{ ...inputStyle, marginBottom: 4 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          className="auth-field mb-1" />
         <p style={{ fontSize: 11, color: MUTED, marginBottom: identityError ? 8 : 4 }}>
           <span style={{ color: "var(--false-text)" }}>*</span> Champs obligatoires
         </p>
-        {identityError && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{identityError}</p>}
+        {identityError && <AuthAlert className="mb-2">{identityError}</AuthAlert>}
         <CTA
           onClick={() => {
             const check = validateIdentityStep(firstName, lastName, birthDate);
@@ -580,30 +581,29 @@ export default function SignupPage() {
       <>
         <BackBtn onClick={() => setEleveStep("identity")} />
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
-          <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, textAlign: "center", textWrap: "balance", margin: 0 }}>Crée ton compte</p>
-          <KeyRound size={20} color={TEXT} strokeWidth={1.75} aria-hidden />
+          <h1 className="auth-step-title" style={{ margin: 0 }}>Crée ton compte</h1>
+          <KeyRound size={22} color={TEXT} strokeWidth={1.8} aria-hidden />
         </div>
         <FieldLabel required>Adresse email</FieldLabel>
         <input type="email" value={email} onChange={e => { setEmail(e.target.value); setError(""); setEmailTaken(false); }}
-          placeholder="ton@email.com" style={{ ...inputStyle, marginBottom: emailTaken ? 4 : 14 }}
-          onFocus={handleFocus} onBlur={handleBlur} autoComplete="email" />
+          placeholder="ton@email.com" className={emailTaken ? "auth-field mb-1" : "auth-field mb-3.5"} autoComplete="email" />
         {emailTaken && <EmailTakenNotice email={email} />}
         <FieldLabel required>Mot de passe</FieldLabel>
         <div style={{ position: "relative", marginBottom: 6 }}>
           <input type={showPassword ? "text" : "password"} value={password}
             onChange={e => { setPassword(e.target.value); setError(""); }} placeholder="••••••••"
-            style={{ ...inputStyle, paddingRight: 40 }}
-            onFocus={handleFocus} onBlur={handleBlur} autoComplete="new-password" />
+            className="auth-field" style={{ paddingRight: 48 }} autoComplete="new-password" />
           <button type="button" onClick={() => setShowPassword(v => !v)}
-            style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: MUTED }}>
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            className="auth-icon-btn absolute top-1/2 right-1 -translate-y-1/2"
+            aria-label={showPassword ? "Masquer" : "Afficher"}>
+            {showPassword ? <EyeOff size={18} strokeWidth={1.8} /> : <Eye size={18} strokeWidth={1.8} />}
           </button>
         </div>
         <p style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>8 caractères min. · 1 majuscule · 1 chiffre</p>
         <p style={{ fontSize: 11, color: MUTED, marginBottom: error ? 8 : 4 }}>
           <span style={{ color: "var(--false-text)" }}>*</span> Champs obligatoires
         </p>
-        {error && !emailTaken && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{error}</p>}
+        {error && !emailTaken && <AuthAlert className="mb-2">{error}</AuthAlert>}
         <CTA
           onClick={handleAccountContinue}
           disabled={
@@ -627,9 +627,9 @@ export default function SignupPage() {
           <BackBtn onClick={() => { setError(""); setEmailTaken(false); setEleveStep("account"); }} />
           <div style={{ textAlign: "center", marginBottom: 24 }}>
             <div style={{ display: "flex", justifyContent: "center", marginBottom: 8 }}>
-              <Rocket size={44} color={V} strokeWidth={1.75} aria-hidden />
+              <Rocket size={44} color={V} strokeWidth={1.8} aria-hidden />
             </div>
-            <p style={{ fontSize: 17, fontWeight: 500, color: TEXT, marginBottom: 6, textWrap: "balance" }}>Voici ce que tu peux accomplir en 3 mois</p>
+            <h1 className="auth-step-title">Voici ce que tu peux accomplir en 3 mois</h1>
             <p style={{ fontSize: 13, color: MUTED, textWrap: "balance" }}>Basé sur ton objectif de {weeklyGoal ?? 10} mots/semaine</p>
           </div>
           <div style={{ background: V_LIGHT, borderRadius: 16, padding: "20px", textAlign: "center", marginBottom: 16 }}>
@@ -638,7 +638,7 @@ export default function SignupPage() {
           </div>
           <div style={{ marginBottom: 8 }}>
             <div style={{ background: GREEN_LIGHT, borderRadius: 14, padding: "14px", textAlign: "center" }}>
-              <p style={{ fontSize: 20, fontWeight: 500, color: GREEN }}>SM-2</p>
+              <p className="font-heading" style={{ fontSize: 20, color: GREEN }}>SM-2</p>
               <p style={{ fontSize: 11, color: MUTED }}>algorithme d&apos;apprentissage</p>
             </div>
           </div>
@@ -648,7 +648,7 @@ export default function SignupPage() {
           {emailTaken ? (
             <EmailTakenNotice email={email} />
           ) : error ? (
-            <p style={{ fontSize: 12, color: "var(--false-text)", marginTop: 8 }}>{error}</p>
+            <AuthAlert className="mt-2">{error}</AuthAlert>
           ) : null}
         </>,
         5, 5
@@ -660,19 +660,19 @@ export default function SignupPage() {
     if (profStep === "identity") return wrap(
       <>
         <BackBtn onClick={() => { setRole(null); setEleveStep("role"); setProfStep("role"); }} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 20 }}>Faisons connaissance 👋</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+          <h1 className="auth-step-title" style={{ margin: 0 }}>Faisons connaissance</h1>
+          <Smile size={22} color={TEXT} strokeWidth={1.8} aria-hidden />
+        </div>
         <FieldLabel>Prénom</FieldLabel>
         <input type="text" value={firstName} onChange={e => setFirstName(e.target.value)}
-          placeholder="Votre prénom" style={{ ...inputStyle, marginBottom: 14 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          placeholder="Votre prénom" className="auth-field mb-3.5" />
         <FieldLabel>Nom</FieldLabel>
         <input type="text" value={lastName} onChange={e => setLastName(e.target.value)}
-          placeholder="Votre nom" style={{ ...inputStyle, marginBottom: 14 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          placeholder="Votre nom" className="auth-field mb-3.5" />
         <FieldLabel>Date de naissance</FieldLabel>
         <input type="date" value={birthDate} onChange={e => setBirthDate(e.target.value)}
-          style={{ ...inputStyle, marginBottom: 4 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          className="auth-field mb-1" />
         <p style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Optionnel — utilisé pour personnaliser votre expérience.</p>
         <CTA onClick={() => setProfStep("account")}>Continuer →</CTA>
       </>,
@@ -682,24 +682,26 @@ export default function SignupPage() {
     if (profStep === "account") return wrap(
       <>
         <BackBtn onClick={() => setProfStep("identity")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 20 }}>Créez votre compte ✨</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+          <h1 className="auth-step-title" style={{ margin: 0 }}>Créez votre compte</h1>
+          <Sparkles size={22} color={TEXT} strokeWidth={1.8} aria-hidden />
+        </div>
         <FieldLabel>Adresse email</FieldLabel>
         <input type="email" value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="vous@email.com" style={{ ...inputStyle, marginBottom: 14 }}
-          onFocus={handleFocus} onBlur={handleBlur} autoComplete="email" />
+          placeholder="vous@email.com" className="auth-field mb-3.5" autoComplete="email" />
         <FieldLabel>Mot de passe</FieldLabel>
         <div style={{ position: "relative", marginBottom: 6 }}>
           <input type={showPassword ? "text" : "password"} value={password}
             onChange={e => setPassword(e.target.value)} placeholder="••••••••"
-            style={{ ...inputStyle, paddingRight: 40 }}
-            onFocus={handleFocus} onBlur={handleBlur} autoComplete="new-password" />
+            className="auth-field" style={{ paddingRight: 48 }} autoComplete="new-password" />
           <button type="button" onClick={() => setShowPassword(v => !v)}
-            style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: MUTED }}>
-            {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+            className="auth-icon-btn absolute top-1/2 right-1 -translate-y-1/2"
+            aria-label={showPassword ? "Masquer" : "Afficher"}>
+            {showPassword ? <EyeOff size={18} strokeWidth={1.8} /> : <Eye size={18} strokeWidth={1.8} />}
           </button>
         </div>
         <p style={{ fontSize: 11, color: MUTED, marginBottom: 8 }}>8 caractères min. · 1 majuscule · 1 chiffre</p>
-        {error && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{error}</p>}
+        {error && <AuthAlert className="mb-2">{error}</AuthAlert>}
         <CTA onClick={() => {
           setError("");
           if (!email.trim() || !password) { setError("Email et mot de passe requis."); return; }
@@ -713,15 +715,16 @@ export default function SignupPage() {
     if (profStep === "teacher") return wrap(
       <>
         <BackBtn onClick={() => setProfStep("account")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 20 }}>Votre profil professeur 👩‍🏫</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginBottom: 20 }}>
+          <h1 className="auth-step-title" style={{ margin: 0 }}>Votre profil professeur</h1>
+          <GraduationCap size={22} color={TEXT} strokeWidth={1.8} aria-hidden />
+        </div>
         <FieldLabel>Matière enseignée (optionnel)</FieldLabel>
         <input type="text" value={teacherSubject} onChange={e => setTeacherSubject(e.target.value)}
-          placeholder="Ex. : Anglais, Espagnol, Latin…" style={{ ...inputStyle, marginBottom: 14 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          placeholder="Ex. : Anglais, Espagnol, Latin…" className="auth-field mb-3.5" />
         <FieldLabel>Établissement (optionnel)</FieldLabel>
         <input type="text" value={schoolName} onChange={e => setSchoolName(e.target.value)}
-          placeholder="Ex. : Lycée Victor Hugo, Paris" style={{ ...inputStyle, marginBottom: 4 }}
-          onFocus={handleFocus} onBlur={handleBlur} />
+          placeholder="Ex. : Lycée Victor Hugo, Paris" className="auth-field mb-1" />
         <CTA onClick={() => setProfStep("institution")}>Continuer →</CTA>
         <SkipLink onClick={() => setProfStep("institution")} />
       </>,
@@ -731,12 +734,11 @@ export default function SignupPage() {
     if (profStep === "institution") return wrap(
       <>
         <BackBtn onClick={() => setProfStep("teacher")} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 6 }}>Code institution</p>
+        <h1 className="auth-step-title">Code institution</h1>
         <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>Si votre établissement a souscrit à {BRAND_NAME}, saisissez le code fourni par votre administration.</p>
         <FieldLabel>Code institution (optionnel)</FieldLabel>
         <input type="text" value={institutionCode} onChange={e => setInstitutionCode(e.target.value.toUpperCase())}
-          placeholder="Ex. : LVH-2025" style={{ ...inputStyle, letterSpacing: "0.1em", marginBottom: 4 }}
-          onFocus={handleFocus} onBlur={handleBlur} maxLength={20} />
+          placeholder="Ex. : LVH-2025" className="auth-field mb-1" style={{ letterSpacing: "0.1em" }} maxLength={20} />
         <p style={{ fontSize: 11, color: MUTED, marginBottom: 4 }}>Le code débloque l&apos;accès premium pour votre établissement.</p>
         <CTA onClick={() => setProfStep("promise")}>Continuer →</CTA>
         <SkipLink onClick={() => setProfStep("promise")} />
@@ -747,28 +749,33 @@ export default function SignupPage() {
     if (profStep === "promise") return wrap(
       <>
         <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div style={{ fontSize: 44, marginBottom: 10 }}>👩‍🏫</div>
-          <p style={{ fontSize: 17, fontWeight: 500, color: TEXT, marginBottom: 6 }}>Tout ce que vous pourrez faire avec {BRAND_NAME}</p>
+          <GraduationCap size={44} color={TEXT} strokeWidth={1.8} aria-hidden style={{ display: "block", margin: "0 auto 10px" }} />
+          <h1 className="auth-step-title">Tout ce que vous pourrez faire avec {BRAND_NAME}</h1>
           <p style={{ fontSize: 13, color: MUTED }}>En un trimestre avec vos élèves</p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
           {[
-            { icon: "📝", title: "Créer vos listes de vocabulaire", sub: "En quelques clics, depuis un PDF ou une URL", color: V, bg: V_LIGHT },
-            { icon: "👥", title: "Suivre la progression de vos élèves", sub: "Statistiques par élève et par liste", color: GREEN, bg: GREEN_LIGHT },
-            { icon: "📅", title: "Assigner des révisions ciblées", sub: "Programmez des sessions adaptées", color: "var(--ink)", bg: GOLD_LIGHT },
+            { Icon: FileText, title: "Créer vos listes de vocabulaire", sub: "En quelques clics, depuis un PDF ou une URL", bg: V_LIGHT },
+            { Icon: Users, title: "Suivre la progression de vos élèves", sub: "Statistiques par élève et par liste", bg: GREEN_LIGHT },
+            { Icon: CalendarDays, title: "Assigner des révisions ciblées", sub: "Programmez des sessions adaptées", bg: GOLD_LIGHT },
           ].map(item => (
             <div key={item.title} style={{ background: item.bg, borderRadius: 14, padding: "14px 16px", display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <span style={{ fontSize: 20 }}>{item.icon}</span>
+              <item.Icon size={20} strokeWidth={1.8} color={V} aria-hidden />
               <div>
-                <p style={{ fontSize: 13, fontWeight: 500, color: item.color, marginBottom: 2 }}>{item.title}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, color: V, marginBottom: 2 }}>{item.title}</p>
                 <p style={{ fontSize: 11, color: MUTED }}>{item.sub}</p>
               </div>
             </div>
           ))}
         </div>
-        {error && <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 8 }}>{error}</p>}
+        {error && <AuthAlert className="mb-2">{error}</AuthAlert>}
         <CTA onClick={handleRegister} disabled={loading} gold>
-          {loading ? "Création du compte…" : "C'est parti ! 🎉"}
+          {loading ? "Création du compte…" : (
+            <>
+              C&apos;est parti !
+              <PartyPopper size={18} strokeWidth={1.8} aria-hidden />
+            </>
+          )}
         </CTA>
         <p style={{ fontSize: 10, color: MUTED, textAlign: "center", marginTop: 10 }}>Compte gratuit · Sans engagement</p>
       </>,

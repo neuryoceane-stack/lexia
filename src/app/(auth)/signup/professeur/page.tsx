@@ -1,40 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import type { CSSProperties, FocusEvent } from "react";
 import Link from "next/link";
 import { CheckCircle, Users } from "lucide-react";
+import { AuthAlert } from "@/components/auth/auth-alert";
 
 const V = "var(--ink)";
 const GREEN = "var(--ink)";
 const GREEN_LIGHT = "var(--surface)";
 const FOND = "var(--page)";
-const TEXT = "var(--ink)";
-const MUTED = "var(--muted)";
-const V_BORDER = "color-mix(in srgb, var(--ink) 18%, transparent)";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-const inputStyle: CSSProperties = {
-  fontSize: 14,
-  padding: "11px 14px",
-  borderRadius: 12,
-  border: `1.5px solid ${V_BORDER}`,
-  background: FOND,
-  color: TEXT,
-  outline: "none",
-  width: "100%",
-  fontFamily: "var(--font-sans), sans-serif",
-};
-
-function handleFocus(e: FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = V;
-  e.currentTarget.style.background = "white";
-}
-function handleBlur(e: FocusEvent<HTMLInputElement>) {
-  e.currentTarget.style.borderColor = V_BORDER;
-  e.currentTarget.style.background = FOND;
-}
 
 export default function TeacherWaitlistPage() {
   const [email, setEmail] = useState("");
@@ -107,7 +83,7 @@ export default function TeacherWaitlistPage() {
           background: "var(--surface)",
           borderRadius: 16,
           overflow: "hidden",
-          border: `1px solid ${V_BORDER}`,
+          border: "1.5px solid var(--line)",
           boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
         }}
       >
@@ -123,12 +99,12 @@ export default function TeacherWaitlistPage() {
               marginBottom: 14,
             }}
           >
-            <Users size={15} color="white" />
+            <Users size={16} color="var(--surface)" strokeWidth={1.8} aria-hidden />
             <span style={{ fontSize: 11, fontWeight: 500, color: "var(--surface)", letterSpacing: "0.02em" }}>
               Espace professeur
             </span>
           </div>
-          <p style={{ fontSize: 22, fontWeight: 500, color: "var(--surface)", marginBottom: 8 }}>
+          <p className="font-heading" style={{ fontSize: 26, color: "var(--surface)", marginBottom: 8 }}>
             Bientôt disponible
           </p>
           <p style={{ fontSize: 13, fontWeight: 400, color: "color-mix(in srgb, var(--surface) 85%, transparent)", lineHeight: 1.5 }}>
@@ -165,39 +141,11 @@ export default function TeacherWaitlistPage() {
                   : "C'est noté ! On vous prévient dès l'ouverture."}
               </p>
 
-              <Link
-                href="/"
-                style={{
-                  display: "block",
-                  width: "100%",
-                  boxSizing: "border-box",
-                  padding: "13px",
-                  borderRadius: 20,
-                  background: V,
-                  color: "var(--surface)",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  textAlign: "center",
-                  textDecoration: "none",
-                  marginTop: 16,
-                  fontFamily: "var(--font-sans), sans-serif",
-                }}
-              >
+              <Link href="/" className="auth-submit mt-4">
                 Retour à l&apos;accueil
               </Link>
 
-              <Link
-                href="/signup"
-                style={{
-                  display: "block",
-                  textAlign: "center",
-                  marginTop: 12,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: V,
-                  textDecoration: "none",
-                }}
-              >
+              <Link href="/signup" className="auth-link mt-1 text-sm">
                 Aller à l&apos;inscription
               </Link>
             </div>
@@ -213,54 +161,27 @@ export default function TeacherWaitlistPage() {
                   if (globalError) setGlobalError("");
                 }}
                 placeholder="vous@etablissement.fr"
-                style={{ ...inputStyle, marginBottom: emailError ? 4 : 4 }}
-                onFocus={handleFocus}
-                onBlur={handleBlur}
+                className="auth-field"
                 autoComplete="email"
               />
-              {emailError && (
-                <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 14 }}>{emailError}</p>
-              )}
+              {emailError && <AuthAlert className="mt-2">{emailError}</AuthAlert>}
 
-              {globalError && (
-                <p style={{ fontSize: 12, color: "var(--false-text)", marginTop: 12 }}>{globalError}</p>
-              )}
+              {globalError && <AuthAlert className="mt-3">{globalError}</AuthAlert>}
 
               <button
                 type="button"
                 onClick={handleSubmit}
                 disabled={loading}
-                style={{
-                  width: "100%",
-                  padding: "13px",
-                  borderRadius: 20,
-                  border: "none",
-                  background: V,
-                  color: "var(--surface)",
-                  fontSize: 14,
-                  fontWeight: 500,
-                  cursor: loading ? "default" : "pointer",
-                  marginTop: 16,
-                  fontFamily: "var(--font-sans), sans-serif",
-                  opacity: loading ? 0.5 : 1,
-                }}
+                className="auth-submit mt-4"
               >
                 {loading ? "Envoi…" : "Prévenez-moi"}
               </button>
 
-              <Link
-                href="/signup"
-                style={{
-                  display: "block",
-                  textAlign: "center",
-                  marginTop: 16,
-                  fontSize: 12,
-                  color: MUTED,
-                  textDecoration: "none",
-                }}
-              >
-                ← Je suis élève, retour à l&apos;inscription
-              </Link>
+              <div className="mt-2 flex justify-center">
+                <Link href="/signup" className="auth-link text-sm">
+                  ← Je suis élève, retour à l&apos;inscription
+                </Link>
+              </div>
             </>
           )}
         </div>
@@ -270,18 +191,5 @@ export default function TeacherWaitlistPage() {
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p
-      style={{
-        fontSize: 11,
-        fontWeight: 500,
-        textTransform: "uppercase",
-        letterSpacing: "0.06em",
-        color: MUTED,
-        marginBottom: 6,
-      }}
-    >
-      {children}
-    </p>
-  );
+  return <p className="auth-label">{children}</p>;
 }
