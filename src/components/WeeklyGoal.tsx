@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, Check } from "lucide-react";
 
 interface LangProgress {
   language: string | null;
@@ -14,130 +13,103 @@ interface WeeklyData {
   byLanguage: LangProgress[];
 }
 
-const BORDER_TERTIARY = "color-mix(in srgb, var(--ink) 14%, transparent)";
+const cardStyle = {
+  background: "var(--surface)",
+  borderRadius: 20,
+  border: "1.5px solid var(--line)",
+  padding: 20,
+} as const;
 
 export default function WeeklyGoal() {
   const [data, setData] = useState<WeeklyData | null>(null);
+  const [error, setError] = useState(false);
   const [selectedLang, setSelectedLang] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/weekly-progress")
-      .then((r) => r.json())
-      .then((d: WeeklyData) => setData(d))
-      .catch(() => {});
+    fetch("/api/weekly-progress", { cache: "no-store" })
+      .then((r) => {
+        if (!r.ok) throw new Error("weekly-progress");
+        return r.json() as Promise<WeeklyData>;
+      })
+      .then((d) => {
+        if (!Number.isFinite(Number(d.weeklyGoal)) || Number(d.weeklyGoal) <= 0) {
+          throw new Error("weekly-goal");
+        }
+        setData(d);
+      })
+      .catch(() => setError(true));
   }, []);
 
-  if (!data) return null;
+  if (error) {
+    return (
+      <p role="alert" style={{ ...cardStyle, color: "var(--false-text)", fontSize: 14 }}>
+        L&apos;objectif de la semaine n&apos;a pas pu être chargé.
+      </p>
+    );
+  }
+
+  if (!data) {
+    return <div className="skeleton h-full min-h-[220px]" style={{ borderRadius: 20 }} />;
+  }
 
   const languages = data.byLanguage.filter((l) => l.language && l.count > 0);
-  const hasMultipleLangs = languages.length > 1;
 
   const currentCount =
     selectedLang !== null
       ? (data.byLanguage.find((l) => l.language === selectedLang)?.count ?? 0)
       : data.totalCount;
 
-  const goal = Math.max(1, Number(data.weeklyGoal) || 20);
+  const goal = Number(data.weeklyGoal);
   const progress = Math.min(1, currentCount / goal);
   const isComplete = currentCount >= goal;
   const remaining = Math.max(0, goal - currentCount);
 
-  const midMarker = Math.round(goal / 2);
+  function pillStyle(active: boolean) {
+    return {
+      display: "inline-flex",
+      alignItems: "center",
+      minHeight: 44,
+      padding: "0 14px",
+      borderRadius: 999,
+      border: "1.5px solid var(--ink)",
+      background: active ? "var(--mark)" : "var(--surface)",
+      color: "var(--ink)",
+      fontSize: 14,
+      fontWeight: 500,
+      fontFamily: "var(--font-sans)",
+      cursor: "pointer",
+    } as const;
+  }
 
   return (
-    <div
-      className="flex min-h-0 min-w-0 flex-col gap-[10px]"
-      style={{
-        background: "#FFFFFF",
-        borderRadius: 14,
-        border: `0.5px solid ${BORDER_TERTIARY}`,
-        padding: 16,
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          bottom: -18,
-          right: -18,
-          width: 70,
-          height: 70,
-          borderRadius: "50%",
-          background: "var(--ink)",
-          opacity: 0.06,
-        }}
-      />
-
-      <div
-        className="relative z-[1] flex justify-between gap-2"
-        style={{ alignItems: "flex-start" }}
-      >
-        <div>
-          <p
-            style={{
-              fontSize: 12,
-              fontWeight: 500,
-              color: "var(--foreground-muted)",
-              marginBottom: 4,
-            }}
-          >
-            Objectif semaine
-          </p>
-          <p
-            style={{
-              fontSize: 26,
-              fontWeight: 500,
-              color: "var(--ink)",
-              lineHeight: 1,
-            }}
-          >
-            {currentCount}
-            <span
-              style={{
-                fontSize: 13,
-                color: "var(--foreground-muted)",
-                fontWeight: 400,
-              }}
-            >
-              {" "}
-              / {goal} mots
-            </span>
-          </p>
-        </div>
-        <div
-          className="flex shrink-0 items-center justify-center"
+    <div className="flex h-full min-h-0 min-w-0 flex-col gap-3" style={cardStyle}>
+      <div>
+        <p
           style={{
-            width: 32,
-            height: 32,
-            background: "var(--background-subtle)",
-            borderRadius: 8,
+            fontSize: 14,
+            fontWeight: 500,
+            color: "var(--muted)",
+            marginBottom: 6,
           }}
         >
-          <Clock className="h-4 w-4 shrink-0 text-ink" strokeWidth={2} />
-        </div>
+          Objectif semaine
+        </p>
+        <p
+          style={{
+            fontFamily: "var(--font-heading)",
+            fontWeight: 700,
+            color: "var(--ink)",
+            lineHeight: 1,
+          }}
+        >
+          <span style={{ fontSize: 32 }}>{currentCount}</span>
+          <span style={{ fontSize: 18 }}> / {goal} mots</span>
+        </p>
       </div>
 
-      {hasMultipleLangs && (
-        <div
-          className="relative z-[1] flex flex-wrap gap-1.5"
-          style={{ marginTop: -4 }}
-        >
-          <button
-            type="button"
-            onClick={() => setSelectedLang(null)}
-            style={{
-              padding: "2px 8px",
-              borderRadius: 16,
-              border: "1px solid",
-              borderColor: selectedLang === null ? "var(--ink)" : "#E5E5E5",
-              background: selectedLang === null ? "var(--background-subtle)" : "white",
-              color: selectedLang === null ? "var(--ink)" : "#999",
-              fontSize: 10,
-              cursor: "pointer",
-            }}
-          >
+      {languages.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" onClick={() => setSelectedLang(null)} style={pillStyle(selectedLang === null)}>
             Toutes
           </button>
           {languages.map((l) => (
@@ -145,16 +117,7 @@ export default function WeeklyGoal() {
               key={l.language}
               type="button"
               onClick={() => setSelectedLang(l.language)}
-              style={{
-                padding: "2px 8px",
-                borderRadius: 16,
-                border: "1px solid",
-                borderColor: selectedLang === l.language ? "var(--ink)" : "#E5E5E5",
-                background: selectedLang === l.language ? "var(--background-subtle)" : "white",
-                color: selectedLang === l.language ? "var(--ink)" : "#999",
-                fontSize: 10,
-                cursor: "pointer",
-              }}
+              style={pillStyle(selectedLang === l.language)}
             >
               {l.language} ({l.count})
             </button>
@@ -163,13 +126,15 @@ export default function WeeklyGoal() {
       )}
 
       <div
-        className="relative z-[1]"
         style={{
-          height: 14,
-          background: "#F3EDDF",
-          borderRadius: 8,
+          height: 12,
+          boxSizing: "border-box",
+          background: "var(--surface)",
+          border: "1.5px solid var(--ink)",
+          borderRadius: 999,
           position: "relative",
-          overflow: "visible",
+          overflow: "hidden",
+          marginTop: 4,
         }}
       >
         {progress > 0 && (
@@ -180,90 +145,26 @@ export default function WeeklyGoal() {
               top: 0,
               width: `${progress * 100}%`,
               height: "100%",
-              background: "#F5A623",
-              borderRadius: 8,
+              background: "var(--mark)",
               transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
-              overflow: "visible",
             }}
-          >
-            <div
-              className="honey-shimmer"
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 10px, rgba(255,255,255,0.18) 10px 20px)",
-                animation: "honeyShimmer 2.5s linear infinite",
-                borderRadius: 8,
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              className="honey-drip"
-              style={{
-                position: "absolute",
-                right: 6,
-                top: 11,
-                width: 8,
-                height: 10,
-                background: "#E89512",
-                borderRadius: "50% 50% 50% 0",
-                transform: "rotate(45deg)",
-                animation: "honeyDrip 2.8s ease-in infinite",
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              className="honey-drip"
-              style={{
-                position: "absolute",
-                right: 20,
-                top: 12,
-                width: 8,
-                height: 10,
-                background: "#E89512",
-                borderRadius: "50% 50% 50% 0",
-                transform: "rotate(45deg)",
-                animation: "honeyDrip 2.8s ease-in 1.2s infinite",
-                pointerEvents: "none",
-              }}
-            />
-          </div>
+          />
         )}
       </div>
 
-      <div
-        className="relative z-[1] flex justify-between"
+      <p
         style={{
-          fontSize: 10,
-          color: "var(--foreground-muted)",
+          fontFamily: "var(--font-sans)",
+          fontSize: 14,
+          color: "var(--muted)",
+          fontWeight: 400,
+          marginTop: "auto",
         }}
       >
-        <span>0</span>
-        <span>{midMarker}</span>
-        <span>{goal}</span>
-      </div>
-
-      <div
-        className="relative z-[1] flex items-center gap-1.5"
-        style={{
-          fontSize: 11,
-          color: "#1D9E75",
-          fontWeight: 500,
-        }}
-      >
-        {isComplete ? (
-          <span>Objectif atteint 🎉</span>
-        ) : (
-          <>
-            <Check className="h-[11px] w-[11px] shrink-0 text-[#1D9E75]" strokeWidth={2.5} />
-            <span>
-              {remaining} mot{remaining !== 1 ? "s" : ""} restant
-              {remaining !== 1 ? "s" : ""} cette semaine
-            </span>
-          </>
-        )}
-      </div>
+        {isComplete
+          ? "Objectif atteint"
+          : `${remaining} mot${remaining !== 1 ? "s" : ""} restant${remaining !== 1 ? "s" : ""} cette semaine`}
+      </p>
     </div>
   );
 }

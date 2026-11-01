@@ -76,10 +76,11 @@
 }
 
 body {
+  /* next/font pose --font-dm-sans et --font-bricolage sur body.
+     @theme inline ne les publie pas comme variables : on les nomme ici. */
+  --font-sans: var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
   background-color: var(--background);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='26' viewBox='0 0 30 26'%3E%3Cpath fill='none' stroke='%2312332B' stroke-opacity='0.05' stroke-width='1' d='M15 1 L28.48 8.5 L28.48 17.5 L15 25 L1.52 17.5 L1.52 8.5 Z'/%3E%3Cpath fill='none' stroke='%2312332B' stroke-opacity='0.05' stroke-width='1' d='M15 1 L28.48 8.5 L28.48 17.5 L15 25 L1.52 17.5 L1.52 8.5 Z' transform='translate(15,13)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-attachment: fixed;
   color: var(--foreground);
   font-family: var(--font-sans);
   font-weight: 400;
@@ -90,8 +91,42 @@ h1,
 h2,
 h3,
 .font-heading {
-  font-family: var(--font-heading), sans-serif;
+  font-family: var(--font-heading);
   font-weight: 700;
+}
+
+.home-dash-card {
+  border: 1.5px solid var(--line);
+  background: var(--surface);
+  transition: border-color 150ms ease-out, transform 150ms ease-out;
+}
+.home-dash-card:hover {
+  border-color: var(--ink);
+  background: var(--surface);
+  transform: translateY(-2px);
+}
+
+/* Surligneur d’onglet : bande jaune dans le bas des lettres, texte encre au-dessus. */
+.nav-tab-mark {
+  line-height: 1.05;
+  padding-inline: 0.12em;
+  background-image: linear-gradient(var(--mark), var(--mark));
+  background-repeat: no-repeat;
+  background-size: 100% 0.42em;
+  background-position: 0 82%;
+  box-decoration-break: clone;
+}
+
+/* Surligneur de contenu : bande jaune derrière le bas des mots, texte encre au-dessus. */
+.home-mark {
+  padding-inline: 0.12em;
+  background-image: linear-gradient(var(--mark), var(--mark));
+  background-repeat: no-repeat;
+  background-size: 100% 0.62em;
+  background-position: 0 82%;
+  border-radius: 0.12em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
 }
 
 /* Cartes Évaluation (révision) : fonds or et vert historiques, laissés pour D2 */

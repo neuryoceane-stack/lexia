@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import { MessageCircle } from "lucide-react";
 
 const FEEDBACK_TYPES = [
-  { value: "bug", label: "🐛 Bug" },
-  { value: "idee", label: "✨ Idée" },
-  { value: "question", label: "❓ Question" },
+  { value: "bug", label: "Bug" },
+  { value: "idee", label: "Idée" },
+  { value: "question", label: "Question" },
 ] as const;
 
 export function FeedbackWidget() {
@@ -52,16 +53,16 @@ export function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full text-2xl shadow-lg transition hover:scale-105"
+        className="fixed bottom-[92px] right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition hover:scale-105 md:bottom-6"
         style={{ backgroundColor: "var(--ink)", color: "white" }}
         aria-label="Donner un retour"
       >
-        💬
+        <MessageCircle className="text-white" size={22} strokeWidth={1.8} aria-hidden />
       </button>
 
       {open && (
         <div
-          className="fixed bottom-20 right-6 z-50 w-80 animate-[feedback-slide-up_0.2s_ease-out]"
+          className="fixed bottom-[152px] right-6 z-50 w-80 animate-[feedback-slide-up_0.2s_ease-out] md:bottom-20"
           role="dialog"
           aria-labelledby="feedback-title"
         >
