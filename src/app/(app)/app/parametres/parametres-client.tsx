@@ -66,8 +66,8 @@ function getLevelInfo(val: number) {
   if (val <= 10) {
     return {
       label: "Découverte",
-      pillBg: "rgba(108,63,200,.12)",
-      pillColor: "#6C3FC8",
+      pillBg: "color-mix(in srgb, var(--ink) 12%, transparent)",
+      pillColor: "var(--ink)",
       time: "~2 min / jour",
     };
   }
@@ -89,8 +89,8 @@ function getLevelInfo(val: number) {
   }
   return {
     label: "Intensif",
-    pillBg: "rgba(108,63,200,.12)",
-    pillColor: "#5A32A8",
+    pillBg: "color-mix(in srgb, var(--ink) 12%, transparent)",
+    pillColor: "var(--ink)",
     time: "~12 min / jour",
   };
 }
@@ -112,16 +112,16 @@ const WEEK_PREVIEW = [
   { label: "Dim", pct: 10, dow: 0 },
 ] as const;
 
-const BORDER_TERTIARY = "rgba(108, 63, 200, 0.14)";
+const BORDER_TERTIARY = "color-mix(in srgb, var(--ink) 14%, transparent)";
 
 const PROFILE_HONEYCOMB = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='0.65'%3E%3Cpath d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z'/%3E%3Cpath d='M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/g%3E%3C/svg%3E")`;
 
 const PANEL_SHADOW =
-  "0 4px 24px rgba(108,63,200,.12), 0 1px 3px rgba(108,63,200,.08)";
+  "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)";
 
 const SECTION_CARD_STYLE: CSSProperties = {
   background: "white",
-  border: "0.5px solid rgba(108,63,200,.12)",
+  border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
   borderRadius: 16,
   padding: 16,
   boxShadow: PANEL_SHADOW,
@@ -331,21 +331,21 @@ export function ParametresClient() {
   const joinCodeReady = joinCode.trim().length > 0;
 
   return (
-    <div className="mx-auto max-w-lg" style={{ fontFamily: "DM Sans, sans-serif" }}>
+    <div className="mx-auto max-w-lg" style={{ fontFamily: "var(--font-sans), sans-serif" }}>
       <button
         type="button"
         onClick={() => router.push("/app")}
         className="mb-5 flex items-center gap-1 transition hover:opacity-70"
         style={{
           fontSize: 12,
-          color: "#6B6478",
+          color: "var(--muted)",
           background: "none",
           border: "none",
           cursor: "pointer",
           width: "fit-content",
         }}
       >
-        <ChevronLeft size={14} stroke="#6B6478" />
+        <ChevronLeft size={14} stroke="var(--muted)" />
         Retour
       </button>
 
@@ -357,7 +357,7 @@ export function ParametresClient() {
           padding: "20px 18px",
           boxShadow: PANEL_SHADOW,
           background:
-            "linear-gradient(150deg, #7B4AD4 0%, #6C3FC8 55%, #5A32A8 100%)",
+            "linear-gradient(150deg, var(--ink) 0%, var(--ink) 55%, var(--ink) 100%)",
         }}
       >
         <div
@@ -423,21 +423,21 @@ export function ParametresClient() {
                     minHeight: 108,
                     textAlign: "center",
                     border: selected
-                      ? "1.5px solid #6C3FC8"
-                      : "1px solid rgba(108,63,200,.14)",
-                    background: selected ? "rgba(108,63,200,.05)" : "white",
+                      ? "1.5px solid var(--ink)"
+                      : "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
+                    background: selected ? "color-mix(in srgb, var(--ink) 5%, transparent)" : "white",
                     cursor: "pointer",
                     transition: "border-color 120ms, background 120ms",
                   }}
                   onMouseEnter={(e) => {
                     if (!selected) {
-                      e.currentTarget.style.borderColor = "rgba(108,63,200,.35)";
-                      e.currentTarget.style.background = "rgba(108,63,200,.03)";
+                      e.currentTarget.style.borderColor = "color-mix(in srgb, var(--ink) 35%, transparent)";
+                      e.currentTarget.style.background = "color-mix(in srgb, var(--ink) 3%, transparent)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (!selected) {
-                      e.currentTarget.style.borderColor = "rgba(108,63,200,.14)";
+                      e.currentTarget.style.borderColor = "color-mix(in srgb, var(--ink) 14%, transparent)";
                       e.currentTarget.style.background = "white";
                     }
                   }}
@@ -447,12 +447,12 @@ export function ParametresClient() {
                     style={{
                       fontSize: 12,
                       fontWeight: 600,
-                      color: selected ? "#6C3FC8" : "#1A1A1A",
+                      color: selected ? "var(--ink)" : "#1A1A1A",
                     }}
                   >
                     {label}
                   </span>
-                  <span style={{ fontSize: 10, color: "#6B6478", marginTop: 2 }}>{subLabel}</span>
+                  <span style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{subLabel}</span>
                 </button>
               );
             })}
@@ -489,12 +489,12 @@ export function ParametresClient() {
             margin-top: -9px;
             border-radius: 50%;
             background: white;
-            border: 2.5px solid #6C3FC8;
-            box-shadow: 0 2px 8px rgba(108,63,200,0.25);
+            border: 2.5px solid var(--ink);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
           }
           .lexiva-weekly-range:active::-webkit-slider-thumb {
             transform: scale(1.15);
-            box-shadow: 0 4px 14px rgba(108,63,200,0.35);
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--ink) 35%, transparent);
           }
           .lexiva-weekly-range::-moz-range-track {
             height: 8px;
@@ -505,16 +505,16 @@ export function ParametresClient() {
             height: 26px;
             border-radius: 50%;
             background: white;
-            border: 2.5px solid #6C3FC8;
-            box-shadow: 0 2px 8px rgba(108,63,200,0.25);
+            border: 2.5px solid var(--ink);
+            box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 25%, transparent);
           }
           .lexiva-weekly-range:active::-moz-range-thumb {
             transform: scale(1.15);
-            box-shadow: 0 4px 14px rgba(108,63,200,0.35);
+            box-shadow: 0 4px 14px color-mix(in srgb, var(--ink) 35%, transparent);
           }
           .param-weekly-custom:focus-within {
-            border-color: #6C3FC8 !important;
-            background: rgba(108,63,200,.06) !important;
+            border-color: var(--ink) !important;
+            background: color-mix(in srgb, var(--ink) 6%, transparent) !important;
           }
         `}</style>
 
@@ -524,7 +524,7 @@ export function ParametresClient() {
               padding: 28,
               textAlign: "center",
               fontSize: 13,
-              color: "#6B6478",
+              color: "var(--muted)",
             }}
           >
             Chargement…
@@ -540,12 +540,12 @@ export function ParametresClient() {
                   <span
                     className="shrink-0"
                     style={{
-                      background: "rgba(108,63,200,.09)",
+                      background: "color-mix(in srgb, var(--ink) 9%, transparent)",
                       borderRadius: 999,
                       padding: "5px 12px",
                       fontSize: 12,
                       fontWeight: 600,
-                      color: "#6C3FC8",
+                      color: "var(--ink)",
                     }}
                   >
                     {weeklyGoal} mots / sem.
@@ -568,14 +568,14 @@ export function ParametresClient() {
                   style={{
                     fontSize: 64,
                     fontWeight: 600,
-                    color: "#6C3FC8",
+                    color: "var(--ink)",
                     lineHeight: 1,
                     letterSpacing: "-2px",
                   }}
                 >
                   {weeklyGoal}
                 </p>
-                <p style={{ fontSize: 14, color: "#6B6478", marginTop: 4 }}>
+                <p style={{ fontSize: 14, color: "var(--muted)", marginTop: 4 }}>
                   mots par semaine
                 </p>
               </div>
@@ -594,9 +594,9 @@ export function ParametresClient() {
                 </span>
                 <div
                   className="flex items-center gap-1"
-                  style={{ color: "#6B6478", fontSize: 12 }}
+                  style={{ color: "var(--muted)", fontSize: 12 }}
                 >
-                  <Clock size={11} stroke="#6B6478" strokeWidth={2} />
+                  <Clock size={11} stroke="var(--muted)" strokeWidth={2} />
                   <span>{levelInfo.time}</span>
                 </div>
                 <div className="flex items-center gap-1" style={{ color: "#1D9E75" }}>
@@ -627,7 +627,7 @@ export function ParametresClient() {
                     transform: "translateY(-50%)",
                     height: 8,
                     borderRadius: 4,
-                    background: "#F0EDF8",
+                    background: "var(--background-subtle)",
                   }}
                 />
                 <div
@@ -639,7 +639,7 @@ export function ParametresClient() {
                     height: 8,
                     borderRadius: 4,
                     width: `${sliderFillPct}%`,
-                    background: "linear-gradient(to right, #9B6EE8, #6C3FC8)",
+                    background: "linear-gradient(to right, var(--ink), var(--ink))",
                     transition: "width 60ms ease",
                     pointerEvents: "none",
                   }}
@@ -690,7 +690,7 @@ export function ParametresClient() {
                         style={{
                           width: 1,
                           height: active ? 10 : 8,
-                          background: active ? "#6C3FC8" : "rgba(108,63,200,.20)",
+                          background: active ? "var(--ink)" : "color-mix(in srgb, var(--ink) 20%, transparent)",
                           borderRadius: 1,
                         }}
                       />
@@ -698,12 +698,12 @@ export function ParametresClient() {
                         style={{
                           fontSize: active ? 13 : 12,
                           fontWeight: active ? 600 : 500,
-                          color: active ? "#6C3FC8" : "#6B6478",
+                          color: active ? "var(--ink)" : "var(--muted)",
                         }}
                       >
                         {v}
                       </span>
-                      <span style={{ fontSize: 10, color: "#6B6478" }}>{sub}</span>
+                      <span style={{ fontSize: 10, color: "var(--muted)" }}>{sub}</span>
                     </button>
                   );
                 })}
@@ -735,7 +735,7 @@ export function ParametresClient() {
                 <div
                   key={unit}
                   style={{
-                    background: "rgba(108,63,200,.06)",
+                    background: "color-mix(in srgb, var(--ink) 6%, transparent)",
                     borderRadius: 12,
                     padding: 12,
                     textAlign: "center",
@@ -747,13 +747,13 @@ export function ParametresClient() {
                       width: 28,
                       height: 28,
                       borderRadius: 8,
-                      background: "rgba(108,63,200,.09)",
+                      background: "color-mix(in srgb, var(--ink) 9%, transparent)",
                     }}
                   >
-                    <StatIcon size={14} stroke="#6C3FC8" strokeWidth={2} />
+                    <StatIcon size={14} stroke="var(--ink)" strokeWidth={2} />
                   </div>
                   <p style={{ fontSize: 18, fontWeight: 600, color: "#1A1A1A" }}>{value}</p>
-                  <p style={{ fontSize: 10, color: "#6B6478", marginTop: 2 }}>{unit}</p>
+                  <p style={{ fontSize: 10, color: "var(--muted)", marginTop: 2 }}>{unit}</p>
                 </div>
               ))}
             </div>
@@ -796,12 +796,12 @@ export function ParametresClient() {
                           maxWidth: 40,
                           height: h,
                           borderRadius: "5px 5px 0 0",
-                          background: isToday ? "#6C3FC8" : "#DDD6F5",
+                          background: isToday ? "var(--ink)" : "var(--background-subtle)",
                           transition:
                             "height 350ms cubic-bezier(0.34, 1.56, 0.64, 1)",
                         }}
                       />
-                      <span style={{ fontSize: 9, color: "#6B6478", marginTop: 4 }}>
+                      <span style={{ fontSize: 9, color: "var(--muted)", marginTop: 4 }}>
                         {label}
                       </span>
                     </div>
@@ -815,10 +815,10 @@ export function ParametresClient() {
               <div
                 className="param-weekly-custom flex items-center gap-3"
                 style={{
-                  border: "1px solid rgba(108,63,200,.14)",
+                  border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
                   borderRadius: 12,
                   padding: "11px 14px",
-                  background: "rgba(108,63,200,.04)",
+                  background: "color-mix(in srgb, var(--ink) 4%, transparent)",
                 }}
               >
                 <div
@@ -826,13 +826,13 @@ export function ParametresClient() {
                   style={{
                     width: 30,
                     height: 30,
-                    background: "rgba(108,63,200,.09)",
+                    background: "color-mix(in srgb, var(--ink) 9%, transparent)",
                     borderRadius: 8,
                   }}
                 >
-                  <Pencil size={14} stroke="#6C3FC8" strokeWidth={2} />
+                  <Pencil size={14} stroke="var(--ink)" strokeWidth={2} />
                 </div>
-                <span className="min-w-0 flex-1" style={{ fontSize: 12, color: "#6B6478" }}>
+                <span className="min-w-0 flex-1" style={{ fontSize: 12, color: "var(--muted)" }}>
                   Valeur personnalisée
                 </span>
                 <input
@@ -850,7 +850,7 @@ export function ParametresClient() {
                     width: 52,
                     fontSize: 16,
                     fontWeight: 500,
-                    color: "#6C3FC8",
+                    color: "var(--ink)",
                     textAlign: "center",
                     border: "none",
                     background: "transparent",
@@ -858,7 +858,7 @@ export function ParametresClient() {
                   }}
                   aria-label="Valeur personnalisée mots par semaine"
                 />
-                <span className="shrink-0" style={{ fontSize: 11, color: "#6B6478" }}>
+                <span className="shrink-0" style={{ fontSize: 11, color: "var(--muted)" }}>
                   mots / sem.
                 </span>
               </div>
@@ -869,11 +869,11 @@ export function ParametresClient() {
                 type="button"
                 onClick={cancelWeeklyGoalDraft}
                 disabled={goalSaving}
-                className="flex-1 transition hover:bg-[rgba(108,63,200,.04)]"
+                className="flex-1 transition hover:bg-[color-mix(in_srgb,var(--ink)_4%,transparent)]"
                 style={{
-                  border: "1px solid rgba(108,63,200,.25)",
+                  border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
                   background: "transparent",
-                  color: "#6B6478",
+                  color: "var(--muted)",
                   borderRadius: 12,
                   padding: 12,
                   fontSize: 13,
@@ -889,7 +889,7 @@ export function ParametresClient() {
                 disabled={goalSaving}
                 className="flex flex-[2] items-center justify-center gap-2 border-0 text-white transition hover:brightness-95 disabled:opacity-50"
                 style={{
-                  background: "#6C3FC8",
+                  background: "var(--ink)",
                   borderRadius: 12,
                   padding: 12,
                   fontSize: 13,
@@ -914,7 +914,7 @@ export function ParametresClient() {
         />
 
         {!remindersLoaded ? (
-          <p style={{ fontSize: 13, color: "#6B6478" }}>Chargement…</p>
+          <p style={{ fontSize: 13, color: "var(--muted)" }}>Chargement…</p>
         ) : (
           <>
             <div
@@ -922,7 +922,7 @@ export function ParametresClient() {
               style={{
                 padding: "10px 12px",
                 borderRadius: 12,
-                background: "rgba(108,63,200,.04)",
+                background: "color-mix(in srgb, var(--ink) 4%, transparent)",
               }}
             >
               <div>
@@ -962,7 +962,7 @@ export function ParametresClient() {
                       disabled={!reminders.enabled}
                       aria-label="Heure du rappel de révision"
                       style={{
-                        border: "1px solid rgba(108,63,200,.25)",
+                        border: "1px solid color-mix(in srgb, var(--ink) 25%, transparent)",
                         borderRadius: 8,
                         padding: "4px 8px",
                         fontSize: 12,
@@ -1038,7 +1038,7 @@ export function ParametresClient() {
         />
 
         {!soundPrefsLoaded ? (
-          <p style={{ fontSize: 13, color: "#6B6478" }}>Chargement…</p>
+          <p style={{ fontSize: 13, color: "var(--muted)" }}>Chargement…</p>
         ) : (
           <ReminderTypeRow
             icon={Music}
@@ -1063,9 +1063,9 @@ export function ParametresClient() {
         />
 
         {classesLoading ? (
-          <p style={{ fontSize: 12, color: "#6B6478", margin: "0 0 12px" }}>Chargement…</p>
+          <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px" }}>Chargement…</p>
         ) : mesClasses.length === 0 ? (
-          <p style={{ fontSize: 12, color: "#6B6478", margin: "0 0 12px" }}>
+          <p style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px" }}>
             Tu n&apos;as pas encore rejoint de classe.
           </p>
         ) : (
@@ -1077,7 +1077,7 @@ export function ParametresClient() {
                   borderBottom:
                     idx === mesClasses.length - 1
                       ? "none"
-                      : "0.5px solid rgba(108,63,200,.10)",
+                      : "0.5px solid color-mix(in srgb, var(--ink) 10%, transparent)",
                   paddingBottom: idx === mesClasses.length - 1 ? 0 : 8,
                 }}
               >
@@ -1087,7 +1087,7 @@ export function ParametresClient() {
                 <p
                   style={{
                     fontSize: 11,
-                    color: "#6B6478",
+                    color: "var(--muted)",
                     margin: "4px 0 0",
                     display: "flex",
                     flexWrap: "wrap",
@@ -1097,7 +1097,7 @@ export function ParametresClient() {
                 >
                   {c.schoolLevel ? <span>{c.schoolLevel}</span> : null}
                   {c.schoolLevel ? (
-                    <span style={{ color: "rgba(108,63,200,.20)" }} aria-hidden>
+                    <span style={{ color: "color-mix(in srgb, var(--ink) 20%, transparent)" }} aria-hidden>
                       ·
                     </span>
                   ) : null}
@@ -1150,15 +1150,15 @@ export function ParametresClient() {
             className="min-w-0 flex-1"
             style={{
               border: joinInputFocused
-                ? "1px solid #6C3FC8"
-                : "1px solid rgba(108,63,200,.20)",
-              boxShadow: joinInputFocused ? "0 0 0 2px rgba(108,63,200,.25)" : "none",
+                ? "1px solid var(--ink)"
+                : "1px solid color-mix(in srgb, var(--ink) 20%, transparent)",
+              boxShadow: joinInputFocused ? "0 0 0 2px color-mix(in srgb, var(--ink) 25%, transparent)" : "none",
               outline: "none",
               borderRadius: 10,
               padding: "10px 12px",
               fontSize: 14,
               color: "#1A1A1A",
-              background: "rgba(108,63,200,.04)",
+              background: "color-mix(in srgb, var(--ink) 4%, transparent)",
             }}
             autoComplete="off"
             aria-label="Code de la classe"
@@ -1168,8 +1168,8 @@ export function ParametresClient() {
             disabled={joinLoading || !joinCodeReady}
             className="shrink-0 transition hover:brightness-95 disabled:cursor-not-allowed"
             style={{
-              background: joinCodeReady ? "#6C3FC8" : "rgba(108,63,200,.08)",
-              color: joinCodeReady ? "white" : "#6B6478",
+              background: joinCodeReady ? "var(--ink)" : "color-mix(in srgb, var(--ink) 8%, transparent)",
+              color: joinCodeReady ? "white" : "var(--muted)",
               borderRadius: 10,
               padding: "10px 18px",
               fontSize: 13,
@@ -1215,15 +1215,15 @@ function SectionHeader({
           width: 30,
           height: 30,
           borderRadius: 9,
-          background: "rgba(108,63,200,.09)",
+          background: "color-mix(in srgb, var(--ink) 9%, transparent)",
         }}
       >
-        <Icon size={16} stroke="#6C3FC8" />
+        <Icon size={16} stroke="var(--ink)" />
       </div>
       <div className="min-w-0 flex-1">
         <p style={{ fontSize: 15, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>{title}</p>
         {subtitle ? (
-          <p style={{ fontSize: 12, color: "#6B6478", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
+          <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 2, lineHeight: 1.35 }}>{subtitle}</p>
         ) : null}
       </div>
       {trailing}
@@ -1259,7 +1259,7 @@ function ToggleSwitch({
         border: "none",
         padding: 2,
         flexShrink: 0,
-        background: checked ? "#6C3FC8" : "rgba(108,63,200,.15)",
+        background: checked ? "var(--ink)" : "color-mix(in srgb, var(--ink) 15%, transparent)",
         cursor: disabled ? "not-allowed" : "pointer",
         opacity: disabled ? 0.45 : 1,
         transition: reducedMotion ? "none" : "background 150ms ease",
@@ -1275,7 +1275,7 @@ function ToggleSwitch({
           background: "white",
           transform: checked ? "translateX(18px)" : "translateX(0)",
           transition: reducedMotion ? "none" : "transform 150ms ease",
-          boxShadow: "0 1px 3px rgba(108,63,200,.15)",
+          boxShadow: "0 1px 3px color-mix(in srgb, var(--ink) 15%, transparent)",
         }}
       />
     </button>
@@ -1290,10 +1290,10 @@ function ReminderIconTile({ icon: Icon }: { icon: LucideIcon }) {
         width: 28,
         height: 28,
         borderRadius: 8,
-        background: "rgba(108,63,200,.08)",
+        background: "color-mix(in srgb, var(--ink) 8%, transparent)",
       }}
     >
-      <Icon size={15} stroke="#6C3FC8" aria-hidden />
+      <Icon size={15} stroke="var(--ink)" aria-hidden />
     </div>
   );
 }
@@ -1325,13 +1325,13 @@ function ReminderTypeRow({
       style={{
         padding: "10px 12px",
         borderRadius: 12,
-        background: "rgba(108,63,200,.04)",
+        background: "color-mix(in srgb, var(--ink) 4%, transparent)",
       }}
     >
       <ReminderIconTile icon={icon} />
       <div className="min-w-0 flex-1">
         <p style={{ fontSize: 13.5, fontWeight: 600, color: "#1A1A1A", margin: 0 }}>{label}</p>
-        <p style={{ fontSize: 11.5, color: "#6B6478", margin: "2px 0 0", lineHeight: 1.35 }}>
+        <p style={{ fontSize: 11.5, color: "var(--muted)", margin: "2px 0 0", lineHeight: 1.35 }}>
           {description}
         </p>
       </div>
@@ -1370,7 +1370,7 @@ function ReminderChannelRow({
       style={{
         padding: "9px 12px",
         borderRadius: 12,
-        background: "rgba(108,63,200,.04)",
+        background: "color-mix(in srgb, var(--ink) 4%, transparent)",
       }}
     >
       <ReminderIconTile icon={icon} />

@@ -144,7 +144,7 @@ function AvatarDropdown({
     width: 30,
     height: 30,
     borderRadius: 9,
-    background: "rgba(108,63,200,.09)",
+    background: "color-mix(in srgb, var(--ink) 9%, transparent)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -156,8 +156,8 @@ function AvatarDropdown({
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={`flex rounded-full outline-none transition-all focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 ${
-          open ? "ring-2 ring-[#6C3FC8]/30 ring-offset-2" : ""
+        className={`flex rounded-full outline-none transition-all focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 ${
+          open ? "ring-2 ring-ink/30 ring-offset-2" : ""
         }`}
         aria-expanded={open}
         aria-haspopup="true"
@@ -179,8 +179,8 @@ function AvatarDropdown({
             backgroundColor: "white",
             borderRadius: 18,
             boxShadow:
-              "0 4px 24px rgba(108,63,200,.12), 0 1px 3px rgba(108,63,200,.08)",
-            border: "0.5px solid rgba(108,63,200,.12)",
+              "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)",
+            border: "0.5px solid color-mix(in srgb, var(--ink) 12%, transparent)",
             overflow: "hidden",
             transformOrigin: "top right",
             opacity: panelEntered ? 1 : 0,
@@ -188,7 +188,7 @@ function AvatarDropdown({
             transition: reducedMotion
               ? "none"
               : `opacity ${motionTransition}, transform ${motionTransition}`,
-            fontFamily: "DM Sans, sans-serif",
+            fontFamily: "var(--font-sans), sans-serif",
           }}
         >
           {/* En-tête identité */}
@@ -197,7 +197,7 @@ function AvatarDropdown({
             style={{
               padding: "16px 16px 14px",
               background:
-                "linear-gradient(150deg, #7B4AD4 0%, #6C3FC8 55%, #5A32A8 100%)",
+                "linear-gradient(150deg, var(--ink) 0%, var(--ink) 55%, var(--ink) 100%)",
             }}
           >
             <div
@@ -353,7 +353,7 @@ function AvatarDropdown({
           <div
             style={{
               height: 1,
-              background: "rgba(108,63,200,.08)",
+              background: "color-mix(in srgb, var(--ink) 8%, transparent)",
               margin: "6px 10px",
             }}
           />
@@ -395,26 +395,26 @@ function AccountMenuNavItem({
       href={href}
       role="menuitem"
       onClick={onNavigate}
-      className="flex items-center no-underline outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-1"
+      className="flex items-center no-underline outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1"
       style={{
         borderRadius: 10,
         padding: "8px 10px",
         gap: 8,
-        background: hover ? "rgba(108,63,200,.06)" : "transparent",
+        background: hover ? "color-mix(in srgb, var(--ink) 6%, transparent)" : "transparent",
         transition: reducedMotion ? "none" : "background 120ms ease",
       }}
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
       <div style={iconTileStyle}>
-        <Icon size={16} stroke="#6C3FC8" aria-hidden />
+        <Icon size={16} stroke="var(--ink)" aria-hidden />
       </div>
       <span className="flex-1" style={{ fontSize: 13.5, color: "#1A1A1A", fontWeight: 500 }}>
         {label}
       </span>
       <ChevronRight
         size={15}
-        stroke={hover ? "#6C3FC8" : "#B8B2C4"}
+        stroke={hover ? "var(--ink)" : "var(--muted)"}
         aria-hidden
         style={{
           flexShrink: 0,
@@ -440,7 +440,7 @@ function AccountMenuLogoutButton({
       type="button"
       role="menuitem"
       onClick={onLogout}
-      className="flex w-full items-center outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-1"
+      className="flex w-full items-center outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-1"
       style={{
         borderRadius: 10,
         padding: "9px 10px",
@@ -499,16 +499,16 @@ export function AppHeader({
 
   return (
     <header
-      className="sticky top-0 z-20 border-b border-[#E2DCF5]/90 bg-white/95 backdrop-blur-md"
-      style={{ boxShadow: "0 1px 0 rgba(108, 63, 200, 0.04)" }}
+      className="sticky top-0 z-20 border-b border-line/90 bg-white/95 backdrop-blur-md"
+      style={{ boxShadow: "0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent)" }}
     >
       <div className="mx-auto flex h-16 max-w-[1200px] items-center gap-6 px-4 sm:gap-10 sm:px-6">
         {/* Logo — gauche */}
         <Link
           href={homeHref}
-          className="inline-flex shrink-0 items-center gap-3 no-underline outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+          className="inline-flex shrink-0 items-center gap-3 no-underline outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
           aria-label="Lexiva — Accueil"
-          style={{ fontFamily: "DM Sans, sans-serif" }}
+          style={{ fontFamily: "var(--font-sans), sans-serif" }}
         >
           <Image
             src="/logo-mark.png"
@@ -518,7 +518,7 @@ export function AppHeader({
             style={{ objectFit: "contain" }}
             priority
           />
-          <span className="text-[17px] font-semibold tracking-[-0.01em] text-[#1A1033]">
+          <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
             Lexiva
           </span>
         </Link>
@@ -527,7 +527,7 @@ export function AppHeader({
         <nav
           className="hidden flex-1 items-center gap-8 md:flex"
           aria-label="Navigation principale"
-          style={{ fontFamily: "DM Sans, sans-serif" }}
+          style={{ fontFamily: "var(--font-sans), sans-serif" }}
         >
           {navItems.map(({ href, label }) => {
             const active = isNavActive(href);
@@ -535,15 +535,15 @@ export function AppHeader({
               <Link
                 key={href}
                 href={href}
-                className="relative py-1 text-[14px] font-medium no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+                className="relative py-1 text-[14px] font-medium no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
                 style={{
-                  color: active ? "#6C3FC8" : "#7C6FA3",
+                  color: active ? "var(--ink)" : "var(--muted)",
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.color = "#6C3FC8";
+                  if (!active) e.currentTarget.style.color = "var(--ink)";
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.color = "#7C6FA3";
+                  if (!active) e.currentTarget.style.color = "var(--muted)";
                 }}
               >
                 {label}
@@ -551,7 +551,7 @@ export function AppHeader({
                   <span
                     aria-hidden
                     className="absolute -bottom-1 left-0 right-0 mx-auto h-0.5 rounded-full"
-                    style={{ background: "#6C3FC8", maxWidth: "100%" }}
+                    style={{ background: "var(--ink)", maxWidth: "100%" }}
                   />
                 )}
               </Link>
@@ -568,7 +568,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={() => setBurgerOpen((o) => !o)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-[#7C6FA3] transition-colors hover:bg-[#F0EDF8] hover:text-[#6C3FC8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 md:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-[var(--background-subtle)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 md:hidden"
             aria-expanded={burgerOpen}
             aria-controls="mobile-menu"
             aria-label={burgerOpen ? "Fermer le menu" : "Ouvrir le menu"}
@@ -610,28 +610,28 @@ export function AppHeader({
                 width: "min(280px, 88vw)",
                 backgroundColor: "white",
                 zIndex: 9998,
-                boxShadow: "-4px 0 24px rgba(108, 63, 200, 0.08)",
+                boxShadow: "-4px 0 24px color-mix(in srgb, var(--ink) 8%, transparent)",
                 transform: "translateX(0)",
                 transition: "transform 300ms ease",
                 overflowY: "auto",
                 display: "flex",
                 flexDirection: "column",
-                fontFamily: "DM Sans, sans-serif",
+                fontFamily: "var(--font-sans), sans-serif",
               }}
             >
-              <div className="flex shrink-0 items-center justify-between border-b border-[#E2DCF5]/90 px-4 py-4">
+              <div className="flex shrink-0 items-center justify-between border-b border-line/90 px-4 py-4">
                 <Link
                   href={homeHref}
                   onClick={() => setBurgerOpen(false)}
                   className="flex items-center gap-2.5 no-underline"
                 >
                   <Image src="/logo-mark.png" alt="" width={32} height={32} />
-                  <span className="text-[17px] font-semibold text-[#1A1033]">Lexiva</span>
+                  <span className="text-[17px] font-semibold text-ink">Lexiva</span>
                 </Link>
                 <button
                   type="button"
                   onClick={() => setBurgerOpen(false)}
-                  className="rounded-lg p-2 text-[#7C6FA3] transition-colors hover:bg-[#F0EDF8]"
+                  className="rounded-lg p-2 text-muted transition-colors hover:bg-[var(--background-subtle)]"
                   aria-label="Fermer le menu"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -649,8 +649,8 @@ export function AppHeader({
                       onClick={() => setBurgerOpen(false)}
                       className="block rounded-lg px-4 py-3 text-[15px] font-medium no-underline transition-colors"
                       style={{
-                        color: active ? "#6C3FC8" : "#1A1033",
-                        background: active ? "rgba(108, 63, 200, 0.08)" : "transparent",
+                        color: active ? "var(--ink)" : "var(--ink)",
+                        background: active ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "transparent",
                       }}
                     >
                       {label}

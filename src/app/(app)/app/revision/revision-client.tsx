@@ -777,15 +777,15 @@ export function RevisionClient({
         style={
           variant === "tile"
             ? {
-                background: "#F0EDF8",
-                border: "0.5px solid #DDD6F5",
+                background: "var(--background-subtle)",
+                border: "0.5px solid var(--line)",
               }
             : undefined
         }
         aria-label="Écouter la prononciation"
       >
         {variant === "tile" ? (
-          <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#6C3FC8]" aria-hidden />
+          <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink" aria-hidden />
         ) : (
           <span aria-hidden>🔊</span>
         )}
@@ -821,8 +821,8 @@ export function RevisionClient({
           style={{
             width: 32,
             height: 32,
-            background: showMemoPopover ? "#6C3FC8" : "#FCEFD6",
-            border: `0.5px solid ${showMemoPopover ? "#6C3FC8" : "#F3D8A0"}`,
+            background: showMemoPopover ? "var(--ink)" : "#FCEFD6",
+            border: `0.5px solid ${showMemoPopover ? "var(--ink)" : "#F3D8A0"}`,
           }}
         >
           <Lightbulb
@@ -842,9 +842,9 @@ export function RevisionClient({
               width: 230,
               maxWidth: "calc(100vw - 48px)",
               background: "#FFFFFF",
-              border: "0.5px solid #E2DAF2",
+              border: "0.5px solid var(--line)",
               borderRadius: 14,
-              boxShadow: "0 8px 24px rgba(108,63,200,0.15)",
+              boxShadow: "0 8px 24px color-mix(in srgb, var(--ink) 15%, transparent)",
               padding: 14,
               zIndex: 50,
               textAlign: "left",
@@ -854,7 +854,7 @@ export function RevisionClient({
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: "#6C3FC8",
+                color: "var(--ink)",
                 marginBottom: 8,
               }}
             >
@@ -870,8 +870,8 @@ export function RevisionClient({
                 fontSize: 12,
                 padding: "8px 10px",
                 borderRadius: 10,
-                border: "1px solid #E2DAF2",
-                background: "#F8F7FF",
+                border: "1px solid var(--line)",
+                background: "var(--page)",
                 color: "var(--foreground)",
                 outline: "none",
                 resize: "none",
@@ -892,7 +892,7 @@ export function RevisionClient({
                 padding: "8px 0",
                 borderRadius: 12,
                 border: "none",
-                background: "#6C3FC8",
+                background: "var(--ink)",
                 color: "#FFFFFF",
                 cursor: "pointer",
               }}
@@ -936,7 +936,7 @@ export function RevisionClient({
           ? "Appuie pour révéler la traduction"
           : "Appuie pour révéler le mot";
 
-      const borderTertiaryFlash = "rgba(108, 63, 200, 0.14)";
+      const borderTertiaryFlash = "color-mix(in srgb, var(--ink) 14%, transparent)";
 
       const flipCard = () => {
         if (!sending) setRevealed(true);
@@ -945,12 +945,12 @@ export function RevisionClient({
       return (
         <div
           className="flex min-h-[50vh] flex-col"
-          style={{ background: "#F8F7FF" }}
+          style={{ background: "var(--page)" }}
         >
           <div
             aria-hidden="true"
             className="fixed inset-0 -z-10"
-            style={{ background: "#F8F7FF" }}
+            style={{ background: "var(--page)" }}
           />
           {error ? (
             <p
@@ -991,7 +991,7 @@ export function RevisionClient({
                   style={{
                     height: "100%",
                     width: `${flashProgressPct}%`,
-                    background: "#6C3FC8",
+                    background: "var(--ink)",
                     borderRadius: 3,
                     transition: "width 400ms ease",
                   }}
@@ -1074,12 +1074,12 @@ export function RevisionClient({
                         right: 12,
                         width: 32,
                         height: 32,
-                        background: "#F0EDF8",
-                        border: "0.5px solid #DDD6F5",
+                        background: "var(--background-subtle)",
+                        border: "0.5px solid var(--line)",
                       }}
                       aria-label="Écouter le mot affiché"
                     >
-                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#6C3FC8]" />
+                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink" />
                     </button>
                     <p
                       style={{
@@ -1109,10 +1109,10 @@ export function RevisionClient({
                   {hintsUsed > 0 && (
                     <p
                       style={{
-                        fontFamily: "DM Sans, var(--font-sans), sans-serif",
+                        fontFamily: "var(--font-sans), sans-serif",
                         fontSize: 18,
                         fontWeight: 500,
-                        color: "#6C3FC8",
+                        color: "var(--ink)",
                         letterSpacing: "4px",
                         textAlign: "center",
                         marginBottom: 12,
@@ -1154,20 +1154,20 @@ export function RevisionClient({
                           style={{
                             padding: "4px 10px",
                             fontSize: 11,
-                            fontFamily: "DM Sans, var(--font-sans), sans-serif",
+                            fontFamily: "var(--font-sans), sans-serif",
                             fontWeight: 500,
                             borderRadius: 20,
                             border: "1px solid",
                             borderColor: isUsed
-                              ? "#6C3FC8"
+                              ? "var(--ink)"
                               : isUnlocked
-                                ? "#D1C8F0"
+                                ? "var(--line)"
                                 : "#E8E8E8",
-                            backgroundColor: isUsed ? "#EDE8FB" : "white",
+                            backgroundColor: isUsed ? "var(--background-subtle)" : "white",
                             color: isUsed
-                              ? "#6C3FC8"
+                              ? "var(--ink)"
                               : isUnlocked
-                                ? "#9B8EC4"
+                                ? "var(--muted)"
                                 : "#D0D0D0",
                             cursor:
                               isUnlocked && !isUsed ? "pointer" : "default",
@@ -1186,7 +1186,7 @@ export function RevisionClient({
                     disabled={sending}
                     className="flex w-full cursor-pointer items-center justify-center gap-2 border-0 text-white disabled:opacity-50"
                     style={{
-                      background: "#6C3FC8",
+                      background: "var(--ink)",
                       borderRadius: 12,
                       padding: 13,
                       fontSize: 14,
@@ -1203,11 +1203,11 @@ export function RevisionClient({
                   <div
                     className="relative"
                     style={{
-                      background: "#F0EDF8",
+                      background: "var(--background-subtle)",
                       borderRadius: 20,
                       borderWidth: 1.5,
                       borderStyle: "solid",
-                      borderColor: "#DDD6F5",
+                      borderColor: "var(--line)",
                       padding: "32px 24px",
                       marginBottom: 20,
                       textAlign: "center",
@@ -1231,18 +1231,18 @@ export function RevisionClient({
                         right: 12,
                         width: 32,
                         height: 32,
-                        background: "rgba(108,63,200,0.12)",
-                        border: "0.5px solid rgba(108,63,200,0.2)",
+                        background: "color-mix(in srgb, var(--ink) 12%, transparent)",
+                        border: "0.5px solid color-mix(in srgb, var(--ink) 20%, transparent)",
                       }}
                       aria-label="Écouter la traduction"
                     >
-                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-[#6C3FC8]" />
+                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink" />
                     </button>
                     <p
                       style={{
                         fontSize: 20,
                         fontWeight: 500,
-                        color: "#6C3FC8",
+                        color: "var(--ink)",
                       }}
                     >
                       {displayText}
@@ -1251,7 +1251,7 @@ export function RevisionClient({
                       style={{
                         width: 40,
                         height: 1,
-                        background: "#DDD6F5",
+                        background: "var(--background-subtle)",
                         margin: "4px auto",
                       }}
                     />
@@ -1346,7 +1346,7 @@ export function RevisionClient({
         ? "Traduction en français"
         : "Mot dans la langue étudiée";
 
-    const borderTertiary = "rgba(108, 63, 200, 0.14)";
+    const borderTertiary = "color-mix(in srgb, var(--ink) 14%, transparent)";
 
     function validateDictee() {
       if (!current || sending || dicteePhase !== "typing") return;
@@ -1382,12 +1382,12 @@ export function RevisionClient({
     return (
       <div
         className="flex flex-col md:min-h-[50vh] md:overflow-visible max-md:fixed max-md:inset-0 max-md:z-20 max-md:h-[100dvh] max-md:overflow-hidden"
-        style={{ background: "#F8F7FF" }}
+        style={{ background: "var(--page)" }}
       >
         <div
           aria-hidden="true"
           className="fixed inset-0 -z-10"
-          style={{ background: "#F8F7FF" }}
+          style={{ background: "var(--page)" }}
         />
         <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden max-md:pt-4 max-md:pl-4 max-md:pr-[max(80px,calc(16px+env(safe-area-inset-right,0px)))] md:h-auto md:overflow-visible md:px-0 md:pt-0 md:pb-0">
           {error ? (
@@ -1425,14 +1425,14 @@ export function RevisionClient({
                 className="overflow-hidden rounded-full"
                 style={{
                   height: 4,
-                  background: "rgba(108, 63, 200, 0.1)",
+                  background: "color-mix(in srgb, var(--ink) 10%, transparent)",
                 }}
               >
                 <div
                   className="h-full rounded-full"
                   style={{
                     width: `${dicteeProgressPct}%`,
-                    background: "#6C3FC8",
+                    background: "var(--ink)",
                     transition: "width 400ms ease",
                   }}
                 />
@@ -1482,7 +1482,7 @@ export function RevisionClient({
                       dicteePhase === "wrong_unrevealed" ||
                       dicteePhase === "revealed_fail"
                         ? "none"
-                        : "0 4px 20px rgba(108, 63, 200, 0.08)",
+                        : "0 4px 20px color-mix(in srgb, var(--ink) 8%, transparent)",
                   }}
                 >
                   <div className="flex items-start gap-2.5 px-3.5 py-3 md:gap-3 md:px-5 md:py-6">
@@ -1527,7 +1527,7 @@ export function RevisionClient({
                     autoComplete="off"
                     autoCorrect="off"
                     spellCheck={false}
-                    className="mb-3 w-full rounded-xl border border-[#DDD6F5] bg-white text-center outline-none transition-[border-color,box-shadow] focus:border-[#6C3FC8] focus:shadow-[0_0_0_3px_rgba(108,63,200,0.12)] max-md:py-3 max-md:text-lg md:mb-3.5 md:py-3.5 md:text-xl"
+                    className="mb-3 w-full rounded-xl border border-line bg-white text-center outline-none transition-[border-color,box-shadow] focus:border-ink focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)] max-md:py-3 max-md:text-lg md:mb-3.5 md:py-3.5 md:text-xl"
                     style={{
                       fontWeight: 500,
                       paddingLeft: 16,
@@ -1543,7 +1543,7 @@ export function RevisionClient({
                         setLastWrongAnswer(writeAnswer.trim());
                         setDicteePhase("revealed_fail");
                       }}
-                      className="flex-1 rounded-xl border border-[#E2DAF2] bg-white text-[13px] font-medium transition hover:bg-[#FAFAFE] disabled:opacity-50 max-md:py-3 md:py-3.5"
+                      className="flex-1 rounded-xl border border-line bg-white text-[13px] font-medium transition hover:bg-[#FAFAFE] disabled:opacity-50 max-md:py-3 md:py-3.5"
                       style={{ color: "var(--foreground-muted)" }}
                     >
                       Je ne sais pas
@@ -1554,8 +1554,8 @@ export function RevisionClient({
                       onClick={validateDictee}
                       className="flex flex-[1.6] items-center justify-center gap-2 rounded-xl border-0 text-[13px] font-medium text-white transition hover:brightness-95 disabled:opacity-50 max-md:py-3 md:py-3.5"
                       style={{
-                        background: "#6C3FC8",
-                        boxShadow: "0 2px 10px rgba(108, 63, 200, 0.22)",
+                        background: "var(--ink)",
+                        boxShadow: "0 2px 10px color-mix(in srgb, var(--ink) 22%, transparent)",
                       }}
                     >
                       <Check

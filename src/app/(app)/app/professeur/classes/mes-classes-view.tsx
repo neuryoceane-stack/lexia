@@ -164,8 +164,8 @@ export function MesClassesView({
                     fontWeight: 500,
                     cursor: "pointer",
                     border:
-                      levelFilter === "tous" ? "1px solid #6C3FC8" : "1px solid var(--border)",
-                    background: levelFilter === "tous" ? "#6C3FC8" : "white",
+                      levelFilter === "tous" ? "1px solid var(--ink)" : "1px solid var(--border)",
+                    background: levelFilter === "tous" ? "var(--ink)" : "white",
                     color: levelFilter === "tous" ? "white" : "var(--foreground)",
                   }}
                 >
@@ -187,8 +187,8 @@ export function MesClassesView({
                         fontSize: 12,
                         fontWeight: 500,
                         cursor: "pointer",
-                        border: selected ? "1px solid #6C3FC8" : "1px solid var(--border)",
-                        background: selected ? "#6C3FC8" : "white",
+                        border: selected ? "1px solid var(--ink)" : "1px solid var(--border)",
+                        background: selected ? "var(--ink)" : "white",
                         color: selected ? "white" : "var(--foreground)",
                         maxWidth: "min(100%, 220px)",
                         overflow: "hidden",
@@ -221,7 +221,7 @@ export function MesClassesView({
                   width: 56,
                   height: 56,
                   borderRadius: "50%",
-                  background: "#F0EDF8",
+                  background: "var(--background-subtle)",
                   marginBottom: 14,
                 }}
               >
@@ -290,7 +290,7 @@ export function MesClassesView({
                 return (
                   <li key={cls.id}>
                     <article
-                      className="border-[0.5px] border-solid transition-all duration-150 hover:-translate-y-0.5 hover:border-[#DDD6F5]"
+                      className="border-[0.5px] border-solid transition-all duration-150 hover:-translate-y-0.5 hover:border-line"
                       style={{
                         background: "white",
                         borderColor: BORDER_TERTIARY,
@@ -354,7 +354,7 @@ export function MesClassesView({
                               width: 18,
                               height: 18,
                               borderRadius: 5,
-                              background: "#F0EDF8",
+                              background: "var(--background-subtle)",
                             }}
                           >
                             <Users
@@ -427,7 +427,7 @@ export function MesClassesView({
                         <div
                           style={{
                             height: 5,
-                            background: "#F0EDF8",
+                            background: "var(--background-subtle)",
                             borderRadius: 3,
                             overflow: "hidden",
                           }}
@@ -503,7 +503,7 @@ export function MesClassesView({
                       width: 36,
                       height: 36,
                       borderRadius: "50%",
-                      background: "#F0EDF8",
+                      background: "var(--background-subtle)",
                       fontSize: 20,
                       color: PRIMARY,
                       fontWeight: 500,

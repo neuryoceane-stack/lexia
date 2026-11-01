@@ -14,7 +14,7 @@ interface WeeklyData {
   byLanguage: LangProgress[];
 }
 
-const BORDER_TERTIARY = "rgba(108, 63, 200, 0.14)";
+const BORDER_TERTIARY = "color-mix(in srgb, var(--ink) 14%, transparent)";
 
 export default function WeeklyGoal() {
   const [data, setData] = useState<WeeklyData | null>(null);
@@ -65,7 +65,7 @@ export default function WeeklyGoal() {
           width: 70,
           height: 70,
           borderRadius: "50%",
-          background: "#6C3FC8",
+          background: "var(--ink)",
           opacity: 0.06,
         }}
       />
@@ -89,7 +89,7 @@ export default function WeeklyGoal() {
             style={{
               fontSize: 26,
               fontWeight: 500,
-              color: "#6C3FC8",
+              color: "var(--ink)",
               lineHeight: 1,
             }}
           >
@@ -111,11 +111,11 @@ export default function WeeklyGoal() {
           style={{
             width: 32,
             height: 32,
-            background: "#F0EDF8",
+            background: "var(--background-subtle)",
             borderRadius: 8,
           }}
         >
-          <Clock className="h-4 w-4 shrink-0 text-[#6C3FC8]" strokeWidth={2} />
+          <Clock className="h-4 w-4 shrink-0 text-ink" strokeWidth={2} />
         </div>
       </div>
 
@@ -131,9 +131,9 @@ export default function WeeklyGoal() {
               padding: "2px 8px",
               borderRadius: 16,
               border: "1px solid",
-              borderColor: selectedLang === null ? "#6C3FC8" : "#E5E5E5",
-              background: selectedLang === null ? "#EDE8FB" : "white",
-              color: selectedLang === null ? "#6C3FC8" : "#999",
+              borderColor: selectedLang === null ? "var(--ink)" : "#E5E5E5",
+              background: selectedLang === null ? "var(--background-subtle)" : "white",
+              color: selectedLang === null ? "var(--ink)" : "#999",
               fontSize: 10,
               cursor: "pointer",
             }}
@@ -149,9 +149,9 @@ export default function WeeklyGoal() {
                 padding: "2px 8px",
                 borderRadius: 16,
                 border: "1px solid",
-                borderColor: selectedLang === l.language ? "#6C3FC8" : "#E5E5E5",
-                background: selectedLang === l.language ? "#EDE8FB" : "white",
-                color: selectedLang === l.language ? "#6C3FC8" : "#999",
+                borderColor: selectedLang === l.language ? "var(--ink)" : "#E5E5E5",
+                background: selectedLang === l.language ? "var(--background-subtle)" : "white",
+                color: selectedLang === l.language ? "var(--ink)" : "#999",
                 fontSize: 10,
                 cursor: "pointer",
               }}

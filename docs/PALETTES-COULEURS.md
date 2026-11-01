@@ -1,6 +1,6 @@
 # Palettes de couleurs – Lexia
 
-Référence des palettes utilisables dans le projet. La **Palette 1** est celle appliquée par défaut dans l’interface.
+Essais antérieurs, non branchés sur l’interface. La charte appliquée est celle de `AGENTS.md` et de `src/app/globals.css` (fond `#F7F9F6`, encre `#12332B`, texte secondaire `#4F615B`).
 
 ---
 
@@ -63,9 +63,4 @@ Référence des palettes utilisables dans le projet. La **Palette 1** est celle 
 
 ## Où c’est défini dans le projet
 
-- **Variables CSS et thème Tailwind** : `src/app/globals.css`  
-  - `:root` : variables brutes (--p1-*, --p2-*, etc.)  
-  - `@theme inline` : couleurs du thème (primary, accent, vocab-gray, etc.)
-- **Ce fichier** : `docs/PALETTES-COULEURS.md` (référence uniquement).
-
-Pour changer de palette par défaut, adapter les valeurs dans `@theme` dans `globals.css` en s’appuyant sur les hex de ce document.
+La charte en cours est dans `src/app/globals.css` (`--ink`, `--page`, `--surface`, `--muted`, `--line`, `--mark`, états juste et faux) et dans `src/lib/design-tokens.ts` pour les e-mails. Les palettes de ce fichier ne sont pas des variables actives.

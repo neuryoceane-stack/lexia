@@ -1,12 +1,10 @@
 # Typographie – Lexia
 
-Police principale : **Inter** (Google Fonts).
+Chargement : `next/font` dans `src/app/layout.tsx`. Pas d’import Google Fonts dans la CSS.
 
-| Usage | Police | Poids | Classe Tailwind |
-|-------|--------|-------|-----------------|
-| Titres | Inter SemiBold | 600 | `font-semibold` |
-| Sous-titres | Inter Medium | 500 | `font-medium` |
-| Texte / vocabulaire | Inter Regular | 400 | `font-normal` (défaut) |
-| Boutons / CTA | Inter Medium | 500 | `font-medium` |
+| Usage | Police | Poids | Où |
+|-------|--------|-------|----|
+| Titres (`h1`, `h2`, `h3`, `.font-heading`) | Bricolage Grotesque | 700 | `--font-heading` |
+| Texte, boutons, interface | DM Sans | 400 et 500 | `--font-sans` |
 
-Les poids 400, 500 et 600 sont chargés via `next/font/google`. La police par défaut du body est Inter Regular ; appliquer `font-semibold` sur les titres (h1, h2) et `font-medium` sur les sous-titres et les boutons.
+DM Sans n’est pas chargé en 600 ni en 700 : un `font-semibold` ou `font-bold` sur du texte DM Sans s’affiche en 500 (`font-synthesis: none` sur `body`). Les titres passent par Bricolage Grotesque, qui a le poids 700.

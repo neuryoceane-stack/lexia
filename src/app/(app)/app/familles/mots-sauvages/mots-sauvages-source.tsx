@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { DM_Sans } from "next/font/google";
 import {
   PawPrint,
   FileText,
@@ -13,12 +12,6 @@ import {
   Music,
   Loader2,
 } from "lucide-react";
-
-const dmSans = DM_Sans({
-  weight: ["400", "500"],
-  subsets: ["latin"],
-  display: "swap",
-});
 
 type MotsSauvagesSourceProps = {
   extractLoading: boolean;
@@ -111,7 +104,7 @@ export function MotsSauvagesSource({
               borderRadius: 8,
             }}
           >
-            <PawPrint size={18} stroke="#6C3FC8" />
+            <PawPrint size={18} stroke="var(--ink)" />
           </div>
           <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
             Mots sauvages
@@ -124,21 +117,21 @@ export function MotsSauvagesSource({
 
       {extractLoading && (
         <div
-          className={`${dmSans.className} mb-6 rounded-[12px] border-2 bg-white p-4 shadow-sm`}
-          style={{ borderColor: "#6C3FC8" }}
+          className="mb-6 rounded-[12px] border-2 bg-white p-4 font-sans shadow-sm"
+          style={{ borderColor: "var(--ink)" }}
           role="status"
           aria-live="polite"
           aria-busy="true"
         >
           <div
             className="relative mb-4 h-2 overflow-hidden rounded-full"
-            style={{ background: "#EDE8FA" }}
+            style={{ background: "var(--background-subtle)" }}
           >
             <div className="lexiva-extract-shimmer-bar" aria-hidden />
           </div>
           <div className="flex items-start gap-3">
             <Loader2
-              className="mt-0.5 shrink-0 animate-spin text-[#6C3FC8]"
+              className="mt-0.5 shrink-0 animate-spin text-ink"
               size={22}
               strokeWidth={2.25}
               aria-hidden
@@ -162,7 +155,7 @@ export function MotsSauvagesSource({
 
       {extractError && !extractLoading ? (
         <p
-          className={`${dmSans.className} mb-6 rounded-[12px] border border-red-200 bg-red-50 px-4 py-3 text-[13px] font-medium text-red-700`}
+          className="mb-6 rounded-[12px] border border-red-200 bg-red-50 px-4 py-3 font-sans text-[13px] font-medium text-red-700"
         >
           {extractError}
         </p>
@@ -187,13 +180,13 @@ export function MotsSauvagesSource({
         {/* PDF */}
         <ActiveCard
           bg="var(--background-subtle)"
-          border="#DDD6F5"
-          hoverBorder="#6C3FC8"
-          iconBg="#DDD6F5"
-          icon={<FileText size={18} stroke="#6C3FC8" />}
+          border="var(--line)"
+          hoverBorder="var(--ink)"
+          iconBg="var(--background-subtle)"
+          icon={<FileText size={18} stroke="var(--ink)" />}
           title="PDF"
           description="Importe un livre, un cours ou un article en PDF."
-          btnBg="#6C3FC8"
+          btnBg="var(--ink)"
           btnLabel="Choisir"
           btnIcon={<Upload size={13} stroke="white" />}
           onClick={() => fileInputRef.current?.click()}
@@ -429,7 +422,7 @@ function ComingSoonCard({
           top: 12,
           right: 12,
           background: "var(--background-subtle)",
-          color: "#6C3FC8",
+          color: "var(--ink)",
           fontSize: 10,
           fontWeight: 500,
           padding: "2px 8px",

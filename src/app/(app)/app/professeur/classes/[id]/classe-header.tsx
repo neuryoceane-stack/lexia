@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
-const PRIMARY = "#6C3FC8";
+const PRIMARY = "var(--ink)";
 const BORDER_SECONDARY = "var(--border)";
 const RED_BORDER = "#F09595";
 const RED_TEXT = "#E24B4A";
@@ -179,8 +179,8 @@ export function ClasseHeader({
                     fontWeight: 500,
                     padding: "2px 8px",
                     borderRadius: 8,
-                    background: "#F0EDF8",
-                    color: "#4B3A9E",
+                    background: "var(--background-subtle)",
+                    color: "var(--ink)",
                   }}
                 >
                   {schoolLevel}

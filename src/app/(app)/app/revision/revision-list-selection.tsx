@@ -9,10 +9,10 @@ import {
   getFlagEmoji,
 } from "@/lib/language";
 
-const VIOLET = "#6C3FC8";
+const VIOLET = "var(--ink)";
 const GOLD = "#F5A623";
-const BORDER_TERTIARY = "#DDD6F5";
-const BORDER_SECONDARY = "#E2DCF5";
+const BORDER_TERTIARY = "var(--line)";
+const BORDER_SECONDARY = "var(--line)";
 
 type RevisionListRow = {
   id: string;
@@ -280,7 +280,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const lockBannerLang = selectedLang ? labelSource : "";
   const isFlashcardMode = mode === "flashcard";
   const senseAccent = isFlashcardMode ? VIOLET : GOLD;
-  const senseSelectedBg = isFlashcardMode ? "#F0EDF8" : "#FEF8EC";
+  const senseSelectedBg = isFlashcardMode ? "var(--background-subtle)" : "#FEF8EC";
   const senseSectionLabel = isFlashcardMode
     ? "Sens des flashcards"
     : "Sens de la dictée";
@@ -401,7 +401,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             className="shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors"
             style={{
               fontWeight: langFilter === "all" ? 500 : 400,
-              background: langFilter === "all" ? "#F0EDF8" : "white",
+              background: langFilter === "all" ? "var(--background-subtle)" : "white",
               color: langFilter === "all" ? VIOLET : "var(--foreground-muted)",
               borderColor: langFilter === "all" ? BORDER_TERTIARY : BORDER_SECONDARY,
             }}
@@ -418,7 +418,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                 className="shrink-0 rounded-full border px-3 py-1.5 text-xs transition-colors"
                 style={{
                   fontWeight: active ? 500 : 400,
-                  background: active ? "#F0EDF8" : "white",
+                  background: active ? "var(--background-subtle)" : "white",
                   color: active ? VIOLET : "var(--foreground-muted)",
                   borderColor: active ? BORDER_TERTIARY : BORDER_SECONDARY,
                 }}
@@ -648,7 +648,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                       opacity: locked ? 0.4 : 1,
                       pointerEvents: locked ? "none" : "auto",
                       ...(isSelected && !locked
-                        ? { background: "#F0EDF8" }
+                        ? { background: "var(--background-subtle)" }
                         : {}),
                     }}
                     onMouseEnter={(e) => {
@@ -684,7 +684,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                         style={{
                           fontSize: 13,
                           fontWeight: 500,
-                          color: isSelected ? "#4B3A9E" : "var(--foreground)",
+                          color: isSelected ? "var(--ink)" : "var(--foreground)",
                         }}
                       >
                         {list.name}

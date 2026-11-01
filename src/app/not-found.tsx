@@ -5,7 +5,7 @@ export default function NotFound() {
   return (
     <div
       className="flex min-h-screen flex-col items-center justify-center px-6 text-center"
-      style={{ background: "#F8F7FF" }}
+      style={{ background: "var(--page)" }}
     >
       <Image
         src="/bee-oops.png"
@@ -17,14 +17,14 @@ export default function NotFound() {
 
       <p
         className="mt-6"
-        style={{ fontSize: 48, fontWeight: 500, color: "#6C3FC8", lineHeight: 1 }}
+        style={{ fontSize: 48, fontWeight: 500, color: "var(--ink)", lineHeight: 1 }}
       >
         404
       </p>
 
       <h1
         className="mt-4"
-        style={{ fontSize: 20, fontWeight: 500, color: "#1F1235" }}
+        style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)" }}
       >
         Oups, cette page s&apos;est envolée
       </h1>
@@ -37,7 +37,7 @@ export default function NotFound() {
         href="/"
         className="mt-8 inline-flex items-center justify-center no-underline transition hover:brightness-95"
         style={{
-          background: "#6C3FC8",
+          background: "var(--ink)",
           color: "#FFFFFF",
           borderRadius: 20,
           padding: "12px 24px",

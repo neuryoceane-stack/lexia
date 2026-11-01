@@ -113,7 +113,7 @@ export default function RevisionExpressPage() {
           type="button"
           onClick={() => router.push("/app")}
           className="mt-6 rounded-xl px-6 py-3 font-semibold text-white shadow-sm transition"
-          style={{ backgroundColor: "#6C3FC8" }}
+          style={{ backgroundColor: "var(--ink)" }}
         >
           Retour à l&apos;accueil
         </button>
@@ -153,7 +153,7 @@ export default function RevisionExpressPage() {
             type="button"
             onClick={() => window.location.reload()}
             className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition"
-            style={{ backgroundColor: "#6C3FC8" }}
+            style={{ backgroundColor: "var(--ink)" }}
           >
             Recommencer
           </button>
@@ -185,7 +185,7 @@ export default function RevisionExpressPage() {
       <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--background-subtle)]">
         <div
           className="h-full rounded-full transition-all duration-300"
-          style={{ width: `${progress}%`, backgroundColor: "#6C3FC8" }}
+          style={{ width: `${progress}%`, backgroundColor: "var(--ink)" }}
         />
       </div>
 
@@ -207,7 +207,7 @@ export default function RevisionExpressPage() {
           type="button"
           onClick={() => setRevealed(true)}
           className="w-full rounded-xl py-3 text-center font-semibold text-white shadow-sm transition"
-          style={{ backgroundColor: "#6C3FC8" }}
+          style={{ backgroundColor: "var(--ink)" }}
         >
           Révéler
         </button>

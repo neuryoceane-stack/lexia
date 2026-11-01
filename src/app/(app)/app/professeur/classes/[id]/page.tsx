@@ -19,10 +19,10 @@ import { OngletsClasse, type TabId } from "./onglets-classe";
 import { ClasseHeader } from "./classe-header";
 import { ClassAccessCodeBanner } from "./class-access-code-banner";
 
-const PRIMARY = "#6C3FC8";
+const PRIMARY = "var(--ink)";
 const GOLD = "#F5A623";
 const GREEN = "#1D9E75";
-const BORDER_TERTIARY = "#E2DCF5";
+const BORDER_TERTIARY = "var(--line)";
 
 const TAB_IDS: TabId[] = ["tableau-de-bord", "eleves", "listes"];
 function parseTab(tab: string | null): TabId {
@@ -244,7 +244,7 @@ export default async function ClasseDetailPage({
                 width: 28,
                 height: 28,
                 borderRadius: 7,
-                background: "#F0EDF8",
+                background: "var(--background-subtle)",
               }}
             >
               <Users size={14} stroke={PRIMARY} strokeWidth={2} aria-hidden />

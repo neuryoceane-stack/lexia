@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { RevisionClient } from "../revision-client";
 import { RevisionListSelection } from "../revision-list-selection";
 
-const PAGE_BG = "#F8F7FF";
+const PAGE_BG = "var(--page)";
 
 export default async function FlashcardsPage({
   searchParams,

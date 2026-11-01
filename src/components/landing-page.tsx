@@ -196,7 +196,7 @@ export function LandingPage() {
       )}
       <header
         aria-hidden={!headerVisible}
-        className={`fixed inset-x-0 top-0 z-50 border-b border-[#E2DCF5]/70 bg-[#F8F7FF]/85 backdrop-blur-md transition-all duration-300 ease-out ${
+        className={`fixed inset-x-0 top-0 z-50 border-b border-line/70 bg-page/85 backdrop-blur-md transition-all duration-300 ease-out ${
           headerVisible
             ? "pointer-events-auto translate-y-0 opacity-100"
             : "pointer-events-none -translate-y-full opacity-0"
@@ -212,20 +212,20 @@ export function LandingPage() {
               style={{ objectFit: "contain" }}
               className="h-9 w-9 shrink-0"
             />
-            <span className="font-heading text-lg font-semibold text-[#1F1235]">
+            <span className="font-heading text-lg font-semibold text-ink">
               Lexiva
             </span>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[#6B6B7B] transition hover:text-[#6C3FC8] sm:px-4"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-[#6B6B7B] transition hover:text-ink sm:px-4"
             >
               Se connecter
             </Link>
             <Link
               href="/signup"
-              className="rounded-xl bg-[#6C3FC8] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#5529A0] sm:px-5 sm:py-2.5"
+              className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink sm:px-5 sm:py-2.5"
             >
               Commencer
             </Link>
@@ -235,17 +235,17 @@ export function LandingPage() {
       {/* SECTION 1 — HERO */}
       <section
         ref={heroRef}
-        className="relative overflow-hidden bg-[#F8F7FF] px-4 pb-10 pt-8 sm:pb-12 sm:pt-10"
+        className="relative overflow-hidden bg-page px-4 pb-10 pt-8 sm:pb-12 sm:pt-10"
       >
         <div className="absolute inset-0 overflow-hidden">
           {/* Orbe 1 : grand cercle violet foncé */}
           <div
-            className="animate-float-8s absolute left-10 top-20 h-64 w-64 rounded-full bg-[#6C3FC8] opacity-[0.07] blur-3xl"
+            className="animate-float-8s absolute left-10 top-20 h-64 w-64 rounded-full bg-ink opacity-[0.07] blur-3xl"
             aria-hidden
           />
           {/* Orbe 2 : cercle violet moyen */}
           <div
-            className="animate-float-12s absolute right-20 top-40 h-48 w-48 rounded-full bg-[#6C3FC8] opacity-[0.06] blur-2xl"
+            className="animate-float-12s absolute right-20 top-40 h-48 w-48 rounded-full bg-ink opacity-[0.06] blur-2xl"
             aria-hidden
           />
           {/* Orbe 3 : petit cercle doré */}
@@ -264,15 +264,15 @@ export function LandingPage() {
             style={{ objectFit: "contain" }}
             className="mx-auto mb-4"
           />
-          <h1 className="font-heading text-4xl font-bold leading-tight text-[#1F1235] sm:text-5xl md:text-6xl lg:text-7xl">
+          <h1 className="font-heading text-4xl font-bold leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
             Le vocabulaire{" "}
-            <span className="bg-gradient-to-r from-[#6C3FC8] to-[#F5A623] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-ink to-[#F5A623] bg-clip-text text-transparent">
               vivant
             </span>,
             <br />
             depuis tes vraies lectures
           </h1>
-          <p className="mx-auto mt-5 max-w-2xl text-xl text-[#4A4560]">
+          <p className="mx-auto mt-5 max-w-2xl text-xl text-ink">
             Importe n&apos;importe quel texte. Clique sur les mots inconnus.
             Lexiva s&apos;occupe du reste.
           </p>
@@ -280,13 +280,13 @@ export function LandingPage() {
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
               href="/signup"
-              className="group w-full rounded-xl bg-[#6C3FC8] px-8 py-3.5 text-center font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_rgba(108,63,200,0.25)] sm:w-auto"
+              className="group w-full rounded-xl bg-ink px-8 py-3.5 text-center font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)] sm:w-auto"
             >
               Commencer →
             </Link>
             <Link
               href="/login"
-              className="w-full rounded-xl border-2 border-[#6C3FC8] px-8 py-3.5 text-center font-semibold text-[#6C3FC8] transition-all duration-300 hover:bg-[#6C3FC8]/5 sm:w-auto"
+              className="w-full rounded-xl border-2 border-ink px-8 py-3.5 text-center font-semibold text-ink transition-all duration-300 hover:bg-ink/5 sm:w-auto"
             >
               Se connecter
             </Link>
@@ -296,9 +296,9 @@ export function LandingPage() {
             {DEMO_CARDS.map((card, i) => (
               <div
                 key={i}
-                className="animate-typing-card absolute inset-x-0 top-1/2 mx-auto flex -translate-y-1/2 flex-col items-center justify-center rounded-2xl border border-[#ECE7F8] bg-white px-6 py-4 shadow-[0_4px_20px_rgba(108,63,200,0.08)]"
+                className="animate-typing-card absolute inset-x-0 top-1/2 mx-auto flex -translate-y-1/2 flex-col items-center justify-center rounded-2xl border border-line bg-white px-6 py-4 shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)]"
               >
-                <span className="font-mono text-lg text-[#1F1235]">
+                <span className="font-mono text-lg text-ink">
                   {card.term}
                 </span>
                 <span className="mt-1 text-sm text-[#F5A623]">
@@ -319,7 +319,7 @@ export function LandingPage() {
           {STATS.map((s, i) => (
             <div key={i} className="flex items-center gap-4">
               <div className="text-center">
-                <p className="font-heading text-3xl font-bold text-[#1F1235] sm:text-4xl">
+                <p className="font-heading text-3xl font-bold text-ink sm:text-4xl">
                   {statsRef.inView ? (
                     typeof s.value === "number" ? (
                       s.value.toLocaleString("fr-FR") + s.suffix
@@ -363,7 +363,7 @@ export function LandingPage() {
                     {step.num}
                   </span>
                   <step.Icon
-                    className="h-9 w-9 text-[#6C3FC8]"
+                    className="h-9 w-9 text-ink"
                     strokeWidth={1.75}
                     aria-hidden
                   />
@@ -387,14 +387,14 @@ export function LandingPage() {
           }}
         />
         <div className="relative mx-auto max-w-3xl">
-          <h2 className="font-heading text-center text-2xl font-bold text-[#1F1235] sm:text-3xl">
+          <h2 className="font-heading text-center text-2xl font-bold text-ink sm:text-3xl">
             Tes textes deviennent tes cours
           </h2>
-          <p className="mb-3 mt-6 text-center text-sm italic text-[#9A95A8]">
+          <p className="mb-3 mt-6 text-center text-sm italic text-muted">
             👆 Touche les mots surlignés pour voir la traduction
           </p>
-          <div className="relative rounded-2xl border border-[#ECE7F8] bg-white p-6 shadow-[0_4px_20px_rgba(108,63,200,0.08)]">
-            <p className="select-none text-lg leading-relaxed text-[#1F1235]">
+          <div className="relative rounded-2xl border border-line bg-white p-6 shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)]">
+            <p className="select-none text-lg leading-relaxed text-ink">
               {SAMPLE_TEXT.split(/\s+/).map((w, i) => {
                 const match = SAMPLE_WORDS.find(
                   (s) => w.toLowerCase().replace(/[.,!?]/g, "") === s.word
@@ -414,7 +414,7 @@ export function LandingPage() {
                     }
                     className={`relative ${
                       def
-                        ? "inline-block cursor-pointer touch-manipulation rounded px-2.5 py-2.5 -my-1.5 underline decoration-[#F5A623] decoration-dotted underline-offset-2 hover:bg-[#6C3FC8]/10 active:bg-[#6C3FC8]/15"
+                        ? "inline-block cursor-pointer touch-manipulation rounded px-2.5 py-2.5 -my-1.5 underline decoration-[#F5A623] decoration-dotted underline-offset-2 hover:bg-ink/10 active:bg-ink/15"
                         : "inline"
                     }`}
                     onMouseEnter={() => def && setHoverWord(cleanWord)}
@@ -437,7 +437,7 @@ export function LandingPage() {
                   >
                     {w}{" "}
                     {def && isActive && (
-                      <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-lg border border-[#ECE7F8] bg-white px-3 py-2 text-sm text-[#F5A623] shadow-xl">
+                      <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-lg border border-line bg-white px-3 py-2 text-sm text-[#F5A623] shadow-xl">
                         {def}
                       </span>
                     )}
@@ -446,7 +446,7 @@ export function LandingPage() {
               })}
             </p>
           </div>
-          <p className="mt-4 text-center text-sm text-[#9A95A8]">
+          <p className="mt-4 text-center text-sm text-muted">
             Fonctionne avec n&apos;importe quel texte — article de presse,
             roman, affiche, menu
           </p>
@@ -454,16 +454,16 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 5 — POUR LES PROFS */}
-      <section className="bg-[#E8E0F5] px-4 py-10 sm:py-12">
+      <section className="bg-[var(--background-subtle)] px-4 py-10 sm:py-12">
         <div className="mx-auto max-w-4xl text-center">
-          <span className="inline-block rounded-full bg-[#6C3FC8]/20 px-4 py-1.5 text-sm font-medium text-[#6C3FC8]">
+          <span className="inline-block rounded-full bg-ink/20 px-4 py-1.5 text-sm font-medium text-ink">
             🏫 Espace professeur
           </span>
           <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
             <h2 className="font-heading text-2xl font-bold text-slate-800 sm:text-3xl">
               Pour les professeurs aussi
             </h2>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-semibold text-[#1A1035]">
+            <span className="inline-flex shrink-0 items-center rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-semibold text-ink">
               Bientôt disponible
             </span>
           </div>
@@ -476,7 +476,7 @@ export function LandingPage() {
                 className="pointer-events-none rounded-xl border border-slate-200 bg-white p-6 opacity-85 select-none"
               >
                 <Icon
-                  className="mx-auto h-9 w-9 text-[#6C3FC8]"
+                  className="mx-auto h-9 w-9 text-ink"
                   strokeWidth={1.75}
                   aria-hidden
                 />
@@ -486,7 +486,7 @@ export function LandingPage() {
             ))}
           </div>
 
-          <div className="mx-auto mt-5 w-full max-w-[520px] rounded-2xl border border-[#ECE7F8] bg-white p-5 text-left shadow-[0_4px_20px_rgba(108,63,200,0.08)] sm:p-6">
+          <div className="mx-auto mt-5 w-full max-w-[520px] rounded-2xl border border-line bg-white p-5 text-left shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)] sm:p-6">
             <p className="text-sm leading-relaxed text-slate-700">
               Vous êtes professeur&nbsp;? Laissez votre email, nous vous prévenons dès
               l&apos;ouverture de l&apos;espace professeur.
@@ -501,7 +501,7 @@ export function LandingPage() {
               </p>
             ) : teacherWaitlistStatus === "already" ? (
               <p
-                className="mt-4 rounded-xl border border-[#6C3FC8]/20 bg-[#6C3FC8]/5 px-4 py-3 text-sm font-medium text-[#6C3FC8]"
+                className="mt-4 rounded-xl border border-ink/20 bg-ink/5 px-4 py-3 text-sm font-medium text-ink"
                 role="status"
               >
                 Vous êtes déjà sur la liste.
@@ -514,7 +514,7 @@ export function LandingPage() {
                   void submitTeacherWaitlist();
                 }}
               >
-                <div className="flex flex-col overflow-hidden rounded-xl border-2 border-[#E2DCF5] focus-within:border-[#6C3FC8] sm:flex-row sm:items-stretch">
+                <div className="flex flex-col overflow-hidden rounded-xl border-2 border-line focus-within:border-ink sm:flex-row sm:items-stretch">
                   <label htmlFor="teacher-waitlist-email" className="sr-only">
                     Votre adresse email
                   </label>
@@ -534,12 +534,12 @@ export function LandingPage() {
                     placeholder="vous@etablissement.fr"
                     autoComplete="email"
                     disabled={teacherWaitlistStatus === "loading"}
-                    className="min-h-[52px] min-w-0 flex-1 border-0 bg-white px-4 py-3.5 text-base text-[#1F1235] outline-none placeholder:text-[#9A95A8] disabled:opacity-60 sm:rounded-none"
+                    className="min-h-[52px] min-w-0 flex-1 border-0 bg-white px-4 py-3.5 text-base text-ink outline-none placeholder:text-muted disabled:opacity-60 sm:rounded-none"
                   />
                   <button
                     type="submit"
                     disabled={teacherWaitlistStatus === "loading"}
-                    className="inline-flex min-h-[52px] shrink-0 items-center justify-center gap-2 whitespace-nowrap border-t border-[#E2DCF5] bg-[#6C3FC8] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#5529A0] disabled:cursor-not-allowed disabled:opacity-60 sm:border-t-0 sm:border-l sm:border-[#5529A0]/20 sm:px-4"
+                    className="inline-flex min-h-[52px] shrink-0 items-center justify-center gap-2 whitespace-nowrap border-t border-line bg-ink px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60 sm:border-t-0 sm:border-l sm:border-ink/20 sm:px-4"
                   >
                     {teacherWaitlistStatus === "loading" ? (
                       <>
@@ -568,27 +568,27 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 6 — CTA FINAL */}
-      <section className="bg-[#F8F7FF] px-4 py-12 sm:py-14">
+      <section className="bg-page px-4 py-12 sm:py-14">
         <div className="mx-auto max-w-2xl text-center">
-          <h2 className="font-heading text-3xl font-bold text-[#1F1235] sm:text-4xl">
+          <h2 className="font-heading text-3xl font-bold text-ink sm:text-4xl">
             Envie d&apos;apprendre autrement ?
           </h2>
           <Link
             href="/signup"
-            className="mt-6 inline-block rounded-xl bg-[#6C3FC8] px-12 py-4 text-xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_rgba(108,63,200,0.25)]"
+            className="mt-6 inline-block rounded-xl bg-ink px-12 py-4 text-xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)]"
           >
             Créer mon compte
           </Link>
-          <p className="mt-4 text-sm text-[#9A95A8]">
+          <p className="mt-4 text-sm text-muted">
             {OFFER_TRIAL_CARD_LABEL} · En 30 secondes
           </p>
         </div>
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#F0EDF8] px-4 py-8">
+      <footer className="bg-[var(--background-subtle)] px-4 py-8">
         <div className="mx-auto max-w-5xl">
-          <div className="flex flex-col items-center justify-between gap-5 border-b border-[#E2DAF2] pb-6 sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-5 border-b border-line pb-6 sm:flex-row">
             <div className="flex items-center gap-3">
               <Image
                 src="/logo-mark.png"
@@ -599,10 +599,10 @@ export function LandingPage() {
                 className="h-12 w-12 shrink-0"
               />
               <div>
-                <p className="font-heading text-lg font-semibold text-[#1F1235]">
+                <p className="font-heading text-lg font-semibold text-ink">
                   Lexiva
                 </p>
-                <p className="mt-1 text-sm text-[#9A95A8]">
+                <p className="mt-1 text-sm text-muted">
                   Apprends le vocabulaire autrement
                 </p>
               </div>
@@ -610,39 +610,39 @@ export function LandingPage() {
             <div className="flex gap-6">
               <Link
                 href="/login"
-                className="text-sm font-medium text-[#6B6B7B] transition hover:text-[#6C3FC8]"
+                className="text-sm font-medium text-[#6B6B7B] transition hover:text-ink"
               >
                 Connexion
               </Link>
               <Link
                 href="/signup"
-                className="text-sm font-medium text-[#6B6B7B] transition hover:text-[#6C3FC8]"
+                className="text-sm font-medium text-[#6B6B7B] transition hover:text-ink"
               >
                 Inscription
               </Link>
             </div>
           </div>
           <nav
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-[#9A95A8]"
+            className="mt-6 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-muted"
             aria-label="Liens légaux"
           >
-            <Link href="/mentions-legales" className="transition hover:text-[#6C3FC8]">
+            <Link href="/mentions-legales" className="transition hover:text-ink">
               Mentions légales
             </Link>
             <span aria-hidden>·</span>
-            <Link href="/politique-de-confidentialite" className="transition hover:text-[#6C3FC8]">
+            <Link href="/politique-de-confidentialite" className="transition hover:text-ink">
               Politique de confidentialité
             </Link>
             <span aria-hidden>·</span>
-            <Link href="/cgv" className="transition hover:text-[#6C3FC8]">
+            <Link href="/cgv" className="transition hover:text-ink">
               CGV
             </Link>
             <span aria-hidden>·</span>
-            <Link href="/contact" className="transition hover:text-[#6C3FC8]">
+            <Link href="/contact" className="transition hover:text-ink">
               Contact
             </Link>
           </nav>
-          <p className="mt-4 text-center text-xs text-[#9A95A8]">
+          <p className="mt-4 text-center text-xs text-muted">
             Fait avec ❤️ à Paris
           </p>
         </div>

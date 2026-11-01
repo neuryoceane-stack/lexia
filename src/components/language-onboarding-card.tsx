@@ -33,8 +33,8 @@ export function LanguageOnboardingCard({
           maxHeight: "min(92dvh, 720px)",
           background: "#FFFFFF",
           borderRadius: 16,
-          border: "1px solid rgba(108, 63, 200, 0.14)",
-          boxShadow: "0 8px 40px rgba(108, 63, 200, 0.1)",
+          border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
+          boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
           padding: "36px 28px 28px",
         }}
         role="dialog"
@@ -51,7 +51,7 @@ export function LanguageOnboardingCard({
           }}
           aria-hidden
         >
-          <Languages size={26} strokeWidth={2} color="#6C3FC8" />
+          <Languages size={26} strokeWidth={2} color="var(--ink)" />
         </div>
 
         <h2
@@ -60,7 +60,7 @@ export function LanguageOnboardingCard({
           style={{
             fontSize: 18,
             fontWeight: 500,
-            color: "#1F1235",
+            color: "var(--ink)",
             lineHeight: 1.35,
             marginBottom: 8,
           }}
@@ -110,7 +110,7 @@ export function LanguageOnboardingCard({
             autoComplete="off"
             className="w-full transition-colors"
             style={{
-              fontFamily: "DM Sans, sans-serif",
+              fontFamily: "var(--font-sans), sans-serif",
               fontSize: 14,
               color: "var(--foreground)",
               padding: "11px 14px 11px 40px",
@@ -120,8 +120,8 @@ export function LanguageOnboardingCard({
               outline: "none",
             }}
             onFocus={(e) => {
-              e.currentTarget.style.borderColor = "#6C3FC8";
-              e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+              e.currentTarget.style.borderColor = "var(--ink)";
+              e.currentTarget.style.boxShadow = "0 0 0 3px color-mix(in srgb, var(--ink) 12%, transparent)";
             }}
             onBlur={(e) => {
               e.currentTarget.style.borderColor = "var(--input-border)";
@@ -159,15 +159,15 @@ export function LanguageOnboardingCard({
                       padding: "14px 10px",
                       borderRadius: 10,
                       border: isSelected
-                        ? "2px solid #6C3FC8"
+                        ? "2px solid var(--ink)"
                         : "1.5px solid var(--border)",
-                      background: isSelected ? "rgba(108, 63, 200, 0.08)" : "#FFFFFF",
+                      background: isSelected ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "#FFFFFF",
                       cursor: "pointer",
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) {
-                        e.currentTarget.style.background = "rgba(108, 63, 200, 0.05)";
-                        e.currentTarget.style.borderColor = "rgba(108, 63, 200, 0.35)";
+                        e.currentTarget.style.background = "color-mix(in srgb, var(--ink) 5%, transparent)";
+                        e.currentTarget.style.borderColor = "color-mix(in srgb, var(--ink) 35%, transparent)";
                       }
                     }}
                     onMouseLeave={(e) => {
@@ -186,7 +186,7 @@ export function LanguageOnboardingCard({
                           width: 18,
                           height: 18,
                           borderRadius: "50%",
-                          background: "#6C3FC8",
+                          background: "var(--ink)",
                         }}
                         aria-hidden
                       >
@@ -198,7 +198,7 @@ export function LanguageOnboardingCard({
                       style={{
                         fontSize: 13,
                         fontWeight: isSelected ? 500 : 400,
-                        color: isSelected ? "#6C3FC8" : "var(--foreground)",
+                        color: isSelected ? "var(--ink)" : "var(--foreground)",
                         lineHeight: 1.2,
                         textAlign: "center",
                       }}
@@ -221,7 +221,7 @@ export function LanguageOnboardingCard({
           disabled={saving || !selected}
           className="w-full shrink-0 transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           style={{
-            background: "#6C3FC8",
+            background: "var(--ink)",
             color: "#FFFFFF",
             borderRadius: 10,
             padding: "13px 16px",

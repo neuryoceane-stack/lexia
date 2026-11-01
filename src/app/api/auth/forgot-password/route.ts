@@ -4,6 +4,7 @@ import { users, passwordResetTokens } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { Resend } from "resend";
+import { designTokens } from "@/lib/design-tokens";
 
 export async function POST(req: NextRequest) {
   try {
@@ -48,14 +49,14 @@ export async function POST(req: NextRequest) {
       html: `
         <div style="font-family: 'DM Sans', Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #ffffff;">
           <div style="text-align: center; margin-bottom: 32px;">
-            <h1 style="color: #6C3FC8; font-size: 28px; margin: 0;">Lexiva</h1>
+            <h1 style="color: ${designTokens.ink}; font-size: 28px; margin: 0;">Lexiva</h1>
           </div>
           <h2 style="color: #1a1a1a; font-size: 20px;">Réinitialisation de ton mot de passe</h2>
           <p style="color: #555; line-height: 1.6;">
             Tu as demandé à réinitialiser ton mot de passe. Clique sur le bouton ci-dessous pour en choisir un nouveau.
           </p>
           <div style="text-align: center; margin: 32px 0;">
-            <a href="${resetUrl}" style="background: #6C3FC8; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
+            <a href="${resetUrl}" style="background: ${designTokens.ink}; color: #ffffff; padding: 14px 28px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">
               Réinitialiser mon mot de passe
             </a>
           </div>

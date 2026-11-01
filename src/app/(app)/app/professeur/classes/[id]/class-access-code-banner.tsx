@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Check, Copy, Lock } from "lucide-react";
 
-const PRIMARY = "#6C3FC8";
+const PRIMARY = "var(--ink)";
 
 function formatDisplay(identifier: string): string {
   const up = identifier.trim().toUpperCase();
@@ -39,8 +39,8 @@ export function ClassAccessCodeBanner({ identifier }: Props) {
     <div
       className="flex items-center gap-3.5"
       style={{
-        background: "#F0EDF8",
-        border: "0.5px solid #DDD6F5",
+        background: "var(--background-subtle)",
+        border: "0.5px solid var(--line)",
         borderRadius: 12,
         padding: "14px 16px",
         marginBottom: 16,

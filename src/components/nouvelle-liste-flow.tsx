@@ -109,12 +109,12 @@ function LanguageRecap({
           style={{
             padding: "8px 12px",
             borderRadius: 10,
-            border: "1.5px solid rgba(108, 63, 200, 0.2)",
-            background: "rgba(108, 63, 200, 0.06)",
+            border: "1.5px solid color-mix(in srgb, var(--ink) 20%, transparent)",
+            background: "color-mix(in srgb, var(--ink) 6%, transparent)",
           }}
         >
           <FlagDisplay langCode={code} size={22} />
-          <span style={{ fontSize: 14, fontWeight: 500, color: "#4B3A9E" }}>{label}</span>
+          <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>{label}</span>
         </div>
         {onChange && (
           <button
@@ -124,7 +124,7 @@ function LanguageRecap({
             style={{
               fontSize: 13,
               fontWeight: 500,
-              color: "#6C3FC8",
+              color: "var(--ink)",
               background: "none",
               border: "none",
               cursor: "pointer",
@@ -152,8 +152,8 @@ function LanguageRecap({
                 style={{
                   borderRadius: 10,
                   padding: "6px 3px",
-                  border: `1.5px solid ${sel ? "#6C3FC8" : "var(--border)"}`,
-                  background: sel ? "rgba(108, 63, 200, 0.08)" : "var(--background-subtle)",
+                  border: `1.5px solid ${sel ? "var(--ink)" : "var(--border)"}`,
+                  background: sel ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "var(--background-subtle)",
                   cursor: "pointer",
                   minHeight: 44,
                 }}
@@ -163,7 +163,7 @@ function LanguageRecap({
                   style={{
                     fontSize: 10,
                     fontWeight: 500,
-                    color: sel ? "#6C3FC8" : "var(--foreground-muted)",
+                    color: sel ? "var(--ink)" : "var(--foreground-muted)",
                   }}
                 >
                   {opt.label}
@@ -629,7 +629,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
                 }}
                 className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5"
                 style={{
-                  background: destMode === "create" ? "#6C3FC8" : "var(--background-subtle)",
+                  background: destMode === "create" ? "var(--ink)" : "var(--background-subtle)",
                   color: destMode === "create" ? "white" : "var(--foreground-muted)",
                   minHeight: 44,
                 }}
@@ -652,7 +652,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
                 }}
                 className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5"
                 style={{
-                  background: destMode === "existing" ? "#6C3FC8" : "var(--background-subtle)",
+                  background: destMode === "existing" ? "var(--ink)" : "var(--background-subtle)",
                   color: destMode === "existing" ? "white" : "var(--foreground-muted)",
                   minHeight: 44,
                 }}
@@ -694,9 +694,9 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
                         }}
                         className="flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left"
                         style={{
-                          borderColor: selected ? "#6C3FC8" : "var(--border)",
+                          borderColor: selected ? "var(--ink)" : "var(--border)",
                           background: selected
-                            ? "rgba(108, 63, 200, 0.1)"
+                            ? "color-mix(in srgb, var(--ink) 10%, transparent)"
                             : "var(--background-card)",
                           minHeight: 44,
                           cursor: "pointer",
@@ -706,7 +706,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
                         {list.language ? <FlagDisplay langCode={list.language} size={16} /> : null}
                         <span
                           className="min-w-0 flex-1 text-sm font-medium"
-                          style={{ color: selected ? "#4B3A9E" : "var(--foreground)" }}
+                          style={{ color: selected ? "var(--ink)" : "var(--foreground)" }}
                         >
                           {list.name}
                         </span>
@@ -771,7 +771,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
                     width: "100%",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#6C3FC8";
+                    e.currentTarget.style.borderColor = "var(--ink)";
                   }}
                   onBlur={(e) => {
                     e.currentTarget.style.borderColor = "var(--input-border)";
@@ -790,18 +790,18 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             <MethodCard
               bg="var(--background-subtle)"
-              border="#C4B5F4"
-              hoverBorder="#6C3FC8"
-              iconBg="#6C3FC8"
+              border="var(--line)"
+              hoverBorder="var(--ink)"
+              iconBg="var(--ink)"
               icon={<Pencil size={22} stroke="white" />}
-              decoColor="#6C3FC8"
+              decoColor="var(--ink)"
               title="Manuel"
               description="Saisis tes mots un par un."
-              btnBg="#6C3FC8"
+              btnBg="var(--ink)"
               btnIcon={<Plus size={11} stroke="white" />}
               btnLabel="Commencer"
-              arrowBg="#DDD6F5"
-              arrowColor="#6C3FC8"
+              arrowBg="var(--background-subtle)"
+              arrowColor="var(--ink)"
               disabled={creatingList || changingLanguage}
               onClick={() => void startManual()}
             />
@@ -814,7 +814,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
               decoColor="#F5A623"
               title="PDF"
               description="Importe un document — l'IA extrait les mots automatiquement."
-              btnBg="#6C3FC8"
+              btnBg="var(--ink)"
               btnIcon={<Upload size={11} stroke="white" />}
               btnLabel="Importer"
               arrowBg="#FAE5B0"
@@ -834,7 +834,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
               decoColor="#1D9E75"
               title="Photo ou image"
               description="Prends une photo ou importe une image — l'IA lit le texte pour toi."
-              btnBg="#6C3FC8"
+              btnBg="var(--ink)"
               btnIcon={<Camera size={11} stroke="white" />}
               btnLabel="Choisir"
               arrowBg="#C3E6D6"
@@ -1029,8 +1029,8 @@ function FormManuel({
           maxWidth: 680,
           background: "#FFFFFF",
           borderRadius: 16,
-          border: "1px solid rgba(108, 63, 200, 0.14)",
-          boxShadow: "0 8px 40px rgba(108, 63, 200, 0.1)",
+          border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
+          boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
           padding: "28px 24px 24px",
         }}
       >
@@ -1053,7 +1053,7 @@ function FormManuel({
 
         <h1
           className="mb-1"
-          style={{ fontSize: 20, fontWeight: 500, color: "#1F1235", lineHeight: 1.3 }}
+          style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)", lineHeight: 1.3 }}
         >
           {importToExisting ? "Ajoute tes mots" : "Saisis tes mots"}
         </h1>
@@ -1066,12 +1066,12 @@ function FormManuel({
         <div
           className="mb-6 inline-flex flex-wrap items-center gap-2.5 rounded-xl px-3 py-2.5"
           style={{
-            background: "rgba(108, 63, 200, 0.06)",
-            border: "1.5px solid rgba(108, 63, 200, 0.16)",
+            background: "color-mix(in srgb, var(--ink) 6%, transparent)",
+            border: "1.5px solid color-mix(in srgb, var(--ink) 16%, transparent)",
           }}
         >
           {listLanguage ? <FlagDisplay langCode={listLanguage} size={22} /> : null}
-          <span style={{ fontSize: 14, fontWeight: 500, color: "#4B3A9E" }}>
+          <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>
             {listName || defaultListName || "Nouvelle liste"}
           </span>
         </div>
@@ -1096,7 +1096,7 @@ function FormManuel({
               style={{
                 fontSize: 13,
                 fontWeight: 500,
-                color: "#6C3FC8",
+                color: "var(--ink)",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -1126,7 +1126,7 @@ function FormManuel({
                   }}
                   className="min-w-0 transition-colors"
                   style={{
-                    fontFamily: "DM Sans, sans-serif",
+                    fontFamily: "var(--font-sans), sans-serif",
                     fontSize: 14,
                     color: "var(--foreground)",
                     padding: "11px 14px",
@@ -1137,8 +1137,8 @@ function FormManuel({
                     width: "100%",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#6C3FC8";
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+                    e.currentTarget.style.borderColor = "var(--ink)";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px color-mix(in srgb, var(--ink) 12%, transparent)";
                   }}
                   onBlur={(e) => {
                     e.currentTarget.style.borderColor = "var(--input-border)";
@@ -1157,7 +1157,7 @@ function FormManuel({
                   }}
                   className="min-w-0 transition-colors"
                   style={{
-                    fontFamily: "DM Sans, sans-serif",
+                    fontFamily: "var(--font-sans), sans-serif",
                     fontSize: 14,
                     color: "var(--foreground)",
                     padding: "11px 14px",
@@ -1168,8 +1168,8 @@ function FormManuel({
                     width: "100%",
                   }}
                   onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "#6C3FC8";
-                    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(108, 63, 200, 0.12)";
+                    e.currentTarget.style.borderColor = "var(--ink)";
+                    e.currentTarget.style.boxShadow = "0 0 0 3px color-mix(in srgb, var(--ink) 12%, transparent)";
                   }}
                   onBlur={(e) => {
                     e.currentTarget.style.borderColor = "var(--input-border)";
@@ -1234,7 +1234,7 @@ function FormManuel({
               padding: "12px 18px",
               borderRadius: 10,
               border: "none",
-              background: "#6C3FC8",
+              background: "var(--ink)",
               color: "#FFFFFF",
               cursor: "pointer",
               minHeight: 44,

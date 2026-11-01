@@ -21,15 +21,15 @@ import {
 } from "@/lib/language";
 import { useLeaveForAbonnement } from "@/components/paywall-gate";
 
-const VIOLET = "#6C3FC8";
+const VIOLET = "var(--ink)";
 const GOLD = "#F5A623";
 const GREEN = "#1D9E75";
-const BORDER_SECONDARY = "#E2DCF5";
-const BORDER_TERTIARY = "#DDD6F5";
-const BANNER_BG = "#F0EDF8";
+const BORDER_SECONDARY = "var(--line)";
+const BORDER_TERTIARY = "var(--line)";
+const BANNER_BG = "var(--background-subtle)";
 const RED_BORDER = "#F09595";
 const RED_TEXT = "#E24B4A";
-const DOT_NEW = "#DDD6F5";
+const DOT_NEW = "var(--background-subtle)";
 
 export type MotWithSm2 = {
   id: string;
@@ -309,7 +309,7 @@ export function MotsClient({
                   setEditingTitle(false);
                 }
               }}
-              className="min-w-0 max-w-full rounded-lg border border-[#DDD6F5] bg-white px-2 py-1 outline-none focus:ring-2 focus:ring-[#6C3FC8]/20"
+              className="min-w-0 max-w-full rounded-lg border border-line bg-white px-2 py-1 outline-none focus:ring-2 focus:ring-ink/20"
               style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}
               aria-label="Nom de la liste"
             />
@@ -321,7 +321,7 @@ export function MotsClient({
               className="group flex min-w-0 max-w-[min(100%,280px)] cursor-text items-center gap-1.5 rounded-lg border-none bg-transparent text-left transition-colors duration-150 sm:max-w-[min(100%,360px)]"
               style={{ borderRadius: 8, padding: "3px 6px", gap: 6 }}
               onMouseEnter={(e) => {
-                if (canEdit) e.currentTarget.style.background = "#F0EDF8";
+                if (canEdit) e.currentTarget.style.background = "var(--background-subtle)";
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.background = "transparent";
@@ -354,7 +354,7 @@ export function MotsClient({
                   onClick={() => setLangOpen((o) => !o)}
                   className="inline-flex items-center gap-1 border transition-colors"
                   style={{
-                    background: "#F0EDF8",
+                    background: "var(--background-subtle)",
                     border: `0.5px solid ${BORDER_TERTIARY}`,
                     borderRadius: 20,
                     padding: "3px 8px 3px 5px",
@@ -362,10 +362,10 @@ export function MotsClient({
                     cursor: "pointer",
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#DDD6F5";
+                    e.currentTarget.style.background = "var(--background-subtle)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#F0EDF8";
+                    e.currentTarget.style.background = "var(--background-subtle)";
                   }}
                   aria-expanded={langOpen}
                   aria-haspopup="listbox"
@@ -394,7 +394,7 @@ export function MotsClient({
                       <li key={opt.value}>
                         <button
                           type="button"
-                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-[#F0EDF8]"
+                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-[var(--background-subtle)]"
                           style={{
                             fontWeight: listLangCode === opt.value ? 600 : 400,
                           }}
@@ -414,7 +414,7 @@ export function MotsClient({
               <span
                 className="inline-flex items-center gap-1 border"
                 style={{
-                  background: "#F0EDF8",
+                  background: "var(--background-subtle)",
                   border: `0.5px solid ${BORDER_TERTIARY}`,
                   borderRadius: 20,
                   padding: "3px 8px 3px 5px",
@@ -482,12 +482,12 @@ export function MotsClient({
                 width: 160,
                 borderRadius: 12,
                 border: `0.5px solid ${BORDER_SECONDARY}`,
-                boxShadow: "0 8px 24px rgba(108, 63, 200, 0.12)",
+                boxShadow: "0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent)",
               }}
             >
               <Link
                 href={flashcardsHref}
-                className="flex cursor-pointer items-center gap-2.5 border-b py-[11px] pr-3 pl-3.5 no-underline transition-colors hover:bg-[#F0EDF8]"
+                className="flex cursor-pointer items-center gap-2.5 border-b py-[11px] pr-3 pl-3.5 no-underline transition-colors hover:bg-[var(--background-subtle)]"
                 style={{ borderBottom: `0.5px solid ${BORDER_TERTIARY}` }}
                 onClick={() => setReviseOpen(false)}
               >
@@ -496,7 +496,7 @@ export function MotsClient({
                   style={{
                     width: 28,
                     height: 28,
-                    background: "#F0EDF8",
+                    background: "var(--background-subtle)",
                     borderRadius: 7,
                   }}
                 >
@@ -511,7 +511,7 @@ export function MotsClient({
               </Link>
               <Link
                 href={dicteeHref}
-                className="flex cursor-pointer items-center gap-2.5 py-[11px] pr-3 pl-3.5 no-underline transition-colors hover:bg-[#F0EDF8]"
+                className="flex cursor-pointer items-center gap-2.5 py-[11px] pr-3 pl-3.5 no-underline transition-colors hover:bg-[var(--background-subtle)]"
                 onClick={() => setReviseOpen(false)}
               >
                 <div
@@ -646,7 +646,7 @@ export function MotsClient({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher…"
-            className="w-full rounded-[20px] border bg-white py-2 pr-3 text-sm outline-none focus:ring-2 focus:ring-[#6C3FC8]/25"
+            className="w-full rounded-[20px] border bg-white py-2 pr-3 text-sm outline-none focus:ring-2 focus:ring-ink/25"
             style={{
               borderColor: BORDER_SECONDARY,
               paddingLeft: 28,
@@ -688,7 +688,7 @@ export function MotsClient({
                 <button
                   key={key}
                   type="button"
-                  className="block w-full px-3 py-2 text-left text-xs hover:bg-[#F0EDF8]"
+                  className="block w-full px-3 py-2 text-left text-xs hover:bg-[var(--background-subtle)]"
                   style={{
                     fontWeight: statusFilter === key ? 600 : 400,
                     color: "var(--foreground)",
@@ -735,7 +735,7 @@ export function MotsClient({
           filteredMots.map((m, i) => (
             <div
               key={m.id}
-              className="group flex items-center gap-2.5 px-3.5 py-[11px] transition-colors hover:bg-[#F8F7FF] max-sm:flex-wrap"
+              className="group flex items-center gap-2.5 px-3.5 py-[11px] transition-colors hover:bg-page max-sm:flex-wrap"
               style={{
                 gap: 10,
                 padding: "11px 14px",

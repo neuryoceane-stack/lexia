@@ -179,8 +179,8 @@ export function SaveWordsToListModal({
   const modeTabClass = (active: boolean) =>
     `flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
       active
-        ? "bg-[#6C3FC8] text-white"
-        : "bg-[var(--background-subtle)] text-[var(--foreground-muted)] hover:bg-[rgba(108,63,200,0.08)]"
+        ? "bg-ink text-white"
+        : "bg-[var(--background-subtle)] text-[var(--foreground-muted)] hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
     }`;
 
   return (
@@ -193,7 +193,7 @@ export function SaveWordsToListModal({
     >
       <p
         className="-mt-2 mb-4 text-sm"
-        style={{ color: "var(--foreground-muted)", fontFamily: "DM Sans, sans-serif" }}
+        style={{ color: "var(--foreground-muted)", fontFamily: "var(--font-sans), sans-serif" }}
       >
         {wordCount === 1
           ? "Où veux-tu enregistrer ton mot ?"
@@ -204,19 +204,19 @@ export function SaveWordsToListModal({
         <div
           className="flex flex-col items-center gap-3 rounded-xl px-4 py-8 text-center"
           style={{
-            background: "rgba(108, 63, 200, 0.08)",
-            border: "1px solid rgba(108, 63, 200, 0.2)",
+            background: "color-mix(in srgb, var(--ink) 8%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--ink) 20%, transparent)",
           }}
           role="status"
         >
           <span
             className="flex h-12 w-12 items-center justify-center rounded-full"
-            style={{ background: "#6C3FC8" }}
+            style={{ background: "var(--ink)" }}
             aria-hidden
           >
             <Check size={24} strokeWidth={2.5} color="#FFFFFF" />
           </span>
-          <p style={{ fontSize: 15, fontWeight: 600, color: "#1F1235" }}>
+          <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
             {successCount} mot{successCount !== 1 ? "s" : ""} enregistré
             {successCount !== 1 ? "s" : ""} !
           </p>
@@ -225,14 +225,14 @@ export function SaveWordsToListModal({
         <div
           className="flex items-center justify-center gap-2 rounded-xl px-4 py-10"
           style={{
-            background: "rgba(108, 63, 200, 0.05)",
-            border: "1px solid rgba(108, 63, 200, 0.15)",
+            background: "color-mix(in srgb, var(--ink) 5%, transparent)",
+            border: "1px solid color-mix(in srgb, var(--ink) 15%, transparent)",
           }}
           role="status"
           aria-live="polite"
         >
-          <Loader2 size={20} className="animate-spin" color="#6C3FC8" aria-hidden />
-          <span style={{ fontSize: 14, color: "#4B3A9E" }}>
+          <Loader2 size={20} className="animate-spin" color="var(--ink)" aria-hidden />
+          <span style={{ fontSize: 14, color: "var(--ink)" }}>
             Chargement de tes listes…
           </span>
         </div>
@@ -293,12 +293,12 @@ export function SaveWordsToListModal({
                           }}
                           className="w-full rounded-xl border px-3 py-2.5 text-left transition-colors"
                           style={{
-                            borderColor: selected ? "#6C3FC8" : "var(--border)",
+                            borderColor: selected ? "var(--ink)" : "var(--border)",
                             background: selected
-                              ? "rgba(108, 63, 200, 0.1)"
+                              ? "color-mix(in srgb, var(--ink) 10%, transparent)"
                               : "var(--background-card)",
                             boxShadow: selected
-                              ? "0 0 0 1px rgba(108, 63, 200, 0.25)"
+                              ? "0 0 0 1px color-mix(in srgb, var(--ink) 25%, transparent)"
                               : undefined,
                           }}
                           aria-pressed={selected}
@@ -306,7 +306,7 @@ export function SaveWordsToListModal({
                           <span
                             className="block text-sm font-medium"
                             style={{
-                              color: selected ? "#4B3A9E" : "var(--foreground)",
+                              color: selected ? "var(--ink)" : "var(--foreground)",
                             }}
                           >
                             {list.name}
@@ -344,12 +344,12 @@ export function SaveWordsToListModal({
                   <div
                     className="inline-flex items-center gap-2 rounded-xl px-3 py-2.5"
                     style={{
-                      background: "rgba(108, 63, 200, 0.06)",
-                      border: "1.5px solid rgba(108, 63, 200, 0.16)",
+                      background: "color-mix(in srgb, var(--ink) 6%, transparent)",
+                      border: "1.5px solid color-mix(in srgb, var(--ink) 16%, transparent)",
                     }}
                   >
                     <FlagDisplay langCode={createLanguage || defaultLanguage} size={18} />
-                    <span style={{ fontSize: 14, fontWeight: 500, color: "#4B3A9E" }}>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>
                       {PREFERRED_LANGUAGE_OPTIONS.find(
                         (o) => o.value === (createLanguage || defaultLanguage)
                       )?.label ?? createLanguage}
@@ -366,9 +366,9 @@ export function SaveWordsToListModal({
                           onClick={() => setCreateLanguage(opt.value)}
                           className="flex flex-col items-center gap-1 rounded-lg border px-1 py-2 transition-colors"
                           style={{
-                            borderColor: selected ? "#6C3FC8" : "var(--border)",
+                            borderColor: selected ? "var(--ink)" : "var(--border)",
                             background: selected
-                              ? "rgba(108, 63, 200, 0.08)"
+                              ? "color-mix(in srgb, var(--ink) 8%, transparent)"
                               : "transparent",
                             minHeight: 44,
                           }}
@@ -380,7 +380,7 @@ export function SaveWordsToListModal({
                             style={{
                               fontSize: 9,
                               fontWeight: selected ? 500 : 400,
-                              color: selected ? "#6C3FC8" : "var(--foreground-muted)",
+                              color: selected ? "var(--ink)" : "var(--foreground-muted)",
                             }}
                           >
                             {opt.label}
@@ -414,7 +414,7 @@ export function SaveWordsToListModal({
               onClick={handleConfirmSave}
               disabled={!canSave}
               className="btn-relief inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
-              style={{ background: "#6C3FC8" }}
+              style={{ background: "var(--ink)" }}
             >
               {saving ? (
                 <>

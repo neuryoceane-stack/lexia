@@ -7,10 +7,10 @@ import { formatActifIlYA, formatDerniereActivite } from "@/lib/format-relative-f
 
 export type TabId = "tableau-de-bord" | "eleves" | "listes";
 
-const PRIMARY = "#6C3FC8";
+const PRIMARY = "var(--ink)";
 const GREEN = "#1D9E75";
 const GOLD = "#F5A623";
-const BORDER_TERTIARY = "#E2DCF5";
+const BORDER_TERTIARY = "var(--line)";
 /** Badge « en difficulté » (maîtrise &lt; 30 % avec activité de révision). */
 const DIFFICULTE_RED = "#E53E3E";
 
@@ -201,7 +201,7 @@ export function OngletsClasse({
                   <div
                     style={{
                       height: 6,
-                      background: "#F0EDF8",
+                      background: "var(--background-subtle)",
                       borderRadius: 3,
                       overflow: "hidden",
                       marginBottom: 6,
@@ -287,7 +287,7 @@ export function OngletsClasse({
                         <div
                           className="flex size-8 items-center justify-center rounded-full"
                           style={{
-                            background: "#F0EDF8",
+                            background: "var(--background-subtle)",
                             fontSize: 11,
                             fontWeight: 500,
                             color: PRIMARY,

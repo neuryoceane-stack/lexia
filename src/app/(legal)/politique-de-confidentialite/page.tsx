@@ -301,7 +301,7 @@ export default function PolitiqueConfidentialitePage() {
         </p>
       </section>
 
-      <p className="text-sm text-[#6B6B8A]">
+      <p className="text-sm text-muted">
         Dernière mise à jour&nbsp;: <ARemplir>date</ARemplir>
       </p>
     </>

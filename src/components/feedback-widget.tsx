@@ -53,7 +53,7 @@ export function FeedbackWidget() {
         type="button"
         onClick={() => setOpen(true)}
         className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full text-2xl shadow-lg transition hover:scale-105"
-        style={{ backgroundColor: "#6C3FC8", color: "white" }}
+        style={{ backgroundColor: "var(--ink)", color: "white" }}
         aria-label="Donner un retour"
       >
         💬
@@ -126,7 +126,7 @@ export function FeedbackWidget() {
                     type="submit"
                     disabled={loading || !description.trim()}
                     className="flex-1 rounded-lg py-2 font-medium text-white disabled:opacity-50"
-                    style={{ backgroundColor: "#6C3FC8" }}
+                    style={{ backgroundColor: "var(--ink)" }}
                   >
                     {loading ? "Envoi…" : "Envoyer"}
                   </button>

@@ -150,12 +150,12 @@ function ShopContent() {
     : [];
 
   return (
-    <div style={{ minHeight: "100vh", fontFamily: "DM Sans, sans-serif" }}>
+    <div style={{ minHeight: "100vh", fontFamily: "var(--font-sans), sans-serif" }}>
       <div style={{ maxWidth: 680, margin: "0 auto", padding: "24px 16px 80px" }}>
 
         {/* Header violet */}
         <div style={{
-          background: "#6C3FC8", borderRadius: 16, padding: "20px 24px",
+          background: "var(--ink)", borderRadius: 16, padding: "20px 24px",
           display: "flex", alignItems: "center", justifyContent: "space-between",
           marginBottom: 16,
         }}>
@@ -187,7 +187,7 @@ function ShopContent() {
         {/* Bandeau Bundle */}
         <div style={{
           background: "white", borderRadius: 16, padding: "16px 20px",
-          border: "1.5px solid #F0EBFC", marginBottom: 20,
+          border: "1.5px solid var(--line)", marginBottom: 20,
         }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
             <div style={{ fontWeight: 500, fontSize: 15, color: "#1a1a1a" }}>
@@ -206,8 +206,8 @@ function ShopContent() {
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 12 }}>
             {["Voyages", "Food", "Business", "Culture", "+ 4 autres"].map((tag) => (
               <span key={tag} style={{
-                background: "#F0EBFC", borderRadius: 20, padding: "3px 10px",
-                fontSize: 12, color: "#6C3FC8", fontWeight: 400,
+                background: "var(--background-subtle)", borderRadius: 20, padding: "3px 10px",
+                fontSize: 12, color: "var(--ink)", fontWeight: 400,
               }}>{tag}</span>
             ))}
           </div>
@@ -218,7 +218,7 @@ function ShopContent() {
               <span style={{ fontSize: 12, color: "#1D9E75", fontWeight: 500 }}>-20%</span>
             </div>
             <button style={{
-              background: "#6C3FC8", color: "white", border: "none",
+              background: "var(--ink)", color: "white", border: "none",
               borderRadius: 20, padding: "10px 20px", fontSize: 14,
               fontWeight: 500, cursor: "pointer",
             }}>
@@ -231,9 +231,9 @@ function ShopContent() {
         <div style={{ display: "flex", gap: 8, overflowX: "auto", marginBottom: 16, paddingBottom: 4 }}>
           {LANGUAGES.map((lang) => (
             <button key={lang.code} onClick={() => setSelectedLang(lang.code)} style={{
-              background: selectedLang === lang.code ? "#6C3FC8" : "white",
+              background: selectedLang === lang.code ? "var(--ink)" : "white",
               color: selectedLang === lang.code ? "white" : "#444",
-              border: "1.5px solid", borderColor: selectedLang === lang.code ? "#6C3FC8" : "#E5E0F5",
+              border: "1.5px solid", borderColor: selectedLang === lang.code ? "var(--ink)" : "var(--line)",
               borderRadius: 20, padding: "6px 14px", fontSize: 13,
               fontWeight: 400, cursor: "pointer", whiteSpace: "nowrap",
               display: "flex", alignItems: "center", gap: 6,
@@ -254,7 +254,7 @@ function ShopContent() {
           {filtered.map((pack) => (
             <div key={pack.id} onClick={() => setSelectedPack(pack)} style={{
               background: "white", borderRadius: 16, padding: "16px",
-              border: "1.5px solid #F0EBFC", cursor: "pointer",
+              border: "1.5px solid var(--line)", cursor: "pointer",
               position: "relative", transition: "box-shadow 0.15s",
             }}>
               {pack.owned && (
@@ -274,8 +274,8 @@ function ShopContent() {
               </div>
               <div style={{ marginBottom: 12 }}>
                 <span style={{
-                  background: "#F0EBFC", borderRadius: 20, padding: "3px 10px",
-                  fontSize: 11, color: "#6C3FC8",
+                  background: "var(--background-subtle)", borderRadius: 20, padding: "3px 10px",
+                  fontSize: 11, color: "var(--ink)",
                 }}>
                   {LANGUAGE_FLAGS[pack.language]} {LANGUAGE_LABELS[pack.language]}
                 </span>
@@ -304,7 +304,7 @@ function ShopContent() {
                   <button
                     onClick={(e) => { e.stopPropagation(); handleBuy(pack); }}
                     style={{
-                      background: "#6C3FC8", color: "white", border: "none",
+                      background: "var(--ink)", color: "white", border: "none",
                       borderRadius: 20, padding: "8px 16px",
                       fontSize: 13, fontWeight: 500, cursor: "pointer",
                     }}>
@@ -334,7 +334,7 @@ function ShopContent() {
               overflowY: "auto",
             }}>
             {/* Header modale violet */}
-            <div style={{ background: "#6C3FC8", borderRadius: "20px 20px 0 0", padding: "20px 20px 16px" }}>
+            <div style={{ background: "var(--ink)", borderRadius: "20px 20px 0 0", padding: "20px 20px 16px" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                   <div style={{
@@ -382,7 +382,7 @@ function ShopContent() {
                   { value: selectedPack.level || "A2→B2", label: "niveau" },
                 ].map((stat) => (
                   <div key={stat.label} style={{
-                    background: "#F8F7FF", borderRadius: 12, padding: "12px",
+                    background: "var(--page)", borderRadius: 12, padding: "12px",
                     textAlign: "center",
                   }}>
                     <div style={{ fontWeight: 500, fontSize: 20, color: "#1a1a1a" }}>{stat.value}</div>
@@ -400,7 +400,7 @@ function ShopContent() {
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     {previewWords.map((w, i) => (
                       <div key={i} style={{
-                        background: i < 6 ? "#F8F7FF" : "#F8F7FF",
+                        background: i < 6 ? "var(--page)" : "var(--page)",
                         borderRadius: 10, padding: "10px 12px",
                         filter: i >= 6 ? "blur(4px)" : "none",
                         userSelect: i >= 6 ? "none" : "auto",
@@ -411,7 +411,7 @@ function ShopContent() {
                     ))}
                   </div>
                   {previewWords.length > 6 && (
-                    <div style={{ textAlign: "center", fontSize: 13, color: "#6C3FC8", marginTop: 8 }}>
+                    <div style={{ textAlign: "center", fontSize: 13, color: "var(--ink)", marginTop: 8 }}>
                       … et {selectedPack.wordCount - 6} autres mots dans le pack
                     </div>
                   )}
@@ -427,13 +427,13 @@ function ShopContent() {
                   {previewExpressions.map((w, i) => (
                     <div key={i} style={{
                       display: "flex", alignItems: "flex-start", gap: 10,
-                      padding: "8px 0", borderBottom: "1px solid #F0EBFC",
+                      padding: "8px 0", borderBottom: "1px solid var(--line)",
                       filter: i >= 3 ? "blur(4px)" : "none",
                       userSelect: i >= 3 ? "none" : "auto",
                     }}>
                       <div style={{
                         width: 6, height: 6, borderRadius: "50%",
-                        background: "#6C3FC8", flexShrink: 0, marginTop: 5,
+                        background: "var(--ink)", flexShrink: 0, marginTop: 5,
                       }} />
                       <div>
                         <div style={{ fontWeight: 500, fontSize: 13, color: "#1a1a1a" }}>{w.term}</div>
@@ -442,7 +442,7 @@ function ShopContent() {
                     </div>
                   ))}
                   {previewExpressions.length > 3 && (
-                    <div style={{ textAlign: "center", fontSize: 13, color: "#6C3FC8", marginTop: 8 }}>
+                    <div style={{ textAlign: "center", fontSize: 13, color: "var(--ink)", marginTop: 8 }}>
                       … et {selectedPack.expressionCount - 3} autres expressions
                     </div>
                   )}
@@ -451,7 +451,7 @@ function ShopContent() {
 
               {/* Footer achat */}
               <div style={{
-                borderTop: "1px solid #F0EBFC", paddingTop: 16,
+                borderTop: "1px solid var(--line)", paddingTop: 16,
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 marginBottom: 12,
               }}>
@@ -478,7 +478,7 @@ function ShopContent() {
                   onClick={() => handleBuy(selectedPack)}
                   disabled={loading}
                   style={{
-                    width: "100%", background: "#6C3FC8", color: "white",
+                    width: "100%", background: "var(--ink)", color: "white",
                     border: "none", borderRadius: 20, padding: "14px 0",
                     fontSize: 15, fontWeight: 500, cursor: "pointer",
                     opacity: loading ? 0.7 : 1,
@@ -510,7 +510,7 @@ function ShopComingSoon() {
         alignItems: "center",
         justifyContent: "center",
         padding: "64px 16px",
-        fontFamily: "DM Sans, sans-serif",
+        fontFamily: "var(--font-sans), sans-serif",
       }}
     >
       <div
@@ -519,8 +519,8 @@ function ShopComingSoon() {
           maxWidth: 460,
           background: "white",
           borderRadius: 16,
-          border: "1px solid rgba(108,63,200,0.18)",
-          boxShadow: "0 8px 40px rgba(108,63,200,0.1)",
+          border: "1px solid color-mix(in srgb, var(--ink) 18%, transparent)",
+          boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
           padding: "44px 36px",
           textAlign: "center",
         }}
@@ -538,7 +538,7 @@ function ShopComingSoon() {
                 justifyContent: "center",
               }}
             >
-              <ShoppingBag size={36} color="#6C3FC8" />
+              <ShoppingBag size={36} color="var(--ink)" />
             </div>
             <span
               style={{
@@ -585,12 +585,12 @@ function ShopComingSoon() {
             width: "100%",
             height: 50,
             borderRadius: 20,
-            background: "#6C3FC8",
+            background: "var(--ink)",
             color: "white",
             fontSize: 14,
             fontWeight: 500,
             textDecoration: "none",
-            fontFamily: "DM Sans, sans-serif",
+            fontFamily: "var(--font-sans), sans-serif",
           }}
         >
           Retour à mon tableau de bord
