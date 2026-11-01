@@ -64,8 +64,6 @@ function capitalizeDisplayName(name: string): string {
   return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
 }
 
-const ACCOUNT_MENU_HONEYCOMB = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='48' viewBox='0 0 56 48'%3E%3Cg fill='none' stroke='%23FFFFFF' stroke-width='0.65'%3E%3Cpath d='M14 4 L28 4 L35 12 L28 20 L14 20 L7 12 Z'/%3E%3Cpath d='M28 20 L42 20 L49 28 L42 36 L28 36 L21 28 Z'/%3E%3C/g%3E%3C/svg%3E")`;
-
 function AvatarDropdown({
   name,
   isProfesseur,
@@ -207,17 +205,6 @@ function AvatarDropdown({
                 zIndex: 0,
                 background:
                   "radial-gradient(circle at 100% 120%, rgba(245,166,35,.22), transparent 60%)",
-              }}
-            />
-            <div
-              className="pointer-events-none absolute inset-0"
-              aria-hidden
-              style={{
-                zIndex: 1,
-                opacity: 0.06,
-                backgroundImage: ACCOUNT_MENU_HONEYCOMB,
-                backgroundSize: "56px 48px",
-                backgroundPosition: "14px 10px",
               }}
             />
             <div

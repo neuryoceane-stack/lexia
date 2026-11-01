@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Clock, Check } from "lucide-react";
+import { Clock, Check, PartyPopper } from "lucide-react";
 
 interface LangProgress {
   language: string | null;
@@ -71,8 +71,9 @@ export default function WeeklyGoal() {
           </p>
           <p
             style={{
+              fontFamily: "var(--font-heading)",
               fontSize: 26,
-              fontWeight: 500,
+              fontWeight: 700,
               color: "var(--ink)",
               lineHeight: 1,
             }}
@@ -80,6 +81,7 @@ export default function WeeklyGoal() {
             {currentCount}
             <span
               style={{
+                fontFamily: "var(--font-sans)",
                 fontSize: 13,
                 color: "var(--foreground-muted)",
                 fontWeight: 400,
@@ -93,13 +95,14 @@ export default function WeeklyGoal() {
         <div
           className="flex shrink-0 items-center justify-center"
           style={{
-            width: 32,
-            height: 32,
-            background: "var(--background-subtle)",
-            borderRadius: 8,
+            width: 44,
+            height: 44,
+            background: "var(--surface)",
+            border: "1.5px solid var(--line)",
+            borderRadius: 12,
           }}
         >
-          <Clock className="h-4 w-4 shrink-0 text-ink" strokeWidth={2} />
+          <Clock className="h-5 w-5 shrink-0 text-ink" strokeWidth={1.8} />
         </div>
       </div>
 
@@ -155,9 +158,11 @@ export default function WeeklyGoal() {
       <div
         className="relative z-[1]"
         style={{
-          height: 14,
-          background: "var(--background-subtle)",
-          borderRadius: 8,
+          height: 18,
+          boxSizing: "border-box",
+          background: "var(--surface)",
+          border: "1.5px solid var(--ink)",
+          borderRadius: 999,
           position: "relative",
           overflow: "hidden",
         }}
@@ -171,7 +176,6 @@ export default function WeeklyGoal() {
               width: `${progress * 100}%`,
               height: "100%",
               background: "var(--mark)",
-              borderRadius: 8,
               transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
             }}
           />
@@ -193,16 +197,21 @@ export default function WeeklyGoal() {
       <div
         className="relative z-[1] flex items-center gap-1.5"
         style={{
-          fontSize: 11,
-          color: isComplete ? "var(--just-text)" : "var(--muted)",
+          fontFamily: "var(--font-sans)",
+          fontSize: 13,
+          color: "var(--muted)",
           fontWeight: 500,
+          minHeight: 44,
         }}
       >
         {isComplete ? (
-          <span>Objectif atteint 🎉</span>
+          <>
+            <PartyPopper className="h-[18px] w-[18px] shrink-0 text-ink" strokeWidth={1.8} aria-hidden />
+            <span>Objectif atteint</span>
+          </>
         ) : (
           <>
-            <Check className="h-[11px] w-[11px] shrink-0" strokeWidth={2.5} />
+            <Check className="h-[18px] w-[18px] shrink-0" strokeWidth={1.8} aria-hidden />
             <span>
               {remaining} mot{remaining !== 1 ? "s" : ""} restant
               {remaining !== 1 ? "s" : ""} cette semaine

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
-import { Zap, ArrowRight, Plus } from "lucide-react";
+import { Zap, ArrowRight, Plus, Flame, Brain, Folder, ChartColumn } from "lucide-react";
 import { ProfesseurSM2Modal } from "@/components/professeur-sm2-modal";
 import WeeklyGoal from "@/components/WeeklyGoal";
 
@@ -94,6 +94,36 @@ export function DashboardClient() {
     borderRadius: 16,
     border: "1px solid var(--line)",
   } as const;
+  const headingStyle = {
+    fontFamily: "var(--font-heading)",
+    fontWeight: 700,
+    color: "var(--ink)",
+  } as const;
+  const inkBadgeStyle = {
+    fontFamily: "var(--font-sans)",
+    fontSize: 13,
+    fontWeight: 500,
+    color: "var(--ink)",
+    background: "var(--surface)",
+    border: "1.5px solid var(--ink)",
+    borderRadius: 999,
+    minHeight: 44,
+    padding: "0 12px",
+    display: "inline-flex",
+    alignItems: "center",
+    width: "fit-content",
+  } as const;
+  const iconTileStyle = {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    background: "var(--surface)",
+    border: "1.5px solid var(--line)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+  } as const;
 
   return (
     <div className="flex flex-col gap-[10px]">
@@ -118,9 +148,9 @@ export function DashboardClient() {
               <p
                 className="nav-tab-mark inline-block"
                 style={{
+                  ...headingStyle,
                   fontSize: 42,
-                  fontWeight: 500,
-                  color: "var(--ink)",
+                  lineHeight: 1,
                 }}
               >
                 {displayStreak}
@@ -135,9 +165,7 @@ export function DashboardClient() {
                 jour{s !== 1 ? "s" : ""} d&apos;affilée
               </p>
             </div>
-            <span style={{ fontSize: 22 }} aria-hidden>
-              🔥
-            </span>
+            <Flame className="shrink-0 text-ink" size={22} strokeWidth={1.8} aria-hidden />
           </div>
 
           <div className="relative z-[1] space-y-1">
@@ -221,38 +249,39 @@ export function DashboardClient() {
       <button
         type="button"
         onClick={() => setSm2Open(true)}
-        className="inline-flex min-h-11 items-center self-start text-[12px] font-medium text-ink transition hover:opacity-80"
+        className="inline-flex min-h-11 items-center gap-2 self-start text-ink transition hover:opacity-80"
         style={{
+          ...headingStyle,
+          fontSize: 16,
           background: "none",
           border: "none",
           cursor: "pointer",
           padding: 0,
         }}
       >
-        🧠 Pourquoi réviser maintenant ?
+        <Brain className="shrink-0" size={18} strokeWidth={1.8} aria-hidden />
+        Pourquoi réviser maintenant ?
       </button>
 
       <ProfesseurSM2Modal open={sm2Open} onClose={() => setSm2Open(false)} />
 
       {/* 3 Cartes */}
-      <div className="grid grid-cols-1 gap-[10px] sm:grid-cols-3">
+      <div className="grid grid-cols-1 gap-[10px] md:grid-cols-3">
         {/* Bibliothèque */}
         <Link
           href="/app/familles"
-          className="card-hover flex flex-col gap-2 no-underline"
+          className="home-dash-card flex min-h-11 flex-col gap-2 no-underline"
           style={{
-            ...homeCardStyle,
+            borderRadius: 16,
             padding: "14px 12px",
             cursor: "pointer",
           }}
         >
-          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "var(--background-subtle)" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-            </svg>
+          <div style={iconTileStyle}>
+            <Folder className="text-ink" size={20} strokeWidth={1.8} aria-hidden />
           </div>
-          <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>Bibliothèque</p>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", background: "var(--background-subtle)", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
+          <p style={{ ...headingStyle, fontSize: 16 }}>Bibliothèque</p>
+          <span style={inkBadgeStyle}>
             {listsCount} liste{listsCount !== 1 ? "s" : ""}
           </span>
         </Link>
@@ -260,22 +289,20 @@ export function DashboardClient() {
         {/* Révision */}
         <Link
           href="/app/revision"
-          className="card-hover flex flex-col gap-2 no-underline"
+          className="home-dash-card flex min-h-11 flex-col gap-2 no-underline"
           style={{
-            ...homeCardStyle,
+            borderRadius: 16,
             padding: "14px 12px",
             cursor: "pointer",
           }}
         >
-          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "var(--mark)" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--ink)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-            </svg>
+          <div style={{ ...iconTileStyle, background: "var(--mark)", borderColor: "transparent" }}>
+            <Zap className="text-ink" size={20} strokeWidth={1.8} aria-hidden />
           </div>
-          <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>Révision</p>
+          <p style={{ ...headingStyle, fontSize: 16 }}>Révision</p>
           <span
             className={dueCount > 0 ? "badge-urgent" : ""}
-            style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)", background: "var(--mark)", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}
+            style={{ ...inkBadgeStyle, background: "var(--mark)", border: "none" }}
           >
             {dueCount} mot{dueCount !== 1 ? "s" : ""} à revoir
           </span>
@@ -284,20 +311,18 @@ export function DashboardClient() {
         {/* Synthèse */}
         <Link
           href="/app/jardin"
-          className="card-hover flex flex-col gap-2 no-underline"
+          className="home-dash-card flex min-h-11 flex-col gap-2 no-underline"
           style={{
-            ...homeCardStyle,
+            borderRadius: 16,
             padding: "14px 12px",
             cursor: "pointer",
           }}
         >
-          <div className="flex items-center justify-center" style={{ width: 28, height: 28, borderRadius: 7, background: "var(--just-bg)" }}>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--just-sign)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M3 3v18h18" /><path d="M18 17V9" /><path d="M13 17V5" /><path d="M8 17v-3" />
-            </svg>
+          <div style={iconTileStyle}>
+            <ChartColumn className="text-ink" size={20} strokeWidth={1.8} aria-hidden />
           </div>
-          <p style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>Synthèse</p>
-          <span style={{ fontSize: 11, fontWeight: 500, color: "var(--just-text)", background: "var(--just-bg)", borderRadius: 100, padding: "2px 8px", width: "fit-content" }}>
+          <p style={{ ...headingStyle, fontSize: 16 }}>Synthèse</p>
+          <span style={inkBadgeStyle}>
             {masteredCount} mot{masteredCount !== 1 ? "s" : ""} maîtrisé{masteredCount !== 1 ? "s" : ""}
           </span>
         </Link>
