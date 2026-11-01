@@ -14,8 +14,6 @@ interface WeeklyData {
   byLanguage: LangProgress[];
 }
 
-const BORDER_TERTIARY = "color-mix(in srgb, var(--ink) 14%, transparent)";
-
 export default function WeeklyGoal() {
   const [data, setData] = useState<WeeklyData | null>(null);
   const [selectedLang, setSelectedLang] = useState<string | null>(null);
@@ -48,28 +46,14 @@ export default function WeeklyGoal() {
     <div
       className="flex min-h-0 min-w-0 flex-col gap-[10px]"
       style={{
-        background: "#FFFFFF",
-        borderRadius: 14,
-        border: `0.5px solid ${BORDER_TERTIARY}`,
+        background: "var(--surface)",
+        borderRadius: 16,
+        border: "1px solid var(--line)",
         padding: 16,
         position: "relative",
         overflow: "hidden",
       }}
     >
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          bottom: -18,
-          right: -18,
-          width: 70,
-          height: 70,
-          borderRadius: "50%",
-          background: "var(--ink)",
-          opacity: 0.06,
-        }}
-      />
-
       <div
         className="relative z-[1] flex justify-between gap-2"
         style={{ alignItems: "flex-start" }}
@@ -121,20 +105,23 @@ export default function WeeklyGoal() {
 
       {hasMultipleLangs && (
         <div
-          className="relative z-[1] flex flex-wrap gap-1.5"
+          className="relative z-[1] flex flex-wrap gap-2"
           style={{ marginTop: -4 }}
         >
           <button
             type="button"
             onClick={() => setSelectedLang(null)}
             style={{
-              padding: "2px 8px",
-              borderRadius: 16,
-              border: "1px solid",
-              borderColor: selectedLang === null ? "var(--ink)" : "#E5E5E5",
-              background: selectedLang === null ? "var(--background-subtle)" : "white",
-              color: selectedLang === null ? "var(--ink)" : "#999",
-              fontSize: 10,
+              display: "inline-flex",
+              alignItems: "center",
+              minHeight: 44,
+              padding: "0 12px",
+              borderRadius: 8,
+              border: "1.5px solid var(--ink)",
+              background: selectedLang === null ? "var(--mark)" : "var(--surface)",
+              color: selectedLang === null ? "var(--ink)" : "var(--muted)",
+              fontSize: 13,
+              fontWeight: 500,
               cursor: "pointer",
             }}
           >
@@ -146,13 +133,16 @@ export default function WeeklyGoal() {
               type="button"
               onClick={() => setSelectedLang(l.language)}
               style={{
-                padding: "2px 8px",
-                borderRadius: 16,
-                border: "1px solid",
-                borderColor: selectedLang === l.language ? "var(--ink)" : "#E5E5E5",
-                background: selectedLang === l.language ? "var(--background-subtle)" : "white",
-                color: selectedLang === l.language ? "var(--ink)" : "#999",
-                fontSize: 10,
+                display: "inline-flex",
+                alignItems: "center",
+                minHeight: 44,
+                padding: "0 12px",
+                borderRadius: 8,
+                border: "1.5px solid var(--ink)",
+                background: selectedLang === l.language ? "var(--mark)" : "var(--surface)",
+                color: selectedLang === l.language ? "var(--ink)" : "var(--muted)",
+                fontSize: 13,
+                fontWeight: 500,
                 cursor: "pointer",
               }}
             >
@@ -166,10 +156,10 @@ export default function WeeklyGoal() {
         className="relative z-[1]"
         style={{
           height: 14,
-          background: "#F3EDDF",
+          background: "var(--background-subtle)",
           borderRadius: 8,
           position: "relative",
-          overflow: "visible",
+          overflow: "hidden",
         }}
       >
         {progress > 0 && (
@@ -180,55 +170,11 @@ export default function WeeklyGoal() {
               top: 0,
               width: `${progress * 100}%`,
               height: "100%",
-              background: "#F5A623",
+              background: "var(--mark)",
               borderRadius: 8,
               transition: "width 0.6s cubic-bezier(0.4,0,0.2,1)",
-              overflow: "visible",
             }}
-          >
-            <div
-              className="honey-shimmer"
-              style={{
-                position: "absolute",
-                inset: 0,
-                background:
-                  "repeating-linear-gradient(115deg, rgba(255,255,255,0) 0 10px, rgba(255,255,255,0.18) 10px 20px)",
-                animation: "honeyShimmer 2.5s linear infinite",
-                borderRadius: 8,
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              className="honey-drip"
-              style={{
-                position: "absolute",
-                right: 6,
-                top: 11,
-                width: 8,
-                height: 10,
-                background: "#E89512",
-                borderRadius: "50% 50% 50% 0",
-                transform: "rotate(45deg)",
-                animation: "honeyDrip 2.8s ease-in infinite",
-                pointerEvents: "none",
-              }}
-            />
-            <div
-              className="honey-drip"
-              style={{
-                position: "absolute",
-                right: 20,
-                top: 12,
-                width: 8,
-                height: 10,
-                background: "#E89512",
-                borderRadius: "50% 50% 50% 0",
-                transform: "rotate(45deg)",
-                animation: "honeyDrip 2.8s ease-in 1.2s infinite",
-                pointerEvents: "none",
-              }}
-            />
-          </div>
+          />
         )}
       </div>
 
@@ -248,7 +194,7 @@ export default function WeeklyGoal() {
         className="relative z-[1] flex items-center gap-1.5"
         style={{
           fontSize: 11,
-          color: "#1D9E75",
+          color: isComplete ? "var(--just-text)" : "var(--muted)",
           fontWeight: 500,
         }}
       >
@@ -256,7 +202,7 @@ export default function WeeklyGoal() {
           <span>Objectif atteint 🎉</span>
         ) : (
           <>
-            <Check className="h-[11px] w-[11px] shrink-0 text-[#1D9E75]" strokeWidth={2.5} />
+            <Check className="h-[11px] w-[11px] shrink-0" strokeWidth={2.5} />
             <span>
               {remaining} mot{remaining !== 1 ? "s" : ""} restant
               {remaining !== 1 ? "s" : ""} cette semaine

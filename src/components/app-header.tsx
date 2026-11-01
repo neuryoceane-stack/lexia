@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, type CSSProperties } from "react";
+import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -461,6 +461,10 @@ function AccountMenuLogoutButton({
 
 const navItemCreator = { href: "/app/creator", label: "Créateur", icon: "bolt" as const } as const;
 
+function NavTabLabel({ active, children }: { active: boolean; children: ReactNode }) {
+  return <span className={active ? "nav-tab-mark" : undefined}>{children}</span>;
+}
+
 export function AppHeader({
   user,
   isProfesseur = false,
@@ -535,25 +539,11 @@ export function AppHeader({
               <Link
                 key={href}
                 href={href}
-                className="relative py-1 text-[14px] font-medium no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-                style={{
-                  color: active ? "var(--ink)" : "var(--muted)",
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) e.currentTarget.style.color = "var(--ink)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) e.currentTarget.style.color = "var(--muted)";
-                }}
+                className={`relative inline-flex min-h-11 items-center text-[14px] font-medium no-underline transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 ${
+                  active ? "text-ink" : "text-muted hover:text-ink"
+                }`}
               >
-                {label}
-                {active && (
-                  <span
-                    aria-hidden
-                    className="absolute -bottom-1 left-0 right-0 mx-auto h-0.5 rounded-full"
-                    style={{ background: "var(--ink)", maxWidth: "100%" }}
-                  />
-                )}
+                <NavTabLabel active={active}>{label}</NavTabLabel>
               </Link>
             );
           })}
@@ -568,7 +558,7 @@ export function AppHeader({
           <button
             type="button"
             onClick={() => setBurgerOpen((o) => !o)}
-            className="flex h-9 w-9 items-center justify-center rounded-lg text-muted transition-colors hover:bg-[var(--background-subtle)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 md:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-[var(--background-subtle)] hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 md:hidden"
             aria-expanded={burgerOpen}
             aria-controls="mobile-menu"
             aria-label={burgerOpen ? "Fermer le menu" : "Ouvrir le menu"}
@@ -631,7 +621,7 @@ export function AppHeader({
                 <button
                   type="button"
                   onClick={() => setBurgerOpen(false)}
-                  className="rounded-lg p-2 text-muted transition-colors hover:bg-[var(--background-subtle)]"
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted transition-colors hover:bg-[var(--background-subtle)]"
                   aria-label="Fermer le menu"
                 >
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -647,13 +637,11 @@ export function AppHeader({
                       key={href}
                       href={href}
                       onClick={() => setBurgerOpen(false)}
-                      className="block rounded-lg px-4 py-3 text-[15px] font-medium no-underline transition-colors"
-                      style={{
-                        color: active ? "var(--ink)" : "var(--ink)",
-                        background: active ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "transparent",
-                      }}
+                      className={`flex min-h-11 items-center rounded-lg px-4 text-[15px] font-medium no-underline transition-colors ${
+                        active ? "text-ink" : "text-muted hover:text-ink"
+                      }`}
                     >
-                      {label}
+                      <NavTabLabel active={active}>{label}</NavTabLabel>
                     </Link>
                   );
                 })}
