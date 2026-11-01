@@ -37,7 +37,7 @@ export default async function DicteePage({
         className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
         style={{ backgroundColor: PAGE_BG }}
       >
-        <div className="mx-auto max-w-lg">
+        <div className="mx-auto w-full">
           <RevisionClient
             initialMode="dictee"
             initialListIds={initialListIds}

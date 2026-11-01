@@ -246,7 +246,7 @@ export default function SessionEndScreen({
                     fontWeight: 400,
                   }}
                 >
-                  ⏱ {durationStr}
+                  {durationStr}
                 </p>
               ) : null}
             </>
@@ -266,11 +266,10 @@ export default function SessionEndScreen({
             <button
               type="button"
               onClick={onHome}
-              className="w-full font-medium text-surface transition-colors duration-200"
+              className="inline-flex min-h-14 w-full items-center justify-center rounded-full font-medium text-surface transition-colors duration-200"
               style={{
                 backgroundColor: VIOLET,
                 padding: 14,
-                borderRadius: 20,
                 fontSize: 16,
                 fontWeight: 500,
               }}
@@ -293,7 +292,7 @@ export default function SessionEndScreen({
                     borderColor: VIOLET,
                     color: VIOLET,
                     padding: 12,
-                    borderRadius: 20,
+                    borderRadius: 999,
                     fontSize: 15,
                     fontWeight: 500,
                   }}
@@ -315,7 +314,7 @@ export default function SessionEndScreen({
                       borderColor: "var(--border)",
                       color: "var(--foreground-muted)",
                       padding: 12,
-                      borderRadius: 20,
+                      borderRadius: 999,
                       fontSize: 15,
                       fontWeight: 500,
                     }}

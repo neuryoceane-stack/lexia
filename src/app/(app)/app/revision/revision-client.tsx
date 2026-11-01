@@ -2,27 +2,16 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import {
-  X,
-  Check,
-  RotateCcw,
-  ArrowRight,
-  ChevronDown,
-  Volume2,
-  RefreshCw,
-  Clock,
-  Lightbulb,
-} from "lucide-react";
+import { Lightbulb } from "lucide-react";
 import SessionEndScreen from "@/components/student/SessionEndScreen";
 import { computeSessionXP } from "@/lib/xp";
 import { BackLink } from "@/components/back-link";
-import { FlagDisplay } from "@/components/flag-display";
 import {
-  PREFERRED_LANGUAGE_OPTIONS,
   detectListLanguages,
   KNOWN_LANGUAGE_CODES,
 } from "@/lib/language";
 import { playCorrectSound, playWrongSound } from "@/lib/sound-feedback";
+import { DicteeSession, FlashcardSession } from "./revision-session";
 
 type BibliothequeList = {
   id: string;
@@ -99,7 +88,7 @@ export function RevisionClient({
   const [selectedListIds, setSelectedListIds] = useState<Set<string>>(
     () => new Set(initialListIds)
   );
-  const [direction] = useState<Direction>(initialDirection);
+  const [direction, setDirection] = useState<Direction>(initialDirection);
 
   const [words, setWords] = useState<DueWord[]>([]);
   const [loading, setLoading] = useState(false);
@@ -750,64 +739,15 @@ export function RevisionClient({
     const answerLang =
       direction === "term_to_def" ? sessionLangDef : sessionLangTerm;
 
-    const SpeakButton = ({
-      text,
-      lang,
-      className = "",
-      stopPropagation = false,
-      variant = "default",
-    }: {
-      text: string;
-      lang: string;
-      className?: string;
-      stopPropagation?: boolean;
-      variant?: "default" | "tile";
-    }) => (
-      <button
-        type="button"
-        onClick={(e) => {
-          if (stopPropagation) e.stopPropagation();
-          speakWord(text, lang);
-        }}
-        className={
-          variant === "tile"
-            ? `inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition hover:brightness-95 ${className}`
-            : `inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[var(--background-subtle)] text-[var(--foreground-muted)] transition hover:bg-[var(--background-card)] ${className}`
-        }
-        style={
-          variant === "tile"
-            ? {
-                background: "var(--background-subtle)",
-                border: "0.5px solid var(--line)",
-              }
-            : undefined
-        }
-        aria-label="Écouter la prononciation"
-      >
-        {variant === "tile" ? (
-          <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink" aria-hidden />
-        ) : (
-          <span aria-hidden>🔊</span>
-        )}
-      </button>
-    );
-
     /**
      * Bouton « ampoule » + popover d’astuce mémo.
-     * @param right décalage horizontal (px) en mode absolute.
-     * @param layout absolute = coin carte flashcards ; inline = colonne d’icônes dictée.
+     * Inline : coin de la carte (flashcards et dictée).
      */
-    const renderMemoTipButton = (
-      right = 12,
-      layout: "absolute" | "inline" = "absolute"
-    ) => (
+    const renderMemoTipButton = () => (
       <div
-        className={layout === "inline" ? "relative z-40" : undefined}
-        style={
-          layout === "absolute"
-            ? { position: "absolute", top: 12, right, zIndex: 40 }
-            : undefined
-        }
+        className="relative z-40"
+        data-card-action
+        onPointerDown={(e) => e.stopPropagation()}
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -819,14 +759,14 @@ export function RevisionClient({
           aria-label="Astuce mémo"
           className="flex items-center justify-center rounded-full transition"
           style={{
-            width: 32,
-            height: 32,
+            width: 48,
+            height: 48,
             background: showMemoPopover ? "var(--ink)" : "var(--mark)",
-            border: `1px solid ${showMemoPopover ? "var(--ink)" : "var(--line)"}`,
+            border: "1.5px solid var(--ink)",
           }}
         >
           <Lightbulb
-            className="h-3.5 w-3.5 shrink-0"
+            className="h-5 w-5 shrink-0"
             style={{ color: showMemoPopover ? "var(--surface)" : "var(--ink)" }}
             aria-hidden
           />
@@ -835,10 +775,11 @@ export function RevisionClient({
         {showMemoPopover && (
           <div
             onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             style={{
               position: "absolute",
-              top: 40,
-              right: layout === "inline" ? -4 : 0,
+              top: 56,
+              right: 0,
               width: 230,
               maxWidth: "calc(100vw - 48px)",
               background: "var(--surface)",
@@ -904,18 +845,6 @@ export function RevisionClient({
       </div>
     );
 
-    function getHintDisplay(word: string, hintsUsed: number): string {
-      if (hintsUsed === 0) return "";
-      return word
-        .split("")
-        .map((char, i) => {
-          if (char === " ") return "   ";
-          if (i < hintsUsed) return char;
-          return "_";
-        })
-        .join(" ");
-    }
-
     if (mode === "flashcard") {
       const flashWordsDone = isSandboxSession
         ? sandboxMasteredCount
@@ -931,399 +860,36 @@ export function RevisionClient({
         ? `${sandboxMasteredCount} / ${sandboxTotalWords} maîtrisés`
         : `${Math.min(flashWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
 
-      const revealHint =
-        direction === "term_to_def"
-          ? "Appuie pour révéler la traduction"
-          : "Appuie pour révéler le mot";
-
-      const borderTertiaryFlash = "color-mix(in srgb, var(--ink) 14%, transparent)";
-
-      const flipCard = () => {
-        if (!sending) setRevealed(true);
-      };
-
       return (
-        <div
-          className="flex min-h-[50vh] flex-col"
-          style={{ background: "var(--page)" }}
-        >
-          <div
-            aria-hidden="true"
-            className="fixed inset-0 -z-10"
-            style={{ background: "var(--page)" }}
-          />
-          {error ? (
-            <p
-              className="mb-3 rounded-xl px-3 py-2 text-sm text-false-text"
-              style={{ background: "var(--false-bg)" }}
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
-
-          <div className="flex items-center" style={{ marginBottom: 24, gap: 12 }}>
-            <button
-              type="button"
-              onClick={() => {
-                void saveSessionAndNavigateToEvaluation();
-              }}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 border-0 bg-transparent p-0"
-              style={{
-                fontSize: 12,
-                color: "var(--foreground-muted)",
-              }}
-            >
-              <X className="h-3 w-3 shrink-0" aria-hidden />
-              Quitter
-            </button>
-
-            <div className="min-w-0 flex-1">
-              <div
-                className="overflow-hidden"
-                style={{
-                  height: 6,
-                  background: "var(--background-subtle)",
-                  borderRadius: 3,
-                }}
-              >
-                <div
-                  style={{
-                    height: "100%",
-                    width: `${flashProgressPct}%`,
-                    background: "var(--ink)",
-                    borderRadius: 3,
-                    transition: "width 400ms ease",
-                  }}
-                />
-              </div>
-              <p
-                className="mt-1 text-right"
-                style={{
-                  fontSize: 11,
-                  color: "var(--foreground-muted)",
-                  marginTop: 4,
-                }}
-              >
-                {flashSlotLabel}
-              </p>
-            </div>
-
-            <div
-              className="flex shrink-0 items-center gap-[5px]"
-              style={{
-                background: "var(--just-bg)",
-                borderRadius: 10,
-                padding: "5px 10px",
-              }}
-            >
-              <Check
-                className="h-3 w-3 shrink-0"
-                stroke="var(--just-sign)"
-                aria-hidden
-              />
-              <span style={{ fontSize: 13, fontWeight: 500, color: "var(--just-text)" }}>
-                {flashOuiCount}
-              </span>
-              <span style={{ fontSize: 11, color: "var(--just-text)" }}>bons</span>
-            </div>
-          </div>
-
-          {current ? (
-            <div className="relative flex flex-1 flex-col">
-              {renderMemoTipButton(52)}
-              {!revealed ? (
-                <>
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    onClick={flipCard}
-                    onKeyDown={(e) => {
-                      if (e.key === " " || e.key === "Enter") {
-                        e.preventDefault();
-                        flipCard();
-                      }
-                    }}
-                    className="relative cursor-pointer transition-transform duration-150 ease-out hover:-translate-y-0.5"
-                    style={{
-                      background: "var(--surface)",
-                      borderRadius: 20,
-                      borderWidth: 0.5,
-                      borderStyle: "solid",
-                      borderColor: borderTertiaryFlash,
-                      padding: "48px 24px",
-                      marginBottom: 20,
-                      textAlign: "center",
-                      minHeight: 200,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 12,
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        speakWord(displayText, displayLang);
-                      }}
-                      className="absolute flex items-center justify-center rounded-full"
-                      style={{
-                        top: 12,
-                        right: 12,
-                        width: 32,
-                        height: 32,
-                        background: "var(--background-subtle)",
-                        border: "0.5px solid var(--line)",
-                      }}
-                      aria-label="Écouter le mot affiché"
-                    >
-                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink" />
-                    </button>
-                    <p
-                      style={{
-                        fontSize: 40,
-                        fontWeight: 500,
-                        color: "var(--foreground)",
-                        lineHeight: 1.2,
-                      }}
-                    >
-                      {displayText}
-                    </p>
-                    <div
-                      className="flex items-center justify-center gap-[5px]"
-                      style={{
-                        fontSize: 12,
-                        color: "var(--foreground-muted)",
-                      }}
-                    >
-                      <ChevronDown
-                        className="h-[11px] w-[11px] shrink-0 opacity-80"
-                        aria-hidden
-                      />
-                      {revealHint}
-                    </div>
-                  </div>
-
-                  {hintsUsed > 0 && (
-                    <p
-                      style={{
-                        fontFamily: "var(--font-sans), sans-serif",
-                        fontSize: 18,
-                        fontWeight: 500,
-                        color: "var(--ink)",
-                        letterSpacing: "4px",
-                        textAlign: "center",
-                        marginBottom: 12,
-                        minHeight: 28,
-                      }}
-                    >
-                      {getHintDisplay(answerText, hintsUsed)}
-                    </p>
-                  )}
-
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: 8,
-                      justifyContent: "center",
-                      marginBottom: 12,
-                    }}
-                  >
-                    {(
-                      [
-                        { label: "1ère lettre", index: 1 },
-                        { label: "2ème lettre", index: 2 },
-                        { label: "3ème lettre", index: 3 },
-                      ] as const
-                    ).map(({ label, index: hintIndex }) => {
-                      const isUnlocked = hintsUsed >= hintIndex - 1;
-                      const isUsed = hintsUsed >= hintIndex;
-                      return (
-                        <button
-                          key={hintIndex}
-                          type="button"
-                          disabled={!isUnlocked || isUsed}
-                          onClick={() => {
-                            setHintsUsed(hintIndex);
-                            setHintPenalty(
-                              (prev) => Math.round((prev + 0.1) * 10) / 10
-                            );
-                          }}
-                          style={{
-                            padding: "4px 10px",
-                            fontSize: 11,
-                            fontFamily: "var(--font-sans), sans-serif",
-                            fontWeight: 500,
-                            borderRadius: 20,
-                            border: "1px solid",
-                            borderColor: isUsed
-                              ? "var(--ink)"
-                              : isUnlocked
-                                ? "var(--line)"
-                                : "var(--line)",
-                            backgroundColor: isUsed ? "var(--background-subtle)" : "white",
-                            color: isUsed
-                              ? "var(--ink)"
-                              : isUnlocked
-                                ? "var(--muted)"
-                                : "var(--foreground-disabled)",
-                            cursor:
-                              isUnlocked && !isUsed ? "pointer" : "default",
-                            transition: "all 0.15s",
-                          }}
-                        >
-                          {label}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={flipCard}
-                    disabled={sending}
-                    className="flex w-full cursor-pointer items-center justify-center gap-2 border-0 text-surface disabled:opacity-50"
-                    style={{
-                      background: "var(--ink)",
-                      borderRadius: 12,
-                      padding: 13,
-                      fontSize: 14,
-                      fontWeight: 500,
-                      gap: 8,
-                    }}
-                  >
-                    <RefreshCw className="h-3.5 w-3.5 shrink-0 text-surface" />
-                    Retourner la carte
-                  </button>
-                </>
-              ) : (
-                <>
-                  <div
-                    className="relative"
-                    style={{
-                      background: "var(--background-subtle)",
-                      borderRadius: 20,
-                      borderWidth: 1.5,
-                      borderStyle: "solid",
-                      borderColor: "var(--line)",
-                      padding: "32px 24px",
-                      marginBottom: 20,
-                      textAlign: "center",
-                      minHeight: 200,
-                      display: "flex",
-                      flexDirection: "column",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      gap: 8,
-                    }}
-                  >
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        speakWord(answerText || "", answerLang);
-                      }}
-                      className="absolute flex items-center justify-center rounded-full"
-                      style={{
-                        top: 12,
-                        right: 12,
-                        width: 32,
-                        height: 32,
-                        background: "color-mix(in srgb, var(--ink) 12%, transparent)",
-                        border: "0.5px solid color-mix(in srgb, var(--ink) 20%, transparent)",
-                      }}
-                      aria-label="Écouter la traduction"
-                    >
-                      <Volume2 className="h-3.5 w-3.5 shrink-0 text-ink" />
-                    </button>
-                    <p
-                      style={{
-                        fontSize: 20,
-                        fontWeight: 500,
-                        color: "var(--ink)",
-                      }}
-                    >
-                      {displayText}
-                    </p>
-                    <div
-                      style={{
-                        width: 40,
-                        height: 1,
-                        background: "var(--background-subtle)",
-                        margin: "4px auto",
-                      }}
-                    />
-                    <p
-                      style={{
-                        fontSize: 32,
-                        fontWeight: 500,
-                        color: "var(--foreground)",
-                      }}
-                    >
-                      {answerText || "—"}
-                    </p>
-                  </div>
-
-                  <div className="flex w-full" style={{ gap: 10 }}>
-                    <button
-                      type="button"
-                      disabled={sending}
-                      onClick={() => void recordFlashcardLexivaRating(1)}
-                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 bg-transparent disabled:opacity-50"
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        padding: 13,
-                        borderRadius: 12,
-                        border: "1.5px solid var(--false-sign)",
-                        color: "var(--false-sign)",
-                      }}
-                    >
-                      <X className="h-3 w-3 shrink-0 text-[var(--false-sign)]" />
-                      Non
-                    </button>
-                    <button
-                      type="button"
-                      disabled={sending}
-                      onClick={() => void recordFlashcardLexivaRating(3)}
-                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 bg-transparent disabled:opacity-50"
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        padding: 13,
-                        borderRadius: 12,
-                        border: "1.5px solid var(--ink)",
-                        color: "var(--ink)",
-                      }}
-                    >
-                      <Clock className="h-3 w-3 shrink-0 text-[var(--ink)]" />
-                      Presque
-                    </button>
-                    <button
-                      type="button"
-                      disabled={sending}
-                      onClick={() => void recordFlashcardLexivaRating(5)}
-                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 border-0 text-surface disabled:opacity-50"
-                      style={{
-                        fontSize: 13,
-                        fontWeight: 500,
-                        padding: 13,
-                        borderRadius: 12,
-                        background: "var(--just-sign)",
-                      }}
-                    >
-                      <Check className="h-3 w-3 shrink-0 text-surface" />
-                      Oui !
-                    </button>
-                  </div>
-                </>
-              )}
-
-            </div>
-          ) : null}
-        </div>
+        <FlashcardSession
+          onQuit={() => {
+            void saveSessionAndNavigateToEvaluation();
+          }}
+          progressPct={flashProgressPct}
+          slotLabel={flashSlotLabel}
+          goodCount={flashOuiCount}
+          termLang={sessionLangTerm}
+          defLang={sessionLangDef}
+          direction={direction}
+          onDirection={(next) => {
+            if (next === direction || sending) return;
+            setDirection(next);
+            setRevealed(false);
+          }}
+          displayText={displayText}
+          answerText={answerText}
+          displayLang={displayLang}
+          answerLang={answerLang}
+          revealed={revealed}
+          onReveal={() => {
+            if (!sending) setRevealed(true);
+          }}
+          sending={sending}
+          onRate={(rating) => recordFlashcardLexivaRating(rating)}
+          onSpeak={speakWord}
+          memo={renderMemoTipButton()}
+          error={error}
+        />
       );
     }
 
@@ -1341,451 +907,52 @@ export function RevisionClient({
       ? `${sandboxMasteredCount} / ${sandboxTotalWords} maîtrisés`
       : `${Math.min(dicteeWordsDone + 1, sessionTotalWords)} / ${sessionTotalWords} mots`;
 
-    const dicteeAnswerLabel =
-      direction === "term_to_def"
-        ? "Traduction en français"
-        : "Mot dans la langue étudiée";
-
-    const borderTertiary = "color-mix(in srgb, var(--ink) 14%, transparent)";
-
     function validateDictee() {
       if (!current || sending || dicteePhase !== "typing") return;
+      if (!writeAnswer.trim()) return;
       const ok = isDicteeAnswerCorrect(writeAnswer, answerText);
       playEvalFeedback(ok);
       if (ok) {
         setDicteePhase("correct_feedback");
       } else {
         setLastWrongAnswer(writeAnswer.trim());
-        setDicteePhase("wrong_unrevealed");
+        setDicteePhase("revealed_fail");
       }
     }
 
-    const wordCardColors =
-      dicteePhase === "correct_feedback"
-        ? {
-            background: "var(--just-bg)",
-            borderColor: "var(--just-sign)",
-            wordColor: "var(--just-sign)",
-          }
-        : dicteePhase === "wrong_unrevealed" || dicteePhase === "revealed_fail"
-          ? {
-              background: "var(--false-bg)",
-              borderColor: "var(--false-sign)",
-              wordColor: "var(--false-sign)",
-            }
-          : {
-              background: "var(--surface)",
-              borderColor: borderTertiary,
-              wordColor: "var(--foreground)",
-            };
+    function advanceDictee() {
+      if (sending) return;
+      if (dicteePhase === "correct_feedback") {
+        void recordDicteeCompletion(dicteeHadRetry ? 2 : 3);
+      } else if (dicteePhase === "revealed_fail" || dicteePhase === "wrong_unrevealed") {
+        void recordDicteeCompletion(0);
+      }
+    }
 
     return (
-      <div
-        className="flex flex-col md:min-h-[50vh] md:overflow-visible max-md:fixed max-md:inset-0 max-md:z-20 max-md:h-[100dvh] max-md:overflow-hidden"
-        style={{ background: "var(--page)" }}
-      >
-        <div
-          aria-hidden="true"
-          className="fixed inset-0 -z-10"
-          style={{ background: "var(--page)" }}
-        />
-        <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden max-md:pt-4 max-md:pl-4 max-md:pr-[max(80px,calc(16px+env(safe-area-inset-right,0px)))] md:h-auto md:overflow-visible md:px-0 md:pt-0 md:pb-0">
-          {error ? (
-            <p
-              className="mb-3 shrink-0 rounded-xl px-3 py-2 text-sm text-false-text"
-              style={{ background: "var(--false-bg)" }}
-              role="alert"
-            >
-              {error}
-            </p>
-          ) : null}
-
-          <div
-            className="flex shrink-0 items-center max-md:mb-4 md:mb-6"
-            style={{ gap: 12 }}
-          >
-            <button
-              type="button"
-              onClick={() => {
-                void saveSessionAndNavigateToEvaluation();
-              }}
-              className="flex shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border-0 bg-transparent px-0 py-1 transition hover:opacity-80"
-              style={{
-                fontSize: 12,
-                fontWeight: 500,
-                color: "var(--foreground-muted)",
-              }}
-            >
-              <X className="h-3.5 w-3.5 shrink-0" aria-hidden />
-              Quitter
-            </button>
-
-            <div className="min-w-0 flex-1">
-              <div
-                className="overflow-hidden rounded-full"
-                style={{
-                  height: 4,
-                  background: "color-mix(in srgb, var(--ink) 10%, transparent)",
-                }}
-              >
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${dicteeProgressPct}%`,
-                    background: "var(--ink)",
-                    transition: "width 400ms ease",
-                  }}
-                />
-              </div>
-              <p
-                className="mt-1.5 text-right"
-                style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: "var(--foreground-muted)",
-                }}
-              >
-                {dicteeSlotLabel}
-              </p>
-            </div>
-
-            <div
-              className="flex shrink-0 items-center gap-1 rounded-[10px] px-2.5 py-1.5"
-              style={{
-                background: "var(--just-bg)",
-                border: "0.5px solid var(--just-sign)",
-              }}
-            >
-              <Check
-                className="h-3 w-3 shrink-0"
-                stroke="var(--just-sign)"
-                aria-hidden
-              />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--just-text)" }}>
-                {wordsRetained}
-              </span>
-              <span style={{ fontSize: 11, color: "var(--just-text)" }}>bons</span>
-            </div>
-          </div>
-
-          {current ? (
-            <div className="flex shrink-0 flex-col gap-3 max-md:gap-2.5 max-md:pt-[clamp(16px,5vh,32px)] max-md:pb-[max(56px,calc(48px+env(safe-area-inset-bottom,0px)))] md:gap-5">
-                <div
-                  className="relative shrink-0 overflow-hidden rounded-2xl md:rounded-[18px]"
-                  style={{
-                    background: wordCardColors.background,
-                    borderWidth: 0.5,
-                    borderStyle: "solid",
-                    borderColor: wordCardColors.borderColor,
-                    boxShadow:
-                      dicteePhase === "correct_feedback" ||
-                      dicteePhase === "wrong_unrevealed" ||
-                      dicteePhase === "revealed_fail"
-                        ? "none"
-                        : "0 4px 20px color-mix(in srgb, var(--ink) 8%, transparent)",
-                  }}
-                >
-                  <div className="flex items-start gap-2.5 px-3.5 py-3 md:gap-3 md:px-5 md:py-6">
-                    <p
-                      className="min-w-0 flex-1 break-words text-center text-[clamp(16px,4.5vw,24px)] font-medium leading-snug [text-wrap:balance] md:text-[32px] md:leading-tight"
-                      style={{ color: wordCardColors.wordColor }}
-                    >
-                      {displayText}
-                    </p>
-                    <div
-                      className="flex w-[72px] shrink-0 items-center justify-end gap-1.5 pt-0.5"
-                      aria-label="Actions sur le mot"
-                    >
-                      <SpeakButton
-                        text={displayText}
-                        lang={displayLang}
-                        variant="tile"
-                      />
-                      {renderMemoTipButton(12, "inline")}
-                    </div>
-                  </div>
-                </div>
-
-              {dicteePhase === "typing" && (
-                <div className="shrink-0">
-                  <label
-                    className="mb-2 block text-center text-[13px] font-medium md:text-sm"
-                    style={{ color: "var(--foreground-muted)" }}
-                  >
-                    {dicteeAnswerLabel}
-                  </label>
-                  <input
-                    ref={dicteeInputRef}
-                    type="text"
-                    value={writeAnswer}
-                    onChange={(e) => setWriteAnswer(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") validateDictee();
-                    }}
-                    disabled={sending}
-                    enterKeyHint="done"
-                    autoComplete="off"
-                    autoCorrect="off"
-                    spellCheck={false}
-                    className="mb-3 w-full rounded-xl border border-line bg-surface text-center outline-none transition-[border-color,box-shadow] focus:border-ink focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)] max-md:py-3 max-md:text-lg md:mb-3.5 md:py-3.5 md:text-xl"
-                    style={{
-                      fontWeight: 500,
-                      paddingLeft: 16,
-                      paddingRight: 16,
-                    }}
-                  />
-                  <div className="flex gap-2.5 md:gap-3">
-                    <button
-                      type="button"
-                      disabled={sending}
-                      onClick={() => {
-                        playEvalFeedback(false);
-                        setLastWrongAnswer(writeAnswer.trim());
-                        setDicteePhase("revealed_fail");
-                      }}
-                      className="flex-1 rounded-xl border border-line bg-surface text-[13px] font-medium transition hover:border-ink hover:bg-surface disabled:opacity-50 max-md:py-3 md:py-3.5"
-                      style={{ color: "var(--foreground-muted)" }}
-                    >
-                      Je ne sais pas
-                    </button>
-                    <button
-                      type="button"
-                      disabled={sending || !writeAnswer.trim()}
-                      onClick={validateDictee}
-                      className="flex flex-[1.6] items-center justify-center gap-2 rounded-xl border-0 text-[13px] font-medium text-surface transition hover:brightness-95 disabled:opacity-50 max-md:py-3 md:py-3.5"
-                      style={{
-                        background: "var(--ink)",
-                        boxShadow: "0 2px 10px color-mix(in srgb, var(--ink) 22%, transparent)",
-                      }}
-                    >
-                      <Check
-                        className="h-3.5 w-3.5 shrink-0 text-surface"
-                        aria-hidden
-                      />
-                      Valider
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {dicteePhase === "wrong_unrevealed" && (
-                <>
-                  <div
-                    className="flex shrink-0 items-center gap-3"
-                    style={{
-                      background: "var(--false-bg)",
-                      borderRadius: 14,
-                      padding: "14px 16px",
-                      gap: 12,
-                    }}
-                  >
-                    <div
-                      className="flex shrink-0 items-center justify-center rounded-full"
-                      style={{
-                        width: 34,
-                        height: 34,
-                        background: "var(--false-sign)",
-                      }}
-                    >
-                      <X className="h-4 w-4 text-surface" aria-hidden />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <p
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: "var(--false-text)",
-                        }}
-                      >
-                        Pas tout à fait…
-                      </p>
-                      <p
-                        className="mt-0.5 line-through"
-                        style={{ fontSize: 12, color: "var(--false-text)" }}
-                      >
-                        {lastWrongAnswer || "—"}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 gap-2">
-                    <button
-                      type="button"
-                      disabled={sending}
-                      onClick={() => {
-                        setDicteeHadRetry(true);
-                        setWriteAnswer("");
-                        setDicteePhase("typing");
-                      }}
-                      className="flex flex-1 items-center justify-center gap-2 bg-transparent"
-                      style={{
-                        border: "1.5px solid var(--false-sign)",
-                        color: "var(--false-sign)",
-                        borderRadius: 12,
-                        padding: 11,
-                        fontSize: 13,
-                      }}
-                    >
-                      <RotateCcw className="h-3 w-3 shrink-0 stroke-[var(--false-sign)]" />
-                      Réessayer
-                    </button>
-                    <button
-                      type="button"
-                      disabled={sending}
-                      onClick={() => setDicteePhase("revealed_fail")}
-                      className="flex-1 border-0 text-surface"
-                      style={{
-                        background: "var(--false-sign)",
-                        borderRadius: 12,
-                        padding: 11,
-                        fontSize: 13,
-                      }}
-                    >
-                      Voir la réponse
-                    </button>
-                  </div>
-                </>
-              )}
-
-              {dicteePhase === "revealed_fail" && (
-                <>
-                  <div
-                    className="flex shrink-0 items-center gap-3"
-                    style={{
-                      background: "var(--false-bg)",
-                      borderRadius: 14,
-                      padding: "14px 16px",
-                      gap: 12,
-                    }}
-                  >
-                    <div
-                      className="flex shrink-0 items-center justify-center rounded-full"
-                      style={{
-                        width: 34,
-                        height: 34,
-                        background: "var(--false-sign)",
-                      }}
-                    >
-                      <X className="h-4 w-4 text-surface" aria-hidden />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <p
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: "var(--false-text)",
-                        }}
-                      >
-                        La bonne réponse
-                      </p>
-                      <p
-                        className="mt-0.5"
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: "var(--false-text)",
-                        }}
-                      >
-                        {answerText || "—"}
-                      </p>
-                      <p
-                        className="mt-1 line-through"
-                        style={{ fontSize: 12, color: "var(--false-text)" }}
-                      >
-                        {lastWrongAnswer || "—"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() => void recordDicteeCompletion(0)}
-                    className="flex w-full shrink-0 items-center justify-center gap-2 border-0 text-surface"
-                    style={{
-                      background: "var(--false-sign)",
-                      borderRadius: 12,
-                      padding: 13,
-                      fontSize: 14,
-                      fontWeight: 500,
-                    }}
-                  >
-                    Continuer
-                    <ArrowRight
-                      className="h-3.5 w-3.5 shrink-0 text-surface"
-                      aria-hidden
-                    />
-                  </button>
-                </>
-              )}
-
-              {dicteePhase === "correct_feedback" && (
-                <>
-                  <div
-                    className="flex shrink-0 items-center gap-3"
-                    style={{
-                      background: "var(--just-bg)",
-                      borderRadius: 14,
-                      padding: "14px 16px",
-                      gap: 12,
-                    }}
-                  >
-                    <div
-                      className="flex shrink-0 items-center justify-center rounded-full"
-                      style={{
-                        width: 34,
-                        height: 34,
-                        background: "var(--just-sign)",
-                      }}
-                    >
-                      <Check className="h-4 w-4 text-surface" aria-hidden />
-                    </div>
-                    <div className="min-w-0 flex-1 text-left">
-                      <p
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 500,
-                          color: "var(--just-text)",
-                        }}
-                      >
-                        Bonne réponse !
-                      </p>
-                      <p
-                        className="mt-0.5"
-                        style={{
-                          fontSize: 14,
-                          fontWeight: 500,
-                          color: "var(--just-text)",
-                        }}
-                      >
-                        {answerText || "—"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={sending}
-                    onClick={() =>
-                      void recordDicteeCompletion(dicteeHadRetry ? 2 : 3)
-                    }
-                    className="flex w-full shrink-0 items-center justify-center gap-2 border-0 text-surface"
-                    style={{
-                      background: "var(--just-sign)",
-                      borderRadius: 12,
-                      padding: 13,
-                      fontSize: 14,
-                      fontWeight: 500,
-                    }}
-                  >
-                    Mot suivant
-                    <ArrowRight
-                      className="h-3.5 w-3.5 shrink-0 text-surface"
-                      aria-hidden
-                    />
-                  </button>
-                </>
-              )}
-            </div>
-          ) : null}
-        </div>
-      </div>
+      <DicteeSession
+        onQuit={() => {
+          void saveSessionAndNavigateToEvaluation();
+        }}
+        progressPct={dicteeProgressPct}
+        slotLabel={dicteeSlotLabel}
+        goodCount={
+          wordsRetained +
+          (!isSandboxSession && dicteePhase === "correct_feedback" ? 1 : 0)
+        }
+        displayText={displayText}
+        answerText={answerText}
+        displayLang={displayLang}
+        phase={dicteePhase}
+        writeAnswer={writeAnswer}
+        onWriteAnswer={setWriteAnswer}
+        onValidate={validateDictee}
+        onNext={advanceDictee}
+        sending={sending}
+        onSpeak={() => speakWord(displayText, displayLang)}
+        memo={renderMemoTipButton()}
+        error={error}
+        inputRef={dicteeInputRef}
+      />
     );
 }

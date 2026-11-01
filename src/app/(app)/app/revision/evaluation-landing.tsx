@@ -1,370 +1,104 @@
 "use client";
 
 import Link from "next/link";
+import { ArrowRight, Mic, Pencil, RectangleHorizontal } from "lucide-react";
 
-function FlashcardIcon() {
+function ModeIcon({ icon: Icon }: { icon: typeof Pencil }) {
   return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="var(--surface)"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
+    <span
+      className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-mark"
       aria-hidden
     >
-      <rect x="2" y="4" width="20" height="16" rx="2" />
-      <path d="M12 8v8" />
-      <path d="M8 12h8" />
-    </svg>
+      <Icon size={26} strokeWidth={2} color="var(--ink)" />
+    </span>
   );
 }
 
-function PenIcon() {
+function Chip({ children }: { children: string }) {
   return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="var(--ink)"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.121 2.121 0 1 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-    </svg>
+    <span className="inline-flex items-center rounded-full border-[1.5px] border-line bg-surface px-3 py-1 text-xs font-medium text-ink">
+      {children}
+    </span>
   );
 }
 
-function MicIcon() {
+function StartLabel() {
   return (
-    <svg
-      width="22"
-      height="22"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="var(--muted)"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z" />
-      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-      <line x1="12" y1="19" x2="12" y2="23" />
-      <line x1="8" y1="23" x2="16" y2="23" />
-    </svg>
+    <span className="mt-6 inline-flex h-14 w-full items-center justify-center gap-2 rounded-full bg-ink text-base font-medium text-surface">
+      Commencer
+      <ArrowRight size={18} aria-hidden />
+    </span>
   );
 }
 
-function ArrowIcon({ color }: { color: string }) {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
-    >
-      <path d="M5 12h14" />
-      <path d="M12 5l7 7-7 7" />
-    </svg>
-  );
-}
+const cardClass =
+  "relative flex h-full flex-col rounded-[20px] border-[1.5px] border-line bg-surface p-6 no-underline lg:p-7";
 
 export function EvaluationLanding() {
   return (
-    <div className="space-y-6">
-      {/* Titre */}
-      <div>
-        <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
-          On s&apos;entraîne comment aujourd&apos;hui ?
+    <div className="mx-auto w-full max-w-[1100px]">
+      <header className="mb-8 lg:mb-10">
+        <h1 className="font-heading text-[32px] leading-[1.15] text-ink lg:text-[44px]">
+          On s&apos;entraîne <span className="marker">comment</span>{" "}
+          <span className="whitespace-nowrap">aujourd&apos;hui ?</span>
         </h1>
-        <p className="mt-1" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
+        <p className="mt-3 text-base text-muted">
           Flashcards pour mémoriser, dictée pour ancrer.
         </p>
-      </div>
+      </header>
 
-      {/* Grille 3 cartes */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {/* ──── Carte Flashcards ──── */}
+      <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
         <Link
           href="/app/revision/flashcards"
-          className="relative flex flex-col overflow-hidden no-underline card-hover"
-          style={{
-            background: "var(--background-subtle)",
-            border: "1.5px solid var(--line)",
-            borderRadius: 16,
-            padding: "20px 16px 16px",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.borderColor = "var(--ink)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.borderColor = "var(--line)")
-          }
+          className={`${cardClass} transition hover:-translate-y-0.5 hover:border-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
         >
-          {/* Cercle icône */}
-          <div
-            className="mb-3.5 flex items-center justify-center"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "var(--ink)",
-            }}
-          >
-            <FlashcardIcon />
-          </div>
-
-          {/* Chips */}
-          <div className="mb-2.5 flex flex-wrap gap-1">
-            {["SM-2", "Swipe", "Timer"].map((chip) => (
-              <span
-                key={chip}
-                style={{
-                  fontSize: 10,
-                  fontWeight: 500,
-                  color: "var(--ink)",
-                  background: "var(--background-subtle)",
-                  borderRadius: 8,
-                  padding: "2px 7px",
-                }}
-              >
-                {chip}
-              </span>
-            ))}
-          </div>
-
-          {/* Titre */}
-          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground)" }}>
-            Flashcards
-          </p>
-
-          {/* Description */}
-          <p
-            className="mt-1 flex-1"
-            style={{ fontSize: 12, color: "var(--foreground-muted)", lineHeight: 1.5 }}
-          >
+          <ModeIcon icon={RectangleHorizontal} />
+          <h2 className="font-heading text-[26px] leading-tight text-ink">Flashcards</h2>
+          <p className="mt-3 flex-1 text-[15px] leading-relaxed text-muted">
             Révise avec des cartes intelligentes — l&apos;algorithme SM-2
             optimise ta mémorisation.
           </p>
-
-          {/* Bouton + flèche */}
-          <div className="mt-3 flex items-center justify-between">
-            <span
-              className="inline-flex items-center gap-1.5"
-              style={{
-                background: "var(--ink)",
-                color: "var(--surface)",
-                borderRadius: 20,
-                padding: "8px 16px",
-                fontSize: 12,
-                fontWeight: 500,
-              }}
-            >
-              Commencer
-              <ArrowIcon color="var(--surface)" />
-            </span>
-            <span
-              className="flex items-center justify-center"
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                background: "var(--background-subtle)",
-              }}
-            >
-              <ArrowIcon color="var(--ink)" />
-            </span>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Chip>Révision espacée</Chip>
+            <Chip>Swipe</Chip>
+            <Chip>Timer</Chip>
           </div>
-
-          {/* Cercle décoratif */}
-          <div
-            style={{
-              position: "absolute",
-              bottom: -20,
-              right: -20,
-              width: 70,
-              height: 70,
-              borderRadius: "50%",
-              background: "var(--ink)",
-              opacity: 0.1,
-              pointerEvents: "none",
-            }}
-          />
+          <StartLabel />
         </Link>
 
-        {/* ──── Carte Dictée ──── */}
         <Link
           href="/app/revision/dictee"
-          className="card-dictee-bg relative flex flex-col overflow-hidden no-underline card-hover"
-          style={{
-            border: "1.5px solid var(--line)",
-            borderRadius: 16,
-            padding: "20px 16px 16px",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.borderColor = "var(--ink)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.borderColor = "var(--line)")
-          }
+          className={`${cardClass} transition hover:-translate-y-0.5 hover:border-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ink`}
         >
-          <div
-            className="mb-3.5 flex items-center justify-center"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "var(--mark)",
-            }}
-          >
-            <PenIcon />
-          </div>
-
-          <div className="mb-2.5 flex flex-wrap gap-1">
-            {["Mémoire active", "Feedback"].map((chip) => (
-              <span
-                key={chip}
-                style={{
-                  fontSize: 10,
-                  fontWeight: 500,
-                  color: "var(--ink)",
-                  background: "var(--mark)",
-                  borderRadius: 8,
-                  padding: "2px 7px",
-                }}
-              >
-                {chip}
-              </span>
-            ))}
-          </div>
-
-          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground)" }}>
-            Dictée
-          </p>
-
-          <p
-            className="mt-1 flex-1"
-            style={{ fontSize: 12, color: "var(--foreground-muted)", lineHeight: 1.5 }}
-          >
+          <ModeIcon icon={Pencil} />
+          <h2 className="font-heading text-[26px] leading-tight text-ink">Dictée</h2>
+          <p className="mt-3 flex-1 text-[15px] leading-relaxed text-muted">
             Écris la traduction de mémoire — le mode le plus efficace pour
             ancrer les mots.
           </p>
-
-          <div className="mt-3 flex items-center justify-between">
-            <span
-              className="inline-flex items-center gap-1.5"
-              style={{
-                background: "var(--ink)",
-                color: "var(--surface)",
-                borderRadius: 20,
-                padding: "8px 16px",
-                fontSize: 12,
-                fontWeight: 500,
-              }}
-            >
-              Commencer
-              <ArrowIcon color="var(--surface)" />
-            </span>
-            <span
-              className="flex items-center justify-center"
-              style={{
-                width: 28,
-                height: 28,
-                borderRadius: "50%",
-                background: "var(--mark)",
-              }}
-            >
-              <ArrowIcon color="var(--ink)" />
-            </span>
+          <div className="mt-4 flex flex-wrap gap-2">
+            <Chip>Mémoire active</Chip>
+            <Chip>Feedback</Chip>
           </div>
-
-          <div
-            style={{
-              position: "absolute",
-              bottom: -20,
-              right: -20,
-              width: 70,
-              height: 70,
-              borderRadius: "50%",
-              background: "var(--ink)",
-              opacity: 0.1,
-              pointerEvents: "none",
-            }}
-          />
+          <StartLabel />
         </Link>
 
-        {/* ──── Carte Prononciation (désactivée) ──── */}
-        <div
-          className="card-prononciation-bg relative flex flex-col overflow-hidden"
-          style={{
-            border: "1.5px solid var(--line)",
-            borderRadius: 16,
-            padding: "20px 16px 16px",
-            opacity: 0.55,
-            cursor: "default",
-          }}
-        >
-          {/* Badge Bientôt */}
-          <span
-            style={{
-              position: "absolute",
-              top: 12,
-              right: 12,
-              fontSize: 10,
-              fontWeight: 500,
-              color: "var(--muted)",
-              background: "var(--surface)",
-              border: "1px solid var(--line)",
-              borderRadius: 100,
-              padding: "2px 8px",
-            }}
-          >
+        <div className={`${cardClass} opacity-70`} aria-disabled="true">
+          <span className="absolute right-5 top-5 rounded-full border-[1.5px] border-ink bg-surface px-3 py-1 text-xs font-medium text-ink">
             Bientôt
           </span>
-
-          <div
-            className="mb-3.5 flex items-center justify-center"
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: "50%",
-              background: "var(--surface)",
-              border: "1.5px solid var(--line)",
-            }}
-          >
-            <MicIcon />
-          </div>
-
-          <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground-muted)" }}>
-            Prononciation
-          </p>
-
-          <p
-            className="mt-1 flex-1"
-            style={{ fontSize: 12, color: "var(--foreground-disabled)", lineHeight: 1.5 }}
-          >
+          <ModeIcon icon={Mic} />
+          <h2 className="font-heading text-[26px] leading-tight text-ink">Prononciation</h2>
+          <p className="mt-3 flex-1 text-[15px] leading-relaxed text-muted">
             Enregistre ta voix et obtiens un score phonétique — arrive
             bientôt.
           </p>
-
-          <p
-            className="mt-3"
-            style={{ fontSize: 12, fontStyle: "italic", color: "var(--foreground-disabled)" }}
+          <span
+            className="mt-6 inline-flex h-14 w-full items-center justify-center rounded-full text-base font-medium text-muted"
+            style={{ background: "color-mix(in srgb, var(--line) 65%, var(--page))" }}
           >
-            Prochainement
-          </p>
+            Bientôt disponible
+          </span>
         </div>
       </div>
     </div>

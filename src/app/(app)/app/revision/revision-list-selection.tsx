@@ -6,8 +6,13 @@ import { useRouter } from "next/navigation";
 import { ChevronLeft, Check, CreditCard, Lock, Pencil, Zap, Rocket, ArrowRight } from "lucide-react";
 import {
   PREFERRED_LANGUAGE_OPTIONS,
-  getFlagEmoji,
+  toIso6391,
 } from "@/lib/language";
+import { LanguagePill } from "./revision-ui";
+
+/** Coche de sélection demandée pour cette page (hors charte encre). */
+const SELECT_PURPLE = "#6C3FC8";
+const SELECT_BG = "color-mix(in srgb, #6C3FC8 12%, white)";
 
 const VIOLET = "var(--ink)";
 const GOLD = "var(--ink)";
@@ -34,28 +39,58 @@ function languageLabel(code: string | null): string {
   return PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === n)?.label ?? n.toUpperCase();
 }
 
-function SenseDirectionFlags({
-  fromLang,
-  toLang,
-}: {
-  fromLang: string;
-  toLang: string;
-}) {
+function isoCode(code: string): string {
+  return toIso6391(code).toUpperCase();
+}
+
+function PillGroup({ codes }: { codes: string[] }) {
   return (
-    <>
-      <span className="text-base leading-none" aria-hidden>
-        {getFlagEmoji(fromLang)}
-      </span>
-      <ArrowRight
-        size={14}
-        strokeWidth={2}
-        color={BORDER_TERTIARY}
-        aria-hidden
-      />
-      <span className="text-base leading-none" aria-hidden>
-        {getFlagEmoji(toLang)}
-      </span>
-    </>
+    <span className="inline-flex shrink-0 items-center gap-1">
+      {codes.map((code, index) => (
+        <span key={code} className="inline-flex items-center gap-1">
+          {index > 0 ? (
+            <span className="text-xs text-muted" aria-hidden>
+              ·
+            </span>
+          ) : null}
+          <LanguagePill code={isoCode(code)} />
+        </span>
+      ))}
+    </span>
+  );
+}
+
+/** Le français est toujours d’un côté. `frenchFirst` = carte 2 (ancien « Traduction → Mot »). */
+function SenseDirectionMarks({
+  studied,
+  frenchFirst,
+}: {
+  studied: string[];
+  frenchFirst: boolean;
+}) {
+  const french = <LanguagePill code={isoCode("fra")} />;
+  const studiedMarks = <PillGroup codes={studied} />;
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1.5">
+      {frenchFirst ? french : studiedMarks}
+      <ArrowRight size={14} strokeWidth={2} color={BORDER_TERTIARY} aria-hidden />
+      {frenchFirst ? studiedMarks : french}
+    </span>
+  );
+}
+
+function SelectionMark({ selected }: { selected: boolean }) {
+  return (
+    <span
+      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px]"
+      style={{
+        borderColor: selected ? SELECT_PURPLE : "var(--line)",
+        background: "transparent",
+      }}
+      aria-hidden
+    >
+      {selected ? <Check size={12} stroke={SELECT_PURPLE} strokeWidth={3} /> : null}
+    </span>
   );
 }
 
@@ -91,13 +126,15 @@ function SelectionRecap({
             {selectedCount} liste{selectedCount !== 1 ? "s" : ""}{" "}
             sélectionnée{selectedCount !== 1 ? "s" : ""}
           </span>
-          {" · "}
-          <span className="inline-flex items-center gap-1">
-            <span className="text-base leading-none">
-              {getFlagEmoji(selectedLang ?? "fra")}
-            </span>
-            {labelSource}
-          </span>
+          {selectedLang ? (
+            <>
+              {" · "}
+              <span className="inline-flex items-center gap-1.5">
+                <LanguagePill code={isoCode(selectedLang)} />
+                {labelSource}
+              </span>
+            </>
+          ) : null}
         </>
       )}
     </p>
@@ -153,7 +190,6 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const [revisionDirection, setRevisionDirection] = useState<
     "term_to_def" | "def_to_term"
   >("term_to_def");
-  const [preferredLanguages, setPreferredLanguages] = useState<string[]>(["fra"]);
 
   useEffect(() => {
     setSelected(new Set(initialListIds));
@@ -191,7 +227,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
         );
       })
       .catch(() => {
-        if (!cancelled) setError("Impossible de charger tes listes.");
+        if (!cancelled) setError("Impossible de charger vos listes.");
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -199,25 +235,6 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     return () => {
       cancelled = true;
     };
-  }, []);
-
-  useEffect(() => {
-    fetch("/api/user/preferences")
-      .then((r) => r.json())
-      .then((data) => {
-        if (Array.isArray(data.preferredLanguages) && data.preferredLanguages.length) {
-          setPreferredLanguages(
-            data.preferredLanguages.map((code: string) => normLang(code))
-          );
-        } else if (data.preferredLanguage) {
-          setPreferredLanguages(
-            [data.preferredLanguage, data.preferredLanguage2]
-              .filter(Boolean)
-              .map((code: string) => normLang(code))
-          );
-        }
-      })
-      .catch(() => {});
   }, []);
 
   const selectedLang =
@@ -266,30 +283,48 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     return "eng";
   }, [selectedLang, langFilter, languages]);
 
-  const previewTranslationLang = useMemo(() => {
-    const fra = preferredLanguages.find((l) => normLang(l) === "fra");
-    if (fra && normLang(previewListLang) !== "fra") return "fra";
-    const other = preferredLanguages.find(
-      (l) => normLang(l) !== normLang(previewListLang)
-    );
-    return other ?? "fra";
-  }, [preferredLanguages, previewListLang]);
+  const studiedLanguages = useMemo(() => {
+    const selectedLists = lists.filter((list) => selected.has(list.id));
+    const source =
+      selectedLists.length > 0
+        ? selectedLists.map((list) => normLang(list.language))
+        : langFilter !== "all"
+          ? [normLang(langFilter)]
+          : lists.map((list) => normLang(list.language));
+    const unique = [...new Set(source)];
+    const studied = unique.filter((code) => code !== "fra").sort();
+    return (studied.length > 0 ? studied : unique.sort());
+  }, [lists, selected, langFilter]);
 
   const labelSource = languageLabel(previewListLang);
+
+  const selectedLanguageCount = useMemo(() => {
+    const codes = new Set<string>();
+    for (const list of lists) {
+      if (selected.has(list.id)) codes.add(normLang(list.language));
+    }
+    return codes.size;
+  }, [lists, selected]);
+  const severalLanguages = selectedLanguageCount > 1;
+  const severalStudied = studiedLanguages.length !== 1;
+  const studiedLabel = severalStudied
+    ? "Langue étudiée"
+    : languageLabel(studiedLanguages[0] ?? "");
 
   const lockBannerLang = selectedLang ? labelSource : "";
   const isFlashcardMode = mode === "flashcard";
   const senseAccent = isFlashcardMode ? VIOLET : GOLD;
-  const senseSelectedBg = isFlashcardMode ? "var(--background-subtle)" : "var(--surface)";
   const senseSectionLabel = isFlashcardMode
     ? "Sens des flashcards"
     : "Sens de la dictée";
   const senseSub1 = isFlashcardMode
-    ? "On affiche le mot, tu retrouves la traduction"
-    : "Tu écris la traduction";
+    ? "Le mot s'affiche, vous retrouvez la traduction"
+    : "Vous voyez le mot, vous écrivez la traduction";
   const senseSub2 = isFlashcardMode
-    ? "On affiche la traduction, tu retrouves le mot"
-    : "Tu écris le mot";
+    ? "La traduction s'affiche, vous retrouvez le mot"
+    : "Vous voyez la traduction, vous écrivez le mot";
+  const senseTitle1 = `${studiedLabel} → Français`;
+  const senseTitle2 = `Français → ${studiedLabel}`;
 
   return (
     <div
@@ -368,7 +403,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             <div className="mt-1.5 hidden md:block">
               <SelectionRecap
                 selectedCount={selected.size}
-                selectedLang={selectedLang}
+                selectedLang={severalLanguages ? null : selectedLang}
                 labelSource={labelSource}
               />
             </div>
@@ -387,7 +422,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             marginTop: 4,
           }}
         >
-          Sélectionne une ou plusieurs listes pour lancer ta session.
+          Sélectionnez une ou plusieurs listes pour lancer votre session.
         </p>
 
         {/* Filtres langue */}
@@ -429,7 +464,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           })}
         </div>
 
-        {/* Sens : flashcards (violet) ou dictée (or) */}
+        {/* Sens : carte 1 = term_to_def, carte 2 = def_to_term. Seul l’affichage change. */}
         <div style={{ marginBottom: 14 }}>
           <p
             className="mb-2 font-medium tracking-wide uppercase"
@@ -445,50 +480,28 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             <button
               type="button"
               onClick={() => setRevisionDirection("term_to_def")}
-              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] bg-surface py-2.5 pr-3 pl-3.5 text-left transition-colors"
+              aria-pressed={revisionDirection === "term_to_def"}
+              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] py-2.5 pr-3 pl-3.5 text-left transition-colors"
               style={{
                 borderRadius: 10,
                 padding: "10px 14px",
                 gap: 10,
                 borderColor:
                   revisionDirection === "term_to_def"
-                    ? senseAccent
+                    ? SELECT_PURPLE
                     : BORDER_TERTIARY,
                 background:
-                  revisionDirection === "term_to_def"
-                    ? senseSelectedBg
-                    : "white",
+                  revisionDirection === "term_to_def" ? SELECT_BG : "white",
               }}
             >
-              <span
-                className="flex shrink-0 items-center justify-center rounded-full border-[1.5px]"
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderColor:
-                    revisionDirection === "term_to_def"
-                      ? senseAccent
-                      : BORDER_SECONDARY,
-                  background:
-                    revisionDirection === "term_to_def"
-                      ? senseAccent
-                      : "transparent",
-                }}
-              >
-                {revisionDirection === "term_to_def" && (
-                  <Check size={9} stroke="white" strokeWidth={3} aria-hidden />
-                )}
-              </span>
+              <SelectionMark selected={revisionDirection === "term_to_def"} />
               <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                <SenseDirectionFlags
-                  fromLang={previewListLang}
-                  toLang={previewTranslationLang}
-                />
+                <SenseDirectionMarks studied={studiedLanguages} frenchFirst={false} />
                 <div className="min-w-0">
                   <div
                     style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}
                   >
-                    Mot → Traduction
+                    {senseTitle1}
                   </div>
                   <div
                     style={{ fontSize: 10, color: "var(--foreground-muted)" }}
@@ -502,50 +515,28 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             <button
               type="button"
               onClick={() => setRevisionDirection("def_to_term")}
-              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] bg-surface py-2.5 pr-3 pl-3.5 text-left transition-colors"
+              aria-pressed={revisionDirection === "def_to_term"}
+              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] py-2.5 pr-3 pl-3.5 text-left transition-colors"
               style={{
                 borderRadius: 10,
                 padding: "10px 14px",
                 gap: 10,
                 borderColor:
                   revisionDirection === "def_to_term"
-                    ? senseAccent
+                    ? SELECT_PURPLE
                     : BORDER_TERTIARY,
                 background:
-                  revisionDirection === "def_to_term"
-                    ? senseSelectedBg
-                    : "white",
+                  revisionDirection === "def_to_term" ? SELECT_BG : "white",
               }}
             >
-              <span
-                className="flex shrink-0 items-center justify-center rounded-full border-[1.5px]"
-                style={{
-                  width: 18,
-                  height: 18,
-                  borderColor:
-                    revisionDirection === "def_to_term"
-                      ? senseAccent
-                      : BORDER_SECONDARY,
-                  background:
-                    revisionDirection === "def_to_term"
-                      ? senseAccent
-                      : "transparent",
-                }}
-              >
-                {revisionDirection === "def_to_term" && (
-                  <Check size={9} stroke="white" strokeWidth={3} aria-hidden />
-                )}
-              </span>
+              <SelectionMark selected={revisionDirection === "def_to_term"} />
               <div className="flex min-w-0 flex-1 items-center gap-1.5">
-                <SenseDirectionFlags
-                  fromLang={previewTranslationLang}
-                  toLang={previewListLang}
-                />
+                <SenseDirectionMarks studied={studiedLanguages} frenchFirst />
                 <div className="min-w-0">
                   <div
                     style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}
                   >
-                    Traduction → Mot
+                    {senseTitle2}
                   </div>
                   <div
                     style={{ fontSize: 10, color: "var(--foreground-muted)" }}
@@ -579,7 +570,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                 lineHeight: 1.5,
               }}
             >
-              Tu as sélectionné une liste en {lockBannerLang} — seules les
+              Vous avez sélectionné une liste en {lockBannerLang} — seules les
               autres listes en {lockBannerLang} sont disponibles.
             </p>
             <button
@@ -607,7 +598,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             marginBottom: 10,
           }}
         >
-          Tes listes
+          Vos listes
         </p>
 
         {error && (
@@ -619,7 +610,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           <p style={{ color: "var(--foreground-muted)" }}>Chargement…</p>
         ) : filteredLists.length === 0 ? (
           <p style={{ color: "var(--foreground-muted)" }}>
-            Aucune liste à afficher. Crée des listes dans la bibliothèque.
+            Aucune liste à afficher. Créez des listes dans la bibliothèque.
           </p>
         ) : (
           <ul className="space-y-0">
@@ -634,6 +625,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                     type="button"
                     disabled={locked}
                     onClick={() => toggleList(list.id)}
+                    aria-pressed={isSelected}
                     className="flex w-full items-center gap-3 border-[1.5px] text-left transition-all duration-[120ms]"
                     style={{
                       alignItems: "center",
@@ -641,44 +633,19 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
                       padding: "13px 14px",
                       background: locked
                         ? "var(--background-subtle)"
-                        : "white",
+                        : isSelected
+                          ? SELECT_BG
+                          : "white",
                       borderRadius: 12,
-                      borderColor: isSelected ? VIOLET : BORDER_TERTIARY,
+                      borderColor:
+                        isSelected && !locked ? SELECT_PURPLE : BORDER_TERTIARY,
                       cursor: locked ? "not-allowed" : "pointer",
                       opacity: locked ? 0.4 : 1,
                       pointerEvents: locked ? "none" : "auto",
-                      ...(isSelected && !locked
-                        ? { background: "var(--background-subtle)" }
-                        : {}),
-                    }}
-                    onMouseEnter={(e) => {
-                      if (locked || isSelected) return;
-                      e.currentTarget.style.borderColor = BORDER_TERTIARY;
-                    }}
-                    onMouseLeave={(e) => {
-                      if (isSelected) {
-                        e.currentTarget.style.borderColor = VIOLET;
-                      } else {
-                        e.currentTarget.style.borderColor = BORDER_TERTIARY;
-                      }
                     }}
                   >
-                    <span
-                      className="flex shrink-0 items-center justify-center rounded-full border-[1.5px]"
-                      style={{
-                        width: 20,
-                        height: 20,
-                        borderColor: isSelected ? VIOLET : BORDER_SECONDARY,
-                        background: isSelected ? VIOLET : "transparent",
-                      }}
-                    >
-                      {isSelected && (
-                        <Check size={10} stroke="white" strokeWidth={3} aria-hidden />
-                      )}
-                    </span>
-                    <span className="text-base leading-none" style={{ fontSize: 16 }}>
-                      {getFlagEmoji(normLang(list.language))}
-                    </span>
+                    <SelectionMark selected={isSelected && !locked} />
+                    <LanguagePill code={isoCode(normLang(list.language))} />
                     <div className="min-w-0 flex-1">
                       <div
                         style={{
@@ -750,7 +717,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           <div className="mb-2.5">
             <SelectionRecap
               selectedCount={selected.size}
-              selectedLang={selectedLang}
+              selectedLang={severalLanguages ? null : selectedLang}
               labelSource={labelSource}
             />
           </div>
