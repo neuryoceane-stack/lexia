@@ -466,10 +466,9 @@ const navItemCreator: NavItem = { href: "/app/creator", label: "Créateur", icon
 function NavTabLabel({ active, children }: { active: boolean; children: ReactNode }) {
   return (
     <span
-      className="inline-flex items-center rounded-full px-3.5"
+      className={active ? "marker inline-flex items-center" : "inline-flex items-center"}
       style={{
-        minHeight: 36,
-        background: active ? "var(--mark)" : "transparent",
+        padding: "4px 12px",
         color: "var(--ink)",
         fontWeight: 500,
       }}

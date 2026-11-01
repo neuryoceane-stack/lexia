@@ -80,6 +80,9 @@ type PhoneInputProps = {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  /** Remplace les classes du bouton d’indicatif. Absent : style historique. */
+  prefixClassName?: string;
+  /** Remplace les classes du champ local. Absent : style historique. */
   inputClassName?: string;
   "aria-label"?: string;
 };
@@ -91,6 +94,7 @@ export function PhoneInput({
   placeholder = "6 12 34 56 78",
   disabled,
   className,
+  prefixClassName,
   inputClassName,
   "aria-label": ariaLabel,
 }: PhoneInputProps) {
@@ -139,7 +143,10 @@ export function PhoneInput({
           aria-controls={open ? "phone-prefix-listbox" : undefined}
           onClick={() => !disabled && setOpen((o) => !o)}
           disabled={disabled}
-          className="flex min-w-[5.5rem] items-center justify-between gap-1 rounded-l-lg border border-r-0 border-[var(--input-border)] bg-[var(--background-subtle)] px-2 py-2 text-[var(--foreground)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+          className={
+            prefixClassName ??
+            "flex min-w-[5.5rem] items-center justify-between gap-1 rounded-l-lg border border-r-0 border-[var(--input-border)] bg-[var(--background-subtle)] px-2 py-2 text-[var(--foreground)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:opacity-50"
+          }
         >
           <span>{prefix}</span>
           <svg className="h-4 w-4 flex-shrink-0 text-[var(--foreground-muted)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
@@ -179,7 +186,10 @@ export function PhoneInput({
         disabled={disabled}
         autoComplete="tel-national"
         aria-label={ariaLabel}
-        className={`flex-1 rounded-r-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary ${inputClassName ?? ""}`}
+        className={
+          inputClassName ??
+          "flex-1 rounded-r-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+        }
       />
     </div>
   );
