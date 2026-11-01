@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { FlagDisplay } from "@/components/flag-display";
 import { BackLink } from "@/components/back-link";
-import { PawPrint, X, Plus, ListPlus } from "lucide-react";
+import { PawPrint, X, Plus, ListPlus, Library } from "lucide-react";
+import { EmptyMark } from "@/components/empty-mark";
 import { AppModal } from "@/components/app-modal";
 import { ListNameInput } from "@/components/list-name-input";
 import { LanguageOnboardingCard } from "@/components/language-onboarding-card";
@@ -699,13 +699,7 @@ export function BibliothequeClient() {
 
           {lists.length === 0 ? (
             <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--background-subtle)] p-8 text-center">
-              <Image
-                src="/bee-search.png"
-                alt=""
-                width={88}
-                height={88}
-                className="mx-auto mb-3"
-              />
+              <EmptyMark icon={Library} className="mx-auto mb-3" />
               <p className="text-[var(--foreground-muted)]">
                 Aucune liste pour cette langue. Crée une liste de mots ou importe un PDF / une photo.
               </p>

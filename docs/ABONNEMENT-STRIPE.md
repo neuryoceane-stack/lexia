@@ -22,7 +22,7 @@ Clés de **test** uniquement. Une clé `sk_live_` ou `rk_live_` est refusée par
 | `STRIPE_PRICE_YEARLY` | `price_…` | Prix récurrent 45 € / an. **À mettre à jour** avec le Price ID du nouveau tarif. |
 | `NEXTAUTH_URL` | `http://localhost:3000` | Origine des URLs de retour |
 
-Les Price ID ne sont pas écrits dans le code. Au moment du Checkout, Lexiva vérifie que le prix Stripe est actif, en euros, et exactement égal à 500 ou 4 500 centimes, avec un intervalle d'un mois ou d'un an. Ces montants viennent de `src/lib/offer.ts`. Ne pas poser de période d'essai sur le Price : les 15 jours sont ajoutés par la session Checkout (`trial_period_days`).
+Les Price ID ne sont pas écrits dans le code. Au moment du Checkout, Kim Study vérifie que le prix Stripe est actif, en euros, et exactement égal à 500 ou 4 500 centimes, avec un intervalle d'un mois ou d'un an. Ces montants viennent de `src/lib/offer.ts`. Ne pas poser de période d'essai sur le Price : les 15 jours sont ajoutés par la session Checkout (`trial_period_days`).
 
 Variables à mettre à jour après création des deux prix : `STRIPE_PRICE_MONTHLY` (5 € / mois) et `STRIPE_PRICE_YEARLY` (45 € / an). Un ancien Price ID à 4 € ou 40 € est refusé. `PAYWALL_ENABLED` ne change pas.
 
@@ -42,7 +42,7 @@ Tant que ces colonnes ne sont pas en place, la page et Paramètres affichent le 
 
 ## Stripe Dashboard (mode test)
 
-1. Créer un produit Lexiva et deux prix récurrents : 5 € / mois et 45 € / an. Pas de période d'essai sur le Price.
+1. Créer un produit Kim Study et deux prix récurrents : 5 € / mois et 45 € / an. Pas de période d'essai sur le Price. Les libellés envoyés à Checkout (`Lexiva — formule mensuelle` / `Lexiva — formule annuelle`) sont encore l'ancien nom : le code Stripe n'a pas été modifié dans le renommage.
 2. Copier les Price ID dans `STRIPE_PRICE_MONTHLY` et `STRIPE_PRICE_YEARLY` (les deux variables sont à mettre à jour).
 3. Activer le portail client : annulation, mise à jour de la carte, et changement entre ces deux prix.
 4. Ajouter l'endpoint webhook `https://<domaine>/api/stripe/webhook` avec les événements :
@@ -66,7 +66,7 @@ Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événemen
 
 ## Statuts
 
-| Stripe | Lexiva |
+| Stripe | Kim Study |
 |--------|--------|
 | `trialing` | `trialing` |
 | `active` | `active` |
@@ -78,7 +78,7 @@ Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événemen
 
 Sur la page, avant souscription : l'offre (essai de 15 jours, carte requise) et la ligne « Si tu es mineur, demande à un parent ou à un tuteur de souscrire. » La phrase « Ta carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
 
-Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Tu peux continuer à utiliser Lexiva. » sur `/app/abonnement` et dans Paramètres. Aucun bouton de paiement, aucun message d'erreur.
+Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Tu peux continuer à utiliser Kim Study. » sur `/app/abonnement`. Aucun bouton de paiement, aucun message d'erreur. L'abonnement n'est plus affiché dans Paramètres.
 
 `hasActiveSubscription` reste vrai seulement pour `active` et `trialing`. Le paywall s'en sert lorsque `PAYWALL_ENABLED=true`.
 

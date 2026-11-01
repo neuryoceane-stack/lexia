@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { BRAND_NAME } from "@/lib/brand";
+import { Logo } from "@/components/logo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -55,14 +56,7 @@ export default function ForgotPasswordPage() {
         boxShadow: "0 4px 24px color-mix(in srgb, var(--ink) 10%, transparent)",
       }}>
         <div style={{ textAlign: "center", marginBottom: "32px" }}>
-          <Image
-            src="/logo-mark.png"
-            alt="Lexiva"
-            width={52}
-            height={52}
-            style={{ objectFit: "contain", display: "block", margin: "0 auto 12px" }}
-          />
-          <h1 style={{ color: "var(--ink)", fontSize: "28px", margin: "0 0 8px" }}>Lexiva</h1>
+          <Logo size="auth" className="mb-3" />
           <h2 style={{ color: "var(--ink)", fontSize: "20px", fontWeight: 600, margin: 0 }}>
             Mot de passe oublié
           </h2>
@@ -72,7 +66,7 @@ export default function ForgotPasswordPage() {
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "48px", marginBottom: "16px" }}>📬</div>
             <p style={{ color: "var(--muted)", lineHeight: 1.6 }}>
-              Si cet email est associé à un compte Lexiva, tu recevras un lien de réinitialisation dans quelques minutes.
+              Si cet e-mail est associé à un compte {BRAND_NAME}, tu recevras un lien de réinitialisation dans quelques minutes.
             </p>
             <Link href="/login" style={{
               display: "inline-block",

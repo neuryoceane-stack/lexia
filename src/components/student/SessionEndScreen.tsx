@@ -1,6 +1,7 @@
 "use client";
 
-import Image from "next/image";
+import { PartyPopper } from "lucide-react";
+import { EmptyMark } from "@/components/empty-mark";
 
 export interface SessionEndScreenProps {
   wordsSeen: number;
@@ -157,13 +158,7 @@ export default function SessionEndScreen({
         <ConfettiLayer show={showConfetti} />
 
         <div className="relative z-[1] flex flex-col items-center text-center">
-          <Image
-            src="/bee-celebrate.png"
-            alt=""
-            width={96}
-            height={96}
-            className="mx-auto"
-          />
+          <EmptyMark icon={PartyPopper} />
 
           <h1
             className="mt-5 text-center font-medium"

@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
+import { Logo } from "@/components/logo";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
@@ -70,14 +70,7 @@ function ResetPasswordForm() {
   return (
     <>
       <div style={{ textAlign: "center", marginBottom: "32px" }}>
-        <Image
-          src="/logo-mark.png"
-          alt="Lexiva"
-          width={52}
-          height={52}
-          style={{ objectFit: "contain", display: "block", margin: "0 auto 12px" }}
-        />
-        <h1 style={{ color: "var(--ink)", fontSize: "28px", margin: "0 0 8px" }}>Lexiva</h1>
+        <Logo size="auth" className="mb-3" />
         <h2 style={{ color: "var(--ink)", fontSize: "20px", fontWeight: 600, margin: 0 }}>
           Nouveau mot de passe
         </h2>

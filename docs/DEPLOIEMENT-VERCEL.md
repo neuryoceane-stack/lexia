@@ -1,4 +1,4 @@
-# Déployer Lexia sur Vercel
+# Déployer Kim Study sur Vercel
 
 Sur Vercel, le système de fichiers est éphémère : un SQLite en fichier local ne convient pas. Il faut utiliser **Turso** (SQLite hébergé, gratuit) pour la base de données.
 

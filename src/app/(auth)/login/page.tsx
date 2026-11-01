@@ -2,10 +2,10 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 import { getSafeAppCallbackUrl } from "@/lib/safe-callback-url";
+import { Logo } from "@/components/logo";
 
 const FEATURE_CHIPS = [
   { emoji: "⚡", label: "SM-2" },
@@ -86,19 +86,9 @@ function LoginPageContent() {
     <div style={loginCardShellStyle}>
       {/* Logo */}
       <div className="mb-[18px] text-center">
-        <Link href="/" className="inline-block no-underline">
-          <Image
-            src="/logo-mark.png"
-            alt="Lexiva"
-            width={52}
-            height={52}
-            className="mx-auto mb-2"
-            style={{ objectFit: "contain" }}
-          />
-          <p style={{ fontSize: 17, fontWeight: 500, color: "var(--ink)", marginBottom: 2 }}>
-            LEXIVA
-          </p>
-          <p style={{ fontSize: 11, color: "var(--muted)" }}>
+        <Link href="/" className="inline-flex flex-col items-center gap-2 no-underline">
+          <Logo size="auth" />
+          <p style={{ fontSize: 11, color: "var(--muted)", margin: 0 }}>
             Apprends le vocabulaire autrement
           </p>
         </Link>

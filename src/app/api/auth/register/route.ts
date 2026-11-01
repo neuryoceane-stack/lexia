@@ -9,6 +9,7 @@ import { validateEmail, validatePassword } from "@/lib/validation";
 import type { SubscriptionStatus } from "@/lib/subscription";
 import { isPaywallEnabled } from "@/lib/paywall";
 import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
+import { BRAND_NAME } from "@/lib/brand";
 import {
   generateUniqueReferralCode,
   findReferrerUserIdByCode,
@@ -257,7 +258,7 @@ export async function POST(request: Request) {
           id: nanoid(),
           userId: creator.id,
           type: "milestone",
-          message: `🎉 Lexiva a atteint ${totalUsers} inscrits !`,
+          message: `🎉 ${BRAND_NAME} a atteint ${totalUsers} inscrits !`,
           read: false,
           link: "/app/creator",
           createdAt: new Date(),

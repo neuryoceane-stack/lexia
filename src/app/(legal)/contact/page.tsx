@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { ARemplir } from "@/components/ARemplir";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Contact — Lexiva",
-  description: "Contactez l'équipe Lexiva.",
+  title: `Contact — ${BRAND_NAME}`,
+  description: `Contactez l'équipe ${BRAND_NAME}.`,
 };
 
 export default function ContactPage() {
@@ -12,7 +13,7 @@ export default function ContactPage() {
       <h1>Contact</h1>
 
       <p>
-        Vous avez une question sur Lexiva, sur votre compte ou sur nos services&nbsp;? Notre
+        Vous avez une question sur {BRAND_NAME}, sur votre compte ou sur nos services&nbsp;? Notre
         équipe est à votre disposition. N&apos;hésitez pas à nous écrire, nous vous répondrons
         dans les meilleurs délais.
       </p>

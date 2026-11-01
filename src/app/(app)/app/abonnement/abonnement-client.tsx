@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Check, CreditCard, Sparkles } from "lucide-react";
 import { BackLink } from "@/components/back-link";
+import { BRAND_NAME } from "@/lib/brand";
 import { openBillingPortal, startSubscriptionCheckout } from "@/lib/subscription-client";
 import {
   OFFER_MINOR_NOTICE,
@@ -87,7 +88,7 @@ export function AbonnementClient({
       <BackLink href="/app/parametres">Paramètres</BackLink>
 
       <header className="mb-6">
-        <p style={{ fontSize: 13, fontWeight: 500, color: INK, marginBottom: 6 }}>Lexiva</p>
+        <p style={{ fontSize: 13, fontWeight: 500, color: INK, marginBottom: 6 }}>{BRAND_NAME}</p>
         <h1 style={{ fontFamily: "DM Sans, sans-serif", fontSize: 28, fontWeight: 500, color: TEXT, margin: 0 }}>
           Ton abonnement
         </h1>

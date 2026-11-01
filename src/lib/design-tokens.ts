@@ -1,5 +1,6 @@
 /**
- * Charte Lexiva — mêmes valeurs que les variables CSS de `src/app/globals.css`.
+ * Charte du produit — mêmes valeurs que les variables CSS de `src/app/globals.css`.
+ * Le nom affiché est dans `src/lib/brand.ts`.
  * Les e-mails et le manifeste PWA ne peuvent pas lire ces variables :
  * ils importent ce module, ou recopient l'hex en restant alignés ici.
  * Ne pas introduire un autre hex pour ces rôles.

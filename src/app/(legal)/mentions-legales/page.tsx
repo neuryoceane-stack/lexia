@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ARemplir } from "@/components/ARemplir";
+import { BRAND_NAME } from "@/lib/brand";
 
 export const metadata: Metadata = {
-  title: "Mentions légales — Lexiva",
-  description: "Informations légales relatives au site Lexiva.",
+  title: `Mentions légales — ${BRAND_NAME}`,
+  description: `Informations légales relatives au site ${BRAND_NAME}.`,
 };
 
 export default function MentionsLegalesPage() {
@@ -47,7 +48,7 @@ export default function MentionsLegalesPage() {
             <strong>Email de contact&nbsp;:</strong> <ARemplir>email de contact</ARemplir>
           </li>
           <li>
-            <strong>Nom du site&nbsp;:</strong> <ARemplir>nom du site (rebrand en cours)</ARemplir>
+            <strong>Nom du site&nbsp;:</strong> {BRAND_NAME}
           </li>
         </ul>
       </section>
@@ -82,7 +83,7 @@ export default function MentionsLegalesPage() {
           ses partenaires, sauf mention contraire.
         </p>
         <p>
-          La marque, le logo et l&apos;identité visuelle de Lexiva, ainsi que l&apos;ensemble
+          La marque, le logo et l&apos;identité visuelle de {BRAND_NAME}, ainsi que l&apos;ensemble
           des éléments graphiques composant le site, ne peuvent être reproduits, imités ou
           exploités, totalement ou partiellement, sans l&apos;autorisation écrite préalable de
           l&apos;éditeur.

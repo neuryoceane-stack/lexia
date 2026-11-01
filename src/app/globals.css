@@ -124,6 +124,31 @@ h3,
   box-decoration-break: clone;
 }
 
+/* Logotype. « Study » reprend .marker ; l'inclinaison ne s'applique qu'ici. */
+.logo {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28em;
+  color: var(--ink);
+  line-height: 1;
+  white-space: nowrap;
+}
+.logo-header {
+  font-size: 24px;
+}
+.logo-auth {
+  font-size: 34px;
+}
+.logo-hero {
+  font-size: clamp(42px, 8vw, 68px);
+}
+.logo .marker {
+  display: inline-block;
+  transform: rotate(-2deg);
+  transform-origin: 50% 65%;
+  line-height: 1.05;
+}
+
 /* Cartes Évaluation : fond de carte de la charte */
 .card-dictee-bg,
 .card-prononciation-bg {

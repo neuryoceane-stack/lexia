@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, type CSSProperties, type ReactNode } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NotificationsBell } from "@/components/notifications-bell";
@@ -23,6 +22,8 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { SHOP_ENABLED } from "@/lib/feature-flags";
+import { BRAND_NAME } from "@/lib/brand";
+import { Logo } from "@/components/logo";
 
 const LEVEL_NAMES: Record<number, string> = {
   1: "Graine",
@@ -516,20 +517,9 @@ export function AppHeader({
           <Link
             href={homeHref}
             className="inline-flex shrink-0 items-center gap-3 no-underline outline-none transition-opacity hover:opacity-90 focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
-            aria-label="Lexiva — Accueil"
-            style={{ fontFamily: "var(--font-sans), sans-serif" }}
+            aria-label={`${BRAND_NAME} — Accueil`}
           >
-            <Image
-              src="/logo-mark.png"
-              alt=""
-              width={36}
-              height={36}
-              style={{ objectFit: "contain" }}
-              priority
-            />
-            <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">
-              Lexiva
-            </span>
+            <Logo size="header" />
           </Link>
 
           <nav

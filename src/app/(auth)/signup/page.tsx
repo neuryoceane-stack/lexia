@@ -3,11 +3,12 @@
 import { useState } from "react";
 import type { CSSProperties, FocusEvent, ReactNode } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff, ChevronLeft, GraduationCap, KeyRound, MessageCircle, Rocket, Search, Share2, Smile, Sparkles, Users, type LucideIcon } from "lucide-react";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
+import { BRAND_NAME } from "@/lib/brand";
+import { Logo } from "@/components/logo";
 
 type Role = "eleve" | "professeur";
 
@@ -434,14 +435,7 @@ export default function SignupPage() {
           <div style={{ position: "absolute", bottom: 96, right: 20, fontSize: 11, color: GOLD, opacity: 0.32 }}>✦</div>
 
           <div style={{ textAlign: "center" }}>
-            <Image
-              src="/logo-mark.png"
-              alt="Lexiva"
-              width={64}
-              height={64}
-              style={{ objectFit: "contain", display: "block", margin: "0 auto 10px" }}
-            />
-            <p style={{ fontSize: 28, fontWeight: 600, color: "var(--ink)", letterSpacing: "-0.02em" }}>Lexiva</p>
+            <Logo size="auth" className="mb-[10px]" />
             <div style={{ display: "flex", gap: 6, justifyContent: "center", margin: "8px 0 4px" }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: V }} />
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: GOLD }} />
@@ -502,7 +496,7 @@ export default function SignupPage() {
     if (eleveStep === "source") return wrap(
       <>
         <BackBtn onClick={() => { setRole(null); setEleveStep("role"); setProfStep("role"); }} />
-        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4, textAlign: "center", textWrap: "balance" }}>Comment as-tu entendu parler de Lexiva ?</p>
+        <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 4, textAlign: "center", textWrap: "balance" }}>Comment as-tu entendu parler de {BRAND_NAME} ?</p>
         <p style={{ fontSize: 12, color: MUTED, marginBottom: 20, textAlign: "center", textWrap: "balance" }}>Cela nous aide à améliorer l&apos;application.</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {ACQUISITION_OPTIONS.map(opt => (
@@ -738,7 +732,7 @@ export default function SignupPage() {
       <>
         <BackBtn onClick={() => setProfStep("teacher")} />
         <p style={{ fontSize: 16, fontWeight: 500, color: TEXT, marginBottom: 6 }}>Code institution</p>
-        <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>Si votre établissement a souscrit à Lexiva, saisissez le code fourni par votre administration.</p>
+        <p style={{ fontSize: 13, color: MUTED, marginBottom: 20 }}>Si votre établissement a souscrit à {BRAND_NAME}, saisissez le code fourni par votre administration.</p>
         <FieldLabel>Code institution (optionnel)</FieldLabel>
         <input type="text" value={institutionCode} onChange={e => setInstitutionCode(e.target.value.toUpperCase())}
           placeholder="Ex. : LVH-2025" style={{ ...inputStyle, letterSpacing: "0.1em", marginBottom: 4 }}
@@ -754,7 +748,7 @@ export default function SignupPage() {
       <>
         <div style={{ textAlign: "center", marginBottom: 24 }}>
           <div style={{ fontSize: 44, marginBottom: 10 }}>👩‍🏫</div>
-          <p style={{ fontSize: 17, fontWeight: 500, color: TEXT, marginBottom: 6 }}>Tout ce que vous pourrez faire avec Lexiva</p>
+          <p style={{ fontSize: 17, fontWeight: 500, color: TEXT, marginBottom: 6 }}>Tout ce que vous pourrez faire avec {BRAND_NAME}</p>
           <p style={{ fontSize: 13, color: MUTED }}>En un trimestre avec vos élèves</p>
         </div>
         <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16 }}>
