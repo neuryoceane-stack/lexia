@@ -10,7 +10,7 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { computeSM2 } from "@/lib/sm2";
+import { computeSM2, ensureFiniteSm2ForInsert } from "@/lib/sm2";
 
 /**
  * GET /api/revision
@@ -154,6 +154,8 @@ export async function GET(request: Request) {
 /**
  * POST /api/revision
  * Enregistre une révision pour un mot (SM-2) et calcule la prochaine date.
+ * Flashcards (`lexivaFlash`), dictée (`rating`) et révision express (`rating`)
+ * passent toutes par `computeSM2`.
  * Body: { wordId: string, rating?: 0|1|2|3, success?: boolean, lexivaFlash?: 1|3|5 }
  * rating: 0=oublié, 1=difficile, 2=bien, 3=parfait
  * lexivaFlash (flashcards Lexiva) : 1→SM-2 rating 1, 3→2 (Presque), 5→3 (Oui !)
@@ -267,12 +269,13 @@ export async function POST(request: Request) {
     (typeof easeFactor === "number" ? easeFactor : 2.5) - hintPenalty
   );
 
-  const result = computeSM2({
+  const computed = computeSM2({
     easeFactor: penalizedEaseFactor,
     interval: typeof interval === "number" ? interval : 1,
     repetitions: typeof repetitions === "number" ? repetitions : 0,
     rating,
   });
+  const result = ensureFiniteSm2ForInsert(computed, wordId);
 
   const success = rating >= 2;
   const id = nanoid();
