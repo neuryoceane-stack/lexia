@@ -1,5 +1,6 @@
-import Image from "next/image";
 import Link from "next/link";
+import { Compass } from "lucide-react";
+import { EmptyMark } from "@/components/empty-mark";
 
 export default function NotFound() {
   return (
@@ -7,13 +8,7 @@ export default function NotFound() {
       className="flex min-h-screen flex-col items-center justify-center px-6 text-center"
       style={{ background: "var(--page)" }}
     >
-      <Image
-        src="/bee-oops.png"
-        alt=""
-        width={140}
-        height={140}
-        className="mx-auto"
-      />
+      <EmptyMark icon={Compass} size={140} />
 
       <p
         className="mt-6"
