@@ -3,8 +3,8 @@ import type { TeacherClassListRow } from "@/lib/teacher-classes-list-stats";
 export const PAGE_BG = "var(--page)";
 export const PRIMARY = "var(--ink)";
 export const BORDER_TERTIARY = "var(--line)";
-export const GREEN = "#1D9E75";
-export const GOLD = "#F5A623";
+export const GREEN = "var(--ink)";
+export const GOLD = "var(--ink)";
 
 export function formatClassCode(identifier: string): string {
   const up = identifier.trim().toUpperCase();
@@ -27,8 +27,8 @@ export function masteryColors(pct: number): { text: string; fill: string } {
 export function badgePalette(index: number): { bg: string; color: string } {
   const palettes = [
     { bg: "var(--background-subtle)", color: "var(--ink)" },
-    { bg: "#FEF3DC", color: "#A06800" },
-    { bg: "#EAF4EF", color: "#1A6645" },
+    { bg: "var(--mark)", color: "var(--ink)" },
+    { bg: "var(--surface)", color: "var(--ink)" },
   ] as const;
   return palettes[index % 3];
 }

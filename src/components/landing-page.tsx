@@ -182,12 +182,12 @@ export function LandingPage() {
   return (
     <div className="min-h-screen overflow-x-hidden">
       {showDeletedBanner && (
-        <div className="relative flex items-center justify-center gap-2 bg-[#dcfce7] px-4 py-3 text-sm font-medium text-[#166534]">
+        <div className="relative flex items-center justify-center gap-2 bg-surface px-4 py-3 text-sm font-medium text-ink">
           <span>✓ Ton compte a bien été supprimé. À bientôt sur Lexiva.</span>
           <button
             type="button"
             onClick={dismissBanner}
-            className="absolute right-3 text-[#166534]/60 transition hover:text-[#166534]"
+            className="absolute right-3 text-ink/60 transition hover:text-ink"
             aria-label="Fermer"
           >
             ✕
@@ -219,13 +219,13 @@ export function LandingPage() {
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/login"
-              className="rounded-lg px-3 py-2 text-sm font-medium text-[#6B6B7B] transition hover:text-ink sm:px-4"
+              className="rounded-lg px-3 py-2 text-sm font-medium text-muted transition hover:text-ink sm:px-4"
             >
               Se connecter
             </Link>
             <Link
               href="/signup"
-              className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-white transition hover:bg-ink sm:px-5 sm:py-2.5"
+              className="rounded-xl bg-ink px-4 py-2 text-sm font-semibold text-surface transition hover:bg-ink sm:px-5 sm:py-2.5"
             >
               Commencer
             </Link>
@@ -250,7 +250,7 @@ export function LandingPage() {
           />
           {/* Orbe 3 : petit cercle doré */}
           <div
-            className="animate-float-10s absolute bottom-20 left-1/3 h-32 w-32 rounded-full bg-[#F5A623] opacity-[0.08] blur-2xl"
+            className="animate-float-10s absolute bottom-20 left-1/3 h-32 w-32 rounded-full bg-mark opacity-[0.08] blur-2xl"
             aria-hidden
           />
         </div>
@@ -266,7 +266,7 @@ export function LandingPage() {
           />
           <h1 className="font-heading text-4xl font-bold leading-tight text-ink sm:text-5xl md:text-6xl lg:text-7xl">
             Le vocabulaire{" "}
-            <span className="bg-gradient-to-r from-ink to-[#F5A623] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-ink to-ink bg-clip-text text-transparent">
               vivant
             </span>,
             <br />
@@ -280,7 +280,7 @@ export function LandingPage() {
           <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
             <Link
               href="/signup"
-              className="group w-full rounded-xl bg-ink px-8 py-3.5 text-center font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)] sm:w-auto"
+              className="group w-full rounded-xl bg-ink px-8 py-3.5 text-center font-semibold text-surface transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)] sm:w-auto"
             >
               Commencer →
             </Link>
@@ -296,12 +296,12 @@ export function LandingPage() {
             {DEMO_CARDS.map((card, i) => (
               <div
                 key={i}
-                className="animate-typing-card absolute inset-x-0 top-1/2 mx-auto flex -translate-y-1/2 flex-col items-center justify-center rounded-2xl border border-line bg-white px-6 py-4 shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)]"
+                className="animate-typing-card absolute inset-x-0 top-1/2 mx-auto flex -translate-y-1/2 flex-col items-center justify-center rounded-2xl border border-line bg-surface px-6 py-4 shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)]"
               >
                 <span className="font-mono text-lg text-ink">
                   {card.term}
                 </span>
-                <span className="mt-1 text-sm text-[#F5A623]">
+                <span className="mt-1 text-sm text-ink">
                   → {card.def}
                 </span>
               </div>
@@ -313,7 +313,7 @@ export function LandingPage() {
       {/* SECTION 2 — STATS */}
       <section
         ref={statsRef.ref}
-        className="bg-white px-4 py-8 sm:py-10"
+        className="bg-surface px-4 py-8 sm:py-10"
       >
         <div className="mx-auto flex max-w-4xl flex-col items-center justify-center gap-8 sm:flex-row sm:gap-12">
           {STATS.map((s, i) => (
@@ -330,10 +330,10 @@ export function LandingPage() {
                     "—"
                   )}
                 </p>
-                <p className="mt-1 text-sm text-[#6B6B7B]">{s.label}</p>
+                <p className="mt-1 text-sm text-muted">{s.label}</p>
               </div>
               {i < STATS.length - 1 && (
-                <div className="hidden h-12 w-px bg-[#F5A623]/50 sm:block" />
+                <div className="hidden h-12 w-px bg-mark/50 sm:block" />
               )}
             </div>
           ))}
@@ -341,8 +341,8 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 3 — COMMENT ÇA MARCHE */}
-      <section className="bg-white px-4 py-10 sm:py-12">
-        <h2 className="font-heading text-center text-2xl font-bold text-slate-800 sm:text-3xl">
+      <section className="bg-surface px-4 py-10 sm:py-12">
+        <h2 className="font-heading text-center text-2xl font-bold text-ink sm:text-3xl">
           Comment ça marche
         </h2>
         <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 pt-8 md:grid-cols-3 md:gap-6 md:pt-10">
@@ -359,7 +359,7 @@ export function LandingPage() {
                 }`}
               >
                 <div className="flex items-center justify-center gap-3 md:justify-start">
-                  <span className="font-heading text-6xl font-bold text-[#F5A623]/20 sm:text-7xl">
+                  <span className="font-heading text-6xl font-bold text-ink/20 sm:text-7xl">
                     {step.num}
                   </span>
                   <step.Icon
@@ -368,10 +368,10 @@ export function LandingPage() {
                     aria-hidden
                   />
                 </div>
-                <h3 className="mt-2 text-center font-heading text-xl font-semibold text-slate-800 md:text-left">
+                <h3 className="mt-2 text-center font-heading text-xl font-semibold text-ink md:text-left">
                   {step.title}
                 </h3>
-                <p className="mt-2 text-center text-slate-600 md:text-left">{step.desc}</p>
+                <p className="mt-2 text-center text-muted md:text-left">{step.desc}</p>
               </div>
             );
           })}
@@ -379,7 +379,7 @@ export function LandingPage() {
       </section>
 
       {/* SECTION 4 — MOTS SAUVAGES */}
-      <section className="relative overflow-hidden bg-white px-4 py-10 sm:py-12">
+      <section className="relative overflow-hidden bg-surface px-4 py-10 sm:py-12">
         <div
           className="pointer-events-none absolute inset-0 opacity-[0.02]"
           style={{
@@ -393,7 +393,7 @@ export function LandingPage() {
           <p className="mb-3 mt-6 text-center text-sm italic text-muted">
             👆 Touche les mots surlignés pour voir la traduction
           </p>
-          <div className="relative rounded-2xl border border-line bg-white p-6 shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)]">
+          <div className="relative rounded-2xl border border-line bg-surface p-6 shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)]">
             <p className="select-none text-lg leading-relaxed text-ink">
               {SAMPLE_TEXT.split(/\s+/).map((w, i) => {
                 const match = SAMPLE_WORDS.find(
@@ -414,7 +414,7 @@ export function LandingPage() {
                     }
                     className={`relative ${
                       def
-                        ? "inline-block cursor-pointer touch-manipulation rounded px-2.5 py-2.5 -my-1.5 underline decoration-[#F5A623] decoration-dotted underline-offset-2 hover:bg-ink/10 active:bg-ink/15"
+                        ? "inline-block cursor-pointer touch-manipulation rounded px-2.5 py-2.5 -my-1.5 underline decoration-ink decoration-dotted underline-offset-2 hover:bg-ink/10 active:bg-ink/15"
                         : "inline"
                     }`}
                     onMouseEnter={() => def && setHoverWord(cleanWord)}
@@ -437,7 +437,7 @@ export function LandingPage() {
                   >
                     {w}{" "}
                     {def && isActive && (
-                      <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-lg border border-line bg-white px-3 py-2 text-sm text-[#F5A623] shadow-xl">
+                      <span className="absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-lg border border-line bg-surface px-3 py-2 text-sm text-ink shadow-xl">
                         {def}
                       </span>
                     )}
@@ -460,10 +460,10 @@ export function LandingPage() {
             🏫 Espace professeur
           </span>
           <div className="mt-3 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
-            <h2 className="font-heading text-2xl font-bold text-slate-800 sm:text-3xl">
+            <h2 className="font-heading text-2xl font-bold text-ink sm:text-3xl">
               Pour les professeurs aussi
             </h2>
-            <span className="inline-flex shrink-0 items-center rounded-full bg-[#F5A623] px-2.5 py-0.5 text-xs font-semibold text-ink">
+            <span className="inline-flex shrink-0 items-center rounded-full bg-mark px-2.5 py-0.5 text-xs font-semibold text-ink">
               Bientôt disponible
             </span>
           </div>
@@ -473,28 +473,28 @@ export function LandingPage() {
               <div
                 key={title}
                 aria-disabled="true"
-                className="pointer-events-none rounded-xl border border-slate-200 bg-white p-6 opacity-85 select-none"
+                className="pointer-events-none rounded-xl border border-line bg-surface p-6 opacity-85 select-none"
               >
                 <Icon
                   className="mx-auto h-9 w-9 text-ink"
                   strokeWidth={1.75}
                   aria-hidden
                 />
-                <p className="mt-4 font-semibold text-slate-800">{title}</p>
-                <p className="mt-1 text-sm text-slate-600">{desc}</p>
+                <p className="mt-4 font-semibold text-ink">{title}</p>
+                <p className="mt-1 text-sm text-muted">{desc}</p>
               </div>
             ))}
           </div>
 
-          <div className="mx-auto mt-5 w-full max-w-[520px] rounded-2xl border border-line bg-white p-5 text-left shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)] sm:p-6">
-            <p className="text-sm leading-relaxed text-slate-700">
+          <div className="mx-auto mt-5 w-full max-w-[520px] rounded-2xl border border-line bg-surface p-5 text-left shadow-[0_4px_20px_color-mix(in_srgb,var(--ink)_8%,transparent)] sm:p-6">
+            <p className="text-sm leading-relaxed text-ink">
               Vous êtes professeur&nbsp;? Laissez votre email, nous vous prévenons dès
               l&apos;ouverture de l&apos;espace professeur.
             </p>
 
             {teacherWaitlistStatus === "success" ? (
               <p
-                className="mt-4 rounded-xl border border-[#1D9E75]/30 bg-[#E1F5EE] px-4 py-3 text-sm font-medium text-[#1D9E75]"
+                className="mt-4 rounded-xl border border-line/30 bg-surface px-4 py-3 text-sm font-medium text-ink"
                 role="status"
               >
                 C&apos;est noté&nbsp;! On vous prévient dès l&apos;ouverture.
@@ -534,12 +534,12 @@ export function LandingPage() {
                     placeholder="vous@etablissement.fr"
                     autoComplete="email"
                     disabled={teacherWaitlistStatus === "loading"}
-                    className="min-h-[52px] min-w-0 flex-1 border-0 bg-white px-4 py-3.5 text-base text-ink outline-none placeholder:text-muted disabled:opacity-60 sm:rounded-none"
+                    className="min-h-[52px] min-w-0 flex-1 border-0 bg-surface px-4 py-3.5 text-base text-ink outline-none placeholder:text-muted disabled:opacity-60 sm:rounded-none"
                   />
                   <button
                     type="submit"
                     disabled={teacherWaitlistStatus === "loading"}
-                    className="inline-flex min-h-[52px] shrink-0 items-center justify-center gap-2 whitespace-nowrap border-t border-line bg-ink px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60 sm:border-t-0 sm:border-l sm:border-ink/20 sm:px-4"
+                    className="inline-flex min-h-[52px] shrink-0 items-center justify-center gap-2 whitespace-nowrap border-t border-line bg-ink px-4 py-3.5 text-sm font-semibold text-surface transition hover:bg-ink disabled:cursor-not-allowed disabled:opacity-60 sm:border-t-0 sm:border-l sm:border-ink/20 sm:px-4"
                   >
                     {teacherWaitlistStatus === "loading" ? (
                       <>
@@ -552,12 +552,12 @@ export function LandingPage() {
                   </button>
                 </div>
                 {teacherWaitlistStatus === "invalid" && (
-                  <p className="mt-2 text-sm text-red-600" role="alert">
+                  <p className="mt-2 text-sm text-false-text" role="alert">
                     Veuillez saisir une adresse email valide.
                   </p>
                 )}
                 {teacherWaitlistStatus === "error" && (
-                  <p className="mt-2 text-sm text-red-600" role="alert">
+                  <p className="mt-2 text-sm text-false-text" role="alert">
                     Une erreur est survenue. Veuillez réessayer.
                   </p>
                 )}
@@ -575,7 +575,7 @@ export function LandingPage() {
           </h2>
           <Link
             href="/signup"
-            className="mt-6 inline-block rounded-xl bg-ink px-12 py-4 text-xl font-semibold text-white transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)]"
+            className="mt-6 inline-block rounded-xl bg-ink px-12 py-4 text-xl font-semibold text-surface transition-all duration-300 hover:scale-105 hover:shadow-[0_8px_24px_color-mix(in_srgb,var(--ink)_25%,transparent)]"
           >
             Créer mon compte
           </Link>
@@ -610,13 +610,13 @@ export function LandingPage() {
             <div className="flex gap-6">
               <Link
                 href="/login"
-                className="text-sm font-medium text-[#6B6B7B] transition hover:text-ink"
+                className="text-sm font-medium text-muted transition hover:text-ink"
               >
                 Connexion
               </Link>
               <Link
                 href="/signup"
-                className="text-sm font-medium text-[#6B6B7B] transition hover:text-ink"
+                className="text-sm font-medium text-muted transition hover:text-ink"
               >
                 Inscription
               </Link>

@@ -2,12 +2,11 @@
 
 import { useState } from "react";
 import { usePathname } from "next/navigation";
-import { MessageCircle } from "lucide-react";
 
 const FEEDBACK_TYPES = [
-  { value: "bug", label: "Bug" },
-  { value: "idee", label: "Idée" },
-  { value: "question", label: "Question" },
+  { value: "bug", label: "🐛 Bug" },
+  { value: "idee", label: "✨ Idée" },
+  { value: "question", label: "❓ Question" },
 ] as const;
 
 export function FeedbackWidget() {
@@ -53,11 +52,11 @@ export function FeedbackWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-[92px] right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full shadow-lg transition hover:scale-105 md:bottom-6"
-        style={{ backgroundColor: "var(--ink)", color: "white" }}
+        className="fixed bottom-[92px] right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full text-2xl shadow-lg transition hover:scale-105 md:bottom-6"
+        style={{ backgroundColor: "var(--ink)", color: "var(--surface)" }}
         aria-label="Donner un retour"
       >
-        <MessageCircle className="text-white" size={22} strokeWidth={1.8} aria-hidden />
+        💬
       </button>
 
       {open && (
@@ -66,31 +65,31 @@ export function FeedbackWidget() {
           role="dialog"
           aria-labelledby="feedback-title"
         >
-          <div className="relative rounded-xl rounded-br-sm bg-white p-6 shadow-2xl">
+          <div className="relative rounded-xl rounded-br-sm bg-surface p-6 shadow-2xl">
             {/* Flèche pointant vers le bouton */}
             <div
               className="absolute -bottom-2 right-6 h-0 w-0 border-l-8 border-r-8 border-t-[10px] border-l-transparent border-r-transparent border-t-white"
               aria-hidden
             />
-            <h2 id="feedback-title" className="mb-4 text-lg font-semibold text-slate-800">
+            <h2 id="feedback-title" className="mb-4 text-lg font-semibold text-ink">
               Un problème ou une idée ?
             </h2>
 
             {sent ? (
-              <p className="py-8 text-center text-green-600">
+              <p className="py-8 text-center text-ink">
                 ✓ Merci !
               </p>
             ) : (
               <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
-                  <label htmlFor="feedback-type" className="mb-1 block text-sm font-medium text-slate-600">
+                  <label htmlFor="feedback-type" className="mb-1 block text-sm font-medium text-muted">
                     Type
                   </label>
                   <select
                     id="feedback-type"
                     value={type}
                     onChange={(e) => setType(e.target.value)}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full rounded-lg border border-line bg-surface px-3 py-2 text-ink focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     {FEEDBACK_TYPES.map((opt) => (
                       <option key={opt.value} value={opt.value}>
@@ -101,8 +100,8 @@ export function FeedbackWidget() {
                 </div>
 
                 <div>
-                  <label htmlFor="feedback-desc" className="mb-1 block text-sm font-medium text-slate-600">
-                    Description <span className="text-red-500">*</span>
+                  <label htmlFor="feedback-desc" className="mb-1 block text-sm font-medium text-muted">
+                    Description <span className="text-false-text">*</span>
                   </label>
                   <textarea
                     id="feedback-desc"
@@ -111,7 +110,7 @@ export function FeedbackWidget() {
                     required
                     rows={4}
                     placeholder="Décris ton retour..."
-                    className="w-full resize-none rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-800 placeholder:text-slate-400 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                    className="w-full resize-none rounded-lg border border-line bg-surface px-3 py-2 text-ink placeholder:text-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                   />
                 </div>
 
@@ -119,14 +118,14 @@ export function FeedbackWidget() {
                   <button
                     type="button"
                     onClick={handleCancel}
-                    className="flex-1 rounded-lg border border-slate-300 bg-white py-2 font-medium text-slate-700 hover:bg-slate-50"
+                    className="flex-1 rounded-lg border border-line bg-surface py-2 font-medium text-ink hover:bg-surface hover:border-ink"
                   >
                     Annuler
                   </button>
                   <button
                     type="submit"
                     disabled={loading || !description.trim()}
-                    className="flex-1 rounded-lg py-2 font-medium text-white disabled:opacity-50"
+                    className="flex-1 rounded-lg py-2 font-medium text-surface disabled:opacity-50"
                     style={{ backgroundColor: "var(--ink)" }}
                   >
                     {loading ? "Envoi…" : "Envoyer"}

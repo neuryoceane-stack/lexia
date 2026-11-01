@@ -199,7 +199,7 @@ function AvatarDropdown({
             right: 0,
             zIndex: 9999,
             width: 248,
-            backgroundColor: "white",
+            backgroundColor: "var(--surface)",
             borderRadius: 18,
             boxShadow:
               "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)",
@@ -219,31 +219,21 @@ function AvatarDropdown({
             className="relative flex items-start gap-3 overflow-hidden"
             style={{
               padding: "16px 16px 14px",
-              background:
-                "linear-gradient(150deg, var(--ink) 0%, var(--ink) 55%, var(--ink) 100%)",
+              background: "var(--ink)",
             }}
           >
-            <div
-              className="pointer-events-none absolute inset-0"
-              aria-hidden
-              style={{
-                zIndex: 0,
-                background:
-                  "radial-gradient(circle at 100% 120%, rgba(245,166,35,.22), transparent 60%)",
-              }}
-            />
             <div
               className="relative z-[2] flex shrink-0 items-center justify-center"
               style={{
                 width: 44,
                 height: 44,
                 borderRadius: "50%",
-                background: "rgba(255,255,255,.18)",
-                color: "white",
+                background: "color-mix(in srgb, var(--surface) 18%, transparent)",
+                color: "var(--surface)",
                 fontSize: 17,
                 fontWeight: 600,
                 boxShadow:
-                  "0 0 0 2px rgba(245,166,35,.85), inset 0 0 0 1px rgba(255,255,255,.35)",
+                  "0 0 0 2px var(--mark), inset 0 0 0 1px color-mix(in srgb, var(--surface) 35%, transparent)",
               }}
             >
               {initial}
@@ -254,28 +244,28 @@ function AvatarDropdown({
                 style={{
                   fontSize: 15,
                   fontWeight: 600,
-                  color: "white",
+                  color: "var(--surface)",
                   letterSpacing: "-0.01em",
                   marginBottom: 2,
                 }}
               >
                 {displayName}
               </p>
-              <p style={{ fontSize: 11.5, color: "rgba(255,255,255,.7)", marginBottom: 8 }}>
+              <p style={{ fontSize: 11.5, color: "color-mix(in srgb, var(--surface) 75%, transparent)", marginBottom: 8 }}>
                 {isProfesseur ? "Professeur" : "Étudiant"}
               </p>
               <span
                 className="inline-flex items-center gap-1"
                 style={{
-                  background: "rgba(255,255,255,.16)",
-                  color: "white",
+                  background: "color-mix(in srgb, var(--surface) 16%, transparent)",
+                  color: "var(--surface)",
                   fontSize: 10.5,
                   fontWeight: 600,
                   padding: "3px 9px",
                   borderRadius: 999,
                 }}
               >
-                <Star size={11} stroke="#F7B733" fill="#F7B733" aria-hidden />
+                <Star size={11} stroke="var(--mark)" fill="var(--mark)" aria-hidden />
                 Niveau {userLevel} — {getLevelName(userLevel)}
               </span>
               <div
@@ -291,7 +281,7 @@ function AvatarDropdown({
                     style={{
                       fontSize: 10,
                       lineHeight: 1,
-                      color: "rgba(255,255,255,.85)",
+                      color: "color-mix(in srgb, var(--surface) 85%, transparent)",
                     }}
                   >
                     {xpInLevel} / 1000 XP
@@ -300,7 +290,7 @@ function AvatarDropdown({
                 <div
                   style={{
                     height: 6,
-                    background: "rgba(255,255,255,.20)",
+                    background: "color-mix(in srgb, var(--surface) 20%, transparent)",
                     borderRadius: 999,
                     overflow: "hidden",
                   }}
@@ -309,7 +299,7 @@ function AvatarDropdown({
                     style={{
                       height: "100%",
                       width: `${xpPct}%`,
-                      background: "linear-gradient(90deg, #F5A623, #F7B733)",
+                      background: "var(--mark)",
                       borderRadius: 999,
                       transition: xpWidthTransition,
                     }}
@@ -421,7 +411,7 @@ function AccountMenuNavItem({
       <div style={iconTileStyle}>
         <Icon size={16} stroke="var(--ink)" aria-hidden />
       </div>
-      <span className="flex-1" style={{ fontSize: 13.5, color: "#1A1A1A", fontWeight: 500 }}>
+      <span className="flex-1" style={{ fontSize: 13.5, color: "var(--ink)", fontWeight: 500 }}>
         {label}
       </span>
       <ChevronRight
@@ -457,7 +447,7 @@ function AccountMenuLogoutButton({
         borderRadius: 10,
         padding: "9px 10px",
         gap: 10,
-        background: hover ? "rgba(229,72,77,.07)" : "transparent",
+        background: hover ? "var(--false-bg)" : "transparent",
         border: "none",
         cursor: "pointer",
         transition: reducedMotion ? "none" : "background 120ms ease",
@@ -465,8 +455,8 @@ function AccountMenuLogoutButton({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      <LogOut size={16} stroke="#E5484D" aria-hidden />
-      <span style={{ fontSize: 13.5, color: "#E5484D", fontWeight: 500 }}>Déconnexion</span>
+      <LogOut size={16} stroke="var(--false-sign)" aria-hidden />
+      <span style={{ fontSize: 13.5, color: "var(--false-sign)", fontWeight: 500 }}>Déconnexion</span>
     </button>
   );
 }

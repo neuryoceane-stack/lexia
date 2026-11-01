@@ -54,22 +54,22 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
       </h2>
 
       {pending.length > 0 && (
-        <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50/80 p-4">
-          <h3 className="mb-3 text-sm font-medium text-amber-800">
+        <div className="mb-6 rounded-xl border border-line bg-surface p-4">
+          <h3 className="mb-3 text-sm font-medium text-ink">
             Salle d&apos;attente ({pending.length})
           </h3>
           <ul className="space-y-2">
             {pending.map((m) => (
               <li
                 key={m.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-amber-200/80 bg-white px-3 py-2"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line bg-surface px-3 py-2"
               >
                 <div>
                   <span className="font-medium text-vocab-gray">
                     {m.name}
                   </span>
                   {m.email && (
-                    <span className="ml-2 text-sm text-slate-500">
+                    <span className="ml-2 text-sm text-muted">
                       {m.email}
                     </span>
                   )}
@@ -79,7 +79,7 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
                     type="button"
                     onClick={() => handleStatus(m.userId!, "accepted")}
                     disabled={loading === m.userId}
-                    className="rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+                    className="rounded-lg bg-ink px-3 py-1.5 text-sm font-medium text-surface hover:bg-ink-hover disabled:opacity-50"
                   >
                     {loading === m.userId ? "…" : "Accepter"}
                   </button>
@@ -87,7 +87,7 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
                     type="button"
                     onClick={() => handleStatus(m.userId!, "rejected")}
                     disabled={loading === m.userId}
-                    className="rounded-lg bg-slate-200 px-3 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-300 disabled:opacity-50"
+                    className="rounded-lg bg-line px-3 py-1.5 text-sm font-medium text-ink hover:bg-surface hover:border-ink disabled:opacity-50"
                   >
                     Refuser
                   </button>
@@ -99,22 +99,22 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
       )}
 
       {accepted.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="mb-3 text-sm font-medium text-slate-600">
+        <div className="rounded-xl border border-line bg-surface p-4">
+          <h3 className="mb-3 text-sm font-medium text-muted">
             Membres acceptés ({accepted.length})
           </h3>
           <ul className="space-y-2">
             {accepted.map((m) => (
               <li
                 key={m.id}
-                className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2"
+                className="flex items-center justify-between gap-3 rounded-lg border border-line px-3 py-2"
               >
                 <div className="min-w-0 flex-1">
                   <span className="font-medium text-vocab-gray">
                     {m.name}
                   </span>
                   {m.email && (
-                    <span className="ml-2 text-sm text-slate-500">
+                    <span className="ml-2 text-sm text-muted">
                       {m.email}
                     </span>
                   )}
@@ -123,7 +123,7 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
                   type="button"
                   onClick={() => handleStatus(m.userId!, "rejected")}
                   disabled={loading === m.userId}
-                  className="btn-relief rounded-lg px-2.5 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+                  className="btn-relief rounded-lg px-2.5 py-1.5 text-xs font-medium text-false-text hover:bg-false-bg disabled:opacity-50"
                 >
                   {loading === m.userId ? "…" : "Supprimer de la classe"}
                 </button>
@@ -134,7 +134,7 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
       )}
 
       {pending.length === 0 && accepted.length === 0 && rejected.length === 0 && (
-        <p className="rounded-xl border border-dashed border-slate-300 bg-slate-50/50 py-8 text-center text-sm text-slate-500">
+        <p className="rounded-xl border border-dashed border-line bg-surface py-8 text-center text-sm text-muted">
           Aucun élève pour le moment. Partagez l&apos;identifiant de la classe pour qu&apos;ils puissent rejoindre.
         </p>
       )}

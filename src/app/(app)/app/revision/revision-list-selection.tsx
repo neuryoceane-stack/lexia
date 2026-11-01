@@ -10,7 +10,7 @@ import {
 } from "@/lib/language";
 
 const VIOLET = "var(--ink)";
-const GOLD = "#F5A623";
+const GOLD = "var(--ink)";
 const BORDER_TERTIARY = "var(--line)";
 const BORDER_SECONDARY = "var(--line)";
 
@@ -118,7 +118,7 @@ function LaunchSessionButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className={`inline-flex items-center justify-center gap-2 border-none font-medium text-white ${className}`}
+      className={`inline-flex items-center justify-center gap-2 border-none font-medium text-surface ${className}`}
       style={{
         background: VIOLET,
         borderRadius: 20,
@@ -280,7 +280,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const lockBannerLang = selectedLang ? labelSource : "";
   const isFlashcardMode = mode === "flashcard";
   const senseAccent = isFlashcardMode ? VIOLET : GOLD;
-  const senseSelectedBg = isFlashcardMode ? "var(--background-subtle)" : "#FEF8EC";
+  const senseSelectedBg = isFlashcardMode ? "var(--background-subtle)" : "var(--surface)";
   const senseSectionLabel = isFlashcardMode
     ? "Sens des flashcards"
     : "Sens de la dictée";
@@ -445,7 +445,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             <button
               type="button"
               onClick={() => setRevisionDirection("term_to_def")}
-              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] bg-white py-2.5 pr-3 pl-3.5 text-left transition-colors"
+              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] bg-surface py-2.5 pr-3 pl-3.5 text-left transition-colors"
               style={{
                 borderRadius: 10,
                 padding: "10px 14px",
@@ -502,7 +502,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             <button
               type="button"
               onClick={() => setRevisionDirection("def_to_term")}
-              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] bg-white py-2.5 pr-3 pl-3.5 text-left transition-colors"
+              className="flex flex-1 cursor-pointer items-center gap-2.5 border-[1.5px] bg-surface py-2.5 pr-3 pl-3.5 text-left transition-colors"
               style={{
                 borderRadius: 10,
                 padding: "10px 14px",
@@ -563,8 +563,8 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           <div
             className="mb-3 flex items-center gap-2.5"
             style={{
-              background: "#FEF8EC",
-              border: "0.5px solid #F5D08A",
+              background: "var(--surface)",
+              border: "0.5px solid var(--line)",
               borderRadius: 10,
               padding: "10px 14px",
               marginBottom: 12,
@@ -575,7 +575,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
               className="min-w-0 flex-1"
               style={{
                 fontSize: 12,
-                color: "#92640A",
+                color: "var(--ink)",
                 lineHeight: 1.5,
               }}
             >
@@ -611,7 +611,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
         </p>
 
         {error && (
-          <p className="mb-3 text-sm text-red-600" role="alert">
+          <p className="mb-3 text-sm text-false-text" role="alert">
             {error}
           </p>
         )}
@@ -740,7 +740,7 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
         }}
       >
         <div
-          className="pointer-events-auto border-t bg-white"
+          className="pointer-events-auto border-t bg-surface"
           style={{
             borderTop: `0.5px solid ${BORDER_TERTIARY}`,
             padding: "12px 16px",

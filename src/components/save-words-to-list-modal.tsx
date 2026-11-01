@@ -179,7 +179,7 @@ export function SaveWordsToListModal({
   const modeTabClass = (active: boolean) =>
     `flex-1 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
       active
-        ? "bg-ink text-white"
+        ? "bg-ink text-surface"
         : "bg-[var(--background-subtle)] text-[var(--foreground-muted)] hover:bg-[color-mix(in_srgb,var(--ink)_8%,transparent)]"
     }`;
 
@@ -214,7 +214,7 @@ export function SaveWordsToListModal({
             style={{ background: "var(--ink)" }}
             aria-hidden
           >
-            <Check size={24} strokeWidth={2.5} color="#FFFFFF" />
+            <Check size={24} strokeWidth={2.5} color="var(--surface)" />
           </span>
           <p style={{ fontSize: 15, fontWeight: 600, color: "var(--ink)" }}>
             {successCount} mot{successCount !== 1 ? "s" : ""} enregistré
@@ -395,7 +395,7 @@ export function SaveWordsToListModal({
           )}
 
           {error && (
-            <p className="mt-3 text-sm text-red-600" role="alert">
+            <p className="mt-3 text-sm text-false-text" role="alert">
               {error}
             </p>
           )}
@@ -413,7 +413,7 @@ export function SaveWordsToListModal({
               type="button"
               onClick={handleConfirmSave}
               disabled={!canSave}
-              className="btn-relief inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              className="btn-relief inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
               style={{ background: "var(--ink)" }}
             >
               {saving ? (

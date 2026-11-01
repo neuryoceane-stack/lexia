@@ -20,8 +20,8 @@ export interface SessionEndScreenProps {
 }
 
 const VIOLET = "var(--ink)";
-const GOLD = "#F5A623";
-const GREEN = "#1D9E75";
+const GOLD = "var(--ink)";
+const GREEN = "var(--ink)";
 const BG_PAGE = "var(--page)";
 
 const CONFETTI_COLORS = [VIOLET, GOLD, GREEN] as const;
@@ -39,9 +39,9 @@ function performanceBadge(percent: number): {
   if (percent < 50) {
     return {
       label: "Bien",
-      bg: "#EFF6FF",
-      text: "#3B82F6",
-      border: "#BFDBFE",
+      bg: "var(--surface)",
+      text: "var(--ink)",
+      border: "var(--line)",
     };
   }
   if (percent <= 80) {
@@ -54,9 +54,9 @@ function performanceBadge(percent: number): {
   }
   return {
     label: "Parfait !",
-    bg: "#FFF7E6",
-    text: "#D97706",
-    border: "#FDE68A",
+    bg: "var(--surface)",
+    text: "var(--ink)",
+    border: "var(--line)",
   };
 }
 
@@ -135,7 +135,7 @@ export default function SessionEndScreen({
       style={{ backgroundColor: BG_PAGE }}
     >
       <div
-        className="animate-session-end-enter relative w-full max-w-[420px] rounded-2xl bg-white px-8 py-8 shadow-lg"
+        className="animate-session-end-enter relative w-full max-w-[420px] rounded-2xl bg-surface px-8 py-8 shadow-lg"
         style={{ padding: 32, borderRadius: 16 }}
       >
         <style>{`
@@ -171,7 +171,7 @@ export default function SessionEndScreen({
               marginTop: 20,
               fontSize: 26,
               fontWeight: 500,
-              color: "#1a1a2e",
+              color: "var(--ink)",
             }}
           >
             {isSandbox
@@ -204,7 +204,7 @@ export default function SessionEndScreen({
 
               <p
                 className="mt-2 text-center font-normal"
-                style={{ fontSize: 13, color: "#6B7280", fontWeight: 400 }}
+                style={{ fontSize: 13, color: "var(--muted)", fontWeight: 400 }}
               >
                 {wordsSeen > 0
                   ? `(${wordsRetained} / ${wordsSeen} mots maîtrisés)`
@@ -213,7 +213,7 @@ export default function SessionEndScreen({
               {mode === "dictee" && (
                 <p
                   className="mt-1 text-center font-normal"
-                  style={{ fontSize: 13, color: "#6B7280", fontWeight: 400 }}
+                  style={{ fontSize: 13, color: "var(--muted)", fontWeight: 400 }}
                 >
                   ({typeof wordsWritten === "number" ? wordsWritten : 0} mots écrits)
                 </p>
@@ -234,7 +234,7 @@ export default function SessionEndScreen({
                   </p>
                   <p
                     className="mt-1 text-center font-normal"
-                    style={{ fontSize: 13, color: "#9CA3AF", fontWeight: 400 }}
+                    style={{ fontSize: 13, color: "var(--muted)", fontWeight: 400 }}
                   >
                     points d&apos;expérience gagnés
                   </p>
@@ -247,7 +247,7 @@ export default function SessionEndScreen({
                   style={{
                     marginTop: 12,
                     fontSize: 15,
-                    color: "#6B7280",
+                    color: "var(--muted)",
                     fontWeight: 400,
                   }}
                 >
@@ -271,7 +271,7 @@ export default function SessionEndScreen({
             <button
               type="button"
               onClick={onHome}
-              className="w-full font-medium text-white transition-colors duration-200"
+              className="w-full font-medium text-surface transition-colors duration-200"
               style={{
                 backgroundColor: VIOLET,
                 padding: 14,

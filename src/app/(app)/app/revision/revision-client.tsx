@@ -657,7 +657,7 @@ export function RevisionClient({
     return (
       <div className="space-y-4">
         <BackLink href={pickerPath} />
-        <p className="rounded-lg bg-red-50 p-3 text-red-700">
+        <p className="rounded-lg bg-false-bg p-3 text-false-text">
           {error}
         </p>
         <button
@@ -730,7 +730,7 @@ export function RevisionClient({
           <button
             type="button"
             onClick={() => goToPicker(false)}
-            className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
+            className="btn-relief rounded-lg bg-primary px-4 py-2 text-surface hover:bg-primary-dark"
           >
             Nouvelle session
           </button>
@@ -821,13 +821,13 @@ export function RevisionClient({
           style={{
             width: 32,
             height: 32,
-            background: showMemoPopover ? "var(--ink)" : "#FCEFD6",
-            border: `0.5px solid ${showMemoPopover ? "var(--ink)" : "#F3D8A0"}`,
+            background: showMemoPopover ? "var(--ink)" : "var(--mark)",
+            border: `1px solid ${showMemoPopover ? "var(--ink)" : "var(--line)"}`,
           }}
         >
           <Lightbulb
             className="h-3.5 w-3.5 shrink-0"
-            style={{ color: showMemoPopover ? "#FFFFFF" : "#B9791A" }}
+            style={{ color: showMemoPopover ? "var(--surface)" : "var(--ink)" }}
             aria-hidden
           />
         </button>
@@ -841,7 +841,7 @@ export function RevisionClient({
               right: layout === "inline" ? -4 : 0,
               width: 230,
               maxWidth: "calc(100vw - 48px)",
-              background: "#FFFFFF",
+              background: "var(--surface)",
               border: "0.5px solid var(--line)",
               borderRadius: 14,
               boxShadow: "0 8px 24px color-mix(in srgb, var(--ink) 15%, transparent)",
@@ -893,7 +893,7 @@ export function RevisionClient({
                 borderRadius: 12,
                 border: "none",
                 background: "var(--ink)",
-                color: "#FFFFFF",
+                color: "var(--surface)",
                 cursor: "pointer",
               }}
             >
@@ -954,8 +954,8 @@ export function RevisionClient({
           />
           {error ? (
             <p
-              className="mb-3 rounded-xl px-3 py-2 text-sm text-red-700"
-              style={{ background: "#FCEBEB" }}
+              className="mb-3 rounded-xl px-3 py-2 text-sm text-false-text"
+              style={{ background: "var(--false-bg)" }}
               role="alert"
             >
               {error}
@@ -1012,20 +1012,20 @@ export function RevisionClient({
             <div
               className="flex shrink-0 items-center gap-[5px]"
               style={{
-                background: "#EAF4EF",
+                background: "var(--just-bg)",
                 borderRadius: 10,
                 padding: "5px 10px",
               }}
             >
               <Check
                 className="h-3 w-3 shrink-0"
-                stroke="#1D9E75"
+                stroke="var(--just-sign)"
                 aria-hidden
               />
-              <span style={{ fontSize: 13, fontWeight: 500, color: "#1D9E75" }}>
+              <span style={{ fontSize: 13, fontWeight: 500, color: "var(--just-text)" }}>
                 {flashOuiCount}
               </span>
-              <span style={{ fontSize: 11, color: "#1D9E75" }}>bons</span>
+              <span style={{ fontSize: 11, color: "var(--just-text)" }}>bons</span>
             </div>
           </div>
 
@@ -1046,7 +1046,7 @@ export function RevisionClient({
                     }}
                     className="relative cursor-pointer transition-transform duration-150 ease-out hover:-translate-y-0.5"
                     style={{
-                      background: "#FFFFFF",
+                      background: "var(--surface)",
                       borderRadius: 20,
                       borderWidth: 0.5,
                       borderStyle: "solid",
@@ -1162,13 +1162,13 @@ export function RevisionClient({
                               ? "var(--ink)"
                               : isUnlocked
                                 ? "var(--line)"
-                                : "#E8E8E8",
+                                : "var(--line)",
                             backgroundColor: isUsed ? "var(--background-subtle)" : "white",
                             color: isUsed
                               ? "var(--ink)"
                               : isUnlocked
                                 ? "var(--muted)"
-                                : "#D0D0D0",
+                                : "var(--foreground-disabled)",
                             cursor:
                               isUnlocked && !isUsed ? "pointer" : "default",
                             transition: "all 0.15s",
@@ -1184,7 +1184,7 @@ export function RevisionClient({
                     type="button"
                     onClick={flipCard}
                     disabled={sending}
-                    className="flex w-full cursor-pointer items-center justify-center gap-2 border-0 text-white disabled:opacity-50"
+                    className="flex w-full cursor-pointer items-center justify-center gap-2 border-0 text-surface disabled:opacity-50"
                     style={{
                       background: "var(--ink)",
                       borderRadius: 12,
@@ -1194,7 +1194,7 @@ export function RevisionClient({
                       gap: 8,
                     }}
                   >
-                    <RefreshCw className="h-3.5 w-3.5 shrink-0 text-white" />
+                    <RefreshCw className="h-3.5 w-3.5 shrink-0 text-surface" />
                     Retourner la carte
                   </button>
                 </>
@@ -1277,11 +1277,11 @@ export function RevisionClient({
                         fontWeight: 500,
                         padding: 13,
                         borderRadius: 12,
-                        border: "1.5px solid #F09595",
-                        color: "#E24B4A",
+                        border: "1.5px solid var(--false-sign)",
+                        color: "var(--false-sign)",
                       }}
                     >
-                      <X className="h-3 w-3 shrink-0 text-[#E24B4A]" />
+                      <X className="h-3 w-3 shrink-0 text-[var(--false-sign)]" />
                       Non
                     </button>
                     <button
@@ -1294,27 +1294,27 @@ export function RevisionClient({
                         fontWeight: 500,
                         padding: 13,
                         borderRadius: 12,
-                        border: "1.5px solid #F5D08A",
-                        color: "#C47D0A",
+                        border: "1.5px solid var(--ink)",
+                        color: "var(--ink)",
                       }}
                     >
-                      <Clock className="h-3 w-3 shrink-0 text-[#C47D0A]" />
+                      <Clock className="h-3 w-3 shrink-0 text-[var(--ink)]" />
                       Presque
                     </button>
                     <button
                       type="button"
                       disabled={sending}
                       onClick={() => void recordFlashcardLexivaRating(5)}
-                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 border-0 text-white disabled:opacity-50"
+                      className="flex flex-1 cursor-pointer items-center justify-center gap-2 border-0 text-surface disabled:opacity-50"
                       style={{
                         fontSize: 13,
                         fontWeight: 500,
                         padding: 13,
                         borderRadius: 12,
-                        background: "#1D9E75",
+                        background: "var(--just-sign)",
                       }}
                     >
-                      <Check className="h-3 w-3 shrink-0 text-white" />
+                      <Check className="h-3 w-3 shrink-0 text-surface" />
                       Oui !
                     </button>
                   </div>
@@ -1363,18 +1363,18 @@ export function RevisionClient({
     const wordCardColors =
       dicteePhase === "correct_feedback"
         ? {
-            background: "#EAF4EF",
-            borderColor: "#C3E6D6",
-            wordColor: "#1D9E75",
+            background: "var(--just-bg)",
+            borderColor: "var(--just-sign)",
+            wordColor: "var(--just-sign)",
           }
         : dicteePhase === "wrong_unrevealed" || dicteePhase === "revealed_fail"
           ? {
-              background: "#FCEBEB",
-              borderColor: "#F7C1C1",
-              wordColor: "#E24B4A",
+              background: "var(--false-bg)",
+              borderColor: "var(--false-sign)",
+              wordColor: "var(--false-sign)",
             }
           : {
-              background: "#FFFFFF",
+              background: "var(--surface)",
               borderColor: borderTertiary,
               wordColor: "var(--foreground)",
             };
@@ -1392,8 +1392,8 @@ export function RevisionClient({
         <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden max-md:pt-4 max-md:pl-4 max-md:pr-[max(80px,calc(16px+env(safe-area-inset-right,0px)))] md:h-auto md:overflow-visible md:px-0 md:pt-0 md:pb-0">
           {error ? (
             <p
-              className="mb-3 shrink-0 rounded-xl px-3 py-2 text-sm text-red-700"
-              style={{ background: "#FCEBEB" }}
+              className="mb-3 shrink-0 rounded-xl px-3 py-2 text-sm text-false-text"
+              style={{ background: "var(--false-bg)" }}
               role="alert"
             >
               {error}
@@ -1452,19 +1452,19 @@ export function RevisionClient({
             <div
               className="flex shrink-0 items-center gap-1 rounded-[10px] px-2.5 py-1.5"
               style={{
-                background: "#EAF4EF",
-                border: "0.5px solid #C3E6D6",
+                background: "var(--just-bg)",
+                border: "0.5px solid var(--just-sign)",
               }}
             >
               <Check
                 className="h-3 w-3 shrink-0"
-                stroke="#1D9E75"
+                stroke="var(--just-sign)"
                 aria-hidden
               />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#1D9E75" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--just-text)" }}>
                 {wordsRetained}
               </span>
-              <span style={{ fontSize: 11, color: "#1D9E75" }}>bons</span>
+              <span style={{ fontSize: 11, color: "var(--just-text)" }}>bons</span>
             </div>
           </div>
 
@@ -1527,7 +1527,7 @@ export function RevisionClient({
                     autoComplete="off"
                     autoCorrect="off"
                     spellCheck={false}
-                    className="mb-3 w-full rounded-xl border border-line bg-white text-center outline-none transition-[border-color,box-shadow] focus:border-ink focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)] max-md:py-3 max-md:text-lg md:mb-3.5 md:py-3.5 md:text-xl"
+                    className="mb-3 w-full rounded-xl border border-line bg-surface text-center outline-none transition-[border-color,box-shadow] focus:border-ink focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--ink)_12%,transparent)] max-md:py-3 max-md:text-lg md:mb-3.5 md:py-3.5 md:text-xl"
                     style={{
                       fontWeight: 500,
                       paddingLeft: 16,
@@ -1543,7 +1543,7 @@ export function RevisionClient({
                         setLastWrongAnswer(writeAnswer.trim());
                         setDicteePhase("revealed_fail");
                       }}
-                      className="flex-1 rounded-xl border border-line bg-white text-[13px] font-medium transition hover:bg-[#FAFAFE] disabled:opacity-50 max-md:py-3 md:py-3.5"
+                      className="flex-1 rounded-xl border border-line bg-surface text-[13px] font-medium transition hover:border-ink hover:bg-surface disabled:opacity-50 max-md:py-3 md:py-3.5"
                       style={{ color: "var(--foreground-muted)" }}
                     >
                       Je ne sais pas
@@ -1552,14 +1552,14 @@ export function RevisionClient({
                       type="button"
                       disabled={sending || !writeAnswer.trim()}
                       onClick={validateDictee}
-                      className="flex flex-[1.6] items-center justify-center gap-2 rounded-xl border-0 text-[13px] font-medium text-white transition hover:brightness-95 disabled:opacity-50 max-md:py-3 md:py-3.5"
+                      className="flex flex-[1.6] items-center justify-center gap-2 rounded-xl border-0 text-[13px] font-medium text-surface transition hover:brightness-95 disabled:opacity-50 max-md:py-3 md:py-3.5"
                       style={{
                         background: "var(--ink)",
                         boxShadow: "0 2px 10px color-mix(in srgb, var(--ink) 22%, transparent)",
                       }}
                     >
                       <Check
-                        className="h-3.5 w-3.5 shrink-0 text-white"
+                        className="h-3.5 w-3.5 shrink-0 text-surface"
                         aria-hidden
                       />
                       Valider
@@ -1573,7 +1573,7 @@ export function RevisionClient({
                   <div
                     className="flex shrink-0 items-center gap-3"
                     style={{
-                      background: "#FCEBEB",
+                      background: "var(--false-bg)",
                       borderRadius: 14,
                       padding: "14px 16px",
                       gap: 12,
@@ -1584,24 +1584,24 @@ export function RevisionClient({
                       style={{
                         width: 34,
                         height: 34,
-                        background: "#E24B4A",
+                        background: "var(--false-sign)",
                       }}
                     >
-                      <X className="h-4 w-4 text-white" aria-hidden />
+                      <X className="h-4 w-4 text-surface" aria-hidden />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <p
                         style={{
                           fontSize: 13,
                           fontWeight: 500,
-                          color: "#A32D2D",
+                          color: "var(--false-text)",
                         }}
                       >
                         Pas tout à fait…
                       </p>
                       <p
                         className="mt-0.5 line-through"
-                        style={{ fontSize: 12, color: "#A32D2D" }}
+                        style={{ fontSize: 12, color: "var(--false-text)" }}
                       >
                         {lastWrongAnswer || "—"}
                       </p>
@@ -1618,23 +1618,23 @@ export function RevisionClient({
                       }}
                       className="flex flex-1 items-center justify-center gap-2 bg-transparent"
                       style={{
-                        border: "1.5px solid #E24B4A",
-                        color: "#E24B4A",
+                        border: "1.5px solid var(--false-sign)",
+                        color: "var(--false-sign)",
                         borderRadius: 12,
                         padding: 11,
                         fontSize: 13,
                       }}
                     >
-                      <RotateCcw className="h-3 w-3 shrink-0 stroke-[#E24B4A]" />
+                      <RotateCcw className="h-3 w-3 shrink-0 stroke-[var(--false-sign)]" />
                       Réessayer
                     </button>
                     <button
                       type="button"
                       disabled={sending}
                       onClick={() => setDicteePhase("revealed_fail")}
-                      className="flex-1 border-0 text-white"
+                      className="flex-1 border-0 text-surface"
                       style={{
-                        background: "#E24B4A",
+                        background: "var(--false-sign)",
                         borderRadius: 12,
                         padding: 11,
                         fontSize: 13,
@@ -1651,7 +1651,7 @@ export function RevisionClient({
                   <div
                     className="flex shrink-0 items-center gap-3"
                     style={{
-                      background: "#FCEBEB",
+                      background: "var(--false-bg)",
                       borderRadius: 14,
                       padding: "14px 16px",
                       gap: 12,
@@ -1662,17 +1662,17 @@ export function RevisionClient({
                       style={{
                         width: 34,
                         height: 34,
-                        background: "#E24B4A",
+                        background: "var(--false-sign)",
                       }}
                     >
-                      <X className="h-4 w-4 text-white" aria-hidden />
+                      <X className="h-4 w-4 text-surface" aria-hidden />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <p
                         style={{
                           fontSize: 13,
                           fontWeight: 500,
-                          color: "#A32D2D",
+                          color: "var(--false-text)",
                         }}
                       >
                         La bonne réponse
@@ -1682,14 +1682,14 @@ export function RevisionClient({
                         style={{
                           fontSize: 14,
                           fontWeight: 500,
-                          color: "#791F1F",
+                          color: "var(--false-text)",
                         }}
                       >
                         {answerText || "—"}
                       </p>
                       <p
                         className="mt-1 line-through"
-                        style={{ fontSize: 12, color: "#A32D2D" }}
+                        style={{ fontSize: 12, color: "var(--false-text)" }}
                       >
                         {lastWrongAnswer || "—"}
                       </p>
@@ -1699,9 +1699,9 @@ export function RevisionClient({
                     type="button"
                     disabled={sending}
                     onClick={() => void recordDicteeCompletion(0)}
-                    className="flex w-full shrink-0 items-center justify-center gap-2 border-0 text-white"
+                    className="flex w-full shrink-0 items-center justify-center gap-2 border-0 text-surface"
                     style={{
-                      background: "#E24B4A",
+                      background: "var(--false-sign)",
                       borderRadius: 12,
                       padding: 13,
                       fontSize: 14,
@@ -1710,7 +1710,7 @@ export function RevisionClient({
                   >
                     Continuer
                     <ArrowRight
-                      className="h-3.5 w-3.5 shrink-0 text-white"
+                      className="h-3.5 w-3.5 shrink-0 text-surface"
                       aria-hidden
                     />
                   </button>
@@ -1722,7 +1722,7 @@ export function RevisionClient({
                   <div
                     className="flex shrink-0 items-center gap-3"
                     style={{
-                      background: "#EAF4EF",
+                      background: "var(--just-bg)",
                       borderRadius: 14,
                       padding: "14px 16px",
                       gap: 12,
@@ -1733,17 +1733,17 @@ export function RevisionClient({
                       style={{
                         width: 34,
                         height: 34,
-                        background: "#1D9E75",
+                        background: "var(--just-sign)",
                       }}
                     >
-                      <Check className="h-4 w-4 text-white" aria-hidden />
+                      <Check className="h-4 w-4 text-surface" aria-hidden />
                     </div>
                     <div className="min-w-0 flex-1 text-left">
                       <p
                         style={{
                           fontSize: 13,
                           fontWeight: 500,
-                          color: "#1A6645",
+                          color: "var(--just-text)",
                         }}
                       >
                         Bonne réponse !
@@ -1753,7 +1753,7 @@ export function RevisionClient({
                         style={{
                           fontSize: 14,
                           fontWeight: 500,
-                          color: "#27500A",
+                          color: "var(--just-text)",
                         }}
                       >
                         {answerText || "—"}
@@ -1766,9 +1766,9 @@ export function RevisionClient({
                     onClick={() =>
                       void recordDicteeCompletion(dicteeHadRetry ? 2 : 3)
                     }
-                    className="flex w-full shrink-0 items-center justify-center gap-2 border-0 text-white"
+                    className="flex w-full shrink-0 items-center justify-center gap-2 border-0 text-surface"
                     style={{
-                      background: "#1D9E75",
+                      background: "var(--just-sign)",
                       borderRadius: 12,
                       padding: 13,
                       fontSize: 14,
@@ -1777,7 +1777,7 @@ export function RevisionClient({
                   >
                     Mot suivant
                     <ArrowRight
-                      className="h-3.5 w-3.5 shrink-0 text-white"
+                      className="h-3.5 w-3.5 shrink-0 text-surface"
                       aria-hidden
                     />
                   </button>

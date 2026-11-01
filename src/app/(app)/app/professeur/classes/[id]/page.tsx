@@ -20,8 +20,8 @@ import { ClasseHeader } from "./classe-header";
 import { ClassAccessCodeBanner } from "./class-access-code-banner";
 
 const PRIMARY = "var(--ink)";
-const GOLD = "#F5A623";
-const GREEN = "#1D9E75";
+const GOLD = "var(--ink)";
+const GREEN = "var(--ink)";
 const BORDER_TERTIARY = "var(--line)";
 
 const TAB_IDS: TabId[] = ["tableau-de-bord", "eleves", "listes"];
@@ -232,7 +232,7 @@ export default async function ClasseDetailPage({
         >
           <div
             style={{
-              background: "white",
+              background: "var(--surface)",
               border: `0.5px solid ${BORDER_TERTIARY}`,
               borderRadius: 12,
               padding: "14px 12px",
@@ -272,7 +272,7 @@ export default async function ClasseDetailPage({
           </div>
           <div
             style={{
-              background: "white",
+              background: "var(--surface)",
               border: `0.5px solid ${BORDER_TERTIARY}`,
               borderRadius: 12,
               padding: "14px 12px",
@@ -284,7 +284,7 @@ export default async function ClasseDetailPage({
                 width: 28,
                 height: 28,
                 borderRadius: 7,
-                background: "#FEF3DC",
+                background: "var(--mark)",
               }}
             >
               <FileText size={14} stroke={GOLD} strokeWidth={2} aria-hidden />
@@ -312,7 +312,7 @@ export default async function ClasseDetailPage({
           </div>
           <div
             style={{
-              background: "white",
+              background: "var(--surface)",
               border: `0.5px solid ${BORDER_TERTIARY}`,
               borderRadius: 12,
               padding: "14px 12px",
@@ -324,7 +324,7 @@ export default async function ClasseDetailPage({
                 width: 28,
                 height: 28,
                 borderRadius: 7,
-                background: "#EAF4EF",
+                background: "var(--surface)",
               }}
             >
               <Activity size={14} stroke={GREEN} strokeWidth={2} aria-hidden />

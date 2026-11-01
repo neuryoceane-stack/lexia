@@ -6,8 +6,8 @@ import Link from "next/link";
 import { CheckCircle, Users } from "lucide-react";
 
 const V = "var(--ink)";
-const GREEN = "#1D9E75";
-const GREEN_LIGHT = "#E1F5EE";
+const GREEN = "var(--ink)";
+const GREEN_LIGHT = "var(--surface)";
 const FOND = "var(--page)";
 const TEXT = "var(--ink)";
 const MUTED = "var(--muted)";
@@ -104,7 +104,7 @@ export default function TeacherWaitlistPage() {
         style={{
           width: "100%",
           maxWidth: 420,
-          background: "white",
+          background: "var(--surface)",
           borderRadius: 16,
           overflow: "hidden",
           border: `1px solid ${V_BORDER}`,
@@ -117,21 +117,21 @@ export default function TeacherWaitlistPage() {
               display: "inline-flex",
               alignItems: "center",
               gap: 6,
-              background: "rgba(255,255,255,0.18)",
+              background: "color-mix(in srgb, var(--surface) 18%, transparent)",
               borderRadius: 20,
               padding: "5px 12px",
               marginBottom: 14,
             }}
           >
             <Users size={15} color="white" />
-            <span style={{ fontSize: 11, fontWeight: 500, color: "white", letterSpacing: "0.02em" }}>
+            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--surface)", letterSpacing: "0.02em" }}>
               Espace professeur
             </span>
           </div>
-          <p style={{ fontSize: 22, fontWeight: 500, color: "white", marginBottom: 8 }}>
+          <p style={{ fontSize: 22, fontWeight: 500, color: "var(--surface)", marginBottom: 8 }}>
             Bientôt disponible
           </p>
-          <p style={{ fontSize: 13, fontWeight: 400, color: "rgba(255,255,255,0.85)", lineHeight: 1.5 }}>
+          <p style={{ fontSize: 13, fontWeight: 400, color: "color-mix(in srgb, var(--surface) 85%, transparent)", lineHeight: 1.5 }}>
             L&apos;espace dédié aux professeurs arrive très prochainement. Laissez votre email,
             on vous prévient dès son ouverture.
           </p>
@@ -174,7 +174,7 @@ export default function TeacherWaitlistPage() {
                   padding: "13px",
                   borderRadius: 20,
                   background: V,
-                  color: "white",
+                  color: "var(--surface)",
                   fontSize: 14,
                   fontWeight: 500,
                   textAlign: "center",
@@ -219,11 +219,11 @@ export default function TeacherWaitlistPage() {
                 autoComplete="email"
               />
               {emailError && (
-                <p style={{ fontSize: 12, color: "#dc2626", marginBottom: 14 }}>{emailError}</p>
+                <p style={{ fontSize: 12, color: "var(--false-text)", marginBottom: 14 }}>{emailError}</p>
               )}
 
               {globalError && (
-                <p style={{ fontSize: 12, color: "#dc2626", marginTop: 12 }}>{globalError}</p>
+                <p style={{ fontSize: 12, color: "var(--false-text)", marginTop: 12 }}>{globalError}</p>
               )}
 
               <button
@@ -236,7 +236,7 @@ export default function TeacherWaitlistPage() {
                   borderRadius: 20,
                   border: "none",
                   background: V,
-                  color: "white",
+                  color: "var(--surface)",
                   fontSize: 14,
                   fontWeight: 500,
                   cursor: loading ? "default" : "pointer",

@@ -402,10 +402,10 @@ export function BibliothequeClient() {
         <div className="space-y-6">
       {searchParams.get("saved") === "1" && !savedBannerDismissed && (
         <div
-          className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-green-200 bg-green-50 px-4 py-3"
+          className="mb-4 flex items-center justify-between gap-3 rounded-lg border border-line bg-surface px-4 py-3"
           role="status"
         >
-          <p className="text-sm font-medium text-green-800">
+          <p className="text-sm font-medium text-ink">
             Liste sauvegardée avec succès.
           </p>
           <button
@@ -417,7 +417,7 @@ export function BibliothequeClient() {
               const q = p.toString();
               router.replace(q ? `${pathname}?${q}` : pathname);
             }}
-            className="rounded p-1.5 text-green-700 hover:bg-green-200"
+            className="rounded p-1.5 text-ink hover:bg-surface"
             aria-label="Fermer"
           >
             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -460,7 +460,7 @@ export function BibliothequeClient() {
             }}
             title="J'ai déjà mes paires mot/traduction."
             aria-label="Liste de vocabulaire — J'ai déjà mes paires mot/traduction."
-            className={`${BIB_HEADER_ACTION_BTN} cursor-pointer border-transparent bg-ink text-white`}
+            className={`${BIB_HEADER_ACTION_BTN} cursor-pointer border-transparent bg-ink text-surface`}
           >
             <span className={BIB_HEADER_ACTION_TITLE}>
               <ListPlus size={16} className="shrink-0" aria-hidden />
@@ -491,13 +491,13 @@ export function BibliothequeClient() {
 
       {/* Bannière SM-2 urgente */}
       {totalDue > 0 && mostUrgentList && (
-        <div className="flex items-center gap-3" style={{ background: "#FEF8EC", border: "0.5px solid #F5D08A", borderRadius: 10, padding: "12px 14px" }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#F5A623" aria-hidden className="shrink-0"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
+        <div className="flex items-center gap-3" style={{ background: "var(--surface)", border: "0.5px solid var(--line)", borderRadius: 10, padding: "12px 14px" }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--mark)" aria-hidden className="shrink-0"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
           <div className="min-w-0 flex-1">
-            <p style={{ fontSize: 13, fontWeight: 500, color: "#92640A" }}>{totalDue} mot{totalDue !== 1 ? "s" : ""} à revoir maintenant</p>
-            <p className="truncate" style={{ fontSize: 11, color: "#C47D0A" }}>{mostUrgentList.name} · SM-2 recommande aujourd&apos;hui</p>
+            <p style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{totalDue} mot{totalDue !== 1 ? "s" : ""} à revoir maintenant</p>
+            <p className="truncate" style={{ fontSize: 11, color: "var(--ink)" }}>{mostUrgentList.name} · SM-2 recommande aujourd&apos;hui</p>
           </div>
-          <Link href="/app/revision/express" className="shrink-0 no-underline transition hover:brightness-95" style={{ background: "#F5A623", color: "white", borderRadius: 16, padding: "6px 12px", fontSize: 12, fontWeight: 500 }}>Réviser</Link>
+          <Link href="/app/revision/express" className="shrink-0 no-underline transition hover:brightness-95" style={{ background: "var(--ink)", color: "var(--surface)", borderRadius: 16, padding: "6px 12px", fontSize: 12, fontWeight: 500 }}>Réviser</Link>
         </div>
       )}
 
@@ -717,7 +717,7 @@ export function BibliothequeClient() {
                 className="mx-auto mt-5 inline-flex items-center gap-1.5 transition hover:brightness-95"
                 style={{
                   background: "var(--ink)",
-                  color: "#FFFFFF",
+                  color: "var(--surface)",
                   borderRadius: 20,
                   padding: "10px 18px",
                   fontSize: 13,
@@ -734,7 +734,7 @@ export function BibliothequeClient() {
         <ul className="grid gap-[10px] grid-cols-1 sm:grid-cols-2">
           {filteredByStatus.map((list) => {
             const dueWords = listDueMap.get(list.id) ?? 0;
-            const borderColor = dueWords > 0 ? "border-[#F5D08A]" : list.progressPercent >= 80 ? "border-[#C3E6D6]" : "border-[var(--border)]";
+            const borderColor = dueWords > 0 ? "border-line" : list.progressPercent >= 80 ? "border-line" : "border-[var(--border)]";
             return (
             <li key={list.id} className="relative">
               <Link
@@ -753,8 +753,8 @@ export function BibliothequeClient() {
                 </p>
                 {(() => {
                   const pct = list.progressPercent;
-                  const trackBg = pct < 30 ? "#FEF3DC" : pct < 80 ? "#EAF4EF" : "var(--background-subtle)";
-                  const fillBg = pct < 30 ? "#F5A623" : pct < 80 ? "#1D9E75" : "var(--ink)";
+                  const trackBg = pct < 30 ? "var(--mark)" : pct < 80 ? "var(--surface)" : "var(--background-subtle)";
+                  const fillBg = "var(--ink)";
                   return (
                     <div className="mt-2">
                       <div style={{ height: 4, background: trackBg, borderRadius: 3 }}>
@@ -766,10 +766,10 @@ export function BibliothequeClient() {
                 })()}
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {dueWords > 0 && (
-                    <span style={{ background: "#FEF3DC", color: "#A06800", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>{dueWords} mot{dueWords !== 1 ? "s" : ""} dus</span>
+                    <span style={{ background: "var(--mark)", color: "var(--ink)", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>{dueWords} mot{dueWords !== 1 ? "s" : ""} dus</span>
                   )}
                   {list.progressPercent >= 80 && (
-                    <span style={{ background: "#EAF4EF", color: "#27500A", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>Presque terminé ✓</span>
+                    <span style={{ background: "var(--surface)", color: "var(--ink)", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>Presque terminé ✓</span>
                   )}
                 </div>
               </Link>
@@ -819,7 +819,7 @@ export function BibliothequeClient() {
                       type="button"
                       onClick={() => handleDeleteList(list)}
                       disabled={deletingFamilyId === list.id}
-                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      className="block w-full px-3 py-2 text-left text-sm text-false-text hover:bg-false-bg disabled:opacity-50"
                     >
                       Supprimer la liste
                     </button>
@@ -908,7 +908,7 @@ export function BibliothequeClient() {
                       type="button"
                       onClick={() => handleDeleteList(list)}
                       disabled={deletingFamilyId === list.id}
-                      className="block w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 disabled:opacity-50"
+                      className="block w-full px-3 py-2 text-left text-sm text-false-text hover:bg-false-bg disabled:opacity-50"
                     >
                       Supprimer la liste
                     </button>
@@ -955,7 +955,7 @@ export function BibliothequeClient() {
                 type="button"
                 onClick={handleSubmitRename}
                 disabled={renamingListId !== null || !renameInput.trim()}
-                className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+                className="btn-relief rounded-lg bg-primary px-4 py-2 text-sm font-medium text-surface hover:bg-primary-dark disabled:opacity-50"
               >
                 {renamingListId === renameModalList?.id ? "Enregistrement…" : "Enregistrer"}
               </button>
@@ -1028,7 +1028,7 @@ export function BibliothequeClient() {
                   }
                 }}
                 disabled={!duplicateToLang || duplicateToLang === (duplicateModalList.language || "eng")}
-                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50"
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-surface hover:bg-primary/90 disabled:opacity-50"
               >
                 Voir l'aperçu
               </button>
@@ -1073,7 +1073,7 @@ export function BibliothequeClient() {
                     <button
                       type="button"
                       onClick={() => setLangToRemove(code)}
-                      className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded text-red-600 hover:bg-red-100"
+                      className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded text-false-text hover:bg-false-bg"
                       title="Supprimer cette langue"
                       aria-label={`Supprimer ${PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code}`}
                     >
@@ -1137,7 +1137,7 @@ export function BibliothequeClient() {
             <h2 id="confirm-remove-lang-title" className="mb-3 text-lg font-semibold text-[var(--foreground)]">
               Es-tu sûr de vouloir supprimer cette langue ?
             </h2>
-            <p className="mb-6 text-sm text-red-600">
+            <p className="mb-6 text-sm text-false-text">
               Tous les mots de vocabulaire enregistrés seront supprimés définitivement.
             </p>
             <div className="flex justify-end gap-2">
@@ -1153,7 +1153,7 @@ export function BibliothequeClient() {
                 type="button"
                 onClick={() => handleRemoveLanguage(langToRemove)}
                 disabled={removingLang}
-                className="btn-relief rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+                className="btn-relief rounded-lg bg-false-sign px-4 py-2 text-sm font-medium text-surface hover:bg-false-text disabled:opacity-50"
               >
                 {removingLang ? "Suppression…" : "Supprimer"}
               </button>

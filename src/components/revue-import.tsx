@@ -203,7 +203,7 @@ export function RevueImport({
               <button
                 type="button"
                 onClick={markDiscard}
-                className="btn-relief rounded-full bg-red-100 px-5 py-2.5 text-sm font-medium text-red-700 hover:bg-red-200"
+                className="btn-relief rounded-full bg-false-bg px-5 py-2.5 text-sm font-medium text-false-text hover:bg-false-bg"
                 aria-label="Supprimer"
               >
                 Supprimer
@@ -211,7 +211,7 @@ export function RevueImport({
               <button
                 type="button"
                 onClick={openEdit}
-                className="btn-relief rounded-full bg-amber-100 px-5 py-2.5 text-sm font-medium text-amber-800 hover:bg-amber-200"
+                className="btn-relief rounded-full bg-mark px-5 py-2.5 text-sm font-medium text-ink hover:bg-mark"
                 aria-label="Modifier"
               >
                 Modifier
@@ -247,7 +247,7 @@ export function RevueImport({
               : ". Choisis une liste existante ou crée-en une nouvelle."}
         </p>
         {directSaveError ? (
-          <p className="mb-3 text-sm text-red-600" role="alert">
+          <p className="mb-3 text-sm text-false-text" role="alert">
             {directSaveError}
           </p>
         ) : null}
@@ -264,7 +264,7 @@ export function RevueImport({
               type="button"
               onClick={() => void handleDirectSave()}
               disabled={items.length === 0 || directSaving}
-              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
               style={{ background: "var(--ink)" }}
             >
               {directSaving ? "Enregistrement…" : "Ajouter à la liste →"}
@@ -274,7 +274,7 @@ export function RevueImport({
               type="button"
               onClick={() => setSaveModalOpen(true)}
               disabled={items.length === 0}
-              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-white transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
               style={{ background: "var(--ink)" }}
             >
               Enregistrer dans une liste →
@@ -351,7 +351,7 @@ function EditForm({
         <button
           type="button"
           onClick={() => onSave(t, d)}
-          className="btn-relief rounded-lg bg-primary px-4 py-2 text-white hover:bg-primary-dark"
+          className="btn-relief rounded-lg bg-primary px-4 py-2 text-surface hover:bg-primary-dark"
         >
           Enregistrer
         </button>

@@ -249,7 +249,7 @@ export function DashboardClient() {
           className="flex flex-col"
           style={{
             background: "var(--ink)",
-            color: "white",
+            color: "var(--surface)",
             borderRadius: 20,
             padding: 20,
             gap: 10,
@@ -263,7 +263,7 @@ export function DashboardClient() {
                 fontWeight: 700,
                 fontSize: 24,
                 lineHeight: 1.15,
-                color: "white",
+                color: "var(--surface)",
               }}
             >
               {displayStreak} jour{displayStreak !== 1 ? "s" : ""} d&apos;affilée
@@ -273,7 +273,7 @@ export function DashboardClient() {
             style={{
               fontSize: 14,
               lineHeight: 1.45,
-              color: "color-mix(in srgb, white 82%, var(--ink))",
+              color: "color-mix(in srgb, var(--surface) 82%, var(--ink))",
             }}
           >
             {streakMessage}
@@ -315,7 +315,7 @@ export function DashboardClient() {
               onClick={() => {
                 if (navigator.vibrate) navigator.vibrate(10);
               }}
-              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-ink px-3.5 text-white no-underline transition-colors hover:bg-ink-hover md:hidden"
+              className="inline-flex h-11 shrink-0 items-center justify-center rounded-full bg-ink px-3.5 text-surface no-underline transition-colors hover:bg-ink-hover md:hidden"
               style={{ fontWeight: 500, fontSize: 14 }}
             >
               Commencer
@@ -326,7 +326,7 @@ export function DashboardClient() {
             onClick={() => {
               if (navigator.vibrate) navigator.vibrate(10);
             }}
-            className="mt-auto hidden h-14 items-center justify-center gap-2 rounded-full bg-ink px-5 text-white no-underline transition-colors hover:bg-ink-hover md:inline-flex"
+            className="mt-auto hidden h-14 items-center justify-center gap-2 rounded-full bg-ink px-5 text-surface no-underline transition-colors hover:bg-ink-hover md:inline-flex"
             style={{ fontWeight: 500, fontSize: 16 }}
           >
             Commencer
@@ -358,7 +358,7 @@ export function DashboardClient() {
           <div className="flex flex-col items-start gap-2">
             <Link
               href="/app/familles/nouvelle-liste"
-              className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-white no-underline transition-colors hover:bg-ink-hover"
+              className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-surface no-underline transition-colors hover:bg-ink-hover"
               style={{ fontWeight: 500, fontSize: 15 }}
             >
               Crée ta première liste

@@ -3,7 +3,7 @@
 /*
  * Charte D1. Les hex vivent ici (thème Tailwind) et dans src/lib/design-tokens.ts.
  * Les noms courts (--ink, --page, …) sont ceux à utiliser dans les styles.
- * L'or historique reste --accent jusqu'à la mission D2.
+ * D2b : l'accent historique or est retiré. --accent suit l'encre.
  */
 @theme {
   --color-ink: #12332b;
@@ -23,7 +23,7 @@
   --color-primary: #12332b;
   --color-primary-dark: #0f2b25;
   --color-primary-light: #12332b;
-  --color-accent: #f5a623;
+  --color-accent: #12332b;
   --color-background: #f7f9f6;
   --color-foreground: #12332b;
   --color-vocab-white: #ffffff;
@@ -55,7 +55,7 @@
   --primary-dark: var(--ink-hover);
   --primary-light: var(--ink);
   --accent: var(--color-accent);
-  --on-accent: var(--ink);
+  --on-accent: var(--surface);
 
   --background: var(--page);
   --background-card: var(--surface);
@@ -129,28 +129,26 @@ h3,
   -webkit-box-decoration-break: clone;
 }
 
-/* Cartes Évaluation (révision) : fonds or et vert historiques, laissés pour D2 */
-.card-dictee-bg {
-  background: #FEF8EC;
-}
+/* Cartes Évaluation : fond de carte de la charte */
+.card-dictee-bg,
 .card-prononciation-bg {
-  background: #EAF4EF;
+  background: var(--surface);
 }
 
 /* Boutons en relief (effet 3D marqué) */
 .btn-relief {
   box-shadow:
-    0 3px 0 rgba(0, 0, 0, 0.12),
-    0 4px 6px rgba(0, 0, 0, 0.1);
+    0 3px 0 color-mix(in srgb, var(--ink) 12%, transparent),
+    0 4px 6px color-mix(in srgb, var(--ink) 10%, transparent);
   transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 .btn-relief:hover {
   box-shadow:
-    0 4px 0 rgba(0, 0, 0, 0.12),
-    0 6px 10px rgba(0, 0, 0, 0.12);
+    0 4px 0 color-mix(in srgb, var(--ink) 12%, transparent),
+    0 6px 10px color-mix(in srgb, var(--ink) 12%, transparent);
 }
 .btn-relief:active {
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 10%, transparent);
   transform: translateY(3px);
 }
 .btn-relief:disabled {
@@ -248,7 +246,7 @@ h3,
   background: linear-gradient(
     90deg,
     transparent 0%,
-    rgba(245, 166, 35, 0.4) 50%,
+    color-mix(in srgb, var(--mark) 70%, transparent) 50%,
     transparent 100%
   );
   background-size: 200% 100%;
@@ -258,9 +256,9 @@ h3,
 .badge-border-shimmer {
   background: linear-gradient(
     90deg,
-    rgba(245, 166, 35, 0.3),
-    rgba(245, 166, 35, 0.8),
-    rgba(245, 166, 35, 0.3)
+    color-mix(in srgb, var(--mark) 45%, transparent),
+    var(--mark),
+    color-mix(in srgb, var(--mark) 45%, transparent)
   );
   background-size: 200% 100%;
   animation: shimmer 2.5s ease-in-out infinite;
@@ -279,7 +277,7 @@ h3,
 }
 
 .animate-gradient-text {
-  background: linear-gradient(90deg, var(--ink), var(--accent));
+  background: linear-gradient(90deg, var(--ink), var(--ink));
   background-size: 200% auto;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -405,8 +403,8 @@ html {
   }
 }
 
-/* Révision express - texte sur fond gold */
+/* Révision express — texte clair sur fond encre */
 
 .revision-express-text {
-  color: #FFFFFF;
+  color: var(--surface);
 }

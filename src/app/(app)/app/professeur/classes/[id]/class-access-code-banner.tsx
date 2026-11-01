@@ -97,7 +97,7 @@ export function ClassAccessCodeBanner({ identifier }: Props) {
         className="flex shrink-0 cursor-pointer items-center gap-1 border-0"
         style={{
           background: PRIMARY,
-          color: "white",
+          color: "var(--surface)",
           borderRadius: 12,
           padding: "6px 12px",
           fontSize: 11,

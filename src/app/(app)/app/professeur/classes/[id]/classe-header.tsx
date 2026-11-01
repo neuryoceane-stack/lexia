@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 
 const PRIMARY = "var(--ink)";
 const BORDER_SECONDARY = "var(--border)";
-const RED_BORDER = "#F09595";
-const RED_TEXT = "#E24B4A";
+const RED_BORDER = "var(--false-sign)";
+const RED_TEXT = "var(--false-sign)";
 
 type LangDisplay = { flag: string; label: string } | null;
 
@@ -113,7 +113,7 @@ export function ClasseHeader({
                 className="cursor-pointer border-0"
                 style={{
                   background: PRIMARY,
-                  color: "white",
+                  color: "var(--surface)",
                   borderRadius: 16,
                   padding: "7px 14px",
                   fontSize: 12,

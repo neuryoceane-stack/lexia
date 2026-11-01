@@ -782,7 +782,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
           )}
 
           {setupError && (
-            <p className="text-sm text-red-600" role="alert">
+            <p className="text-sm text-false-text" role="alert">
               {setupError}
             </p>
           )}
@@ -793,12 +793,12 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
               border="var(--line)"
               hoverBorder="var(--ink)"
               iconBg="var(--ink)"
-              icon={<Pencil size={22} stroke="white" />}
+              icon={<Pencil size={22} stroke="var(--surface)" />}
               decoColor="var(--ink)"
               title="Manuel"
               description="Saisis tes mots un par un."
               btnBg="var(--ink)"
-              btnIcon={<Plus size={11} stroke="white" />}
+              btnIcon={<Plus size={11} stroke="var(--surface)" />}
               btnLabel="Commencer"
               arrowBg="var(--background-subtle)"
               arrowColor="var(--ink)"
@@ -808,17 +808,17 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
             <MethodCard
               bg="var(--background-card)"
               border="var(--border)"
-              hoverBorder="#F5A623"
-              iconBg="#F5A623"
-              icon={<FileText size={22} stroke="white" />}
-              decoColor="#F5A623"
+              hoverBorder="var(--ink)"
+              iconBg="var(--mark)"
+              icon={<FileText size={22} stroke="var(--ink)" />}
+              decoColor="var(--ink)"
               title="PDF"
               description="Importe un document — l'IA extrait les mots automatiquement."
               btnBg="var(--ink)"
-              btnIcon={<Upload size={11} stroke="white" />}
+              btnIcon={<Upload size={11} stroke="var(--surface)" />}
               btnLabel="Importer"
-              arrowBg="#FAE5B0"
-              arrowColor="#F5A623"
+              arrowBg="var(--mark)"
+              arrowColor="var(--ink)"
               disabled={creatingList || extractLoading || changingLanguage}
               onClick={() => {
                 if (!canStartMethod()) return;
@@ -828,17 +828,19 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
             <MethodCard
               bg="var(--background-card)"
               border="var(--border)"
-              hoverBorder="#1D9E75"
-              iconBg="#1D9E75"
-              icon={<ImageIcon size={22} stroke="white" />}
-              decoColor="#1D9E75"
+              hoverBorder="var(--ink)"
+              iconBg="var(--surface)"
+              iconBorder="1.5px solid var(--line)"
+              icon={<ImageIcon size={22} stroke="var(--ink)" />}
+              decoColor="var(--ink)"
               title="Photo ou image"
               description="Prends une photo ou importe une image — l'IA lit le texte pour toi."
               btnBg="var(--ink)"
-              btnIcon={<Camera size={11} stroke="white" />}
+              btnIcon={<Camera size={11} stroke="var(--surface)" />}
               btnLabel="Choisir"
-              arrowBg="#C3E6D6"
-              arrowColor="#1D9E75"
+              arrowBg="var(--surface)"
+              arrowBorder="1.5px solid var(--line)"
+              arrowColor="var(--ink)"
               disabled={creatingList || extractLoading || changingLanguage}
               onClick={() => {
                 if (!canStartMethod()) return;
@@ -891,7 +893,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
           </div>
         </div>
       )}
-      {extractError && <p className="mt-4 text-sm text-red-600">{extractError}</p>}
+      {extractError && <p className="mt-4 text-sm text-false-text">{extractError}</p>}
     </div>
   );
 }
@@ -1027,7 +1029,7 @@ function FormManuel({
         className="w-full"
         style={{
           maxWidth: 680,
-          background: "#FFFFFF",
+          background: "var(--surface)",
           borderRadius: 16,
           border: "1px solid color-mix(in srgb, var(--ink) 14%, transparent)",
           boxShadow: "0 8px 40px color-mix(in srgb, var(--ink) 10%, transparent)",
@@ -1180,7 +1182,7 @@ function FormManuel({
                 <button
                   type="button"
                   onClick={() => removeRow(i)}
-                  className="flex shrink-0 items-center justify-center self-center transition hover:bg-red-50 sm:justify-self-end"
+                  className="flex shrink-0 items-center justify-center self-center transition hover:bg-false-bg sm:justify-self-end"
                   style={{
                     width: 44,
                     height: 44,
@@ -1200,7 +1202,7 @@ function FormManuel({
         </div>
 
         {error && (
-          <p className="mt-5 text-sm text-red-600" role="alert">
+          <p className="mt-5 text-sm text-false-text" role="alert">
             {error}
           </p>
         )}
@@ -1235,7 +1237,7 @@ function FormManuel({
               borderRadius: 10,
               border: "none",
               background: "var(--ink)",
-              color: "#FFFFFF",
+              color: "var(--surface)",
               cursor: "pointer",
               minHeight: 44,
             }}
@@ -1257,6 +1259,7 @@ function MethodCard({
   border,
   hoverBorder,
   iconBg,
+  iconBorder,
   icon,
   decoColor,
   title,
@@ -1265,6 +1268,7 @@ function MethodCard({
   btnIcon,
   btnLabel,
   arrowBg,
+  arrowBorder,
   arrowColor,
   onClick,
   disabled = false,
@@ -1273,6 +1277,7 @@ function MethodCard({
   border: string;
   hoverBorder: string;
   iconBg: string;
+  iconBorder?: string;
   icon: React.ReactNode;
   decoColor: string;
   title: string;
@@ -1281,6 +1286,7 @@ function MethodCard({
   btnIcon: React.ReactNode;
   btnLabel: string;
   arrowBg: string;
+  arrowBorder?: string;
   arrowColor: string;
   onClick: () => void;
   disabled?: boolean;
@@ -1307,7 +1313,7 @@ function MethodCard({
     >
       <div
         className="flex items-center justify-center"
-        style={{ width: 48, height: 48, borderRadius: "50%", background: iconBg, marginBottom: 14 }}
+        style={{ width: 48, height: 48, borderRadius: "50%", background: iconBg, border: iconBorder, marginBottom: 14 }}
       >
         {icon}
       </div>
@@ -1322,7 +1328,7 @@ function MethodCard({
           className="inline-flex items-center gap-[5px]"
           style={{
             background: btnBg,
-            color: "white",
+            color: "var(--surface)",
             borderRadius: 20,
             padding: "7px 14px",
             fontSize: 12,
@@ -1334,7 +1340,7 @@ function MethodCard({
         </span>
         <span
           className="flex items-center justify-center"
-          style={{ width: 28, height: 28, borderRadius: "50%", background: arrowBg }}
+          style={{ width: 28, height: 28, borderRadius: "50%", background: arrowBg, border: arrowBorder }}
         >
           <ArrowRight size={12} stroke={arrowColor} />
         </span>

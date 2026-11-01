@@ -14,11 +14,12 @@ import {
 } from "@/lib/subscription";
 
 const SECTION_CARD_STYLE = {
-  background: "white",
-  border: "0.5px solid rgba(108,63,200,.12)",
+  background: "var(--surface)",
+  border: "1px solid var(--line)",
   borderRadius: 16,
   padding: 16,
-  boxShadow: "0 4px 24px rgba(108,63,200,.12), 0 1px 3px rgba(108,63,200,.08)",
+  boxShadow:
+    "0 4px 24px color-mix(in srgb, var(--ink) 12%, transparent), 0 1px 3px color-mix(in srgb, var(--ink) 8%, transparent)",
 } as const;
 
 export function SubscriptionSettingsCard() {
@@ -58,14 +59,14 @@ export function SubscriptionSettingsCard() {
   return (
     <div className="mb-3" style={SECTION_CARD_STYLE}>
       <div className="mb-3 flex items-center gap-2">
-        <CreditCard size={18} color="#6C3FC8" aria-hidden />
-        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 500, color: "#1A1033", fontFamily: "DM Sans, sans-serif" }}>
+        <CreditCard size={18} color="var(--ink)" aria-hidden />
+        <h2 style={{ margin: 0, fontSize: 16, fontWeight: 500, color: "var(--ink)", fontFamily: "DM Sans, sans-serif" }}>
           Abonnement et paiement
         </h2>
       </div>
 
       {view && view.showBilling && !view.billingConfigured && view.canSubscribe ? (
-        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: "#6B6B8A" }}>
+        <p style={{ margin: 0, fontSize: 14, lineHeight: 1.5, color: "var(--muted)" }}>
           {subscriptionUnavailableCopy()}
         </p>
       ) : null}
@@ -75,7 +76,7 @@ export function SubscriptionSettingsCard() {
       ) : null}
 
       {!view || !view.showBilling || view.billingConfigured || !view.canManagePortal ? null : (
-        <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.45, color: "#6B6B8A" }}>
+        <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.45, color: "var(--muted)" }}>
           La gestion du paiement n&apos;est pas disponible pour le moment.
         </p>
       )}
@@ -85,10 +86,10 @@ export function SubscriptionSettingsCard() {
         {view.canSubscribe ? (
           <Link
             href="/app/abonnement"
-            className="flex w-full items-center justify-center no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2"
+            className="flex w-full items-center justify-center no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
             style={{
-              background: "#6C3FC8",
-              color: "white",
+              background: "var(--ink)",
+              color: "var(--surface)",
               borderRadius: 20,
               padding: "11px 16px",
               fontSize: 14,
@@ -103,11 +104,11 @@ export function SubscriptionSettingsCard() {
             type="button"
             onClick={() => void manage()}
             disabled={portalPending}
-            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 disabled:cursor-wait"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-wait"
             style={{
-              background: "white",
-              color: "#6C3FC8",
-              border: "1.5px solid #6C3FC8",
+              background: "var(--surface)",
+              color: "var(--ink)",
+              border: "1.5px solid var(--ink)",
               borderRadius: 20,
               padding: "11px 16px",
               fontSize: 14,
@@ -122,7 +123,7 @@ export function SubscriptionSettingsCard() {
       ) : null}
 
       {error ? (
-        <p role="alert" style={{ margin: "10px 0 0", fontSize: 13, color: "#B42318" }}>
+        <p role="alert" style={{ margin: "10px 0 0", fontSize: 13, color: "var(--false-text)" }}>
           {error}
         </p>
       ) : null}
@@ -134,8 +135,8 @@ function Summary({ view }: { view: SubscriptionView }) {
   const display = subscriptionDisplay(view);
   return (
     <div>
-      <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: "#1A1033" }}>{display.label}</p>
-      <p style={{ margin: "4px 0 0", fontSize: 13, color: "#6B6B8A", lineHeight: 1.45 }}>{display.detail}</p>
+      <p style={{ margin: 0, fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>{display.label}</p>
+      <p style={{ margin: "4px 0 0", fontSize: 13, color: "var(--muted)", lineHeight: 1.45 }}>{display.detail}</p>
     </div>
   );
 }

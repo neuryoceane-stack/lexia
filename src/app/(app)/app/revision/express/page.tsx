@@ -112,7 +112,7 @@ export default function RevisionExpressPage() {
         <button
           type="button"
           onClick={() => router.push("/app")}
-          className="mt-6 rounded-xl px-6 py-3 font-semibold text-white shadow-sm transition"
+          className="mt-6 rounded-xl px-6 py-3 font-semibold text-surface shadow-sm transition"
           style={{ backgroundColor: "var(--ink)" }}
         >
           Retour à l&apos;accueil
@@ -125,10 +125,10 @@ export default function RevisionExpressPage() {
     const pct = score.total > 0 ? score.correct / score.total : 0;
     const scoreColor =
       pct >= 0.7
-        ? "text-green-600"
+        ? "text-just-text"
         : pct >= 0.5
-          ? "text-amber-500"
-          : "text-red-600";
+          ? "text-ink"
+          : "text-false-text";
 
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center text-center">
@@ -152,7 +152,7 @@ export default function RevisionExpressPage() {
           <button
             type="button"
             onClick={() => window.location.reload()}
-            className="rounded-xl px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition"
+            className="rounded-xl px-5 py-2.5 text-sm font-semibold text-surface shadow-sm transition"
             style={{ backgroundColor: "var(--ink)" }}
           >
             Recommencer
@@ -166,9 +166,9 @@ export default function RevisionExpressPage() {
   const progress = words.length > 0 ? ((index) / words.length) * 100 : 0;
   const timerColor =
     timeLeft < 30
-      ? "text-red-500"
+      ? "text-false-text"
       : timeLeft < 60
-        ? "text-amber-500"
+        ? "text-ink"
         : "text-[var(--foreground-muted)]";
 
   return (
@@ -206,7 +206,7 @@ export default function RevisionExpressPage() {
         <button
           type="button"
           onClick={() => setRevealed(true)}
-          className="w-full rounded-xl py-3 text-center font-semibold text-white shadow-sm transition"
+          className="w-full rounded-xl py-3 text-center font-semibold text-surface shadow-sm transition"
           style={{ backgroundColor: "var(--ink)" }}
         >
           Révéler
@@ -216,14 +216,14 @@ export default function RevisionExpressPage() {
           <button
             type="button"
             onClick={handleDidNotKnow}
-            className="flex-1 rounded-xl border-2 border-red-400 py-3 text-center font-semibold text-red-600 transition hover:bg-red-50"
+            className="flex-1 rounded-xl border-2 border-false-sign py-3 text-center font-semibold text-false-text transition hover:bg-false-bg"
           >
             ✗ Je ne savais pas
           </button>
           <button
             type="button"
             onClick={handleKnew}
-            className="flex-1 rounded-xl border-2 border-green-400 py-3 text-center font-semibold text-green-600 transition hover:bg-green-50"
+            className="flex-1 rounded-xl border-2 border-just-sign py-3 text-center font-semibold text-just-text transition hover:bg-just-bg"
           >
             ✓ Je savais
           </button>

@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
       padding: "24px",
     }}>
       <div style={{
-        background: "#ffffff",
+        background: "var(--surface)",
         borderRadius: "16px",
         padding: "40px",
         width: "100%",
@@ -63,7 +63,7 @@ export default function ForgotPasswordPage() {
             style={{ objectFit: "contain", display: "block", margin: "0 auto 12px" }}
           />
           <h1 style={{ color: "var(--ink)", fontSize: "28px", margin: "0 0 8px" }}>Lexiva</h1>
-          <h2 style={{ color: "#1a1a1a", fontSize: "20px", fontWeight: 600, margin: 0 }}>
+          <h2 style={{ color: "var(--ink)", fontSize: "20px", fontWeight: 600, margin: 0 }}>
             Mot de passe oublié
           </h2>
         </div>
@@ -71,7 +71,7 @@ export default function ForgotPasswordPage() {
         {status === "success" ? (
           <div style={{ textAlign: "center" }}>
             <div style={{ fontSize: "48px", marginBottom: "16px" }}>📬</div>
-            <p style={{ color: "#555", lineHeight: 1.6 }}>
+            <p style={{ color: "var(--muted)", lineHeight: 1.6 }}>
               Si cet email est associé à un compte Lexiva, tu recevras un lien de réinitialisation dans quelques minutes.
             </p>
             <Link href="/login" style={{
@@ -86,12 +86,12 @@ export default function ForgotPasswordPage() {
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
-            <p style={{ color: "#555", marginBottom: "24px", lineHeight: 1.6 }}>
+            <p style={{ color: "var(--muted)", marginBottom: "24px", lineHeight: 1.6 }}>
               Entre ton adresse email et on t'enverra un lien pour réinitialiser ton mot de passe.
             </p>
 
             <div style={{ marginBottom: "20px" }}>
-              <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "#1a1a1a" }}>
+              <label style={{ display: "block", fontWeight: 600, marginBottom: "8px", color: "var(--ink)" }}>
                 Adresse email
               </label>
               <input
@@ -104,7 +104,7 @@ export default function ForgotPasswordPage() {
                   width: "100%",
                   padding: "12px 16px",
                   borderRadius: "8px",
-                  border: "1.5px solid #ddd",
+                  border: "1.5px solid var(--line)",
                   fontSize: "16px",
                   outline: "none",
                   boxSizing: "border-box",
@@ -114,7 +114,7 @@ export default function ForgotPasswordPage() {
             </div>
 
             {status === "error" && (
-              <p style={{ color: "#e53e3e", fontSize: "14px", marginBottom: "16px" }}>
+              <p style={{ color: "var(--false-text)", fontSize: "14px", marginBottom: "16px" }}>
                 {errorMsg}
               </p>
             )}
@@ -126,7 +126,7 @@ export default function ForgotPasswordPage() {
                 width: "100%",
                 padding: "14px",
                 background: status === "loading" ? "var(--ink-soft)" : "var(--ink)",
-                color: "#ffffff",
+                color: "var(--surface)",
                 border: "none",
                 borderRadius: "8px",
                 fontSize: "16px",

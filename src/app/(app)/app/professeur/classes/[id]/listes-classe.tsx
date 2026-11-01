@@ -5,13 +5,13 @@ import { useRouter } from "next/navigation";
 import { Eye, EyeOff, FileText, Plus } from "lucide-react";
 
 const PRIMARY = "var(--ink)";
-const GREEN = "#1D9E75";
-const GOLD = "#F5A623";
+const GREEN = "var(--ink)";
+const GOLD = "var(--ink)";
 const BORDER_TERTIARY = "var(--line)";
 const OVERLAY = "color-mix(in srgb, var(--ink) 18%, transparent)";
-const RED_BORDER = "#F09595";
-const RED_TEXT = "#E24B4A";
-const ICON_ORANGE = "#C47D0A";
+const RED_BORDER = "var(--false-sign)";
+const RED_TEXT = "var(--false-sign)";
+const ICON_ORANGE = "var(--ink)";
 
 type ClassList = {
   id: string;
@@ -147,7 +147,7 @@ export function ListesClasse({
 
       <div
         style={{
-          background: "white",
+          background: "var(--surface)",
           borderRadius: 12,
           padding: 14,
           border: `0.5px solid ${BORDER_TERTIARY}`,
@@ -184,7 +184,7 @@ export function ListesClasse({
                     style={{
                       width: 32,
                       height: 32,
-                      background: "#FEF3DC",
+                      background: "var(--mark)",
                       borderRadius: 8,
                     }}
                   >
@@ -305,7 +305,7 @@ export function ListesClasse({
             style={{
               width: 32,
               height: 32,
-              background: "#EAF4EF",
+              background: "var(--surface)",
               borderRadius: 8,
             }}
           >
@@ -336,7 +336,7 @@ export function ListesClasse({
             className="shrink-0 cursor-pointer border-0"
             style={{
               background: PRIMARY,
-              color: "white",
+              color: "var(--surface)",
               borderRadius: 12,
               padding: "5px 12px",
               fontSize: 11,
@@ -358,7 +358,7 @@ export function ListesClasse({
           <div
             role="dialog"
             aria-labelledby="assign-liste-title"
-            className="w-full max-w-[400px] rounded-[20px] border bg-white p-5 shadow-lg"
+            className="w-full max-w-[400px] rounded-[20px] border bg-surface p-5 shadow-lg"
             style={{ borderColor: "color-mix(in srgb, var(--ink) 15%, transparent)" }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -421,7 +421,7 @@ export function ListesClasse({
                   fontSize: 13,
                   fontWeight: 500,
                   background: PRIMARY,
-                  color: "white",
+                  color: "var(--surface)",
                   opacity: !selectedListId || adding ? 0.6 : 1,
                 }}
               >

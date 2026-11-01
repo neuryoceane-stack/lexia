@@ -8,11 +8,11 @@ import { formatActifIlYA, formatDerniereActivite } from "@/lib/format-relative-f
 export type TabId = "tableau-de-bord" | "eleves" | "listes";
 
 const PRIMARY = "var(--ink)";
-const GREEN = "#1D9E75";
-const GOLD = "#F5A623";
+const GREEN = "var(--ink)";
+const GOLD = "var(--ink)";
 const BORDER_TERTIARY = "var(--line)";
 /** Badge « en difficulté » (maîtrise &lt; 30 % avec activité de révision). */
-const DIFFICULTE_RED = "#E53E3E";
+const DIFFICULTE_RED = "var(--false-sign)";
 
 function masteryTone(pct: number): { color: string; fill: string } {
   if (pct >= 70) return { color: GREEN, fill: GREEN };
@@ -168,7 +168,7 @@ export function OngletsClasse({
                 <div
                   key={lp.classListId}
                   style={{
-                    background: "white",
+                    background: "var(--surface)",
                     borderRadius: 12,
                     padding: 14,
                     border: `0.5px solid ${BORDER_TERTIARY}`,
@@ -258,7 +258,7 @@ export function OngletsClasse({
           ) : (
             <div
               style={{
-                background: "white",
+                background: "var(--surface)",
                 borderRadius: 12,
                 padding: 14,
                 border: `0.5px solid ${BORDER_TERTIARY}`,

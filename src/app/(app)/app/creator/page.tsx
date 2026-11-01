@@ -8,7 +8,7 @@ export default async function CreatorPage() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-semibold text-slate-800">
+      <h1 className="mb-6 text-2xl font-semibold text-ink">
         ⚡ Creator Dashboard
       </h1>
       <CreatorTabs />

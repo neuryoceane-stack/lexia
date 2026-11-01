@@ -29,7 +29,7 @@ export default function NotFound() {
         Oups, cette page s&apos;est envolée
       </h1>
 
-      <p className="mt-3" style={{ fontSize: 15, color: "#6B6B7B", lineHeight: 1.5 }}>
+      <p className="mt-3" style={{ fontSize: 15, color: "var(--muted)", lineHeight: 1.5 }}>
         La page que tu cherches n&apos;existe pas ou a été déplacée.
       </p>
 
@@ -38,7 +38,7 @@ export default function NotFound() {
         className="mt-8 inline-flex items-center justify-center no-underline transition hover:brightness-95"
         style={{
           background: "var(--ink)",
-          color: "#FFFFFF",
+          color: "var(--surface)",
           borderRadius: 20,
           padding: "12px 24px",
           fontSize: 15,

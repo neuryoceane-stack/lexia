@@ -4,7 +4,7 @@
 .shepherd-element {
   border-radius: 16px !important;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.15),
+    0 20px 60px color-mix(in srgb, var(--ink) 15%, transparent),
     0 4px 16px color-mix(in srgb, var(--ink) 10%, transparent) !important;
   border: 1px solid color-mix(in srgb, var(--ink) 15%, transparent) !important;
   max-width: 380px;
@@ -20,7 +20,7 @@
 }
 
 .shepherd-title {
-  color: #fff !important;
+  color: var(--surface) !important;
   font-family: var(--font-heading), sans-serif !important;
   font-weight: 700 !important;
   font-size: 16px !important;
@@ -28,13 +28,13 @@
 }
 
 .shepherd-cancel-icon {
-  color: rgba(255, 255, 255, 0.7) !important;
+  color: color-mix(in srgb, var(--surface) 70%, transparent) !important;
   font-size: 20px !important;
   transition: color 0.15s;
 }
 
 .shepherd-cancel-icon:hover {
-  color: #fff !important;
+  color: var(--surface) !important;
 }
 
 /* Body */
@@ -42,14 +42,14 @@
   padding: 18px 22px !important;
   font-size: 14px !important;
   line-height: 1.65 !important;
-  color: #374151 !important;
+  color: var(--ink) !important;
 }
 
 /* Footer */
 .shepherd-footer {
   padding: 12px 22px 18px !important;
   gap: 8px !important;
-  border-top: 1px solid #f3f4f6 !important;
+  border-top: 1px solid var(--page) !important;
 }
 
 /* Buttons */
@@ -65,7 +65,7 @@
 
 .shepherd-button:not(.shepherd-button-secondary) {
   background: var(--ink) !important;
-  color: #fff !important;
+  color: var(--surface) !important;
   box-shadow: 0 2px 8px color-mix(in srgb, var(--ink) 35%, transparent);
 }
 
@@ -75,13 +75,13 @@
 }
 
 .shepherd-button-secondary {
-  background: #f3f4f6 !important;
-  color: #6b7280 !important;
+  background: var(--page) !important;
+  color: var(--muted) !important;
 }
 
 .shepherd-button-secondary:hover {
-  background: #e5e7eb !important;
-  color: #374151 !important;
+  background: var(--line) !important;
+  color: var(--ink) !important;
 }
 
 /* Arrow */
@@ -99,7 +99,7 @@
 .lx-intro {
   font-size: 15px;
   font-weight: 500;
-  color: #1f2937;
+  color: var(--ink);
   margin-bottom: 14px;
   line-height: 1.5;
 }
@@ -124,7 +124,7 @@
 
 .lx-sub {
   font-size: 12px;
-  color: #9ca3af;
+  color: var(--muted);
   margin-top: 8px;
 }
 
@@ -139,7 +139,7 @@
 
 .lx-list li {
   font-size: 13px;
-  color: #4b5563;
+  color: var(--muted);
   display: flex;
   align-items: flex-start;
   gap: 6px;
@@ -170,18 +170,18 @@
 }
 
 .lx-badge--red {
-  background: #fee2e2;
-  color: #dc2626;
+  background: var(--false-bg);
+  color: var(--false-text);
 }
 
 .lx-badge--orange {
-  background: #ffedd5;
-  color: #ea580c;
+  background: var(--mark);
+  color: var(--ink);
 }
 
 .lx-badge--green {
-  background: #dcfce7;
-  color: #16a34a;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 .lx-checklist {
@@ -194,8 +194,8 @@
 
 .lx-check {
   font-size: 13px;
-  color: #374151;
+  color: var(--ink);
   padding: 6px 10px;
-  background: #f9fafb;
+  background: var(--page);
   border-radius: 8px;
 }

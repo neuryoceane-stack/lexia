@@ -28,11 +28,12 @@ import {
   type SubscriptionView,
 } from "@/lib/subscription";
 
-const VIOLET = "#6C3FC8";
-const GOLD = "#F5A623";
-const GREEN = "#1D9E75";
-const TEXT = "#1A1033";
-const MUTED = "#6B6B8A";
+const INK = "var(--ink)";
+const MARK = "var(--mark)";
+const SURFACE = "var(--surface)";
+const TEXT = "var(--ink)";
+const MUTED = "var(--muted)";
+const LINE = "var(--line)";
 
 type CheckoutResult = "success" | "cancel" | null;
 
@@ -86,7 +87,7 @@ export function AbonnementClient({
       <BackLink href="/app/parametres">Paramètres</BackLink>
 
       <header className="mb-6">
-        <p style={{ fontSize: 13, fontWeight: 500, color: VIOLET, marginBottom: 6 }}>Lexiva</p>
+        <p style={{ fontSize: 13, fontWeight: 500, color: INK, marginBottom: 6 }}>Lexiva</p>
         <h1 style={{ fontFamily: "DM Sans, sans-serif", fontSize: 28, fontWeight: 500, color: TEXT, margin: 0 }}>
           Ton abonnement
         </h1>
@@ -161,10 +162,10 @@ export function AbonnementClient({
           type="button"
           onClick={() => void manage()}
           disabled={portalPending}
-          className="mt-5 flex w-full items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 disabled:cursor-wait"
+          className="mt-5 flex w-full items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-wait"
           style={{
-            background: VIOLET,
-            color: "white",
+            background: INK,
+            color: SURFACE,
             border: "none",
             borderRadius: 20,
             padding: "12px 18px",
@@ -179,7 +180,7 @@ export function AbonnementClient({
       ) : null}
 
       {error ? (
-        <p role="alert" style={{ marginTop: 14, fontSize: 14, color: "#B42318" }}>
+        <p role="alert" style={{ marginTop: 14, fontSize: 14, color: "var(--false-text)" }}>
           {error}
         </p>
       ) : null}
@@ -205,32 +206,24 @@ function StatusCard({ view }: { view: SubscriptionView }) {
   if (view.status === "inactive" && view.canSubscribe && !view.cancelAtPeriodEnd) return null;
 
   const display = subscriptionDisplay(view);
-  const tone = statusTone(view);
 
   return (
     <section
       style={{
-        background: "white",
-        border: "0.5px solid rgba(108,63,200,.14)",
+        background: SURFACE,
+        border: `1px solid ${LINE}`,
         borderRadius: 16,
         padding: 16,
-        boxShadow: "0 2px 12px rgba(108, 63, 200, 0.08)",
+        boxShadow: "0 2px 12px color-mix(in srgb, var(--ink) 8%, transparent)",
       }}
     >
       <div className="flex items-center gap-2">
-        <Sparkles size={16} color={tone} aria-hidden />
+        <Sparkles size={16} color={INK} aria-hidden />
         <p style={{ margin: 0, fontSize: 15, fontWeight: 500, color: TEXT }}>{display.label}</p>
       </div>
       <p style={{ margin: "8px 0 0", fontSize: 14, color: MUTED, lineHeight: 1.5 }}>{display.detail}</p>
     </section>
   );
-}
-
-function statusTone(view: SubscriptionView): string {
-  if (view.cancelAtPeriodEnd) return GOLD;
-  if (view.status === "active" || view.status === "trialing") return GREEN;
-  if (view.status === "past_due" || view.status === "canceled") return GOLD;
-  return VIOLET;
 }
 
 function PlanCard({
@@ -262,11 +255,11 @@ function PlanCard({
     <article
       style={{
         position: "relative",
-        background: highlighted ? "rgba(108,63,200,.06)" : "white",
-        border: highlighted ? `2px solid ${VIOLET}` : "0.5px solid rgba(108,63,200,.14)",
+        background: SURFACE,
+        border: highlighted ? `1.5px solid ${INK}` : `1px solid ${LINE}`,
         borderRadius: 16,
         padding: 18,
-        boxShadow: "0 2px 12px rgba(108, 63, 200, 0.08)",
+        boxShadow: "0 2px 12px color-mix(in srgb, var(--ink) 8%, transparent)",
       }}
     >
       {highlighted && badge ? (
@@ -275,8 +268,8 @@ function PlanCard({
             position: "absolute",
             top: -10,
             left: 16,
-            background: GOLD,
-            color: "#1A1033",
+            background: MARK,
+            color: INK,
             fontSize: 11,
             fontWeight: 500,
             padding: "3px 10px",
@@ -287,7 +280,7 @@ function PlanCard({
         </span>
       ) : null}
       <p style={{ margin: "6px 0 0", fontSize: 15, fontWeight: 500, color: TEXT }}>{title}</p>
-      <p style={{ margin: "10px 0 0", fontSize: 32, fontWeight: 500, color: highlighted ? VIOLET : TEXT, lineHeight: 1 }}>
+      <p style={{ margin: "10px 0 0", fontSize: 32, fontWeight: 500, color: TEXT, lineHeight: 1 }}>
         {amount}
       </p>
       {perMonth ? (
@@ -299,11 +292,11 @@ function PlanCard({
         type="button"
         onClick={onSubscribe}
         disabled={disabled}
-        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#6C3FC8] focus-visible:ring-offset-2 disabled:cursor-wait"
+        className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-wait"
         style={{
           width: "100%",
-          background: VIOLET,
-          color: "white",
+          background: INK,
+          color: SURFACE,
           border: "none",
           borderRadius: 20,
           padding: "11px 16px",
@@ -322,7 +315,7 @@ function PlanCard({
 function Reassurance({ children }: { children: React.ReactNode }) {
   return (
     <li className="flex items-center gap-2" style={{ fontSize: 14, color: TEXT }}>
-      <Check size={16} color={GREEN} aria-hidden />
+      <Check size={16} color={INK} aria-hidden />
       {children}
     </li>
   );
@@ -336,11 +329,9 @@ function Notice({
   tone: "green" | "gold" | "violet";
 }) {
   const styles =
-    tone === "green"
-      ? { background: "rgba(29,158,117,.12)", color: "#146C50" }
-      : tone === "gold"
-        ? { background: "rgba(245,166,35,.18)", color: "#8A5A00" }
-        : { background: "rgba(108,63,200,.10)", color: VIOLET };
+    tone === "gold" || tone === "violet"
+      ? { background: MARK, color: INK }
+      : { background: SURFACE, color: INK, border: `1px solid ${LINE}` };
   return (
     <p
       role="status"
