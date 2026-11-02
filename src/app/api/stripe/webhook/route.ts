@@ -5,6 +5,7 @@ import { shopPacks, userPurchases, words } from "@/lib/db/schema";
 import { eq, and } from "drizzle-orm";
 import { createUserListPair } from "@/lib/user-list";
 import { getStripe } from "@/lib/stripe";
+import { recordPromoRedemptionFromCheckout } from "@/lib/promo-codes-server";
 import {
   applyInvoicePaymentFailed,
   applyStripeSubscription,
@@ -38,6 +39,7 @@ export async function POST(req: Request) {
     if (isSubscriptionCheckout(session)) {
       try {
         await syncSubscriptionCheckout(session, event.created);
+        await recordPromoRedemptionFromCheckout(session.metadata, event.created);
       } catch (error) {
         console.error("[stripe webhook] checkout abonnement", error);
         return NextResponse.json({ error: "Traitement webhook échoué" }, { status: 500 });

@@ -5,6 +5,7 @@ import { EmptySection } from "./empty-section";
 import { FeedbacksSection } from "./feedbacks-section";
 import { FinanceSection } from "./finance-section";
 import { OverviewSection } from "./overview-section";
+import { PromoSection } from "./promo-section";
 import { StudentsSection } from "./students-section";
 import type { CreatorSectionId, StudentTabId } from "./creator-sections";
 
@@ -30,7 +31,7 @@ export function CreatorShell({
           {section === "finance" && <FinanceSection />}
           {section === "churn" && <ChurnSection />}
           {section === "shop" && <CreatorShopTab />}
-          {section === "promo" && <EmptySection id="promo" />}
+          {section === "promo" && <PromoSection />}
           {section === "announcements" && <EmptySection id="announcements" />}
         </div>
       </div>

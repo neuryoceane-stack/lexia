@@ -94,6 +94,55 @@ Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore o
 
 `hasActiveSubscription` reste vrai seulement pour `active` et `trialing`. Le paywall s'en sert lorsque `PAYWALL_ENABLED=true`.
 
+## Codes promo
+
+Les codes se créent dans l'espace créateur (Codes promo) et se saisissent sur `/app/abonnement` avant le paiement. Sans code, la session Checkout reste celle décrite plus haut : essai de 15 jours seulement si le statut est `inactive`, aucun coupon.
+
+| Avantage | Effet Stripe |
+|----------|----------------|
+| Pourcentage | Coupon `percent_off`, durée `once` : le premier paiement après l'essai. |
+| Montant fixe | Coupon `amount_off` en centimes d'euro, durée `once` : le premier paiement après l'essai. |
+| Mois offerts | Coupon 100 %, durée `repeating` sur N mois à partir du début de l'abonnement. Sur la formule annuelle, la facture de l'année est offerte si elle tombe dans cette période. |
+| Essai prolongé | `trial_period_days` du code remplace les 15 jours. Pas de coupon. Refusé si l'essai n'est plus proposé. |
+
+Une facture d'essai à 0 € ne consomme pas un coupon `once` (Stripe ignore un coupon sur une facture déjà à zéro). La carte reste demandée. Le coupon est créé à la création du code (clé de test uniquement) et son identifiant est mémorisé dans `stripe_coupon_id`. S'il n'a pas pu l'être, il est créé au premier Checkout.
+
+L'usage (`promo_code_redemptions`) est enregistré dans le webhook `checkout.session.completed`, pas au clic sur Appliquer. Le code voyage dans les métadonnées de la session. Un webhook rejoué rencontre l'index unique et ne crée pas une seconde ligne.
+
+Tant que les tables ne sont pas créées, les écrans affichent une erreur sobre et ne plantent pas. Le paiement sans code n'interroge pas ces tables.
+
+SQL à lancer à la main (identique à `src/lib/promo-codes-sql.ts`). Les dates sont des secondes Unix. `active` vaut 1 ou 0.
+
+```sql
+CREATE TABLE IF NOT EXISTS promo_codes (
+  id TEXT PRIMARY KEY NOT NULL,
+  code TEXT NOT NULL,
+  benefit_type TEXT NOT NULL,
+  value INTEGER NOT NULL,
+  institution TEXT,
+  max_uses INTEGER,
+  ends_at INTEGER,
+  applies_monthly INTEGER NOT NULL,
+  applies_annual INTEGER NOT NULL,
+  active INTEGER NOT NULL DEFAULT 1,
+  stripe_coupon_id TEXT,
+  created_at INTEGER NOT NULL
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS promo_codes_code_unique ON promo_codes (code);
+
+CREATE TABLE IF NOT EXISTS promo_code_redemptions (
+  id TEXT PRIMARY KEY NOT NULL,
+  promo_code_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  redeemed_at INTEGER NOT NULL,
+  FOREIGN KEY (promo_code_id) REFERENCES promo_codes (id) ON UPDATE NO ACTION ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users (id) ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS promo_code_redemptions_code_user_unique ON promo_code_redemptions (promo_code_id, user_id);
+```
+
 ## Paywall
 
 Interrupteur : `PAYWALL_ENABLED`. Le paywall n'agit que si la variable vaut exactement `true`. Absente, vide ou toute autre valeur : aucun blocage, parcours d'inscription inchangé (arrivée sur `/app`).

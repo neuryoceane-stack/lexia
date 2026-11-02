@@ -1,9 +1,8 @@
-import { Funnel, Megaphone, Ticket, type LucideIcon } from "lucide-react";
+import { Funnel, Megaphone, type LucideIcon } from "lucide-react";
 import type { EmptySectionId } from "./creator-sections";
 
 const EMPTY: Record<EmptySectionId, { title: string; icon: LucideIcon }> = {
   funnel: { title: "Entonnoir et coûts", icon: Funnel },
-  promo: { title: "Codes promo", icon: Ticket },
   announcements: { title: "Annonces", icon: Megaphone },
 };
 

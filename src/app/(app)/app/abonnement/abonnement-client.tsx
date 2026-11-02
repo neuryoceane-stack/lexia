@@ -1,11 +1,15 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, CreditCard, Sparkles } from "lucide-react";
+import { Check, CreditCard, Sparkles, Ticket, X } from "lucide-react";
 import { BackLink } from "@/components/back-link";
 import { BRAND_NAME } from "@/lib/brand";
 import { openBillingPortal, startSubscriptionCheckout } from "@/lib/subscription-client";
 import { CancelSubscriptionModal } from "./cancel-subscription-modal";
+import {
+  PROMO_WRONG_PLAN,
+  type PromoBenefitType,
+} from "@/lib/promo-codes";
 import {
   OFFER_MINOR_NOTICE,
   OFFER_MONTHLY_DETAIL,
@@ -53,6 +57,7 @@ export function AbonnementClient({
   const [portalPending, setPortalPending] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [error, setError] = useState<string | null>(confirmationError);
+  const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
 
   useEffect(() => {
     setView(initial);
@@ -60,9 +65,16 @@ export function AbonnementClient({
 
   async function subscribe(plan: BillingPlan) {
     setError(null);
+    if (appliedPromo) {
+      const allowed = plan === "monthly" ? appliedPromo.appliesMonthly : appliedPromo.appliesAnnual;
+      if (!allowed) {
+        setError(PROMO_WRONG_PLAN);
+        return;
+      }
+    }
     setPendingPlan(plan);
     try {
-      await startSubscriptionCheckout(plan);
+      await startSubscriptionCheckout(plan, appliedPromo?.code);
     } catch (cause) {
       setPendingPlan(null);
       setError(cause instanceof Error ? cause.message : "Impossible de démarrer le paiement.");
@@ -90,7 +102,10 @@ export function AbonnementClient({
     !view.billingConfigured && view.canSubscribe
       ? subscriptionUnavailableCopy()
       : view.canSubscribe
-        ? subscriptionOfferIntro(view.includesTrial)
+        ? subscriptionOfferIntro(
+            view.includesTrial,
+            appliedPromo?.benefitType === "extended_trial" ? appliedPromo.label : undefined,
+          )
         : subscribedIntro();
 
   return (
@@ -133,6 +148,20 @@ export function AbonnementClient({
       ) : null}
 
       <StatusCard view={view} />
+
+      {checkoutOpen ? (
+        <PromoCodeBox
+          applied={appliedPromo}
+          onApplied={(promo) => {
+            setAppliedPromo(promo);
+            setError(null);
+          }}
+          onClear={() => {
+            setAppliedPromo(null);
+            setError(null);
+          }}
+        />
+      ) : null}
 
       {checkoutOpen ? (
         <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -232,7 +261,11 @@ export function AbonnementClient({
       {checkoutOpen ? (
         <ul className="mt-6 grid gap-2" style={{ listStyle: "none", padding: 0, marginBottom: 0 }}>
           {view.includesTrial ? (
-            <Reassurance>{OFFER_TRIAL_CARD_LABEL}</Reassurance>
+            <Reassurance>
+              {appliedPromo?.benefitType === "extended_trial"
+                ? `${appliedPromo.label}, carte bancaire requise`
+                : OFFER_TRIAL_CARD_LABEL}
+            </Reassurance>
           ) : (
             <Reassurance>Carte bancaire requise, prélèvement aujourd&apos;hui</Reassurance>
           )}
@@ -244,6 +277,239 @@ export function AbonnementClient({
       ) : null}
     </div>
   );
+}
+
+type AppliedPromo = {
+  code: string;
+  benefitType: PromoBenefitType;
+  label: string;
+  appliesMonthly: boolean;
+  appliesAnnual: boolean;
+  planHint: string | null;
+};
+
+function PromoCodeBox({
+  applied,
+  onApplied,
+  onClear,
+}: {
+  applied: AppliedPromo | null;
+  onApplied: (promo: AppliedPromo) => void;
+  onClear: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [code, setCode] = useState("");
+  const [pending, setPending] = useState(false);
+  const [promoError, setPromoError] = useState<string | null>(null);
+
+  async function apply(event: React.FormEvent) {
+    event.preventDefault();
+    setPromoError(null);
+    setPending(true);
+    try {
+      const response = await fetch("/api/promo/validate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code }),
+      });
+      const body: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        setPromoError(readPromoError(body, "Impossible de vérifier ce code."));
+        return;
+      }
+      const promo = parseAppliedPromo(body);
+      if (!promo) {
+        setPromoError("Impossible de vérifier ce code.");
+        return;
+      }
+      onApplied(promo);
+      setCode("");
+      setOpen(false);
+    } catch {
+      setPromoError("Impossible de vérifier ce code.");
+    } finally {
+      setPending(false);
+    }
+  }
+
+  if (applied) {
+    return (
+      <div
+        className="mt-5"
+        style={{
+          background: SURFACE,
+          border: `1.5px solid ${INK}`,
+          borderRadius: 16,
+          padding: 16,
+        }}
+      >
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <p style={{ margin: 0, fontSize: 12, fontWeight: 500, letterSpacing: "0.04em", color: MUTED }}>
+              {applied.code}
+            </p>
+            <p className="marker" style={{ margin: "8px 0 0", fontSize: 15, fontWeight: 500 }}>
+              {applied.label}
+            </p>
+            {applied.planHint ? (
+              <p style={{ margin: "8px 0 0", fontSize: 13, color: MUTED }}>{applied.planHint}</p>
+            ) : null}
+          </div>
+          <button
+            type="button"
+            onClick={onClear}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              minHeight: 44,
+              background: SURFACE,
+              color: INK,
+              border: `1.5px solid ${INK}`,
+              borderRadius: 999,
+              padding: "0 14px",
+              fontSize: 14,
+              fontWeight: 500,
+              cursor: "pointer",
+            }}
+          >
+            <X size={14} aria-hidden />
+            Retirer
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-expanded={false}
+        className="mt-5 inline-flex min-h-11 items-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+        style={{
+          background: "none",
+          border: "none",
+          padding: 0,
+          color: INK,
+          fontSize: 14,
+          fontWeight: 500,
+          cursor: "pointer",
+          textDecoration: "underline",
+          textUnderlineOffset: 3,
+        }}
+      >
+        <Ticket size={16} aria-hidden />
+        Vous avez un code promo ?
+      </button>
+    );
+  }
+
+  return (
+    <form onSubmit={(event) => void apply(event)} className="mt-5">
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <label className="sr-only" htmlFor="promo-code-eleve">
+          Code promo
+        </label>
+        <input
+          id="promo-code-eleve"
+          value={code}
+          onChange={(event) => setCode(event.target.value.toUpperCase())}
+          autoCapitalize="characters"
+          autoComplete="off"
+          spellCheck={false}
+          placeholder="Votre code"
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          style={{
+            flex: 1,
+            minHeight: 44,
+            borderRadius: 12,
+            border: `1px solid ${LINE}`,
+            background: SURFACE,
+            color: TEXT,
+            padding: "0 14px",
+            fontSize: 15,
+          }}
+        />
+        <button
+          type="submit"
+          disabled={pending || code.trim() === ""}
+          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-wait"
+          style={{
+            minHeight: 44,
+            borderRadius: 999,
+            border: "none",
+            background: INK,
+            color: SURFACE,
+            padding: "0 18px",
+            fontSize: 14,
+            fontWeight: 500,
+            cursor: pending ? "wait" : "pointer",
+            opacity: pending || code.trim() === "" ? 0.6 : 1,
+          }}
+        >
+          {pending ? "Vérification…" : "Appliquer"}
+        </button>
+      </div>
+      <button
+        type="button"
+        onClick={() => {
+          setOpen(false);
+          setPromoError(null);
+        }}
+        className="mt-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink"
+        style={{
+          background: "none",
+          border: "none",
+          padding: 0,
+          color: MUTED,
+          fontSize: 13,
+          cursor: "pointer",
+        }}
+      >
+        Fermer
+      </button>
+      {promoError ? (
+        <p role="alert" style={{ margin: "8px 0 0", fontSize: 14, color: "var(--false-text)" }}>
+          {promoError}
+        </p>
+      ) : null}
+    </form>
+  );
+}
+
+function parseAppliedPromo(body: unknown): AppliedPromo | null {
+  if (!body || typeof body !== "object") return null;
+  const row = body as Record<string, unknown>;
+  if (typeof row.code !== "string" || typeof row.label !== "string") return null;
+  if (
+    row.benefitType !== "percent" &&
+    row.benefitType !== "fixed_amount" &&
+    row.benefitType !== "free_months" &&
+    row.benefitType !== "extended_trial"
+  ) {
+    return null;
+  }
+  if (typeof row.appliesMonthly !== "boolean" || typeof row.appliesAnnual !== "boolean") return null;
+  const planHint = row.planHint == null ? null : typeof row.planHint === "string" ? row.planHint : null;
+  if (row.planHint != null && planHint == null) return null;
+  return {
+    code: row.code,
+    benefitType: row.benefitType,
+    label: row.label,
+    appliesMonthly: row.appliesMonthly,
+    appliesAnnual: row.appliesAnnual,
+    planHint,
+  };
+}
+
+function readPromoError(body: unknown, fallback: string): string {
+  if (body && typeof body === "object" && "error" in body && typeof body.error === "string") {
+    return body.error;
+  }
+  return fallback;
 }
 
 function PortalButton({

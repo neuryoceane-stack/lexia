@@ -23,6 +23,8 @@ import {
   type SubscriptionStatus,
   type SubscriptionView,
 } from "@/lib/subscription";
+import { PromoCodeError } from "@/lib/promo-codes";
+import { resolvePromoForCheckout } from "@/lib/promo-codes-server";
 
 export class BillingError extends Error {
   readonly status: number;
@@ -247,6 +249,7 @@ export async function createSubscriptionCheckout(input: {
   userId: string;
   email: string;
   plan: BillingPlan;
+  promoCode?: string | null;
 }): Promise<string> {
   const stripe = getStripe();
   const baseUrl = appBaseUrlOrConfigError();
@@ -259,6 +262,8 @@ export async function createSubscriptionCheckout(input: {
 
   const customerId = await ensureStripeCustomer(stripe, row, input.email);
   const includesTrial = status === "inactive";
+  const promo = await checkoutPromo(input.userId, input.plan, includesTrial, input.promoCode);
+  const trialPeriodDays = promo?.trialPeriodDays ?? (includesTrial ? SUBSCRIPTION_TRIAL_DAYS : undefined);
 
   const session = await stripe.checkout.sessions.create({
     mode: "subscription",
@@ -272,14 +277,20 @@ export async function createSubscriptionCheckout(input: {
       userId: input.userId,
       plan: input.plan,
       kind: "lexiva_subscription",
+      ...(promo ? { promoCodeId: promo.promoCodeId, promoCode: promo.code } : {}),
     },
+    ...(promo?.couponId ? { discounts: [{ coupon: promo.couponId }] } : {}),
     subscription_data: {
-      metadata: { userId: input.userId, plan: input.plan },
+      metadata: {
+        userId: input.userId,
+        plan: input.plan,
+        ...(promo ? { promoCodeId: promo.promoCodeId, promoCode: promo.code } : {}),
+      },
       description:
         input.plan === "monthly"
           ? "Lexiva — formule mensuelle"
           : "Lexiva — formule annuelle",
-      ...(includesTrial ? { trial_period_days: SUBSCRIPTION_TRIAL_DAYS } : {}),
+      ...(trialPeriodDays != null ? { trial_period_days: trialPeriodDays } : {}),
     },
     success_url: `${baseUrl}/app/abonnement?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${baseUrl}/app/abonnement?checkout=cancel`,
@@ -496,7 +507,7 @@ export async function applyInvoicePaymentFailed(input: {
 }
 
 export function billingHttpError(error: unknown): { message: string; status: number } | null {
-  if (error instanceof BillingError) {
+  if (error instanceof BillingError || error instanceof PromoCodeError) {
     return { message: error.message, status: error.status };
   }
   if (error instanceof Error && isStripeConfigError(error)) {
@@ -798,6 +809,22 @@ function isMissingStripeColumn(error: unknown): boolean {
   }
   const text = parts.join(" ");
   return /no such column/i.test(text) && /stripe_|subscription_current_period_end/i.test(text);
+}
+
+async function checkoutPromo(
+  userId: string,
+  plan: BillingPlan,
+  includesTrial: boolean,
+  promoCode: string | null | undefined,
+): Promise<{
+  promoCodeId: string;
+  code: string;
+  trialPeriodDays: number | undefined;
+  couponId: string | null;
+} | null> {
+  const raw = promoCode?.trim() ?? "";
+  if (!raw) return null;
+  return resolvePromoForCheckout({ userId, rawCode: raw, plan, includesTrial });
 }
 
 function isMissingStripeResource(error: unknown): boolean {

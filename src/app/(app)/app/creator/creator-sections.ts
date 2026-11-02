@@ -12,7 +12,8 @@
  * - shop      → boutique déjà en place ( /api/creator/shop )
  * - students  → onglet Établissements : aucune liste n'est exposée aujourd'hui
  * - churn    → désabonnements (GET /api/creator/churn)
- * - funnel, promo, announcements → pas de données, état vide
+ * - promo → codes promo (GET, POST /api/creator/promo, PATCH /api/creator/promo/[id])
+ * - funnel, announcements → pas de données, état vide
  */
 
 export const CREATOR_SECTIONS = [
@@ -29,7 +30,7 @@ export const CREATOR_SECTIONS = [
 
 export type CreatorSectionId = (typeof CREATOR_SECTIONS)[number]["id"];
 
-export const EMPTY_SECTION_IDS = ["funnel", "promo", "announcements"] as const;
+export const EMPTY_SECTION_IDS = ["funnel", "announcements"] as const;
 export type EmptySectionId = (typeof EMPTY_SECTION_IDS)[number];
 
 /** Ajouter un objet ici pour exposer un nouvel onglet dans Élèves. */

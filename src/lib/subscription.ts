@@ -117,9 +117,10 @@ export function subscriptionUnavailableCopy(): string {
   return `L'abonnement n'est pas encore ouvert. Tu peux continuer à utiliser ${BRAND_NAME}.`;
 }
 
-export function subscriptionOfferIntro(includesTrial: boolean): string {
+export function subscriptionOfferIntro(includesTrial: boolean, trialLabel?: string): string {
   if (includesTrial) {
-    return `Essai de ${SUBSCRIPTION_TRIAL_DAYS} jours. Une carte bancaire est requise. ${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} par mois ou ${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} par an.`;
+    const trial = trialLabel ?? `Essai de ${SUBSCRIPTION_TRIAL_DAYS} jours`;
+    return `${trial}. Une carte bancaire est requise. ${formatEuros(SUBSCRIPTION_MONTHLY_EUROS)} par mois ou ${formatEuros(SUBSCRIPTION_YEARLY_EUROS)} par an.`;
   }
   return `Choisis une formule pour reprendre ${BRAND_NAME}. Une carte bancaire est requise. Le prélèvement a lieu aujourd'hui.`;
 }
