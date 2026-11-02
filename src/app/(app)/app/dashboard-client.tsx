@@ -214,10 +214,10 @@ export function DashboardClient() {
 
   const streakMessage =
     s === 0
-      ? "Jour 1 — ta série commence maintenant."
+      ? "Jour 1 — votre série commence maintenant."
       : s < 7
-        ? "Tu progresses — continue comme ça."
-        : "Tu es dans le rythme — ne lâche pas.";
+        ? "Vous progressez — continuez comme ça."
+        : "Vous êtes dans le rythme — ne lâchez pas.";
 
   const greetingName = firstName && firstName.length > 0 ? firstName : null;
 
@@ -234,7 +234,7 @@ export function DashboardClient() {
         >
           {greetingName ? `Salut ${greetingName}, ` : "Salut, "}
           <br className="md:hidden" />
-          {"tes "}
+          {"vos "}
           <span className="marker">mots du jour</span>
         </h1>
         {profileError && (
@@ -340,7 +340,7 @@ export function DashboardClient() {
       <section className="flex flex-col gap-4">
         <div className="flex items-end justify-between gap-4">
           <div>
-            <h2 style={{ ...headingStyle, fontSize: 24, lineHeight: 1.1 }}>Tes listes</h2>
+            <h2 style={{ ...headingStyle, fontSize: 24, lineHeight: 1.1 }}>Vos listes</h2>
             <HandUnderline />
           </div>
           <Link
@@ -363,7 +363,7 @@ export function DashboardClient() {
               className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-surface no-underline transition-colors hover:bg-ink-hover"
               style={{ fontWeight: 500, fontSize: 15 }}
             >
-              Crée ta première liste
+              Créez votre première liste
             </Link>
             <p style={{ fontSize: 14, color: "var(--muted)" }}>
               Importe un texte ou crée une liste pour commencer.
