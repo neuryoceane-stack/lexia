@@ -55,8 +55,8 @@ export function EvaluationLanding() {
           <ModeIcon icon={RectangleHorizontal} />
           <h2 className="font-heading text-[26px] leading-tight text-ink">Flashcards</h2>
           <p className="mt-3 flex-1 text-[15px] leading-relaxed text-muted">
-            Révise avec des cartes intelligentes — l&apos;algorithme SM-2
-            optimise ta mémorisation.
+            Révisez avec des cartes intelligentes — l&apos;algorithme SM-2
+            optimise votre mémorisation.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Chip>Révision espacée</Chip>
@@ -73,7 +73,7 @@ export function EvaluationLanding() {
           <ModeIcon icon={Pencil} />
           <h2 className="font-heading text-[26px] leading-tight text-ink">Dictée</h2>
           <p className="mt-3 flex-1 text-[15px] leading-relaxed text-muted">
-            Écris la traduction de mémoire — le mode le plus efficace pour
+            Écrivez la traduction de mémoire — le mode le plus efficace pour
             ancrer les mots.
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
@@ -90,7 +90,7 @@ export function EvaluationLanding() {
           <ModeIcon icon={Mic} />
           <h2 className="font-heading text-[26px] leading-tight text-ink">Prononciation</h2>
           <p className="mt-3 flex-1 text-[15px] leading-relaxed text-muted">
-            Enregistre ta voix et obtiens un score phonétique — arrive
+            Enregistrez votre voix et obtenez un score phonétique — arrive
             bientôt.
           </p>
           <span

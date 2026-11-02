@@ -251,7 +251,7 @@ export function FlashcardSession({
           <button
             type="button"
             aria-keyshortcuts="Space"
-            aria-label="Touche la carte ou appuie sur Espace pour la retourner"
+            aria-label="Touchez la carte ou appuyez sur Espace pour la retourner"
             tabIndex={revealed ? -1 : 0}
             onClick={(e) => {
               e.stopPropagation();
@@ -303,9 +303,9 @@ export function FlashcardSession({
               </>
             ) : (
               <p className="mt-8 px-6 text-[15px] leading-relaxed text-muted">
-                <span className="lg:hidden">Touche la carte pour la retourner</span>
+                <span className="lg:hidden">Touchez la carte pour la retourner</span>
                 <span className="hidden lg:inline">
-                  Touche la carte ou appuie sur <KeyCap>Espace</KeyCap> pour la retourner
+                  Touchez la carte ou appuyez sur <KeyCap>Espace</KeyCap> pour la retourner
                 </span>
               </p>
             )}
@@ -366,7 +366,7 @@ export function FlashcardSession({
         </AnswerButton>
       </div>
 
-      <div className="mb-2 mt-6 pr-14 lg:hidden">
+      <div className="mb-2 mt-6 lg:hidden">
         <div className="flex items-start justify-center gap-14">
           <RoundRate
             label="Je ne savais pas"
@@ -385,10 +385,10 @@ export function FlashcardSession({
         </div>
         <p className="mt-4 text-center text-sm text-muted">
           {!revealed
-            ? "Retourne la carte, puis glisse-la"
+            ? "Retournez la carte, puis glissez-la"
             : releaseHint
-              ? "Relâche pour valider"
-              : "glisse à gauche si tu ne savais pas · à droite si tu savais"}
+              ? "Relâchez pour valider"
+              : "glissez à gauche si vous ne saviez pas · à droite si vous saviez"}
         </p>
       </div>
     </div>
@@ -612,7 +612,7 @@ export function DicteeSession({
       </div>
 
       <label htmlFor="dictee-reponse" className="mt-5 block text-sm text-muted">
-        Ta réponse
+        Votre réponse
       </label>
       <input
         id="dictee-reponse"

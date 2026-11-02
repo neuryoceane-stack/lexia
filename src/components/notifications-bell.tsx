@@ -131,7 +131,7 @@ export function NotificationsBell() {
 
       {open && (
         <div
-          className="absolute right-0 top-full z-50 mt-2 w-80 origin-top-right rounded-xl border border-line bg-surface shadow-xl"
+          className="fixed left-4 right-4 top-[72px] z-50 mt-2 w-auto max-h-[min(70vh,calc(100dvh-88px))] overflow-hidden rounded-2xl border border-line bg-surface shadow-xl md:absolute md:left-auto md:right-0 md:top-full md:mt-2 md:w-[360px] md:max-h-96"
           role="menu"
         >
           <div className="border-b border-line px-4 py-3">
@@ -139,7 +139,7 @@ export function NotificationsBell() {
               Notifications
             </h3>
           </div>
-          <div className="max-h-80 overflow-y-auto">
+          <div className="max-h-[min(60vh,calc(100dvh-148px))] overflow-y-auto md:max-h-80">
             {loading ? (
               <p className="px-4 py-6 text-center text-sm text-muted">
                 Chargement…

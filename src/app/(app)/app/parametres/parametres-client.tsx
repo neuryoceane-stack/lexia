@@ -284,7 +284,7 @@ export function ParametresClient() {
 
       <header className="mb-8">
         <h1 className="m-0 text-[46px] leading-[1.05] tracking-[-0.02em] text-ink">Paramètres</h1>
-        <p className="mt-2 text-base text-muted">Personnalise ton expérience.</p>
+        <p className="mt-2 text-base text-muted">Personnalisez votre expérience.</p>
       </header>
 
       <div className="lg:grid lg:grid-cols-[220px_minmax(0,1fr)] lg:items-start lg:gap-8">
@@ -315,7 +315,7 @@ export function ParametresClient() {
             <SectionHeader
               icon={User}
               title="Avatar"
-              subtitle="Choisis ton avatar — il évolue avec ton niveau d'activité."
+              subtitle="Choisissez votre avatar — il évolue avec votre niveau d'activité."
             />
             {!loaded ? (
               <p className="m-0 text-sm text-muted">Chargement…</p>
@@ -358,22 +358,29 @@ export function ParametresClient() {
               <p className="m-0 text-sm text-muted">Chargement…</p>
             ) : (
               <>
-                <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
-                  <SectionHeader
-                    icon={Clock}
-                    title="Objectif hebdomadaire"
-                    subtitle="Combien de mots veux-tu maîtriser cette semaine ?"
-                    className="mb-0 min-w-0 flex-1"
-                  />
-                  <span className="inline-flex items-center whitespace-nowrap rounded-full border-[1.5px] border-line px-3 py-1.5 text-[13px] font-medium text-ink">
-                    Actuel : {weeklyGoal} mots / sem.
-                  </span>
+                <div className="mb-5 flex flex-col gap-3">
+                  <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <span className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border-[1.5px] border-line bg-surface">
+                        <Clock size={16} strokeWidth={1.75} color="var(--ink)" aria-hidden />
+                      </span>
+                      <h2 className="m-0 min-w-0 text-xl leading-tight text-ink">
+                        Objectif hebdomadaire
+                      </h2>
+                    </div>
+                    <span className="inline-flex w-full items-center justify-center whitespace-nowrap rounded-full border-[1.5px] border-line px-3 py-1.5 text-center text-[13px] font-medium text-ink lg:w-auto lg:shrink-0 lg:justify-start">
+                      Actuel : {weeklyGoal} mots / sem.
+                    </span>
+                  </div>
+                  <p className="m-0 w-full text-sm leading-snug text-muted">
+                    Combien de mots voulez-vous maîtriser cette semaine ?
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:gap-8">
                   <div className="min-w-0">
                     <p className="m-0 text-sm font-medium text-ink">
-                      Ton objectif : saisis le nombre de ton choix
+                      Votre objectif : saisissez le nombre de votre choix
                     </p>
                     <div className="mt-3 flex flex-wrap items-center gap-3">
                       <button
@@ -423,8 +430,8 @@ export function ParametresClient() {
                       <span className="text-sm text-muted">mots par semaine</span>
                     </div>
 
-                    <p className="mb-2 mt-5 text-[13px] text-muted">Ou choisis un préréglage</p>
-                    <div className="grid w-max max-w-full grid-cols-2 gap-2">
+                    <p className="mb-2 mt-5 text-[13px] text-muted">Ou choisissez un préréglage</p>
+                    <div className="grid w-full grid-cols-2 gap-2">
                       {GOAL_PRESETS.map((preset) => {
                         const active = weeklyGoal === preset.value;
                         return (
@@ -433,13 +440,17 @@ export function ParametresClient() {
                             type="button"
                             aria-pressed={active}
                             onClick={() => setWeeklyGoal(preset.value)}
-                            className="inline-flex min-h-11 items-center justify-center rounded-full px-1 text-sm font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
+                            className="inline-flex min-h-11 w-full items-center justify-center rounded-full px-2 text-sm font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
                             style={{
                               background: "var(--surface)",
-                              border: active ? "1.5px solid transparent" : "1.5px solid var(--line)",
+                              border: active
+                                ? "1.5px solid var(--ink)"
+                                : "1.5px solid var(--line)",
                             }}
                           >
-                            <span className={active ? "marker" : "px-3"}>{preset.value} · {preset.label}</span>
+                            <span className={active ? "marker" : undefined}>
+                              {preset.value} · {preset.label}
+                            </span>
                           </button>
                         );
                       })}
@@ -558,7 +569,7 @@ export function ParametresClient() {
             <SectionHeader
               icon={Bell}
               title="Rappels"
-              subtitle="Choisis quand et comment on te rappelle de réviser."
+              subtitle="Choisissez quand et comment on vous rappelle de réviser."
             />
             {!remindersLoaded ? (
               <p className="m-0 text-sm text-muted">Chargement…</p>
@@ -584,7 +595,7 @@ export function ParametresClient() {
                   <ReminderTypeRow
                     icon={AlarmClock}
                     label="Rappel de révision"
-                    description="Chaque jour, si tu as des mots à revoir."
+                    description="Chaque jour, si vous avez des mots à revoir."
                     checked={reminders.revisionEnabled}
                     onChange={(v) => updateReminders({ revisionEnabled: v })}
                     reducedMotion={reducedMotion}
@@ -606,7 +617,7 @@ export function ParametresClient() {
                   <ReminderTypeRow
                     icon={Flame}
                     label="Alerte de série"
-                    description="Quand ta série est sur le point de sauter."
+                    description="Quand votre série est sur le point de sauter."
                     checked={reminders.streakEnabled}
                     onChange={(v) => updateReminders({ streakEnabled: v })}
                     reducedMotion={reducedMotion}
@@ -615,7 +626,7 @@ export function ParametresClient() {
                   <ReminderTypeRow
                     icon={TrendingUp}
                     label="Bilan hebdomadaire"
-                    description="Un récap de tes progrès chaque semaine."
+                    description="Un récap de vos progrès chaque semaine."
                     checked={reminders.weeklyRecapEnabled}
                     onChange={(v) => updateReminders({ weeklyRecapEnabled: v })}
                     reducedMotion={reducedMotion}
@@ -653,7 +664,7 @@ export function ParametresClient() {
                 <ReminderTypeRow
                   icon={Music}
                   label="Sons de feedback"
-                  description="Un son quand ta réponse est juste ou fausse, pendant la révision."
+                  description="Un son quand votre réponse est juste ou fausse, pendant la révision."
                   checked={feedbackSoundsEnabled}
                   onChange={updateFeedbackSounds}
                   reducedMotion={reducedMotion}
@@ -666,7 +677,7 @@ export function ParametresClient() {
                 <SectionHeader
                   icon={GraduationCap}
                   title="Ma classe"
-                  subtitle="Rejoins une classe avec le code fourni par ton professeur."
+                  subtitle="Rejoignez une classe avec le code fourni par votre professeur."
                   className="mb-0 min-w-0 flex-1"
                 />
                 <span className="inline-flex shrink-0 items-center rounded-full bg-mark px-3 py-1 text-[13px] font-medium text-ink">
@@ -674,8 +685,8 @@ export function ParametresClient() {
                 </span>
               </div>
               <p id="ma-classe-bientot" className="m-0 mb-4 text-sm leading-relaxed text-ink">
-                L&apos;espace professeur n&apos;est pas encore ouvert. Tu pourras bientôt rejoindre la
-                classe de ton professeur ici.
+                L&apos;espace professeur n&apos;est pas encore ouvert. Vous pourrez bientôt rejoindre la
+                classe de votre professeur ici.
               </p>
               <fieldset disabled className="m-0 min-w-0 border-0 p-0" style={{ opacity: 0.72 }}>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center">

@@ -1,10 +1,17 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 
 interface LangProgress {
   language: string | null;
   count: number;
+}
+
+function languageDisplayName(code: string | null): string {
+  const n = (code ?? "").trim().toLowerCase();
+  if (!n) return "—";
+  return PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === n)?.label ?? n.toUpperCase();
 }
 
 interface WeeklyData {
@@ -119,7 +126,7 @@ export default function WeeklyGoal() {
               onClick={() => setSelectedLang(l.language)}
               style={pillStyle(selectedLang === l.language)}
             >
-              {l.language} ({l.count})
+              {languageDisplayName(l.language)} ({l.count})
             </button>
           ))}
         </div>

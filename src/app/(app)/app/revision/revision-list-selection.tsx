@@ -326,15 +326,18 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const senseTitle1 = `${studiedLabel} → Français`;
   const senseTitle2 = `Français → ${studiedLabel}`;
 
+  const showMobileLaunchBar = selected.size > 0;
+
   return (
     <div
-      className="min-h-full w-full -mx-4 -my-8 py-8 pb-32 sm:-mx-6 sm:-my-10 sm:py-10 md:pb-10"
+      className={`min-h-full w-full -my-8 py-8 sm:-my-10 sm:py-10 md:pb-10 ${
+        showMobileLaunchBar
+          ? "max-md:pb-[calc(76px+9.5rem+env(safe-area-inset-bottom,0px))]"
+          : "max-md:pb-[calc(76px+2rem+env(safe-area-inset-bottom,0px))]"
+      }`}
       style={{ maxWidth: "100%" }}
     >
-      <div
-        className="mx-auto w-full max-w-2xl"
-        style={{ maxWidth: "100%", padding: "0 16px" }}
-      >
+      <div className="mx-auto w-full max-w-2xl">
         <Link
           href="/app/evaluation"
           className="mb-4 inline-flex w-fit items-center gap-1 no-underline"
@@ -698,36 +701,33 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
         )}
       </div>
 
-      {/* Barre mobile — fixe en bas, dégagement bulle de support à droite */}
-      <div
-        className="fixed bottom-0 left-0 right-0 z-20 pointer-events-none md:hidden"
-        style={{
-          paddingLeft: "max(16px, env(safe-area-inset-left, 0px))",
-          paddingRight: "max(80px, env(safe-area-inset-right, 0px))",
-        }}
-      >
+      {/* Barre mobile — juste au-dessus de la navigation basse, marges 16px */}
+      {showMobileLaunchBar ? (
         <div
-          className="pointer-events-auto border-t bg-surface"
+          className="fixed left-4 right-4 z-40 pointer-events-none md:hidden"
           style={{
-            borderTop: `0.5px solid ${BORDER_TERTIARY}`,
-            padding: "12px 16px",
-            paddingBottom: "max(12px, env(safe-area-inset-bottom, 0px))",
+            bottom: "calc(76px + env(safe-area-inset-bottom, 0px))",
           }}
         >
-          <div className="mb-2.5">
-            <SelectionRecap
-              selectedCount={selected.size}
-              selectedLang={severalLanguages ? null : selectedLang}
-              labelSource={labelSource}
+          <div
+            className="pointer-events-auto rounded-[16px] border-[1.5px] border-line bg-surface shadow-sm"
+            style={{ padding: "12px 16px" }}
+          >
+            <div className="mb-2.5">
+              <SelectionRecap
+                selectedCount={selected.size}
+                selectedLang={severalLanguages ? null : selectedLang}
+                labelSource={labelSource}
+              />
+            </div>
+            <LaunchSessionButton
+              disabled={selected.size === 0}
+              onClick={launchSession}
+              className="w-full"
             />
           </div>
-          <LaunchSessionButton
-            disabled={selected.size === 0}
-            onClick={launchSession}
-            className="w-full"
-          />
         </div>
-      </div>
+      ) : null}
     </div>
   );
 }
