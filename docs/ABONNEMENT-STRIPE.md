@@ -40,6 +40,8 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_stripe_customer_id_unique ON users(strip
 
 Tant que ces colonnes ne sont pas en place, la page et Paramètres affichent le même message « pas encore ouvert », sans erreur visible. Le paiement ne démarre qu'après ce SQL.
 
+Table `cancellation_feedback` (mission K2) : uniquement dans `src/lib/db/schema.ts`. Avant la fusion, Océane lance `npx drizzle-kit push`. Pas d'ALTER manuel. Tant que la table est absente, la résiliation Stripe aboutit quand même et la section Désabonnements reste vide, sans chiffre inventé.
+
 ## Stripe Dashboard (mode test)
 
 1. Créer un produit Kim Study et deux prix récurrents : 5 € / mois et 45 € / an. Pas de période d'essai sur le Price. Les libellés envoyés à Checkout (`Lexiva — formule mensuelle` / `Lexiva — formule annuelle`) sont encore l'ancien nom : le code Stripe n'a pas été modifié dans le renommage.
@@ -60,7 +62,7 @@ En local : `stripe listen --forward-to localhost:3000/api/stripe/webhook`.
 2. Choisir Mensuel ou Annuel. La page Stripe s'ouvre en français et demande une carte.
 3. Carte de test : `4242 4242 4242 4242`, date future, CVC quelconque.
 4. Retour sur `/app/abonnement?checkout=success&session_id=cs_test_…`. La page relit la session Checkout chez Stripe, vérifie qu'elle appartient au compte connecté, puis enregistre le statut (`trialing`) sans attendre le webhook. Un second affichage de la même URL ne crée pas un second abonnement.
-5. « Gérer mon abonnement » ouvre le portail (résiliation, carte, factures).
+5. « Résilier mon abonnement » ouvre la fenêtre de motif, puis programme la fin à l'échéance. « Gérer la facturation » ouvre le portail (carte, factures). Le portail peut encore résilier : une ligne sans motif est alors créée.
 
 Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événement `invoice.payment_failed`, le statut devient `past_due`.
 
@@ -77,6 +79,16 @@ Carte qui échoue au renouvellement : `4000 0000 0000 0341`. Après l'événemen
 | `cancel_at_period_end` alors que le statut reste `active` ou `trialing` | affiché « Résiliation programmée », lu chez Stripe à l'affichage, sans colonne supplémentaire |
 
 Sur la page, avant souscription : l'offre (essai de 15 jours, carte requise) et la ligne « Si tu es mineur, demande à un parent ou à un tuteur de souscrire. » La phrase « Ta carte est enregistrée » n'apparaît qu'une fois l'abonnement en cours.
+
+## Résiliation
+
+La fenêtre (vouvoiement) s'ouvre depuis « Résilier mon abonnement ». Le motif est facultatif : trop cher, examen passé, pas assez utilisé, fonctionnalité manquante, problème technique, autre, plus un mot libre. « Garder mon abonnement » ferme la fenêtre. « Confirmer la résiliation » enregistre le motif puis appelle Stripe avec `cancel_at_period_end`. L'accès dure jusqu'à la fin de période. L'état affiché reste « Résiliation programmée ».
+
+`POST /api/stripe/cancel` vérifie `getUser()`. Un échec d'écriture du motif est journalisé et n'empêche pas l'appel Stripe.
+
+Le webhook, sur `customer.subscription.updated` ou `deleted`, crée une ligne `reason` null si l'abonnement est programmé ou déjà `canceled`, et s'il n'existe pas déjà une ligne pour le même élève et la même date de début (`subscription.start_date`). Un impayé qui aboutit à `canceled` est donc compté. `invoice.payment_failed` seul ne crée pas de ligne : le statut reste `past_due`.
+
+L'espace créateur, section Désabonnements, lit cette table. Le taux du mois est : départs du mois / (abonnés `active`, `trialing` ou `past_due` + départs du mois commencés avant le mois et qui ne sont plus abonnés). Un abonné arrivé dans le mois et encore actif reste dans l'effectif, faute de date de début sur `users`. `GET /api/creator/churn/export` renvoie le CSV.
 
 Sans clé de test ni Price ID, l'élève voit « L'abonnement n'est pas encore ouvert. Tu peux continuer à utiliser Kim Study. » sur `/app/abonnement`. Aucun bouton de paiement, aucun message d'erreur. L'abonnement n'est plus affiché dans Paramètres.
 

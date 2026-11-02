@@ -43,6 +43,37 @@ export async function startSubscriptionCheckout(plan: BillingPlan): Promise<void
   window.location.assign(url);
 }
 
+export async function cancelSubscription(input: {
+  reason: string | null;
+  comment: string | null;
+}): Promise<SubscriptionView> {
+  const response = await fetch("/api/stripe/cancel", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const data: unknown = await response.json().catch(() => null);
+  if (!response.ok || !isSubscriptionView(data)) {
+    const message =
+      data && typeof data === "object" && "error" in data && typeof data.error === "string"
+        ? data.error
+        : "Impossible de résilier l'abonnement.";
+    throw new Error(message);
+  }
+  return data;
+}
+
+function isSubscriptionView(data: unknown): data is SubscriptionView {
+  if (!data || typeof data !== "object") return false;
+  const row = data as Record<string, unknown>;
+  return (
+    row.showBilling === true &&
+    typeof row.status === "string" &&
+    typeof row.cancelAtPeriodEnd === "boolean" &&
+    (row.currentPeriodEnd == null || typeof row.currentPeriodEnd === "number")
+  );
+}
+
 export async function openBillingPortal(): Promise<void> {
   const response = await fetch("/api/stripe/portal", { method: "POST" });
   const data: unknown = await response.json().catch(() => null);
