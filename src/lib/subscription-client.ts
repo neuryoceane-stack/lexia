@@ -22,11 +22,14 @@ export async function fetchSubscriptionView(): Promise<
   return data as SubscriptionView | { showBilling: false };
 }
 
-export async function startSubscriptionCheckout(plan: BillingPlan): Promise<void> {
+export async function startSubscriptionCheckout(
+  plan: BillingPlan,
+  promoCode?: string,
+): Promise<void> {
   const response = await fetch("/api/stripe/checkout", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ plan }),
+    body: JSON.stringify(promoCode ? { plan, promoCode } : { plan }),
   });
   const data: unknown = await response.json().catch(() => null);
   const url =

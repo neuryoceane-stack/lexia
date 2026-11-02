@@ -4,6 +4,7 @@ import {
   integer,
   real,
   primaryKey,
+  uniqueIndex,
   type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
@@ -376,6 +377,60 @@ export const userPurchases = sqliteTable("user_purchases", {
     .$defaultFn(() => new Date()),
 });
 
+/**
+ * Codes promo créateur. `value` est un entier : pourcentage, centimes,
+ * nombre de mois offerts, ou nombre de jours d'essai.
+ * `ends_at` et `created_at` sont des secondes Unix (mode timestamp Drizzle).
+ * Le SQL de création est dans src/lib/promo-codes-sql.ts : Océane le lance,
+ * sans drizzle-kit push.
+ */
+export const promoCodes = sqliteTable(
+  "promo_codes",
+  {
+    id: text("id").primaryKey(),
+    code: text("code").notNull(),
+    benefitType: text("benefit_type", {
+      enum: ["percent", "fixed_amount", "free_months", "extended_trial"],
+    }).notNull(),
+    value: integer("value").notNull(),
+    institution: text("institution"),
+    /** Null = nombre d'utilisations illimité. */
+    maxUses: integer("max_uses"),
+    endsAt: integer("ends_at", { mode: "timestamp" }),
+    appliesMonthly: integer("applies_monthly", { mode: "boolean" }).notNull(),
+    appliesAnnual: integer("applies_annual", { mode: "boolean" }).notNull(),
+    active: integer("active", { mode: "boolean" }).notNull().default(true),
+    stripeCouponId: text("stripe_coupon_id"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [uniqueIndex("promo_codes_code_unique").on(table.code)],
+);
+
+/** Un élève ne peut utiliser un même code qu'une fois. */
+export const promoCodeRedemptions = sqliteTable(
+  "promo_code_redemptions",
+  {
+    id: text("id").primaryKey(),
+    promoCodeId: text("promo_code_id")
+      .notNull()
+      .references(() => promoCodes.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    redeemedAt: integer("redeemed_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("promo_code_redemptions_code_user_unique").on(
+      table.promoCodeId,
+      table.userId,
+    ),
+  ],
+);
+
 export type MemoTip = typeof memoTips.$inferSelect;
 
 export type User = typeof users.$inferSelect;
@@ -399,3 +454,6 @@ export type ShopPack = typeof shopPacks.$inferSelect;
 export type NewShopPack = typeof shopPacks.$inferInsert;
 export type UserPurchase = typeof userPurchases.$inferSelect;
 export type NewUserPurchase = typeof userPurchases.$inferInsert;
+export type PromoCode = typeof promoCodes.$inferSelect;
+export type NewPromoCode = typeof promoCodes.$inferInsert;
+export type PromoCodeRedemption = typeof promoCodeRedemptions.$inferSelect;

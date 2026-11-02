@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import { readOptionalPromoCode } from "@/lib/promo-codes";
 import { parseBillingPlan } from "@/lib/subscription";
 import { billingHttpError, createSubscriptionCheckout } from "@/lib/stripe-billing";
 
@@ -27,12 +28,17 @@ export async function POST(req: Request) {
   if (!plan) {
     return NextResponse.json({ error: "Formule invalide" }, { status: 400 });
   }
+  const promo = readOptionalPromoCode(body);
+  if (!promo.ok) {
+    return NextResponse.json({ error: promo.message }, { status: 400 });
+  }
 
   try {
     const url = await createSubscriptionCheckout({
       userId: user.id,
       email: user.email,
       plan,
+      promoCode: promo.code,
     });
     return NextResponse.json({ url });
   } catch (error) {
