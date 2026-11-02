@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { isCancellationStorageUnavailable } from "@/lib/cancellation";
+import { isMissingAnnouncementTable } from "@/lib/announcements";
 import {
   notifications,
   feedbacks,
@@ -19,6 +20,7 @@ import {
   wordFamilies,
   users,
   cancellationFeedback,
+  announcementDismissals,
 } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 
@@ -109,7 +111,15 @@ export async function DELETE() {
       console.error("[delete account] table cancellation_feedback absente", error);
     }
 
-    // p. users
+    // p. fermetures d'annonces (la table peut encore être absente)
+    try {
+      await db.delete(announcementDismissals).where(eq(announcementDismissals.userId, userId));
+    } catch (error) {
+      if (!isMissingAnnouncementTable(error)) throw error;
+      console.error("[delete account] table announcement_dismissals absente", error);
+    }
+
+    // q. users
     await db.delete(users).where(eq(users.id, userId));
 
     const response = NextResponse.json({ success: true }, { status: 200 });

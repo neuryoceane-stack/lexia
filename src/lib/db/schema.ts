@@ -472,6 +472,56 @@ export const promoCodeRedemptions = sqliteTable(
   ],
 );
 
+/**
+ * Annonces affichées en bannière aux élèves.
+ * `starts_at`, `ends_at` et `created_at` sont des secondes Unix.
+ * `dismissible` : 1 = l'élève peut fermer, 0 = la bannière reste.
+ * Le SQL de création est dans src/lib/announcements-sql.ts : Océane le lance,
+ * sans drizzle-kit push.
+ */
+export const announcements = sqliteTable("announcements", {
+  id: text("id").primaryKey(),
+  type: text("type", { enum: ["news", "info", "important"] }).notNull(),
+  message: text("message").notNull(),
+  linkLabel: text("link_label"),
+  linkUrl: text("link_url"),
+  audience: text("audience", {
+    enum: ["all", "trial", "subscribers", "language"],
+  }).notNull(),
+  /** Code ISO 639-3, requis quand audience = language. */
+  languageCode: text("language_code"),
+  startsAt: integer("starts_at", { mode: "timestamp" }),
+  endsAt: integer("ends_at", { mode: "timestamp" }),
+  dismissible: integer("dismissible", { mode: "boolean" }).notNull().default(true),
+  status: text("status", { enum: ["draft", "published"] }).notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" })
+    .notNull()
+    .$defaultFn(() => new Date()),
+});
+
+/** Fermeture d'une annonce par un élève, valable sur tous ses appareils. */
+export const announcementDismissals = sqliteTable(
+  "announcement_dismissals",
+  {
+    id: text("id").primaryKey(),
+    announcementId: text("announcement_id")
+      .notNull()
+      .references(() => announcements.id, { onDelete: "cascade" }),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    dismissedAt: integer("dismissed_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("announcement_dismissals_announcement_user_unique").on(
+      table.announcementId,
+      table.userId,
+    ),
+  ],
+);
+
 export type MemoTip = typeof memoTips.$inferSelect;
 
 export type User = typeof users.$inferSelect;
@@ -500,3 +550,6 @@ export type NewCancellationFeedback = typeof cancellationFeedback.$inferInsert;
 export type PromoCode = typeof promoCodes.$inferSelect;
 export type NewPromoCode = typeof promoCodes.$inferInsert;
 export type PromoCodeRedemption = typeof promoCodeRedemptions.$inferSelect;
+export type Announcement = typeof announcements.$inferSelect;
+export type NewAnnouncement = typeof announcements.$inferInsert;
+export type AnnouncementDismissal = typeof announcementDismissals.$inferSelect;

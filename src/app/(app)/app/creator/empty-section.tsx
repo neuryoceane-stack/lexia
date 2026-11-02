@@ -1,9 +1,8 @@
-import { Funnel, Megaphone, type LucideIcon } from "lucide-react";
+import { Funnel, type LucideIcon } from "lucide-react";
 import type { EmptySectionId } from "./creator-sections";
 
 const EMPTY: Record<EmptySectionId, { title: string; icon: LucideIcon }> = {
   funnel: { title: "Entonnoir et coûts", icon: Funnel },
-  announcements: { title: "Annonces", icon: Megaphone },
 };
 
 export function EmptySection({ id }: { id: EmptySectionId }) {
