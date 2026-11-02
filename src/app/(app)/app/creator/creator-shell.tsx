@@ -1,3 +1,4 @@
+import { ChurnSection } from "./churn-section";
 import { CreatorNav } from "./creator-nav";
 import { CreatorShopTab } from "./creator-shop-tab";
 import { EmptySection } from "./empty-section";
@@ -28,7 +29,7 @@ export function CreatorShell({
           {section === "students" && <StudentsSection onglet={onglet} />}
           {section === "health" && <FeedbacksSection />}
           {section === "finance" && <FinanceSection />}
-          {section === "churn" && <EmptySection id="churn" />}
+          {section === "churn" && <ChurnSection />}
           {section === "shop" && <CreatorShopTab />}
           {section === "promo" && <PromoSection />}
           {section === "announcements" && <EmptySection id="announcements" />}

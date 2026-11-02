@@ -1,5 +1,11 @@
 import Stripe from "stripe";
 import { eq } from "drizzle-orm";
+import { rememberCancellation } from "@/lib/cancellation-feedback";
+import {
+  resolveCancellationPlan,
+  type CancellationPlan,
+  type CancellationReason,
+} from "@/lib/cancellation";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { getAppBaseUrl, getStripe, isStripeBillingConfigured } from "@/lib/stripe";
@@ -296,6 +302,64 @@ export async function createSubscriptionCheckout(input: {
   return session.url;
 }
 
+const CANCELLABLE_STRIPE_STATUSES = new Set<Stripe.Subscription.Status>([
+  "trialing",
+  "active",
+  "past_due",
+  "unpaid",
+]);
+
+/**
+ * Programme la fin d'abonnement à l'échéance, sans arrêt immédiat.
+ * Le motif est enregistré avant l'appel Stripe. Son échec n'empêche pas la résiliation.
+ */
+export async function scheduleSubscriptionCancellation(input: {
+  userId: string;
+  reason: CancellationReason | null;
+  comment: string | null;
+}): Promise<SubscriptionView> {
+  const stripe = getStripe();
+  const row = await requireBillingUser(input.userId);
+  if (!row.stripeSubscriptionId) {
+    throw new BillingError("Aucun abonnement à résilier.", 400);
+  }
+
+  const subscription = await stripe.subscriptions.retrieve(row.stripeSubscriptionId);
+  if (!CANCELLABLE_STRIPE_STATUSES.has(subscription.status)) {
+    throw new BillingError(
+      subscription.status === "canceled"
+        ? "Cet abonnement est déjà résilié."
+        : "Cet abonnement ne peut pas être résilié pour le moment.",
+      409,
+    );
+  }
+
+  const plan = cancellationPlanOf(subscription);
+  if (!plan) {
+    console.error("[cancellation_feedback] formule introuvable avant résiliation", {
+      subscriptionId: subscription.id,
+      status: subscription.status,
+    });
+  } else {
+    await rememberCancellation({
+      userId: input.userId,
+      reason: input.reason,
+      comment: input.comment,
+      plan,
+      subscriptionStartedAt: new Date((subscription.start_date || subscription.created) * 1000),
+      cancelledAt: new Date(),
+    });
+  }
+
+  if (!isCancellationScheduled(subscription)) {
+    await stripe.subscriptions.update(subscription.id, { cancel_at_period_end: true });
+  }
+
+  const view = await loadSubscriptionView(input.userId);
+  if (!view) throw new BillingError("Compte introuvable.", 404);
+  return view;
+}
+
 export async function createBillingPortalUrl(userId: string): Promise<string> {
   const stripe = getStripe();
   const baseUrl = appBaseUrlOrConfigError();
@@ -381,6 +445,12 @@ export async function applyStripeSubscription(input: {
       stripeStatusSyncedAt: input.eventCreated,
     })
     .where(eq(users.id, user.id));
+
+  await recordSubscriptionCancellation({
+    userId: user.id,
+    eventCreated: input.eventCreated,
+    subscription: input.subscription,
+  });
 }
 
 export async function applyInvoicePaymentFailed(input: {
@@ -624,6 +694,59 @@ async function findBillingUser(
 
 function isStaleEvent(user: BillingUserRow, eventCreated: number): boolean {
   return user.stripeStatusSyncedAt != null && eventCreated < user.stripeStatusSyncedAt;
+}
+
+function cancellationPlanOf(subscription: Stripe.Subscription): CancellationPlan | null {
+  const price = subscription.items.data[0]?.price;
+  const priceId = price?.id ?? null;
+  return resolveCancellationPlan({
+    status: subscription.status,
+    trialEnd: subscription.trial_end,
+    canceledAt: subscription.canceled_at,
+    metadataPlan: subscription.metadata?.plan ?? null,
+    interval: price?.recurring?.interval ?? null,
+    pricePlan: priceId ? planFromPriceId(priceId) : null,
+  });
+}
+
+function cancellationIsRecordable(subscription: Stripe.Subscription): boolean {
+  if (
+    subscription.status === "incomplete" ||
+    subscription.status === "incomplete_expired" ||
+    subscription.status === "paused"
+  ) {
+    return false;
+  }
+  if (subscription.status === "canceled") return true;
+  return isCancellationScheduled(subscription);
+}
+
+/**
+ * Ligne de motif vide quand la résiliation n'est pas passée par la fenêtre
+ * (portail, impayé, fin de période). Sans doublon si la fenêtre a déjà écrit.
+ */
+async function recordSubscriptionCancellation(input: {
+  userId: string;
+  eventCreated: number;
+  subscription: Stripe.Subscription;
+}): Promise<void> {
+  if (!cancellationIsRecordable(input.subscription)) return;
+  const plan = cancellationPlanOf(input.subscription);
+  if (!plan) {
+    console.error("[cancellation_feedback] formule introuvable", {
+      subscriptionId: input.subscription.id,
+      status: input.subscription.status,
+    });
+    return;
+  }
+  await rememberCancellation({
+    userId: input.userId,
+    reason: null,
+    comment: null,
+    plan,
+    subscriptionStartedAt: new Date((input.subscription.start_date || input.subscription.created) * 1000),
+    cancelledAt: new Date((input.subscription.canceled_at ?? input.eventCreated) * 1000),
+  });
 }
 
 function isCancellationScheduled(subscription: Stripe.Subscription): boolean {

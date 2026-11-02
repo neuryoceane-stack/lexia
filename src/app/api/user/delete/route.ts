@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { isCancellationStorageUnavailable } from "@/lib/cancellation";
 import {
   notifications,
   feedbacks,
@@ -17,6 +18,7 @@ import {
   lists,
   wordFamilies,
   users,
+  cancellationFeedback,
 } from "@/lib/db/schema";
 import { eq, inArray } from "drizzle-orm";
 
@@ -99,7 +101,15 @@ export async function DELETE() {
     // n. wordFamilies
     await db.delete(wordFamilies).where(eq(wordFamilies.userId, userId));
 
-    // o. users
+    // o. motifs de résiliation (la table peut encore être absente en prévisualisation)
+    try {
+      await db.delete(cancellationFeedback).where(eq(cancellationFeedback.userId, userId));
+    } catch (error) {
+      if (!isCancellationStorageUnavailable(error)) throw error;
+      console.error("[delete account] table cancellation_feedback absente", error);
+    }
+
+    // p. users
     await db.delete(users).where(eq(users.id, userId));
 
     const response = NextResponse.json({ success: true }, { status: 200 });

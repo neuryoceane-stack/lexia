@@ -378,6 +378,47 @@ export const userPurchases = sqliteTable("user_purchases", {
 });
 
 /**
+ * Motif laissé au moment d'une résiliation.
+ * Une ligne par abonnement : (user_id, subscription_started_at).
+ * `reason` reste null si le départ n'est pas passé par la fenêtre
+ * (portail Stripe, impayé, fin de période).
+ * Le push est manuel : `npx drizzle-kit push`, à lancer par Océane.
+ */
+export const cancellationFeedback = sqliteTable(
+  "cancellation_feedback",
+  {
+    id: text("id").primaryKey(),
+    userId: text("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    reason: text("reason", {
+      enum: [
+        "too_expensive",
+        "exam_passed",
+        "not_used_enough",
+        "missing_feature",
+        "technical_issue",
+        "other",
+      ],
+    }),
+    comment: text("comment"),
+    /** monthly = mensuel, annual = annuel, trial = essai. */
+    plan: text("plan", { enum: ["monthly", "annual", "trial"] }).notNull(),
+    subscriptionStartedAt: integer("subscription_started_at", { mode: "timestamp" }).notNull(),
+    cancelledAt: integer("cancelled_at", { mode: "timestamp" }).notNull(),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [
+    uniqueIndex("cancellation_feedback_user_start_unique").on(
+      table.userId,
+      table.subscriptionStartedAt,
+    ),
+  ],
+);
+
+/**
  * Codes promo créateur. `value` est un entier : pourcentage, centimes,
  * nombre de mois offerts, ou nombre de jours d'essai.
  * `ends_at` et `created_at` sont des secondes Unix (mode timestamp Drizzle).
@@ -454,6 +495,8 @@ export type ShopPack = typeof shopPacks.$inferSelect;
 export type NewShopPack = typeof shopPacks.$inferInsert;
 export type UserPurchase = typeof userPurchases.$inferSelect;
 export type NewUserPurchase = typeof userPurchases.$inferInsert;
+export type CancellationFeedback = typeof cancellationFeedback.$inferSelect;
+export type NewCancellationFeedback = typeof cancellationFeedback.$inferInsert;
 export type PromoCode = typeof promoCodes.$inferSelect;
 export type NewPromoCode = typeof promoCodes.$inferInsert;
 export type PromoCodeRedemption = typeof promoCodeRedemptions.$inferSelect;

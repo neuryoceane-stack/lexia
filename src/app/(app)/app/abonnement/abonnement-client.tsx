@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, CreditCard, Sparkles, Ticket, X } from "lucide-react";
 import { BackLink } from "@/components/back-link";
 import { BRAND_NAME } from "@/lib/brand";
 import { openBillingPortal, startSubscriptionCheckout } from "@/lib/subscription-client";
+import { CancelSubscriptionModal } from "./cancel-subscription-modal";
 import {
   PROMO_WRONG_PLAN,
   type PromoBenefitType,
@@ -51,11 +52,16 @@ export function AbonnementClient({
   checkout: CheckoutResult;
   confirmationError: string | null;
 }) {
-  const view = initial;
+  const [view, setView] = useState(initial);
   const [pendingPlan, setPendingPlan] = useState<BillingPlan | null>(null);
   const [portalPending, setPortalPending] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
   const [error, setError] = useState<string | null>(confirmationError);
   const [appliedPromo, setAppliedPromo] = useState<AppliedPromo | null>(null);
+
+  useEffect(() => {
+    setView(initial);
+  }, [initial]);
 
   async function subscribe(plan: BillingPlan) {
     setError(null);
@@ -88,6 +94,10 @@ export function AbonnementClient({
 
   const checkoutOpen = view.billingConfigured && view.canSubscribe;
   const portalOpen = view.billingConfigured && view.canManagePortal;
+  const canCancel =
+    portalOpen &&
+    !view.cancelAtPeriodEnd &&
+    (view.status === "active" || view.status === "trialing" || view.status === "past_due");
   const intro =
     !view.billingConfigured && view.canSubscribe
       ? subscriptionUnavailableCopy()
@@ -187,27 +197,60 @@ export function AbonnementClient({
         </p>
       ) : null}
 
-      {portalOpen ? (
+      {canCancel && view.status === "past_due" ? (
+        <PortalButton pending={portalPending} onClick={() => void manage()} label="Gérer mon abonnement" filled />
+      ) : null}
+
+      {canCancel ? (
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            setCancelOpen(true);
+          }}
+          className="mt-5 flex min-h-11 w-full items-center justify-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2"
+          style={{
+            background: SURFACE,
+            color: INK,
+            border: `1.5px solid ${INK}`,
+            borderRadius: 999,
+            padding: "12px 18px",
+            fontSize: 15,
+            fontWeight: 500,
+            cursor: "pointer",
+          }}
+        >
+          Résilier mon abonnement
+        </button>
+      ) : null}
+
+      {portalOpen && canCancel && view.status !== "past_due" ? (
         <button
           type="button"
           onClick={() => void manage()}
           disabled={portalPending}
-          className="mt-5 flex w-full items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-wait"
-          style={{
-            background: INK,
-            color: SURFACE,
-            border: "none",
-            borderRadius: 20,
-            padding: "12px 18px",
-            fontSize: 15,
-            fontWeight: 500,
-            cursor: portalPending ? "wait" : "pointer",
-          }}
+          className="mx-auto mt-3 flex min-h-11 items-center justify-center gap-2 px-3 text-sm font-medium text-ink underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-wait"
         >
-          <CreditCard size={18} aria-hidden />
-          {portalPending ? "Ouverture du portail…" : "Gérer mon abonnement"}
+          <CreditCard size={16} aria-hidden />
+          {portalPending ? "Ouverture du portail…" : "Gérer la facturation"}
         </button>
       ) : null}
+
+      {portalOpen && !canCancel ? (
+        <PortalButton pending={portalPending} onClick={() => void manage()} label="Gérer mon abonnement" filled />
+      ) : null}
+
+      <CancelSubscriptionModal
+        open={cancelOpen}
+        trial={view.status === "trialing"}
+        pastDue={view.status === "past_due"}
+        periodEnd={view.currentPeriodEnd}
+        onClose={() => setCancelOpen(false)}
+        onConfirmed={(next) => {
+          setView(next);
+          setCancelOpen(false);
+        }}
+      />
 
       {error ? (
         <p role="alert" style={{ marginTop: 14, fontSize: 14, color: "var(--false-text)" }}>
@@ -229,7 +272,7 @@ export function AbonnementClient({
           <Reassurance>
             {`${formatOfferEuros(OFFER_MONTHLY_EUROS)} par mois ou ${formatOfferEuros(OFFER_YEARLY_EUROS)} par an`}
           </Reassurance>
-          <Reassurance>Résiliable à tout moment depuis le portail de paiement</Reassurance>
+          <Reassurance>Résiliable à tout moment, sans frais</Reassurance>
         </ul>
       ) : null}
     </div>
@@ -467,6 +510,40 @@ function readPromoError(body: unknown, fallback: string): string {
     return body.error;
   }
   return fallback;
+}
+
+function PortalButton({
+  pending,
+  onClick,
+  label,
+  filled,
+}: {
+  pending: boolean;
+  onClick: () => void;
+  label: string;
+  filled: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={pending}
+      className="mt-5 flex min-h-11 w-full items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-wait"
+      style={{
+        background: filled ? INK : SURFACE,
+        color: filled ? SURFACE : INK,
+        border: filled ? "none" : `1.5px solid ${INK}`,
+        borderRadius: 999,
+        padding: "12px 18px",
+        fontSize: 15,
+        fontWeight: 500,
+        cursor: pending ? "wait" : "pointer",
+      }}
+    >
+      <CreditCard size={18} aria-hidden />
+      {pending ? "Ouverture du portail…" : label}
+    </button>
+  );
 }
 
 function StatusCard({ view }: { view: SubscriptionView }) {

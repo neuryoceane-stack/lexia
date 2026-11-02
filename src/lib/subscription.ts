@@ -127,7 +127,7 @@ export function subscriptionOfferIntro(includesTrial: boolean, trialLabel?: stri
 
 /** Texte affiché après souscription. La carte n'est mentionnée qu'à ce moment-là. */
 export function subscribedIntro(): string {
-  return "Ta carte est enregistrée. Retrouve ici ta formule et le portail pour gérer ta carte ou résilier.";
+  return "Ta carte est enregistrée. Retrouve ici ta formule, la résiliation et le portail pour gérer ta carte.";
 }
 
 export function subscriptionDisplay(view: {
