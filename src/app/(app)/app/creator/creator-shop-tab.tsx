@@ -1,76 +1,143 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
-import { ShoppingBag, Plus, Trash2, Eye, EyeOff, Upload, TrendingUp } from "lucide-react";
+import { useRef, useState } from "react";
+import { Eye, EyeOff, Euro, Package, Plus, ShoppingBag, Trash2, Upload } from "lucide-react";
 import * as XLSX from "xlsx";
+import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
+import {
+  ErrorNote,
+  KpiCard,
+  LoadingNote,
+  cardClass,
+  fieldClass,
+  formatEuro,
+  isRecord,
+  num,
+  outlineButtonClass,
+  primaryButtonClass,
+} from "./creator-ui";
+import { useCreatorResource } from "./use-creator-resource";
 
 type ShopPack = {
   id: string;
   title: string;
-  emoji: string;
   description: string;
   wordCount: number;
   expressionCount: number;
   price: number;
   language: string;
   isActive: boolean;
-  wordsJson?: string;
   sales: number;
   revenue: number;
 };
 
 type PackWord = { term: string; definition: string; isExpression?: boolean };
 
-const LANGUAGE_LABELS: Record<string, string> = {
-  eng: "🇬🇧 Anglais", deu: "🇩🇪 Allemand", spa: "🇪🇸 Espagnol",
-  ita: "🇮🇹 Italien", fra: "🇫🇷 Français",
-};
+const SHOP_LANGUAGES = ["fra", "eng", "deu", "spa", "ita"] as const;
+
+function languageLabel(code: string): string {
+  return PREFERRED_LANGUAGE_OPTIONS.find((option) => option.value === code)?.label ?? code.toUpperCase();
+}
+
+function frCount(count: number, singular: string, plural: string): string {
+  return `${count} ${count === 1 ? singular : plural}`;
+}
+
+function asFlag(value: unknown): boolean | null {
+  if (typeof value === "boolean") return value;
+  if (value === 1 || value === "1") return true;
+  if (value === 0 || value === "0") return false;
+  return null;
+}
+
+function parsePacks(data: unknown): ShopPack[] | null {
+  if (!Array.isArray(data)) return null;
+  const packs: ShopPack[] = [];
+  for (const row of data) {
+    if (!isRecord(row) || typeof row.id !== "string" || typeof row.title !== "string") return null;
+    const price = num(row.price);
+    const wordCount = num(row.wordCount);
+    const expressionCount = num(row.expressionCount);
+    const sales = num(row.sales);
+    const revenue = num(row.revenue);
+    const isActive = asFlag(row.isActive);
+    if (
+      price === null ||
+      wordCount === null ||
+      expressionCount === null ||
+      sales === null ||
+      revenue === null ||
+      isActive === null
+    ) {
+      return null;
+    }
+    packs.push({
+      id: row.id,
+      title: row.title,
+      description: typeof row.description === "string" ? row.description : "",
+      wordCount,
+      expressionCount,
+      price,
+      language: typeof row.language === "string" ? row.language : "",
+      isActive,
+      sales,
+      revenue,
+    });
+  }
+  return packs;
+}
 
 export function CreatorShopTab() {
-  const [packs, setPacks] = useState<ShopPack[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: packs, loading, error, setError, reload } = useCreatorResource(
+    "/api/creator/shop",
+    parsePacks,
+    "Impossible de charger la boutique.",
+  );
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    title: "", description: "", emoji: "📦",
-    language: "fra", price: 400,
+    title: "",
+    description: "",
+    language: "fra",
+    price: 400,
   });
   const [words, setWords] = useState<PackWord[]>([]);
   const [importError, setImportError] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => { loadPacks(); }, []);
-
-  async function loadPacks() {
-    setLoading(true);
-    const res = await fetch("/api/creator/shop");
-    const data = await res.json();
-    if (Array.isArray(data)) setPacks(data);
-    setLoading(false);
-  }
-
   async function toggleActive(pack: ShopPack) {
-    await fetch("/api/creator/shop", {
+    setError(null);
+    const res = await fetch("/api/creator/shop", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id: pack.id, isActive: !pack.isActive }),
     });
-    await loadPacks();
+    if (!res.ok) {
+      setError("Le statut du pack n'a pas pu être modifié.");
+      return;
+    }
+    await reload();
   }
 
   async function deletePack(id: string) {
-    if (!confirm("Supprimer ce pack définitivement ?")) return;
-    await fetch("/api/creator/shop", {
+    if (!confirm("Voulez-vous supprimer ce pack définitivement ?")) return;
+    setError(null);
+    const res = await fetch("/api/creator/shop", {
       method: "DELETE",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    await loadPacks();
+    if (!res.ok) {
+      setError("Le pack n'a pas pu être supprimé.");
+      return;
+    }
+    await reload();
   }
 
-  function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+  function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
     setImportError("");
-    const file = e.target.files?.[0];
+    const file = event.target.files?.[0];
+    event.target.value = "";
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
@@ -78,13 +145,15 @@ export function CreatorShopTab() {
         const wb = XLSX.read(ev.target?.result, { type: "binary" });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rows = XLSX.utils.sheet_to_json<Record<string, string>>(ws);
-        const parsed: PackWord[] = rows.map((row) => ({
-          term: row["terme"] ?? row["term"] ?? row["mot"] ?? "",
-          definition: row["definition"] ?? row["traduction"] ?? row["translation"] ?? "",
-          isExpression: String(row["type"] ?? "").toLowerCase() === "expression",
-        })).filter((w) => w.term && w.definition);
+        const parsed: PackWord[] = rows
+          .map((row) => ({
+            term: row["terme"] ?? row["term"] ?? row["mot"] ?? "",
+            definition: row["definition"] ?? row["traduction"] ?? row["translation"] ?? "",
+            isExpression: String(row["type"] ?? "").toLowerCase() === "expression",
+          }))
+          .filter((word) => word.term && word.definition);
         if (parsed.length === 0) {
-          setImportError("Aucun mot trouvé. Colonnes attendues : terme, definition, type (optionnel)");
+          setImportError("Aucun mot trouvé. Colonnes attendues : terme, definition, type (optionnel).");
           return;
         }
         setWords(parsed);
@@ -98,194 +167,222 @@ export function CreatorShopTab() {
   async function handleSubmit() {
     if (!form.title || !form.description || words.length === 0) return;
     setSaving(true);
-    const wordCount = words.filter((w) => !w.isExpression).length;
-    const expressionCount = words.filter((w) => w.isExpression).length;
-    await fetch("/api/creator/shop", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...form,
-        wordCount,
-        expressionCount,
-        wordsJson: JSON.stringify(words),
-      }),
-    });
-    setForm({ title: "", description: "", emoji: "📦", language: "fra", price: 400 });
-    setWords([]);
-    setShowForm(false);
-    setSaving(false);
-    await loadPacks();
+    setError(null);
+    const wordCount = words.filter((word) => !word.isExpression).length;
+    const expressionCount = words.filter((word) => word.isExpression).length;
+    try {
+      const res = await fetch("/api/creator/shop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: form.title,
+          description: form.description,
+          language: form.language,
+          price: form.price,
+          wordCount,
+          expressionCount,
+          wordsJson: JSON.stringify(words),
+        }),
+      });
+      if (!res.ok) {
+        setError("Le pack n'a pas pu être créé.");
+        return;
+      }
+      setForm({ title: "", description: "", language: "fra", price: 400 });
+      setWords([]);
+      setShowForm(false);
+      await reload();
+    } catch {
+      setError("Le pack n'a pas pu être créé.");
+    } finally {
+      setSaving(false);
+    }
   }
 
-  const totalRevenue = packs.reduce((acc, p) => acc + (p.revenue ?? 0), 0);
-  const totalSales = packs.reduce((acc, p) => acc + (p.sales ?? 0), 0);
+  if (loading && !packs) return <LoadingNote>Chargement…</LoadingNote>;
+  if (!packs) return <ErrorNote>{error ?? "Impossible de charger la boutique."}</ErrorNote>;
+
+  const activeCount = packs.filter((pack) => pack.isActive).length;
+  const totalSales = packs.reduce((sum, pack) => sum + pack.sales, 0);
+  const totalRevenue = packs.reduce((sum, pack) => sum + pack.revenue, 0);
+  const importedWords = words.filter((word) => !word.isExpression).length;
+  const importedExpressions = words.filter((word) => word.isExpression).length;
+  const canSubmit = !saving && Boolean(form.title) && Boolean(form.description) && words.length > 0;
 
   return (
-    <div style={{ fontFamily: "var(--font-sans), sans-serif" }}>
+    <div className="space-y-6">
+      {error ? <ErrorNote>{error}</ErrorNote> : null}
 
-      {/* Stats globales */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 24 }}>
-        {[
-          { label: "Packs actifs", value: packs.filter((p) => p.isActive).length },
-          { label: "Ventes totales", value: totalSales },
-          { label: "Revenus totaux", value: `${(totalRevenue / 100).toFixed(2)}€` },
-        ].map((stat) => (
-          <div key={stat.label} style={{
-            background: "var(--page)", borderRadius: 12, padding: "14px 16px", textAlign: "center",
-          }}>
-            <div style={{ fontWeight: 500, fontSize: 22, color: "var(--ink)" }}>{stat.value}</div>
-            <div style={{ fontSize: 12, color: "var(--muted)", marginTop: 2 }}>{stat.label}</div>
-          </div>
-        ))}
+      <header>
+        <h2 className="text-[28px] leading-tight text-ink">Boutique</h2>
+        <p className="mt-1 text-sm text-muted">Packs de vocabulaire proposés dans l&apos;application.</p>
+      </header>
+
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+        <KpiCard icon={Package} label="Packs actifs" value={String(activeCount)} />
+        <KpiCard icon={ShoppingBag} label="Ventes totales" value={String(totalSales)} />
+        <KpiCard icon={Euro} label="Revenus totaux" value={formatEuro(totalRevenue / 100)} />
       </div>
 
-      {/* Bouton créer */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 16 }}>
-        <button
-          onClick={() => setShowForm((v) => !v)}
-          style={{
-            background: "var(--ink)", color: "var(--surface)", border: "none",
-            borderRadius: 20, padding: "10px 20px", fontSize: 14,
-            fontWeight: 500, cursor: "pointer", display: "flex", alignItems: "center", gap: 8,
-          }}>
-          <Plus size={16} /> Nouveau pack
+      <div className="flex justify-end">
+        <button type="button" onClick={() => setShowForm((open) => !open)} className={primaryButtonClass}>
+          <Plus size={16} aria-hidden />
+          Nouveau pack
         </button>
       </div>
 
-      {/* Formulaire création */}
-      {showForm && (
-        <div style={{
-          background: "var(--surface)", borderRadius: 16, padding: 20,
-          border: "1.5px solid var(--line)", marginBottom: 24,
-        }}>
-          <div style={{ fontWeight: 500, fontSize: 15, marginBottom: 16, color: "var(--ink)" }}>
-            Créer un nouveau pack
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
-            <div>
-              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Titre</label>
-              <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })}
-                placeholder="Ex: Voyages & transports"
-                style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-            </div>
-            <div>
-              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Emoji</label>
-              <input value={form.emoji} onChange={(e) => setForm({ ...form, emoji: e.target.value })}
-                placeholder="✈️"
-                style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-            </div>
-            <div style={{ gridColumn: "1 / -1" }}>
-              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Description</label>
-              <input value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })}
-                placeholder="Ex: Tout le vocabulaire pour voyager sereinement."
-                style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-            </div>
-            <div>
-              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Langue</label>
-              <select value={form.language} onChange={(e) => setForm({ ...form, language: e.target.value })}
-                style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box", background: "var(--surface)" }}>
-                {Object.entries(LANGUAGE_LABELS).map(([code, label]) => (
-                  <option key={code} value={code}>{label}</option>
+      {showForm ? (
+        <form
+          className={`${cardClass} p-5`}
+          onSubmit={(event) => {
+            event.preventDefault();
+            void handleSubmit();
+          }}
+        >
+          <h3 className="text-lg text-ink">Créer un nouveau pack</h3>
+          <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2">
+            <label className="block text-sm text-muted">
+              Titre
+              <input
+                value={form.title}
+                onChange={(event) => setForm({ ...form, title: event.target.value })}
+                placeholder="Voyages et transports"
+                className={`${fieldClass} mt-1`}
+              />
+            </label>
+            <label className="block text-sm text-muted">
+              Langue
+              <select
+                value={form.language}
+                onChange={(event) => setForm({ ...form, language: event.target.value })}
+                className={`${fieldClass} mt-1`}
+              >
+                {SHOP_LANGUAGES.map((code) => (
+                  <option key={code} value={code}>
+                    {languageLabel(code)}
+                  </option>
                 ))}
               </select>
-            </div>
-            <div>
-              <label style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 4 }}>Prix (centimes)</label>
-              <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-                style={{ width: "100%", border: "1.5px solid var(--line)", borderRadius: 10, padding: "8px 12px", fontSize: 13, outline: "none", boxSizing: "border-box" }} />
-              <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 3 }}>400 = 4€</div>
-            </div>
+            </label>
+            <label className="block text-sm text-muted md:col-span-2">
+              Description
+              <input
+                value={form.description}
+                onChange={(event) => setForm({ ...form, description: event.target.value })}
+                placeholder="Vocabulaire pour voyager."
+                className={`${fieldClass} mt-1`}
+              />
+            </label>
+            <label className="block text-sm text-muted">
+              Prix (centimes)
+              <input
+                type="number"
+                min={0}
+                value={form.price}
+                onChange={(event) => setForm({ ...form, price: Number(event.target.value) })}
+                className={`${fieldClass} mt-1`}
+              />
+              <span className="mt-1 block text-xs text-muted">400 = 4 €</span>
+            </label>
           </div>
 
-          {/* Import Excel */}
-          <div style={{
-            border: "1.5px dashed var(--line)", borderRadius: 12, padding: "16px",
-            textAlign: "center", marginBottom: 12, cursor: "pointer",
-            background: words.length > 0 ? "var(--background-subtle)" : "transparent",
-          }} onClick={() => fileRef.current?.click()}>
-            <Upload size={20} color="var(--ink)" style={{ margin: "0 auto 6px" }} />
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="mt-4 flex w-full flex-col items-center rounded-[14px] border border-dashed border-line bg-surface px-4 py-5 text-center outline-none focus-visible:ring-2 focus-visible:ring-ink"
+          >
+            <Upload size={20} aria-hidden />
             {words.length > 0 ? (
-              <div style={{ fontSize: 13, color: "var(--ink)", fontWeight: 500 }}>
-                ✅ {words.filter((w) => !w.isExpression).length} mots + {words.filter((w) => w.isExpression).length} expressions importés
-              </div>
+              <span className="mt-2 text-sm font-medium text-ink">
+                {frCount(importedWords, "mot", "mots")} et {frCount(importedExpressions, "expression", "expressions")} importés
+              </span>
             ) : (
-              <div style={{ fontSize: 13, color: "var(--muted)" }}>
-                Importer un fichier Excel (.xlsx)<br />
-                <span style={{ fontSize: 11 }}>Colonnes : terme | definition | type (mot/expression)</span>
-              </div>
+              <span className="mt-2 text-sm text-muted">
+                Importer un fichier Excel (.xlsx)
+                <span className="mt-1 block text-xs">Colonnes : terme, definition, type (mot ou expression)</span>
+              </span>
             )}
-            <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFile} style={{ display: "none" }} />
-          </div>
-          {importError && <div style={{ fontSize: 12, color: "var(--false-sign)", marginBottom: 8 }}>{importError}</div>}
+          </button>
+          <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFile} className="sr-only" />
+          {importError ? (
+            <div className="mt-3">
+              <ErrorNote>{importError}</ErrorNote>
+            </div>
+          ) : null}
 
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button onClick={() => setShowForm(false)}
-              style={{ background: "var(--page)", color: "var(--muted)", border: "none", borderRadius: 20, padding: "9px 18px", fontSize: 13, cursor: "pointer" }}>
+          <div className="mt-4 flex flex-wrap justify-end gap-2">
+            <button type="button" onClick={() => setShowForm(false)} className={outlineButtonClass}>
               Annuler
             </button>
-            <button onClick={handleSubmit} disabled={saving || !form.title || !form.description || words.length === 0}
-              style={{
-                background: saving || !form.title || !form.description || words.length === 0 ? "var(--ink-soft)" : "var(--ink)",
-                color: "var(--surface)", border: "none", borderRadius: 20, padding: "9px 18px",
-                fontSize: 13, cursor: "pointer", fontWeight: 500,
-              }}>
+            <button type="submit" disabled={!canSubmit} className={primaryButtonClass}>
               {saving ? "Création…" : "Créer le pack"}
             </button>
           </div>
-        </div>
-      )}
+        </form>
+      ) : null}
 
-      {/* Liste des packs */}
-      {loading ? (
-        <div style={{ textAlign: "center", color: "var(--muted)", padding: 40 }}>Chargement…</div>
-      ) : packs.length === 0 ? (
-        <div style={{ textAlign: "center", color: "var(--muted)", padding: 40 }}>
-          <ShoppingBag size={32} color="var(--ink)" style={{ margin: "0 auto 8px" }} />
-          <div>Aucun pack pour l'instant</div>
+      {packs.length === 0 ? (
+        <div className={`${cardClass} px-6 py-14 text-center`}>
+          <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full border border-line text-ink">
+            <ShoppingBag size={22} strokeWidth={1.75} aria-hidden />
+          </span>
+          <p className="mt-4 text-sm text-muted">Aucun pack pour l&apos;instant.</p>
         </div>
       ) : (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <ul className="m-0 flex list-none flex-col gap-3 p-0">
           {packs.map((pack) => (
-            <div key={pack.id} style={{
-              background: "var(--surface)", borderRadius: 14, padding: "14px 16px",
-              border: `1.5px solid ${pack.isActive ? "var(--line)" : "var(--line)"}`,
-              display: "flex", alignItems: "center", gap: 12,
-            }}>
-              <div style={{ fontSize: 24, flexShrink: 0 }}>{pack.emoji}</div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 500, fontSize: 14, color: "var(--ink)" }}>{pack.title}</div>
-                <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                  {LANGUAGE_LABELS[pack.language]} · {pack.wordCount ?? 0} mots · {pack.expressionCount ?? 0} expressions · {(pack.price / 100).toFixed(2)}€
-                </div>
-                <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-                  <span style={{ fontSize: 11, color: "var(--ink)", fontWeight: 500 }}>
-                    {pack.sales ?? 0} vente{(pack.sales ?? 0) > 1 ? "s" : ""}
+            <li key={pack.id} className={`${cardClass} flex flex-col gap-3 p-4 sm:flex-row sm:items-center`}>
+              <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line text-ink">
+                <Package size={18} aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="m-0 text-[15px] font-medium text-ink">{pack.title}</p>
+                {pack.description ? <p className="m-0 mt-1 text-sm text-muted">{pack.description}</p> : null}
+                <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
+                  <span className="inline-flex h-7 items-center rounded-lg border-[1.5px] border-ink bg-surface px-2 text-[11px] font-medium tracking-wide text-ink">
+                    {languageLabel(pack.language)}
                   </span>
-                  <span style={{ fontSize: 11, color: "var(--ink)", fontWeight: 500 }}>
-                    {((pack.revenue ?? 0) / 100).toFixed(2)}€ générés
+                  <span>
+                    {frCount(pack.wordCount, "mot", "mots")} · {frCount(pack.expressionCount, "expression", "expressions")} · {formatEuro(pack.price / 100)}
                   </span>
                 </div>
+                <p className="m-0 mt-2 text-sm font-medium text-ink">
+                  {frCount(pack.sales, "vente", "ventes")} · {formatEuro(pack.revenue / 100)} générés
+                </p>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                <span style={{
-                  fontSize: 11, fontWeight: 500, padding: "3px 10px", borderRadius: 20,
-                  background: pack.isActive ? "var(--surface)" : "var(--page)",
-                  color: pack.isActive ? "var(--ink)" : "var(--muted)",
-                }}>
+              <div className="flex items-center gap-2 sm:shrink-0">
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                    pack.isActive ? "bg-just-bg text-just-text" : "bg-page text-muted"
+                  }`}
+                >
+                  {pack.isActive ? (
+                    <Eye size={12} stroke="var(--just-sign)" aria-hidden />
+                  ) : (
+                    <EyeOff size={12} aria-hidden />
+                  )}
                   {pack.isActive ? "Actif" : "Inactif"}
                 </span>
-                <button onClick={() => toggleActive(pack)} title={pack.isActive ? "Désactiver" : "Activer"}
-                  style={{ background: "var(--page)", border: "none", borderRadius: 8, padding: "6px", cursor: "pointer" }}>
-                  {pack.isActive ? <EyeOff size={14} color="var(--muted)" /> : <Eye size={14} color="var(--ink)" />}
+                <button
+                  type="button"
+                  onClick={() => void toggleActive(pack)}
+                  aria-label={pack.isActive ? `Désactiver ${pack.title}` : `Activer ${pack.title}`}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink"
+                >
+                  {pack.isActive ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}
                 </button>
-                <button onClick={() => deletePack(pack.id)} title="Supprimer"
-                  style={{ background: "var(--false-bg)", border: "none", borderRadius: 8, padding: "6px", cursor: "pointer" }}>
-                  <Trash2 size={14} color="var(--false-sign)" />
+                <button
+                  type="button"
+                  onClick={() => void deletePack(pack.id)}
+                  aria-label={`Supprimer ${pack.title}`}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-false-sign bg-false-bg text-false-sign outline-none focus-visible:ring-2 focus-visible:ring-false-sign"
+                >
+                  <Trash2 size={16} aria-hidden />
                 </button>
               </div>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
