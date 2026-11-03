@@ -5,6 +5,8 @@ import {
   creatorHref,
   type StudentTabId,
 } from "./creator-sections";
+import { StudentsListTab } from "./students-list-tab";
+import { StudentsUsageTab } from "./students-usage-tab";
 
 export function StudentsSection({ onglet }: { onglet: StudentTabId }) {
   return (
@@ -28,6 +30,8 @@ export function StudentsSection({ onglet }: { onglet: StudentTabId }) {
         })}
       </div>
 
+      {onglet === "liste" ? <StudentsListTab /> : null}
+      {onglet === "usage" ? <StudentsUsageTab /> : null}
       {onglet === "etablissements" ? (
         <section>
           <h2 className="text-[28px] leading-tight text-ink">Établissements</h2>
