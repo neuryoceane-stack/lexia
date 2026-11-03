@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { NextResponse } from "next/server";
 import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
@@ -28,23 +29,29 @@ export function isPaywallExemptRole(role: User["role"]): boolean {
  * Élève sans abonnement actif ni essai, et seulement si le paywall est armé.
  * Creator et professeur ne sont jamais bloqués.
  */
+const readStudentPaywalledByKey = cache(
+  async (userId: string, role: User["role"]): Promise<boolean> => {
+    if (!isPaywallEnabled()) return false;
+    if (isPaywallExemptRole(role)) return false;
+
+    const [row] = await db
+      .select({ subscriptionStatus: users.subscriptionStatus })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    if (!row) {
+      throw new Error(`Compte introuvable pour le paywall : ${userId}`);
+    }
+
+    return !hasActiveSubscription(row);
+  }
+);
+
 export async function isStudentPaywalled(
   user: Pick<User, "id" | "role">
 ): Promise<boolean> {
-  if (!isPaywallEnabled()) return false;
-  if (isPaywallExemptRole(user.role)) return false;
-
-  const [row] = await db
-    .select({ subscriptionStatus: users.subscriptionStatus })
-    .from(users)
-    .where(eq(users.id, user.id))
-    .limit(1);
-
-  if (!row) {
-    throw new Error(`Compte introuvable pour le paywall : ${user.id}`);
-  }
-
-  return !hasActiveSubscription(row);
+  return readStudentPaywalledByKey(user.id, user.role);
 }
 
 export function subscriptionRequiredResponse(): NextResponse {

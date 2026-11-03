@@ -82,19 +82,19 @@ export default async function ListeDetailPage({
       }
     }
   }
-  const [list] = await db
-    .select()
-    .from(lists)
-    .where(
-      and(eq(lists.id, listId), eq(lists.familyId, familyId))
-    )
-    .limit(1);
+  const [[list], motsList] = await Promise.all([
+    db
+      .select()
+      .from(lists)
+      .where(and(eq(lists.id, listId), eq(lists.familyId, familyId)))
+      .limit(1),
+    db
+      .select()
+      .from(words)
+      .where(eq(words.listId, listId))
+      .orderBy(asc(words.rank), asc(words.createdAt)),
+  ]);
   if (!list) notFound();
-  const motsList = await db
-    .select()
-    .from(words)
-    .where(eq(words.listId, listId))
-    .orderBy(asc(words.rank), asc(words.createdAt));
 
   const wordIds = motsList.map((w) => w.id);
   const latestByWord = new Map<

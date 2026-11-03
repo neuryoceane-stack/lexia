@@ -31,6 +31,13 @@ type HomeList = {
   dueTodayCount: number;
 };
 
+export type HomeDashboardInitial = {
+  streak: StreakData;
+  stats: Stats;
+  firstName: string | null;
+  lists: HomeList[];
+};
+
 const headingStyle = {
   fontFamily: "var(--font-heading)",
   fontWeight: 700,
@@ -93,12 +100,12 @@ function plural(n: number, one: string, many: string) {
   return `${n} ${n === 1 ? one : many}`;
 }
 
-export function DashboardClient() {
-  const [streak, setStreak] = useState<StreakData | null>(null);
-  const [stats, setStats] = useState<Stats | null>(null);
-  const [firstName, setFirstName] = useState<string | null>(null);
-  const [lists, setLists] = useState<HomeList[] | null>(null);
-  const [loading, setLoading] = useState(true);
+export function DashboardClient({ initial }: { initial?: HomeDashboardInitial }) {
+  const [streak, setStreak] = useState<StreakData | null>(initial?.streak ?? null);
+  const [stats, setStats] = useState<Stats | null>(initial?.stats ?? null);
+  const [firstName, setFirstName] = useState<string | null>(initial?.firstName ?? null);
+  const [lists, setLists] = useState<HomeList[] | null>(initial?.lists ?? null);
+  const [loading, setLoading] = useState(!initial);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [listsError, setListsError] = useState<string | null>(null);
@@ -107,6 +114,7 @@ export function DashboardClient() {
   const [sm2Open, setSm2Open] = useState(false);
 
   useEffect(() => {
+    if (initial) return;
     Promise.all([
       fetch("/api/streak", { cache: "no-store" }),
       fetch("/api/dashboard/stats", { cache: "no-store" }),
@@ -162,7 +170,7 @@ export function DashboardClient() {
       })
       .catch(() => setLoadError("L'accueil n'a pas pu être chargé."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [initial]);
 
   useEffect(() => {
     const end = streak?.currentStreak ?? 0;
