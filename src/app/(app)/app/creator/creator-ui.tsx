@@ -65,11 +65,13 @@ export function KpiCard({
   label,
   value,
   hint,
+  valueClassName = "text-[40px]",
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
   hint?: string;
+  valueClassName?: string;
 }) {
   return (
     <article className="flex h-full flex-col rounded-[14px] border border-line bg-surface px-5 py-5">
@@ -79,7 +81,7 @@ export function KpiCard({
         </span>
         <p className="m-0 text-[15px] text-ink">{label}</p>
       </div>
-      <p className="m-0 mt-4 font-heading text-[40px] leading-none tracking-tight text-ink tabular-nums">
+      <p className={`m-0 mt-4 font-heading leading-none tracking-tight text-ink tabular-nums ${valueClassName}`}>
         {value}
       </p>
       {hint ? <p className="m-0 mt-2 text-sm text-muted">{hint}</p> : null}
