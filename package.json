@@ -12,7 +12,7 @@
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
-    "test": "tsx --test src/lib/sm2.test.ts src/lib/promo-codes.test.ts src/lib/cancellation.test.ts src/lib/announcements.test.ts src/lib/creator-students.test.ts",
+    "test": "tsx --test src/lib/sm2.test.ts src/lib/promo-codes.test.ts src/lib/cancellation.test.ts src/lib/announcements.test.ts src/lib/creator-students.test.ts src/lib/feedback.test.ts",
     "db:clean-definitions": "npx tsx scripts/clean-translation-definitions.ts",
     "db:sync-family-list-names": "npx tsx scripts/sync-family-list-names.ts",
     "db:liste-intervalles-aberrants": "tsx scripts/liste-intervalles-aberrants.ts"

@@ -308,6 +308,28 @@ export const feedbacks = sqliteTable("feedbacks", {
     .$defaultFn(() => new Date()),
 });
 
+/**
+ * Contexte enrichi d'un retour (appareil, navigateur). Table annexe : Océane lance le SQL
+ * dans src/lib/feedback-meta-sql.ts. Les retours sans ligne restent valides.
+ */
+export const feedbackMeta = sqliteTable(
+  "feedback_meta",
+  {
+    id: text("id").primaryKey(),
+    feedbackId: text("feedback_id")
+      .notNull()
+      .references(() => feedbacks.id, { onDelete: "cascade" }),
+    type: text("type", { enum: ["bug", "idee", "question"] }).notNull(),
+    page: text("page"),
+    device: text("device", { enum: ["mobile", "tablette", "ordinateur"] }),
+    browser: text("browser"),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [uniqueIndex("feedback_meta_feedback_id_unique").on(table.feedbackId)],
+);
+
 /** Tokens de réinitialisation de mot de passe. */
 export const passwordResetTokens = sqliteTable("password_reset_tokens", {
   id: text("id").primaryKey(),
@@ -539,6 +561,7 @@ export type RevisionSession = typeof revisionSessions.$inferSelect;
 export type GardenProgress = typeof gardenProgress.$inferSelect;
 export type UserPreferences = typeof userPreferences.$inferSelect;
 export type Feedback = typeof feedbacks.$inferSelect;
+export type FeedbackMeta = typeof feedbackMeta.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
 export type PasswordResetToken = typeof passwordResetTokens.$inferSelect;
 export type ShopPack = typeof shopPacks.$inferSelect;

@@ -1,7 +1,14 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
+import { isMissingFeedbackMetaTable } from "@/lib/feedback-meta";
 import { db } from "@/lib/db";
-import { feedbacks, notifications, users, userProfiles } from "@/lib/db/schema";
+import {
+  feedbackMeta,
+  feedbacks,
+  notifications,
+  users,
+  userProfiles,
+} from "@/lib/db/schema";
 import { desc, eq } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
@@ -11,6 +18,9 @@ export type FeedbackWithUser = {
   type: "bug" | "idee" | "question";
   description: string;
   page: string | null;
+  device: "mobile" | "tablette" | "ordinateur" | null;
+  browser: string | null;
+  hasMeta: boolean;
   status: "pending" | "in_progress" | "done";
   satisfaction: "up" | "down" | null;
   createdAt: string;
@@ -26,14 +36,68 @@ async function checkCreator() {
   return { error: null, user };
 }
 
-/**
- * GET /api/creator/feedbacks
- * Retourne tous les feedbacks avec firstName et email, triés par createdAt DESC.
- */
-export async function GET() {
-  const { error } = await checkCreator();
-  if (error) return error;
+function mapFeedbackRows(
+  rows: {
+    id: string;
+    userId: string;
+    type: "bug" | "idee" | "question";
+    description: string;
+    page: string | null;
+    status: "pending" | "in_progress" | "done" | null;
+    satisfaction: "up" | "down" | null;
+    createdAt: Date | number;
+    firstName: string | null;
+    email: string;
+    metaId: string | null;
+    metaDevice: "mobile" | "tablette" | "ordinateur" | null;
+    metaBrowser: string | null;
+  }[],
+): FeedbackWithUser[] {
+  return rows.map((r) => ({
+    id: r.id,
+    userId: r.userId,
+    type: r.type,
+    description: r.description,
+    page: r.page,
+    device: r.metaDevice,
+    browser: r.metaBrowser,
+    hasMeta: Boolean(r.metaId),
+    status: (r.status ?? "pending") as "pending" | "in_progress" | "done",
+    satisfaction:
+      r.satisfaction === "up" || r.satisfaction === "down" ? r.satisfaction : null,
+    createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
+    firstName: r.firstName,
+    email: r.email,
+  }));
+}
 
+async function fetchFeedbacksWithMeta(): Promise<FeedbackWithUser[]> {
+  const rows = await db
+    .select({
+      id: feedbacks.id,
+      userId: feedbacks.userId,
+      type: feedbacks.type,
+      description: feedbacks.description,
+      page: feedbacks.page,
+      status: feedbacks.status,
+      satisfaction: feedbacks.satisfaction,
+      createdAt: feedbacks.createdAt,
+      firstName: userProfiles.firstName,
+      email: users.email,
+      metaId: feedbackMeta.id,
+      metaDevice: feedbackMeta.device,
+      metaBrowser: feedbackMeta.browser,
+    })
+    .from(feedbacks)
+    .innerJoin(users, eq(feedbacks.userId, users.id))
+    .leftJoin(userProfiles, eq(feedbacks.userId, userProfiles.userId))
+    .leftJoin(feedbackMeta, eq(feedbacks.id, feedbackMeta.feedbackId))
+    .orderBy(desc(feedbacks.createdAt));
+
+  return mapFeedbackRows(rows);
+}
+
+async function fetchFeedbacksWithoutMeta(): Promise<FeedbackWithUser[]> {
   const rows = await db
     .select({
       id: feedbacks.id,
@@ -52,19 +116,39 @@ export async function GET() {
     .leftJoin(userProfiles, eq(feedbacks.userId, userProfiles.userId))
     .orderBy(desc(feedbacks.createdAt));
 
-  const result: FeedbackWithUser[] = rows.map((r) => ({
-    id: r.id,
-    userId: r.userId,
-    type: r.type,
-    description: r.description,
-    page: r.page,
-    status: (r.status ?? "pending") as "pending" | "in_progress" | "done",
-    satisfaction: (r.satisfaction === "up" || r.satisfaction === "down" ? r.satisfaction : null) as "up" | "down" | null,
-    createdAt: r.createdAt instanceof Date ? r.createdAt.toISOString() : String(r.createdAt),
-    firstName: r.firstName,
-    email: r.email,
-  }));
+  return mapFeedbackRows(
+    rows.map((r) => ({
+      ...r,
+      metaId: null,
+      metaDevice: null,
+      metaBrowser: null,
+    })),
+  );
+}
 
+/**
+ * GET /api/creator/feedbacks
+ * Retourne tous les feedbacks avec firstName et email, triés par createdAt DESC.
+ */
+export async function GET() {
+  const { error } = await checkCreator();
+  if (error) return error;
+
+  try {
+    const result = await fetchFeedbacksWithMeta();
+    return NextResponse.json(result);
+  } catch (err) {
+    if (!isMissingFeedbackMetaTable(err)) {
+      const msg = err instanceof Error ? err.message : String(err);
+      console.error("[GET /api/creator/feedbacks]", msg);
+      return NextResponse.json(
+        { error: "Erreur lors du chargement" },
+        { status: 500 },
+      );
+    }
+  }
+
+  const result = await fetchFeedbacksWithoutMeta();
   return NextResponse.json(result);
 }
 
