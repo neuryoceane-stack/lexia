@@ -3,13 +3,11 @@ import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { AppHeader } from "@/components/app-header";
 import { FeedbackWidget } from "@/components/feedback-widget";
-import { db } from "@/lib/db";
-import { userProfiles } from "@/lib/db/schema";
-import { eq } from "drizzle-orm";
-import { OnboardingWrapper } from "@/components/onboarding-wrapper";
 import { PaywallBlockedProvider } from "@/components/paywall-gate";
 import { AnnouncementBannerSlot } from "@/components/announcement-banner-slot";
 import { isStudentPaywalled } from "@/lib/paywall";
+import { getLayoutUserProfile } from "@/lib/user-profile-layout.server";
+import { OnboardingWrapperLazy } from "@/components/onboarding-wrapper-lazy";
 
 export default async function AppLayout({
   children,
@@ -28,13 +26,12 @@ export default async function AppLayout({
   const showProfesseurHeader = role === "professeur";
   const isCreator = role === "creator";
 
-  // Vérifier si l'onboarding a été complété
-  const profile = await db.query.userProfiles.findFirst({
-    where: eq(userProfiles.userId, user.id),
-  });
+  const [profile, paywalled] = await Promise.all([
+    getLayoutUserProfile(user.id),
+    isStudentPaywalled(user),
+  ]);
   const showOnboarding = profile ? !profile.onboardingCompleted : false;
   const userRole = role === "professeur" ? "professeur" : "etudiant";
-  const paywalled = await isStudentPaywalled(user);
 
   return (
     <PaywallBlockedProvider blocked={paywalled}>
@@ -44,7 +41,7 @@ export default async function AppLayout({
         <main className="page-fade-in mx-auto max-w-[1200px] px-4 pb-40 pt-8 sm:px-6 md:py-10">{children}</main>
         <FeedbackWidget />
         {/* Le tutoriel ouvre la révision : il attend que l'élève ait accès. */}
-        {showOnboarding && !paywalled && <OnboardingWrapper role={userRole} />}
+        {showOnboarding && !paywalled && <OnboardingWrapperLazy role={userRole} />}
       </div>
     </PaywallBlockedProvider>
   );

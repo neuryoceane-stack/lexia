@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { cookies } from "next/headers";
 import { verifyToken } from "./jwt";
 
@@ -14,7 +15,7 @@ export type User = {
  * Lit le JWT depuis le cookie httpOnly et retourne l'utilisateur courant.
  * Utilisable dans les Server Components et les API routes.
  */
-export async function getUser(): Promise<User | null> {
+async function readUserFromSession(): Promise<User | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(AUTH_COOKIE_NAME)?.value;
   if (!token) return null;
@@ -35,3 +36,6 @@ export async function getUser(): Promise<User | null> {
     role,
   };
 }
+
+/** Une seule lecture JWT par requête (layout + page + helpers). */
+export const getUser = cache(readUserFromSession);
