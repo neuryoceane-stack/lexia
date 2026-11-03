@@ -13,7 +13,8 @@
  * - students  → onglet Établissements : aucune liste n'est exposée aujourd'hui
  * - churn    → désabonnements (GET /api/creator/churn)
  * - promo → codes promo (GET, POST /api/creator/promo, PATCH /api/creator/promo/[id])
- * - funnel, announcements → pas de données, état vide
+ * - announcements → annonces (GET, POST /api/creator/announcements, PATCH et DELETE /api/creator/announcements/[id])
+ * - funnel → pas de données, état vide
  */
 
 export const CREATOR_SECTIONS = [
@@ -30,7 +31,7 @@ export const CREATOR_SECTIONS = [
 
 export type CreatorSectionId = (typeof CREATOR_SECTIONS)[number]["id"];
 
-export const EMPTY_SECTION_IDS = ["funnel", "announcements"] as const;
+export const EMPTY_SECTION_IDS = ["funnel"] as const;
 export type EmptySectionId = (typeof EMPTY_SECTION_IDS)[number];
 
 /** Ajouter un objet ici pour exposer un nouvel onglet dans Élèves. */

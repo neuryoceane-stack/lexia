@@ -8,6 +8,7 @@ import { userProfiles } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { OnboardingWrapper } from "@/components/onboarding-wrapper";
 import { PaywallBlockedProvider } from "@/components/paywall-gate";
+import { AnnouncementBannerSlot } from "@/components/announcement-banner-slot";
 import { isStudentPaywalled } from "@/lib/paywall";
 
 export default async function AppLayout({
@@ -39,6 +40,7 @@ export default async function AppLayout({
     <PaywallBlockedProvider blocked={paywalled}>
       <div className="min-h-screen">
         <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
+        {role === "etudiant" ? <AnnouncementBannerSlot userId={user.id} /> : null}
         <main className="page-fade-in mx-auto max-w-[1200px] px-4 pb-40 pt-8 sm:px-6 md:py-10">{children}</main>
         <FeedbackWidget />
         {/* Le tutoriel ouvre la révision : il attend que l'élève ait accès. */}
