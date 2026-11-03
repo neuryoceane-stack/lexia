@@ -12,6 +12,7 @@ import {
   isSubscriptionCheckout,
   syncSubscriptionCheckout,
 } from "@/lib/stripe-billing";
+import { logServerError } from "@/lib/server-error-log";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -42,6 +43,13 @@ export async function POST(req: Request) {
         await recordPromoRedemptionFromCheckout(session.metadata, event.created);
       } catch (error) {
         console.error("[stripe webhook] checkout abonnement", error);
+        logServerError({
+          source: "webhook",
+          route: "/api/stripe/webhook",
+          method: "POST",
+          error,
+          statusCode: 500,
+        });
         return NextResponse.json({ error: "Traitement webhook échoué" }, { status: 500 });
       }
       return NextResponse.json({ received: true });
@@ -70,6 +78,13 @@ export async function POST(req: Request) {
     }
   } catch (error) {
     console.error(`[stripe webhook] ${event.type}`, error);
+    logServerError({
+      source: "webhook",
+      route: "/api/stripe/webhook",
+      method: "POST",
+      error,
+      statusCode: 500,
+    });
     return NextResponse.json({ error: "Traitement webhook échoué" }, { status: 500 });
   }
 

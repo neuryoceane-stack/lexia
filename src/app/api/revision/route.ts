@@ -11,6 +11,7 @@ import {
 import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { computeSM2, ensureFiniteSm2ForInsert } from "@/lib/sm2";
+import { logServerError } from "@/lib/server-error-log";
 
 /**
  * GET /api/revision
@@ -170,6 +171,7 @@ export async function POST(request: Request) {
   if (denied) return denied;
   const userId = user.id;
 
+  try {
   let body: {
     wordId?: string;
     rating?: number;
@@ -297,4 +299,16 @@ export async function POST(request: Request) {
     easeFactor: result.easeFactor,
     repetitions: result.repetitions,
   });
+  } catch (error) {
+    console.error("POST /api/revision", error);
+    logServerError({
+      source: "api",
+      route: "/api/revision",
+      method: "POST",
+      error,
+      userId,
+      statusCode: 500,
+    });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  }
 }
