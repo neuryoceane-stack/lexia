@@ -5,6 +5,7 @@ import {
   real,
   primaryKey,
   uniqueIndex,
+  index,
   type AnySQLiteColumn,
 } from "drizzle-orm/sqlite-core";
 
@@ -544,6 +545,74 @@ export const announcementDismissals = sqliteTable(
   ],
 );
 
+/**
+ * Journal des erreurs serveur (santé technique créateur).
+ * Le SQL de création est dans src/lib/tech-health-sql.ts : Océane le lance,
+ * sans drizzle-kit push.
+ */
+export const errorEvents = sqliteTable(
+  "error_events",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    fingerprint: text("fingerprint").notNull(),
+    source: text("source", {
+      enum: ["api", "page", "webhook", "ai", "email", "other"],
+    }).notNull(),
+    route: text("route").notNull(),
+    method: text("method"),
+    message: text("message").notNull(),
+    statusCode: integer("status_code"),
+    occurrences: integer("occurrences").notNull().default(1),
+    firstSeenAt: integer("first_seen_at", { mode: "timestamp" }).notNull(),
+    lastSeenAt: integer("last_seen_at", { mode: "timestamp" }).notNull(),
+    reviewStatus: text("review_status", {
+      enum: ["new", "to_check", "fixed"],
+    })
+      .notNull()
+      .default("new"),
+    lastUserId: text("last_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [uniqueIndex("error_events_fingerprint_unique").on(table.fingerprint)],
+);
+
+export type ErrorEventSource = (typeof errorEvents.$inferSelect)["source"];
+
+/**
+ * Journal des envois d'e-mails (succès et échecs).
+ * Index sur created_at pour les agrégats 7 jours.
+ */
+export const emailEvents = sqliteTable(
+  "email_events",
+  {
+    id: text("id").primaryKey().$defaultFn(() => crypto.randomUUID()),
+    toEmail: text("to_email").notNull(),
+    type: text("type", {
+      enum: [
+        "password_reset",
+        "review_reminder",
+        "streak_alert",
+        "weekly_summary",
+        "other",
+      ],
+    }).notNull(),
+    status: text("status", { enum: ["sent", "failed"] }).notNull(),
+    error: text("error"),
+    providerId: text("provider_id"),
+    userId: text("user_id").references(() => users.id, { onDelete: "set null" }),
+    createdAt: integer("created_at", { mode: "timestamp" })
+      .notNull()
+      .$defaultFn(() => new Date()),
+  },
+  (table) => [index("email_events_created_at_idx").on(table.createdAt)],
+);
+
+export type EmailEventType = (typeof emailEvents.$inferSelect)["type"];
+
 export type MemoTip = typeof memoTips.$inferSelect;
 
 export type User = typeof users.$inferSelect;
@@ -576,3 +645,5 @@ export type PromoCodeRedemption = typeof promoCodeRedemptions.$inferSelect;
 export type Announcement = typeof announcements.$inferSelect;
 export type NewAnnouncement = typeof announcements.$inferInsert;
 export type AnnouncementDismissal = typeof announcementDismissals.$inferSelect;
+export type ErrorEvent = typeof errorEvents.$inferSelect;
+export type EmailEvent = typeof emailEvents.$inferSelect;

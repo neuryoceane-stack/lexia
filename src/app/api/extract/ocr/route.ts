@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { CLAUDE_MODEL } from "@/lib/ai-model";
 import { parseLinesToItems, type ExtractedItem } from "@/lib/extract";
 import { parseClaudeVocabularyJson } from "@/lib/parse-claude-translation";
+import { logServerError } from "@/lib/server-error-log";
 
 const CLAUDE_SYSTEM_PROMPT = `Tu es un assistant spécialisé dans l'extraction de vocabulaire bilingue à partir de photos de livres et de cahiers. L'image contient une liste de vocabulaire : des mots/expressions dans une langue étrangère avec leur traduction.
 
@@ -117,6 +118,13 @@ export async function POST(request: Request) {
         ? err.message
         : "Erreur lors de l'extraction par Claude";
     console.error("OCR extract error:", err);
+    logServerError({
+      source: "ai",
+      route: "/api/extract/ocr",
+      method: "POST",
+      error: err,
+      statusCode: 500,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }

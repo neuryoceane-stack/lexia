@@ -5,6 +5,8 @@ import { eq } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { Resend } from "resend";
 import { passwordResetEmail } from "@/lib/emails/password-reset";
+import { logEmailEvent } from "@/lib/email-events";
+import { extractErrorMessage } from "@/lib/error-event-utils";
 
 export async function POST(req: NextRequest) {
   try {
@@ -43,12 +45,30 @@ export async function POST(req: NextRequest) {
     const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${token}`;
 
     const message = passwordResetEmail(resetUrl);
-    await resend.emails.send({
-      from: message.from,
-      to: email,
-      subject: message.subject,
-      html: message.html,
-    });
+    try {
+      const result = await resend.emails.send({
+        from: message.from,
+        to: email,
+        subject: message.subject,
+        html: message.html,
+      });
+      logEmailEvent({
+        toEmail: email,
+        type: "password_reset",
+        status: "sent",
+        userId: user.id,
+        providerId: result.data?.id ?? null,
+      });
+    } catch (sendError) {
+      logEmailEvent({
+        toEmail: email,
+        type: "password_reset",
+        status: "failed",
+        userId: user.id,
+        error: extractErrorMessage(sendError),
+      });
+      throw sendError;
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -3,6 +3,7 @@ import { getUser } from "@/lib/auth";
 import { paywallDenial } from "@/lib/paywall";
 import { parseLinesToItems } from "@/lib/extract";
 import { getDocumentProxy, extractText } from "unpdf";
+import { logServerError } from "@/lib/server-error-log";
 
 export async function POST(request: Request) {
   const user = await getUser();
@@ -44,6 +45,13 @@ export async function POST(request: Request) {
     const message =
       err instanceof Error ? err.message : "Erreur lors de la lecture du PDF";
     console.error("PDF extract error:", err);
+    logServerError({
+      source: "ai",
+      route: "/api/extract/pdf",
+      method: "POST",
+      error: err,
+      statusCode: 500,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
   const items = parseLinesToItems(text);

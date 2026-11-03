@@ -3,6 +3,7 @@ import { getUser } from "@/lib/auth";
 import { paywallDenial } from "@/lib/paywall";
 import { CLAUDE_MODEL } from "@/lib/ai-model";
 import OpenAI from "openai";
+import { logServerError } from "@/lib/server-error-log";
 
 // 60 s = plafond du plan Vercel Hobby. Laisse l'OCR (Claude/PDF scanné) aller au
 // bout sans être coupé par le délai par défaut, plus court, de la plateforme.
@@ -126,6 +127,13 @@ export async function POST(request: Request) {
             usedVisionOcr = true;
           } catch (ocrErr) {
             console.error("Extract raw PDF Claude document error:", ocrErr);
+            logServerError({
+              source: "ai",
+              route: "/api/extract/raw",
+              method: "POST",
+              error: ocrErr,
+              statusCode: 502,
+            });
             return NextResponse.json(
               {
                 error:
@@ -146,6 +154,13 @@ export async function POST(request: Request) {
       const message =
         err instanceof Error ? err.message : "Erreur lecture PDF";
       console.error("Extract raw PDF error:", err);
+      logServerError({
+        source: "ai",
+        route: "/api/extract/raw",
+        method: "POST",
+        error: err,
+        statusCode: 500,
+      });
       return NextResponse.json({ error: message }, { status: 500 });
     }
   }
@@ -198,6 +213,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: raw });
     } catch (err) {
       console.error("Extract raw Claude OCR error:", err);
+      logServerError({
+        source: "ai",
+        route: "/api/extract/raw",
+        method: "POST",
+        error: err,
+        statusCode: 502,
+      });
       return NextResponse.json(
         { error: "Erreur du service OCR Claude" },
         { status: 502 }
@@ -244,6 +266,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ text: raw });
     } catch (err) {
       console.error("Extract raw Vision OCR error:", err);
+      logServerError({
+        source: "ai",
+        route: "/api/extract/raw",
+        method: "POST",
+        error: err,
+        statusCode: 502,
+      });
       return NextResponse.json(
         { error: "Erreur du service OCR IA" },
         { status: 502 }

@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Activity,
   Bug,
   Check,
   Circle,
@@ -20,6 +19,7 @@ import {
   isRecord,
 } from "./creator-ui";
 import { useCreatorResource } from "./use-creator-resource";
+import { TechHealthSection } from "./tech-health-section";
 import { deviceLabel, type FeedbackDevice } from "@/lib/feedback-meta";
 
 type FeedbackStatus = "pending" | "in_progress" | "done";
@@ -148,20 +148,6 @@ function contextLine(fb: FeedbackWithUser): string | null {
   return parts.length > 0 ? parts.join(" · ") : null;
 }
 
-function TechHealthPlaceholder() {
-  return (
-    <section className="rounded-[20px] border border-line bg-surface px-6 py-16 text-center">
-      <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full border border-line text-ink">
-        <Activity size={22} strokeWidth={1.75} aria-hidden />
-      </span>
-      <h2 className="mt-5 font-heading text-[28px] font-bold leading-tight text-ink">
-        Santé technique
-      </h2>
-      <p className="mt-2 text-sm text-muted">Bientôt disponible</p>
-    </section>
-  );
-}
-
 export function FeedbacksSection() {
   const { data, setData, loading, error } = useCreatorResource(
     "/api/creator/feedbacks",
@@ -227,7 +213,7 @@ export function FeedbacksSection() {
         })}
       </div>
 
-      {healthTab === "tech" ? <TechHealthPlaceholder /> : null}
+      {healthTab === "tech" ? <TechHealthSection /> : null}
 
       {healthTab === "feedbacks" ? (
         <div className="space-y-6">

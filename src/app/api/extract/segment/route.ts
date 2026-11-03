@@ -7,6 +7,7 @@ import {
   PREFERRED_LANGUAGE_OPTIONS,
 } from "@/lib/language";
 import { parseClaudeSegmentJson } from "@/lib/parse-claude-segments";
+import { logServerError } from "@/lib/server-error-log";
 
 const MAX_INPUT_CHARS = 14_000;
 
@@ -109,6 +110,13 @@ export async function POST(request: Request) {
         ? err.message
         : "Erreur lors de la segmentation par Claude";
     console.error("Segment extract error:", err);
+    logServerError({
+      source: "ai",
+      route: "/api/extract/segment",
+      method: "POST",
+      error: err,
+      statusCode: 500,
+    });
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
