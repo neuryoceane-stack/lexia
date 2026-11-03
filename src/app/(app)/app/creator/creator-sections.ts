@@ -10,7 +10,7 @@
  * - health    → feedbacks (GET et PATCH /api/creator/feedbacks)
  * - finance   → finance (GET /api/creator/finance), alertes comprises
  * - shop      → boutique déjà en place ( /api/creator/shop )
- * - students  → onglet Établissements : aucune liste n'est exposée aujourd'hui
+ * - students  → liste, usage (lecture seule) et onglet Établissements
  * - churn    → désabonnements (GET /api/creator/churn)
  * - promo → codes promo (GET, POST /api/creator/promo, PATCH /api/creator/promo/[id])
  * - announcements → annonces (GET, POST /api/creator/announcements, PATCH et DELETE /api/creator/announcements/[id])
@@ -35,7 +35,11 @@ export const EMPTY_SECTION_IDS = ["funnel"] as const;
 export type EmptySectionId = (typeof EMPTY_SECTION_IDS)[number];
 
 /** Ajouter un objet ici pour exposer un nouvel onglet dans Élèves. */
-export const STUDENT_TABS = [{ id: "etablissements", label: "Établissements" }] as const;
+export const STUDENT_TABS = [
+  { id: "liste", label: "Liste des élèves" },
+  { id: "usage", label: "Usage de l'app" },
+  { id: "etablissements", label: "Établissements" },
+] as const;
 
 export type StudentTabId = (typeof STUDENT_TABS)[number]["id"];
 
