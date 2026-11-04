@@ -3,10 +3,23 @@
 import React, { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
-import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
-import { FlagDisplay } from "@/components/flag-display";
-import { BackLink } from "@/components/back-link";
-import { PawPrint, X, Plus, ListPlus, Library } from "lucide-react";
+import { PREFERRED_LANGUAGE_OPTIONS, toIso6391 } from "@/lib/language";
+import {
+  PawPrint,
+  X,
+  Plus,
+  ListPlus,
+  Library,
+  Search,
+  LayoutGrid,
+  List,
+  ArrowUpDown,
+  Zap,
+  ArrowRight,
+  MoreVertical,
+  ChevronDown,
+} from "lucide-react";
+import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
 import { EmptyMark } from "@/components/empty-mark";
 import { AppModal } from "@/components/app-modal";
 import { ListNameInput } from "@/components/list-name-input";
@@ -48,14 +61,26 @@ const KNOWN_LANGS = new Set(PREFERRED_LANGUAGE_OPTIONS.map((o) => o.value));
 
 const BIBLIOTHEQUE_LANG_STORAGE_KEY = "lexiva.bibliotheque.activeLanguage";
 
-/** Dimensions et alignement communs — paire symétrique header Bibliothèque */
-const BIB_HEADER_ACTION_BTN =
-  "box-border inline-flex h-[3.5rem] w-full shrink-0 flex-col items-center justify-center gap-1 rounded-[20px] border-2 px-3.5 py-2.5 text-center text-[13px] font-medium leading-tight transition hover:brightness-95 min-[400px]:h-[5.25rem] min-[520px]:w-[10.75rem] lg:w-[13.25rem]";
+const headingStyle = {
+  fontFamily: "var(--font-heading)",
+  fontWeight: 700,
+  color: "var(--ink)",
+} as const;
 
-const BIB_HEADER_ACTION_TITLE = "flex items-center justify-center gap-1.5";
+function isoCode(code: string): string {
+  return toIso6391(code).toUpperCase();
+}
 
-const BIB_HEADER_ACTION_SUBTEXT =
-  "hidden min-h-[2.4em] w-full max-w-[11.5rem] items-center justify-center text-center text-[10px] font-normal leading-snug min-[400px]:flex";
+function languageLabel(code: string): string {
+  return (
+    PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code.toUpperCase()
+  );
+}
+
+function listDueCount(list: BibliothequeList): number {
+  if (typeof list.dueTodayCount === "number") return list.dueTodayCount;
+  return Math.round(list.wordCount * (1 - list.progressPercent / 100));
+}
 
 export function BibliothequeClient() {
   const router = useRouter();
@@ -75,7 +100,6 @@ export function BibliothequeClient() {
   const [prefsLoaded, setPrefsLoaded] = useState(false);
   const [savingPreferredLang, setSavingPreferredLang] = useState(false);
   const [preferredLangError, setPreferredLangError] = useState<string | null>(null);
-  const [flagMenuOpen, setFlagMenuOpen] = useState(false);
   const [langModalOpen, setLangModalOpen] = useState(false);
   const [savingSecondLang, setSavingSecondLang] = useState(false);
   /** Code langue à supprimer : affiche la modale de confirmation. */
@@ -206,14 +230,6 @@ export function BibliothequeClient() {
       return () => document.removeEventListener("click", close);
     }
   }, [menuOpenId]);
-
-  useEffect(() => {
-    const close = () => setFlagMenuOpen(false);
-    if (flagMenuOpen) {
-      document.addEventListener("click", close);
-      return () => document.removeEventListener("click", close);
-    }
-  }, [flagMenuOpen]);
 
   const acceptedClassesOnly = classesWithLists.filter((c) => c.status !== "pending");
 
@@ -366,13 +382,9 @@ export function BibliothequeClient() {
       ? Math.round(lists.reduce((s, l) => s + l.progressPercent, 0) / lists.length)
       : 0;
 
-  const listDueMap = new Map(
-    lists.map((l) => [l.id, Math.round(l.wordCount * (1 - l.progressPercent / 100))]),
-  );
+  const listDueMap = new Map(lists.map((l) => [l.id, listDueCount(l)]));
   const totalDue = Array.from(listDueMap.values()).reduce((s, n) => s + n, 0);
-  const mostUrgentList = [...lists].sort(
-    (a, b) => (listDueMap.get(b.id) ?? 0) - (listDueMap.get(a.id) ?? 0),
-  )[0];
+  const expressUrgentLabel = Math.min(10, totalDue);
 
   const filteredByStatus = lists.filter((l) => {
     if (statusFilter === "urgent") return (listDueMap.get(l.id) ?? 0) > 0;
@@ -380,10 +392,66 @@ export function BibliothequeClient() {
     return true;
   });
 
-  return (
-    <div className="space-y-6">
-      <BackLink href="/app" ariaLabel="Retour au tableau de bord" />
+  function renderListMenu(list: BibliothequeList) {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setMenuOpenId(menuOpenId === list.id ? null : list.id);
+          }}
+          className="inline-flex min-h-11 min-w-11 items-center justify-center rounded-full text-muted hover:bg-[var(--hover-bg)]"
+          aria-label="Menu de la liste"
+        >
+          <MoreVertical size={20} aria-hidden />
+        </button>
+        {menuOpenId === list.id && (
+          <div
+            className="absolute right-0 top-full z-10 mt-1 w-56 rounded-xl border border-line bg-surface py-1 shadow-[var(--shadow-elevated)]"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="block w-full px-3 py-2.5 text-left text-sm text-muted hover:bg-[var(--hover-bg)]"
+              onClick={() => {
+                if (leaveForAbonnement()) return;
+                setMenuOpenId(null);
+                setDuplicateModalList(list);
+                const from = list.language || "eng";
+                setDuplicateToLang(
+                  PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value !== from)?.value ??
+                    PREFERRED_LANGUAGE_OPTIONS[0]?.value ??
+                    ""
+                );
+              }}
+            >
+              Dupliquer dans une autre langue
+            </button>
+            <button
+              type="button"
+              className="block w-full px-3 py-2.5 text-left text-sm text-muted hover:bg-[var(--hover-bg)]"
+              onClick={() => handleRenameList(list)}
+            >
+              Renommer la liste
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDeleteList(list)}
+              disabled={deletingFamilyId === list.id}
+              className="block w-full px-3 py-2.5 text-left text-sm text-false-text hover:bg-false-bg disabled:opacity-50"
+            >
+              Supprimer la liste
+            </button>
+          </div>
+        )}
+      </>
+    );
+  }
 
+  return (
+    <div className="mx-auto max-w-[1100px] space-y-6">
       {!prefsLoaded && lists.length === 0 && (
         <p className="text-sm text-[var(--foreground-muted)]">Chargement…</p>
       )}
@@ -426,149 +494,225 @@ export function BibliothequeClient() {
           </button>
         </div>
       )}
-      {/* Header : titre + sous-titre + boutons */}
+      {/* En-tête */}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>Bibliothèque</h1>
-          <p className="mt-1" style={{ fontSize: 12, color: "var(--foreground-muted)" }}>
-            {totalLists} liste{totalLists !== 1 ? "s" : ""} · {languageCount} langue{languageCount !== 1 ? "s" : ""} · {totalWords} mot{totalWords !== 1 ? "s" : ""} · {totalDue} à revoir
-          </p>
-        </div>
-        <div className="flex w-full max-w-full flex-col gap-2 min-[520px]:w-auto min-[520px]:flex-row min-[520px]:items-stretch min-[520px]:justify-end">
+        <h1 className="text-[32px] leading-tight md:text-[38px]" style={headingStyle}>
+          Ma bibliothèque
+        </h1>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
           <Link
             href={
               activeLanguage
                 ? `/app/familles/mots-sauvages?lang=${encodeURIComponent(activeLanguage)}`
                 : "/app/familles/mots-sauvages"
             }
-            title="Pioche des mots dans un texte, un livre, une photo."
-            aria-label="Mots sauvages — Pioche des mots dans un texte, un livre, une photo."
-            className={`${BIB_HEADER_ACTION_BTN} border-ink text-ink no-underline`}
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border-[1.5px] border-ink bg-surface px-4 text-sm font-medium text-ink no-underline sm:flex-initial"
           >
-            <span className={`${BIB_HEADER_ACTION_TITLE} whitespace-nowrap`}>
-              <PawPrint size={16} className="shrink-0" aria-hidden />
-              Mots sauvages
-            </span>
-            <span className={`${BIB_HEADER_ACTION_SUBTEXT} opacity-75`}>
-              Pioche des mots dans un texte, un livre, une photo.
-            </span>
+            <PawPrint size={18} strokeWidth={2} aria-hidden />
+            Mots sauvages
           </Link>
           <button
             type="button"
-            onClick={() => {
-              goToNewList();
-            }}
-            title="J'ai déjà mes paires mot/traduction."
-            aria-label="Liste de vocabulaire — J'ai déjà mes paires mot/traduction."
-            className={`${BIB_HEADER_ACTION_BTN} cursor-pointer border-transparent bg-ink text-surface`}
+            onClick={() => goToNewList()}
+            className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full bg-ink px-4 text-sm font-medium text-surface sm:flex-initial"
           >
-            <span className={BIB_HEADER_ACTION_TITLE}>
-              <ListPlus size={16} className="shrink-0" aria-hidden />
-              <span className="text-center">
-                <span className="hidden lg:inline">Importer une liste de vocabulaire</span>
-                <span className="lg:hidden">Liste de vocabulaire</span>
-              </span>
-            </span>
-            <span className={`${BIB_HEADER_ACTION_SUBTEXT} opacity-90`}>
-              J&apos;ai déjà mes paires mot/traduction.
-            </span>
+            <ListPlus size={18} strokeWidth={2} aria-hidden />
+            Importer une liste
           </button>
         </div>
       </div>
 
-      {/* Barre de maîtrise globale */}
-      {lists.length > 0 && (
-        <div>
-          <div className="flex items-center justify-between">
-            <span style={{ fontSize: 11, color: "var(--foreground-muted)" }}>Maîtrise globale — toutes langues</span>
-            <span style={{ fontSize: 11, fontWeight: 500, color: "var(--ink)" }}>{avgMastery}%</span>
-          </div>
-          <div style={{ height: 5, background: "var(--background-subtle)", borderRadius: 3, marginTop: 4 }}>
-            <div className="transition-all duration-300" style={{ height: "100%", width: `${avgMastery}%`, background: "var(--ink)", borderRadius: 3 }} />
-          </div>
+      {/* Maîtrise globale + révision express */}
+      {showDashboard && preferredLanguages.length > 0 && (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <section className="rounded-[20px] border border-line bg-surface p-5">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <span className="text-sm font-medium text-ink">Maîtrise globale</span>
+              <span className="text-sm font-medium text-ink">{avgMastery} %</span>
+            </div>
+            <div
+              className="h-2.5 overflow-hidden rounded-full border-[1.5px] border-ink bg-page"
+              role="progressbar"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={avgMastery}
+              aria-label="Maîtrise globale"
+            >
+              <div
+                className="h-full rounded-full bg-mark transition-[width] duration-300"
+                style={{ width: `${avgMastery}%` }}
+              />
+            </div>
+            <p className="mt-3 text-sm text-muted">
+              {totalLists} liste{totalLists !== 1 ? "s" : ""} · {languageCount} langue
+              {languageCount !== 1 ? "s" : ""} · {totalWords} mot{totalWords !== 1 ? "s" : ""}
+            </p>
+          </section>
+
+          <section className="flex flex-col gap-4 rounded-[20px] border-[1.5px] border-ink bg-surface p-5">
+            <div className="flex items-start gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-mark">
+                <Zap size={20} strokeWidth={1.8} className="text-ink" aria-hidden />
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-lg" style={{ ...headingStyle, fontSize: 20, lineHeight: 1.15 }}>
+                  Révision express
+                </p>
+                <p className="mt-1 text-sm text-ink">
+                  <span className="marker">
+                    {expressUrgentLabel}{" "}
+                    {expressUrgentLabel !== 1 ? "mots urgents" : "mot urgent"}
+                  </span>
+                  {totalDue > expressUrgentLabel ? (
+                    <span className="text-muted">
+                      {" "}
+                      · {totalDue} au total à revoir
+                    </span>
+                  ) : null}
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/app/revision/express"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-ink px-5 text-sm font-medium text-surface no-underline hover:bg-ink-hover"
+            >
+              Commencer
+              <ArrowRight size={18} strokeWidth={1.8} aria-hidden />
+            </Link>
+          </section>
         </div>
       )}
 
-      {/* Bannière SM-2 urgente */}
-      {totalDue > 0 && mostUrgentList && (
-        <div className="flex items-center gap-3" style={{ background: "var(--surface)", border: "0.5px solid var(--line)", borderRadius: 10, padding: "12px 14px" }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--mark)" aria-hidden className="shrink-0"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>
-          <div className="min-w-0 flex-1">
-            <p style={{ fontSize: 13, fontWeight: 500, color: "var(--ink)" }}>{totalDue} mot{totalDue !== 1 ? "s" : ""} à revoir maintenant</p>
-            <p className="truncate" style={{ fontSize: 11, color: "var(--ink)" }}>{mostUrgentList.name} · SM-2 recommande aujourd&apos;hui</p>
-          </div>
-          <Link href="/app/revision/express" className="shrink-0 no-underline transition hover:brightness-95" style={{ background: "var(--ink)", color: "var(--surface)", borderRadius: 16, padding: "6px 12px", fontSize: 12, fontWeight: 500 }}>Réviser</Link>
-        </div>
-      )}
-
-      {/* Filtres langue (chips scrollable) */}
-      <div className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
-        <button type="button" onClick={() => setActiveLanguage(null)} className="shrink-0" style={{ background: activeLanguage === null ? "var(--ink)" : "var(--background-card)", color: activeLanguage === null ? "white" : "var(--foreground-muted)", border: activeLanguage === null ? "1px solid var(--ink)" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: activeLanguage === null ? 500 : 400, cursor: "pointer" }}>Toutes les langues</button>
+      {/* Pastilles de langue */}
+      <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" style={{ scrollbarWidth: "none" }}>
+        <button
+          type="button"
+          onClick={() => setActiveLanguage(null)}
+          className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-4 text-sm font-medium ${
+            activeLanguage === null
+              ? "bg-ink text-surface"
+              : "border border-line bg-surface text-muted"
+          }`}
+        >
+          Toutes les langues
+        </button>
         {preferredLanguages.map((code) => {
           const active = activeLanguage === code;
-          const label = PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code;
+          const label = languageLabel(code);
           return (
-            <button key={code} type="button" onClick={() => setActiveLanguage(code)} className="inline-flex shrink-0 items-center gap-1.5" style={{ background: active ? "var(--ink)" : "var(--background-card)", color: active ? "white" : "var(--foreground-muted)", border: active ? "1px solid var(--ink)" : "0.5px solid var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, fontWeight: active ? 500 : 400, cursor: "pointer" }}>
-              <FlagDisplay langCode={code} size={16} />
+            <button
+              key={code}
+              type="button"
+              onClick={() => setActiveLanguage(code)}
+              className={`inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full px-3 text-sm font-medium ${
+                active ? "bg-ink text-surface" : "border border-line bg-surface text-muted"
+              }`}
+            >
+              {active ? (
+                <span className="inline-flex h-7 items-center rounded-lg border-[1.5px] border-surface px-2 text-[11px] font-medium tracking-wide text-surface">
+                  {isoCode(code)}
+                </span>
+              ) : (
+                <LanguagePill code={isoCode(code)} />
+              )}
               {label}
             </button>
           );
         })}
-        <button type="button" onClick={() => setLangModalOpen(true)} className="shrink-0 transition hover:text-ink" style={{ background: "transparent", border: "0.5px dashed var(--border)", borderRadius: 20, padding: "5px 12px", fontSize: 12, color: "var(--foreground-disabled)", cursor: "pointer" }}>+ Langue</button>
+        <button
+          type="button"
+          onClick={() => setLangModalOpen(true)}
+          className="inline-flex min-h-11 shrink-0 items-center gap-1 rounded-full border border-dashed border-line px-4 text-sm text-muted"
+        >
+          <Plus size={16} aria-hidden />
+          Ajouter une langue
+        </button>
       </div>
 
-      {/* Toolbar : recherche + filtres état + vue */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative max-w-xs flex-1">
-          <svg className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--foreground-disabled)]" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg>
+      {/* Recherche, tri, statut, vue */}
+      <div className="flex flex-col gap-3 lg:flex-row lg:flex-wrap lg:items-center">
+        <div className="relative min-w-0 flex-1 lg:max-w-md">
+          <Search
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+            size={18}
+            strokeWidth={2}
+            aria-hidden
+          />
           <input
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher…"
-            className="w-full bg-[var(--input-bg)] pl-9 pr-3 py-2 text-sm text-[var(--foreground)] placeholder:text-[var(--foreground-disabled)]"
-            style={{ borderRadius: 20, border: "0.5px solid var(--border)" }}
+            placeholder="Rechercher une liste ou un mot…"
+            className="min-h-11 w-full rounded-full border border-line bg-surface py-2 pl-10 pr-4 text-sm text-ink"
           />
         </div>
-        <div className="flex gap-1">
-          {([["all", "Toutes"], ["urgent", "Urgentes"], ["mastered", "Maîtrisées"]] as const).map(([val, label]) => (
-            <button
-              key={val}
-              type="button"
-              onClick={() => setStatusFilter(val)}
-              style={{
-                background: statusFilter === val ? "var(--ink)" : "var(--background-card)",
-                color: statusFilter === val ? "white" : "var(--foreground-muted)",
-                border: statusFilter === val ? "1px solid var(--ink)" : "0.5px solid var(--border)",
-                borderRadius: 20,
-                padding: "5px 12px",
-                fontSize: 12,
-                fontWeight: statusFilter === val ? 500 : 400,
-                cursor: "pointer",
-              }}
-            >
-              {label}
-            </button>
-          ))}
+        <div className="relative">
+          <label htmlFor="bib-sort" className="sr-only">
+            Trier les listes
+          </label>
+          <ArrowUpDown
+            size={16}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
+          <select
+            id="bib-sort"
+            value={sort}
+            onChange={(e) => setSort(e.target.value as typeof sort)}
+            className="min-h-11 appearance-none rounded-full border border-line bg-surface py-2 pl-9 pr-8 text-sm text-ink"
+          >
+            {SORT_OPTIONS.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            size={16}
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-muted"
+            aria-hidden
+          />
         </div>
-        <div className="flex overflow-hidden" style={{ borderRadius: 8, border: "0.5px solid var(--border)" }}>
+        <div className="flex flex-wrap gap-2">
+          {([["all", "Toutes"], ["urgent", "Urgentes"], ["mastered", "Maîtrisées"]] as const).map(
+            ([val, label]) => (
+              <button
+                key={val}
+                type="button"
+                onClick={() => setStatusFilter(val)}
+                className={`inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium ${
+                  statusFilter === val
+                    ? "bg-ink text-surface"
+                    : "border border-line bg-surface text-muted"
+                }`}
+              >
+                {label}
+              </button>
+            )
+          )}
+        </div>
+        <div className="flex overflow-hidden rounded-xl border border-line">
           <button
             type="button"
             onClick={() => setViewMode("grid")}
-            className="px-2.5 py-2 transition"
-            style={{ background: viewMode === "grid" ? "var(--ink)" : "var(--background-card)", color: viewMode === "grid" ? "white" : "var(--foreground-disabled)" }}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center ${
+              viewMode === "grid" ? "bg-ink text-surface" : "bg-surface text-muted"
+            }`}
             title="Vue mosaïque"
+            aria-label="Vue mosaïque"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" /><rect x="3" y="14" width="7" height="7" /><rect x="14" y="14" width="7" height="7" /></svg>
+            <LayoutGrid size={18} strokeWidth={2} aria-hidden />
           </button>
           <button
             type="button"
             onClick={() => setViewMode("list")}
-            className="px-2.5 py-2 transition"
-            style={{ background: viewMode === "list" ? "var(--ink)" : "var(--background-card)", color: viewMode === "list" ? "white" : "var(--foreground-disabled)" }}
+            className={`inline-flex min-h-11 min-w-11 items-center justify-center border-l border-line ${
+              viewMode === "list" ? "bg-ink text-surface" : "bg-surface text-muted"
+            }`}
             title="Vue liste"
+            aria-label="Vue liste"
           >
-            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+            <List size={18} strokeWidth={2} aria-hidden />
           </button>
         </div>
       </div>
@@ -579,13 +723,14 @@ export function BibliothequeClient() {
       ) : (
         <>
           {acceptedClassesOnly.length > 0 && (
-            <section className="mb-6 rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-4 shadow-[var(--shadow-card)]">
-              <h2 className="mb-3 text-sm font-semibold text-[var(--foreground)]">
+            <section className="mb-6 rounded-[20px] border border-line bg-surface p-4">
+              <h2 className="mb-3 text-lg" style={headingStyle}>
                 Mes classes
               </h2>
               {visibleStudentClasses.length === 0 ? (
-                <p className="text-xs text-[var(--foreground-muted)]">
-                  Aucune classe pour cette langue. Choisis « Toutes les langues » pour les voir.
+                <p className="text-sm text-muted">
+                  Aucune classe pour cette langue. Choisissez « Toutes les langues » pour les
+                  afficher.
                 </p>
               ) : (
                 <ul className="space-y-2">
@@ -594,56 +739,41 @@ export function BibliothequeClient() {
                     return (
                       <li
                         key={cls.id}
-                        className="rounded-lg border border-[var(--border)] bg-[var(--background-subtle)]"
+                        className="rounded-xl border border-line bg-page"
                       >
                         <button
                           type="button"
                           onClick={() =>
                             setExpandedClassId((id) => (id === cls.id ? null : cls.id))
                           }
-                          className="flex w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-[var(--hover-bg)]"
+                          className="flex min-h-11 w-full items-center gap-2 px-3 py-2.5 text-left transition-colors hover:bg-[var(--hover-bg)]"
                           aria-expanded={isExpanded}
                         >
                           {cls.language && (
-                            <FlagDisplay
-                              langCode={cls.language}
-                              size={18}
-                              className="flex-shrink-0"
-                            />
+                            <LanguagePill code={isoCode(cls.language)} />
                           )}
                           <span
-                            className="min-w-0 flex-1 truncate font-medium text-[var(--foreground)]"
+                            className="min-w-0 flex-1 truncate font-medium text-ink"
                             title={cls.title}
                           >
                             {cls.title}
                           </span>
-                          <span
-                            className="text-[var(--foreground-disabled)]"
-                            aria-hidden
-                          >
+                          <span className="text-sm text-muted" aria-hidden>
                             {cls.lists.length} liste{cls.lists.length !== 1 ? "s" : ""}
                           </span>
-                          <svg
-                            className={`h-5 w-5 flex-shrink-0 text-[var(--foreground-muted)] transition-transform ${
+                          <ChevronDown
+                            size={18}
+                            className={`shrink-0 text-muted transition-transform ${
                               isExpanded ? "rotate-180" : ""
                             }`}
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
+                            aria-hidden
+                          />
                         </button>
                         {isExpanded && (
-                          <div className="border-t border-[var(--border)] px-3 py-2">
+                          <div className="border-t border-line px-3 py-2">
                             {cls.lists.length === 0 ? (
-                              <p className="py-2 text-xs text-[var(--foreground-muted)]">
-                                Aucune liste partagée par le professeur pour l'instant.
+                              <p className="py-2 text-sm text-muted">
+                                Aucune liste partagée par le professeur pour l&apos;instant.
                               </p>
                             ) : (
                               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -651,34 +781,29 @@ export function BibliothequeClient() {
                                   <li key={list.id}>
                                     <Link
                                       href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
-                                      className="block rounded-lg border border-[var(--border)] bg-[var(--background-card)] p-3 shadow-[var(--shadow-card)] transition-[box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                                      className="home-dash-card block p-3 no-underline"
+                                      style={{ borderRadius: 16 }}
                                     >
                                       <div className="flex items-start justify-between gap-2">
-                                        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--foreground)]">
+                                        <h3 className="min-w-0 flex-1 truncate text-sm font-medium text-ink">
                                           {list.name}
                                         </h3>
-                                        {activeLanguage && (
-                                          <span
-                                            className="flex-shrink-0 select-none"
-                                            title="Langue de la liste (filtre Bibliothèque)"
-                                            aria-hidden
-                                          >
-                                            <FlagDisplay langCode={activeLanguage} size={18} />
-                                          </span>
+                                        {list.language && (
+                                          <LanguagePill code={isoCode(list.language)} />
                                         )}
                                       </div>
-                                      <p className="mt-0.5 text-xs text-[var(--foreground-muted)]">
+                                      <p className="mt-1 text-xs text-muted">
                                         {list.wordCount} mot
                                         {list.wordCount !== 1 ? "s" : ""}
                                       </p>
                                       <div className="mt-2 flex items-center gap-2">
-                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[var(--background-subtle)]">
+                                        <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-page">
                                           <div
-                                            className="h-full rounded-full bg-p2-primary transition-all duration-200"
+                                            className="h-full rounded-full bg-ink transition-all duration-200"
                                             style={{ width: `${list.progressPercent}%` }}
                                           />
                                         </div>
-                                        <span className="text-xs font-medium text-[var(--foreground-muted)]">
+                                        <span className="text-xs font-medium text-muted">
                                           {list.progressPercent} %
                                         </span>
                                       </div>
@@ -698,219 +823,116 @@ export function BibliothequeClient() {
           )}
 
           {lists.length === 0 ? (
-            <div className="rounded-xl border border-dashed border-[var(--border)] bg-[var(--background-subtle)] p-8 text-center">
-              <EmptyMark icon={Library} className="mx-auto mb-3" />
-              <p className="text-[var(--foreground-muted)]">
-                Aucune liste pour cette langue. Crée une liste de mots ou importe un PDF / une photo.
+            <div className="rounded-[20px] border border-dashed border-line bg-page px-6 py-12 text-center">
+              <EmptyMark icon={Library} className="mx-auto mb-4" />
+              <p className="text-muted">
+                Bienvenue dans votre bibliothèque. Importez une liste ou créez vos premières fiches
+                pour commencer.
               </p>
               <button
                 type="button"
-                onClick={() => {
-              goToNewList();
-            }}
-                className="mx-auto mt-5 inline-flex items-center gap-1.5 transition hover:brightness-95"
-                style={{
-                  background: "var(--ink)",
-                  color: "var(--surface)",
-                  borderRadius: 20,
-                  padding: "10px 18px",
-                  fontSize: 13,
-                  fontWeight: 500,
-                  border: "none",
-                  cursor: "pointer",
-                }}
+                onClick={() => goToNewList()}
+                className="mx-auto mt-6 inline-flex min-h-11 items-center gap-2 rounded-full bg-ink px-5 text-sm font-medium text-surface"
               >
-                <Plus size={14} strokeWidth={2.5} aria-hidden />
-                {activeLanguage ? "Ajouter une liste" : "Crée ta première liste"}
+                <Plus size={16} strokeWidth={2.5} aria-hidden />
+                Créer ma première liste
               </button>
             </div>
           ) : viewMode === "grid" ? (
-        <ul className="grid gap-[10px] grid-cols-1 sm:grid-cols-2">
+        <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {filteredByStatus.map((list) => {
             const dueWords = listDueMap.get(list.id) ?? 0;
-            const borderColor = dueWords > 0 ? "border-line" : list.progressPercent >= 80 ? "border-line" : "border-[var(--border)]";
+            const pct = list.progressPercent;
             return (
             <li key={list.id} className="relative">
               <Link
                 href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
-                className={`block rounded-[12px] border ${borderColor} bg-[var(--background-card)] shadow-[var(--shadow-card)] transition-[box-shadow,transform] duration-150 hover:-translate-y-[2px] hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2`}
-                style={{ padding: "14px 12px" }}
+                className="home-dash-card block p-4 no-underline"
+                style={{ borderRadius: 20 }}
               >
-                <div className="flex items-center gap-2">
-                  {list.language && <FlagDisplay langCode={list.language} size={20} className="shrink-0" />}
+                <div className="flex items-start justify-between gap-2">
+                  {list.language ? (
+                    <LanguagePill code={isoCode(list.language)} />
+                  ) : (
+                    <span />
+                  )}
                 </div>
-                <h2 className="mt-2 truncate" style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>
-                  {list.name}
-                </h2>
-                <p className="mt-0.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-                  {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""} · {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === list.language)?.label ?? list.language ?? "—"}
+                <h2 className="mt-3 truncate text-base font-medium text-ink">{list.name}</h2>
+                <p className="mt-1 text-sm text-muted">
+                  {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""}
                 </p>
-                {(() => {
-                  const pct = list.progressPercent;
-                  const trackBg = pct < 30 ? "var(--mark)" : pct < 80 ? "var(--surface)" : "var(--background-subtle)";
-                  const fillBg = "var(--ink)";
-                  return (
-                    <div className="mt-2">
-                      <div style={{ height: 4, background: trackBg, borderRadius: 3 }}>
-                        <div className="transition-all duration-300" style={{ height: "100%", width: `${pct}%`, background: fillBg, borderRadius: 3 }} />
-                      </div>
-                      <p className="mt-1" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>{pct}% maîtrisé</p>
-                    </div>
-                  );
-                })()}
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {dueWords > 0 && (
-                    <span style={{ background: "var(--mark)", color: "var(--ink)", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>{dueWords} mot{dueWords !== 1 ? "s" : ""} dus</span>
-                  )}
-                  {list.progressPercent >= 80 && (
-                    <span style={{ background: "var(--surface)", color: "var(--ink)", fontSize: 10, fontWeight: 500, padding: "2px 8px", borderRadius: 8 }}>Presque terminé ✓</span>
-                  )}
-                </div>
-              </Link>
-              <div className="absolute right-2 top-2">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMenuOpenId(menuOpenId === list.id ? null : list.id);
-                  }}
-                  className="btn-relief rounded-lg p-1.5 text-[var(--foreground-disabled)] hover:bg-[var(--hover-bg)] hover:text-[var(--foreground-muted)]"
-                  aria-label="Menu"
-                >
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="6" r="1.5" />
-                    <circle cx="12" cy="12" r="1.5" />
-                    <circle cx="12" cy="18" r="1.5" />
-                  </svg>
-                </button>
-                {menuOpenId === list.id && (
-                  <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-[var(--border)] bg-[var(--background-card)] py-1 shadow-[var(--shadow-elevated)]">
-                    <button
-                      type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
-                      onClick={() => {
-                        if (leaveForAbonnement()) return;
-                        setMenuOpenId(null);
-                        setDuplicateModalList(list);
-                        const from = list.language || "eng";
-                        setDuplicateToLang(
-                          PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value !== from)?.value ??
-                            PREFERRED_LANGUAGE_OPTIONS[0]?.value ??
-                            ""
-                        );
-                      }}
-                    >
-                      Dupliquer dans une autre langue
-                    </button>
-                    <button
-                      type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
-                      onClick={() => handleRenameList(list)}
-                    >
-                      Renommer la liste
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteList(list)}
-                      disabled={deletingFamilyId === list.id}
-                      className="block w-full px-3 py-2 text-left text-sm text-false-text hover:bg-false-bg disabled:opacity-50"
-                    >
-                      Supprimer la liste
-                    </button>
+                <div className="mt-3">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-page">
+                    <div
+                      className="h-full rounded-full bg-ink transition-all duration-300"
+                      style={{ width: `${pct}%` }}
+                    />
                   </div>
+                  <p className="mt-1 text-xs text-muted">{pct} % maîtrisé</p>
+                </div>
+                {dueWords > 0 && (
+                  <p className="marker mt-2 inline-block text-sm font-medium text-ink">
+                    {dueWords} mot{dueWords !== 1 ? "s" : ""} à revoir
+                  </p>
                 )}
-              </div>
+              </Link>
+              <div className="absolute right-3 top-3">{renderListMenu(list)}</div>
             </li>
             );
           })}
-          {/* Carte vide "+" */}
           <li>
             <button
               type="button"
-              onClick={() => {
-              goToNewList();
-            }}
-              className="flex h-full w-full flex-col items-center justify-center gap-2 transition hover:bg-[var(--hover-bg)]"
-              style={{ border: "1.5px dashed var(--border)", borderRadius: 12, background: "transparent", padding: "32px 12px", cursor: "pointer" }}
+              onClick={() => goToNewList()}
+              className="flex min-h-[180px] w-full flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-line bg-transparent transition-colors hover:bg-[var(--hover-bg)]"
             >
-              <div className="flex h-7 w-7 items-center justify-center" style={{ background: "var(--background-subtle)", borderRadius: "50%", color: "var(--ink)", fontSize: 16, fontWeight: 600 }}>+</div>
-              <span style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground-muted)" }}>Nouvelle liste</span>
+              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-page text-xl font-semibold text-ink">
+                +
+              </span>
+              <span className="text-sm font-medium text-muted">Nouvelle liste</span>
             </button>
           </li>
         </ul>
           ) : (
-        <ul className="divide-y divide-[var(--border)] rounded-xl border border-[var(--border)] bg-[var(--background-card)]">
-          {filteredByStatus.map((list) => (
-            <li key={list.id} className="relative flex items-center gap-4 px-4 py-3">
+        <ul className="divide-y divide-line rounded-[20px] border border-line bg-surface">
+          {filteredByStatus.map((list) => {
+            const dueWords = listDueMap.get(list.id) ?? 0;
+            const pct = list.progressPercent;
+            return (
+            <li key={list.id} className="relative flex flex-wrap items-center gap-3 px-4 py-3 sm:flex-nowrap">
               <Link
                 href={`/app/familles/${list.familyId}/listes/${list.id}${listDetailQuery}`}
-                className="min-w-0 flex-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
+                className="flex min-w-0 flex-1 items-center gap-3 no-underline"
               >
-                <span className="block truncate font-semibold text-[var(--foreground)]">
-                  {list.name}
-                </span>
-                <span className="text-sm text-[var(--foreground-muted)]">
-                  {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""} ·{" "}
-                  {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === list.language)?.label ??
-                    list.language ??
-                    "—"}
-                </span>
-              </Link>
-              <div className="relative">
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setMenuOpenId(menuOpenId === list.id ? null : list.id);
-                  }}
-                  className="btn-relief rounded p-1.5 text-[var(--foreground-disabled)] hover:bg-[var(--hover-bg)] hover:text-[var(--foreground-muted)]"
-                  aria-label="Menu"
-                >
-                  <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                    <circle cx="12" cy="6" r="1.5" />
-                    <circle cx="12" cy="12" r="1.5" />
-                    <circle cx="12" cy="18" r="1.5" />
-                  </svg>
-                </button>
-                {menuOpenId === list.id && (
-                  <div className="absolute right-0 top-full z-10 mt-1 w-56 rounded-lg border border-[var(--border)] bg-[var(--background-card)] py-1 shadow-[var(--shadow-elevated)]">
-                    <button
-                      type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
-                      onClick={() => {
-                        if (leaveForAbonnement()) return;
-                        setMenuOpenId(null);
-                        setDuplicateModalList(list);
-                        const from = list.language || "eng";
-                        setDuplicateToLang(
-                          PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value !== from)?.value ??
-                            PREFERRED_LANGUAGE_OPTIONS[0]?.value ??
-                            ""
-                        );
-                      }}
-                    >
-                      Dupliquer dans une autre langue
-                    </button>
-                    <button
-                      type="button"
-                      className="block w-full px-3 py-2 text-left text-sm text-[var(--foreground-muted)] hover:bg-[var(--hover-bg)]"
-                      onClick={() => handleRenameList(list)}
-                    >
-                      Renommer la liste
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteList(list)}
-                      disabled={deletingFamilyId === list.id}
-                      className="block w-full px-3 py-2 text-left text-sm text-false-text hover:bg-false-bg disabled:opacity-50"
-                    >
-                      Supprimer la liste
-                    </button>
+                {list.language && <LanguagePill code={isoCode(list.language)} />}
+                <div className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-ink">{list.name}</span>
+                  <span className="text-sm text-muted">
+                    {list.wordCount} mot{list.wordCount !== 1 ? "s" : ""}
+                    {dueWords > 0 ? (
+                      <>
+                        {" · "}
+                        <span className="marker font-medium text-ink">
+                          {dueWords} à revoir
+                        </span>
+                      </>
+                    ) : null}
+                  </span>
+                  <div className="mt-2 flex max-w-xs items-center gap-2">
+                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-page">
+                      <div
+                        className="h-full rounded-full bg-ink"
+                        style={{ width: `${pct}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-muted">{pct} %</span>
                   </div>
-                )}
-              </div>
+                </div>
+              </Link>
+              <div className="relative ml-auto shrink-0">{renderListMenu(list)}</div>
             </li>
-          ))}
+            );
+          })}
         </ul>
           )}
         </>
@@ -976,10 +998,10 @@ export function BibliothequeClient() {
             <p className="mb-2 text-sm font-medium text-[var(--foreground-muted)]">
               De (langue de la liste)
             </p>
-            <div className="mb-4 flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] px-3 py-2">
-              <FlagDisplay langCode={duplicateModalList.language || "eng"} size={24} />
-              <span className="text-sm font-medium text-[var(--foreground)]">
-                {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === (duplicateModalList.language || "eng"))?.label ?? duplicateModalList.language ?? "Anglais"}
+            <div className="mb-4 flex items-center gap-2 rounded-lg border border-line bg-page px-3 py-2">
+              <LanguagePill code={isoCode(duplicateModalList.language || "eng")} />
+              <span className="text-sm font-medium text-ink">
+                {languageLabel(duplicateModalList.language || "eng")}
               </span>
             </div>
             <p className="mb-2 text-sm font-medium text-[var(--foreground-muted)]">
@@ -991,13 +1013,13 @@ export function BibliothequeClient() {
                   key={opt.value}
                   type="button"
                   onClick={() => setDuplicateToLang(opt.value)}
-                  className={`inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                     duplicateToLang === opt.value
-                      ? "border-primary bg-primary/10 text-primary"
-                      : "border-[var(--border)] bg-[var(--background-card)] text-[var(--foreground)] hover:bg-[var(--hover-bg)]"
+                      ? "border-ink bg-page text-ink"
+                      : "border-line bg-surface text-ink hover:bg-[var(--hover-bg)]"
                   }`}
                 >
-                  <FlagDisplay langCode={opt.value} size={20} />
+                  <LanguagePill code={isoCode(opt.value)} />
                   {opt.label}
                 </button>
               ))}
@@ -1048,21 +1070,21 @@ export function BibliothequeClient() {
               Langues à enrichir
             </h2>
 
-            <p className="mb-2 text-sm font-medium text-[var(--foreground-muted)]">
-              Tes langues
+            <p className="mb-2 text-sm font-medium text-muted">
+              Vos langues
             </p>
             <div className="mb-6 flex flex-wrap gap-2">
               {preferredLanguages.length === 0 ? (
-                <span className="text-sm text-[var(--foreground-muted)]">Aucune langue choisie.</span>
+                <span className="text-sm text-muted">Aucune langue choisie.</span>
               ) : (
                 preferredLanguages.map((code) => (
                   <span
                     key={code}
-                    className="relative inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background-subtle)] pl-3 pr-8 py-2"
+                    className="relative inline-flex items-center gap-2 rounded-lg border border-line bg-page pl-3 pr-8 py-2"
                   >
-                    <FlagDisplay langCode={code} size={24} />
-                    <span className="text-sm font-medium text-[var(--foreground)]">
-                      {PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code}
+                    <LanguagePill code={isoCode(code)} />
+                    <span className="text-sm font-medium text-ink">
+                      {languageLabel(code)}
                     </span>
                     <button
                       type="button"
@@ -1085,7 +1107,9 @@ export function BibliothequeClient() {
             </p>
             <div className="flex flex-wrap gap-2">
               {PREFERRED_LANGUAGE_OPTIONS.filter((o) => !preferredLanguages.includes(o.value)).length === 0 ? (
-                <span className="text-sm text-[var(--foreground-muted)]">Tu as déjà ajouté toutes les langues disponibles.</span>
+                <span className="text-sm text-muted">
+                  Vous avez déjà ajouté toutes les langues disponibles.
+                </span>
               ) : (
                 PREFERRED_LANGUAGE_OPTIONS.filter((o) => !preferredLanguages.includes(o.value)).map((opt) => (
                   <button
@@ -1093,9 +1117,9 @@ export function BibliothequeClient() {
                     type="button"
                     onClick={() => handleAddSecondLanguage(opt.value)}
                     disabled={savingSecondLang}
-                    className="btn-relief inline-flex items-center gap-2 rounded-lg border border-[var(--border)] bg-[var(--background-card)] px-3 py-2 text-sm font-medium text-[var(--foreground)] hover:border-primary hover:bg-primary/5 disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2 text-sm font-medium text-ink hover:border-ink disabled:opacity-50"
                   >
-                    <FlagDisplay langCode={opt.value} size={22} />
+                    <LanguagePill code={isoCode(opt.value)} />
                     {opt.label}
                   </button>
                 ))
@@ -1128,8 +1152,8 @@ export function BibliothequeClient() {
             className="w-full max-w-sm rounded-xl bg-[var(--background-card)] p-6"
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 id="confirm-remove-lang-title" className="mb-3 text-lg font-semibold text-[var(--foreground)]">
-              Es-tu sûr de vouloir supprimer cette langue ?
+            <h2 id="confirm-remove-lang-title" className="mb-3 text-lg font-semibold text-ink">
+              Êtes-vous sûr de vouloir supprimer cette langue ?
             </h2>
             <p className="mb-6 text-sm text-false-text">
               Tous les mots de vocabulaire enregistrés seront supprimés définitivement.
