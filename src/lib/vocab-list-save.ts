@@ -10,6 +10,7 @@ export type VocabListOption = {
   familyId: string;
   name: string;
   language: string | null;
+  wordCount?: number;
 };
 
 export async function fetchExistingLists(): Promise<VocabListOption[]> {
@@ -22,11 +23,13 @@ export async function fetchExistingLists(): Promise<VocabListOption[]> {
       familyId: string;
       name: string;
       language?: string | null;
+      wordCount?: number;
     }) => ({
       id: l.id,
       familyId: l.familyId,
       name: l.name,
       language: l.language ?? null,
+      wordCount: typeof l.wordCount === "number" ? l.wordCount : 0,
     })
   );
 }

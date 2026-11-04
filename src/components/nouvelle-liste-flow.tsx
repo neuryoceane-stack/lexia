@@ -4,10 +4,14 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
-import { FlagDisplay } from "@/components/flag-display";
 import { LanguageOnboardingCard } from "@/components/language-onboarding-card";
 import { ListNameInput } from "@/components/list-name-input";
-import { PREFERRED_LANGUAGE_OPTIONS, KNOWN_LANGUAGE_CODES } from "@/lib/language";
+import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
+import {
+  PREFERRED_LANGUAGE_OPTIONS,
+  KNOWN_LANGUAGE_CODES,
+  toIso6391,
+} from "@/lib/language";
 import {
   fetchExistingLists,
   saveWordsToExistingList,
@@ -17,12 +21,19 @@ import {
   Pencil,
   FileText,
   Image as ImageIcon,
-  Upload,
-  Camera,
   Plus,
   ArrowRight,
+  Check,
+  ChevronLeft,
   X,
 } from "lucide-react";
+
+const VIOLET = "var(--ink)";
+const SELECT_PURPLE = "#6C3FC8";
+
+function isoLangCode(code: string): string {
+  return toIso6391(code).toUpperCase();
+}
 
 /** Redimensionne l'image (côté client) pour accélérer envoi et traitement. */
 function resizeImage(file: File, maxSize: number): Promise<File> {
@@ -80,100 +91,169 @@ function languageLabel(code: string | null | undefined): string | null {
   return PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code;
 }
 
-function LanguageRecap({
-  code,
+function LanguageStudyPicker({
+  value,
   onChange,
+  disabled = false,
 }: {
-  code: string;
-  onChange?: (code: string) => void;
+  value: string;
+  onChange: (code: string) => void;
+  disabled?: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const label = languageLabel(code) ?? code;
   return (
     <div className="mb-5">
       <span
-        className="mb-2 block"
-        style={{
-          fontSize: 11,
-          fontWeight: 500,
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-          color: "var(--foreground-muted)",
-        }}
+        className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
       >
-        Langue
+        Langue étudiée
       </span>
-      <div className="flex flex-wrap items-center gap-2">
-        <div
-          className="inline-flex items-center gap-2.5"
-          style={{
-            padding: "8px 12px",
-            borderRadius: 10,
-            border: "1.5px solid color-mix(in srgb, var(--ink) 20%, transparent)",
-            background: "color-mix(in srgb, var(--ink) 6%, transparent)",
-          }}
-        >
-          <FlagDisplay langCode={code} size={22} />
-          <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>{label}</span>
-        </div>
-        {onChange && (
+      <div
+        className="flex flex-wrap gap-2"
+        role="listbox"
+        aria-label="Langue étudiée"
+      >
+        {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
+          const selected = value === opt.value;
+          return (
+            <button
+              key={opt.value}
+              type="button"
+              role="option"
+              aria-selected={selected}
+              disabled={disabled}
+              onClick={() => onChange(opt.value)}
+              className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl border-[1.5px] px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+              style={{
+                borderColor: selected ? VIOLET : "var(--line)",
+                background: selected
+                  ? "color-mix(in srgb, var(--ink) 8%, var(--surface))"
+                  : "var(--surface)",
+              }}
+            >
+              <LanguagePill code={isoLangCode(opt.value)} />
+              <span
+                className="min-w-0 truncate text-sm font-medium"
+                style={{ color: selected ? VIOLET : "var(--foreground)" }}
+              >
+                {opt.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function DestModeSwitch({
+  mode,
+  onChange,
+}: {
+  mode: DestMode;
+  onChange: (mode: DestMode) => void;
+}) {
+  return (
+    <div
+      className="mb-5 flex gap-1 rounded-2xl border-[1.5px] border-line bg-[var(--background-subtle)] p-1"
+      role="tablist"
+      aria-label="Destination"
+    >
+      {(
+        [
+          { id: "create" as const, label: "Nouvelle liste" },
+          { id: "existing" as const, label: "Liste existante" },
+        ] as const
+      ).map(({ id, label }) => {
+        const active = mode === id;
+        return (
           <button
+            key={id}
             type="button"
-            onClick={() => setOpen((v) => !v)}
-            className="transition hover:opacity-80"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(id)}
+            className="min-h-11 flex-1 rounded-[14px] px-3 text-[13px] font-medium transition-colors"
             style={{
-              fontSize: 13,
-              fontWeight: 500,
-              color: "var(--ink)",
-              background: "none",
-              border: "none",
-              cursor: "pointer",
-              padding: "8px 4px",
-              minHeight: 44,
+              background: active ? VIOLET : "transparent",
+              color: active ? "var(--surface)" : "var(--foreground-muted)",
             }}
           >
-            {open ? "Fermer" : "Changer"}
+            {label}
           </button>
-        )}
-      </div>
-      {open && onChange && (
-        <div className="mt-3 grid grid-cols-4 gap-1.5">
-          {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
-            const sel = code === opt.value;
-            return (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => {
-                  onChange(opt.value);
-                  setOpen(false);
-                }}
-                className="flex flex-col items-center gap-0.5"
-                style={{
-                  borderRadius: 10,
-                  padding: "6px 3px",
-                  border: `1.5px solid ${sel ? "var(--ink)" : "var(--border)"}`,
-                  background: sel ? "color-mix(in srgb, var(--ink) 8%, transparent)" : "var(--background-subtle)",
-                  cursor: "pointer",
-                  minHeight: 44,
-                }}
-              >
-                <FlagDisplay langCode={opt.value} size={16} />
-                <span
-                  style={{
-                    fontSize: 10,
-                    fontWeight: 500,
-                    color: sel ? "var(--ink)" : "var(--foreground-muted)",
-                  }}
-                >
-                  {opt.label}
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
+        );
+      })}
     </div>
+  );
+}
+
+function ListRadioMark({ selected }: { selected: boolean }) {
+  return (
+    <span
+      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-[1.5px]"
+      style={{
+        borderColor: selected ? SELECT_PURPLE : "var(--line)",
+        background: "transparent",
+      }}
+      aria-hidden
+    >
+      {selected ? <Check size={12} stroke={SELECT_PURPLE} strokeWidth={3} /> : null}
+    </span>
+  );
+}
+
+function ExistingListPicker({
+  catalog,
+  selectedId,
+  onSelect,
+}: {
+  catalog: VocabListOption[];
+  selectedId: string | null;
+  onSelect: (list: VocabListOption) => void;
+}) {
+  return (
+    <ul
+      className="mb-5 max-h-[min(40vh,280px)] space-y-2 overflow-y-auto overscroll-contain rounded-2xl border-[1.5px] border-line bg-surface p-2"
+      aria-label="Listes existantes"
+    >
+      {catalog.map((list) => {
+        const selected = selectedId === list.id;
+        const count = list.wordCount ?? 0;
+        return (
+          <li key={list.id}>
+            <button
+              type="button"
+              onClick={() => onSelect(list)}
+              className="flex w-full min-h-11 items-center gap-3 rounded-xl border-[1.5px] px-3 py-2.5 text-left transition-colors"
+              style={{
+                borderColor: selected ? SELECT_PURPLE : "transparent",
+                background: selected
+                  ? "color-mix(in srgb, #6C3FC8 10%, var(--surface))"
+                  : "transparent",
+              }}
+              aria-pressed={selected}
+            >
+              <ListRadioMark selected={selected} />
+              <span className="min-w-0 flex-1">
+                <span
+                  className="block truncate text-sm font-medium"
+                  style={{ color: "var(--foreground)" }}
+                >
+                  {list.name}
+                </span>
+                <span className="mt-0.5 flex flex-wrap items-center gap-2 text-xs text-muted">
+                  {list.language ? (
+                    <LanguagePill code={isoLangCode(list.language)} />
+                  ) : null}
+                  <span>
+                    {count} mot{count !== 1 ? "s" : ""}
+                  </span>
+                </span>
+              </span>
+            </button>
+          </li>
+        );
+      })}
+    </ul>
   );
 }
 
@@ -241,8 +321,14 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
     (async () => {
       try {
         if (familyIdProp) {
-          const res = await fetch(`/api/familles/${familyIdProp}/listes`);
+          const [res, bibLists] = await Promise.all([
+            fetch(`/api/familles/${familyIdProp}/listes`),
+            fetchExistingLists(),
+          ]);
           const data = await res.json().catch(() => []);
+          const countById = new Map(
+            bibLists.map((l) => [l.id, l.wordCount ?? 0])
+          );
           if (cancelled || !res.ok || !Array.isArray(data)) {
             if (!cancelled) setCatalogLoaded(true);
             return;
@@ -253,6 +339,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
               familyId: familyIdProp,
               name: l.name,
               language: l.language ?? null,
+              wordCount: countById.get(l.id) ?? 0,
             })
           );
           if (!cancelled) {
@@ -348,12 +435,12 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
     }
     const name = listName.trim();
     if (!name) {
-      setSetupError("Donne un nom à ta liste.");
+      setSetupError("Donnez un nom à votre liste.");
       return null;
     }
     const lang = language.trim();
     if (!lang) {
-      setSetupError("Choisis une langue.");
+      setSetupError("Choisissez une langue.");
       return null;
     }
     setSetupError("");
@@ -375,7 +462,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
       setFamilyId(data.familyId);
       return { familyId: data.familyId, listId: data.id };
     } catch {
-      setSetupError("Erreur réseau. Réessaie.");
+      setSetupError("Erreur réseau. Veuillez réessayer.");
       return null;
     } finally {
       setCreatingList(false);
@@ -473,7 +560,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
           setExtractedItems(items);
         } else {
           setExtractError(
-            "Aucune paire mot/traduction trouvée. Utilise une photo avec une liste claire (ex. une ligne par paire : mot - traduction ou mot : traduction)."
+            "Aucune paire mot/traduction trouvée. Utilisez une photo avec une liste claire (ex. une ligne par paire : mot - traduction ou mot : traduction)."
           );
         }
       } catch (err) {
@@ -487,7 +574,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
         const msg =
           err instanceof Error
             ? err.name === "AbortError"
-              ? "Délai dépassé. Réessaie avec une photo plus petite."
+              ? "Délai dépassé. Réessayez avec une photo plus petite."
               : err.message
             : "Erreur réseau ou extraction.";
         setExtractError(msg);
@@ -513,11 +600,11 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
   function canStartMethod(): boolean {
     if (addingToExisting && listId) return true;
     if (!listName.trim()) {
-      setSetupError("Donne un nom à ta liste.");
+      setSetupError("Donnez un nom à votre liste.");
       return false;
     }
     if (!language.trim()) {
-      setSetupError("Choisis une langue.");
+      setSetupError("Choisissez une langue.");
       return false;
     }
     return true;
@@ -552,7 +639,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
 
   if (extractedItems.length > 0 && familyId && listId) {
     return (
-      <div>
+      <div className="mx-auto w-full max-w-2xl">
         <BackLink href={backHref} />
         <RevueImport
           familyId={familyId}
@@ -569,28 +656,43 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
     );
   }
 
+  const showDestToggle = !targetListIdFromUrl;
+  const onExistingStep = destMode === "existing";
+  const pageTitle = onExistingStep ? "Ajoutez à une liste" : "Créez votre liste";
+  const pageSubtitle = onExistingStep
+    ? "Sélectionnez une liste, puis choisissez comment ajouter vos mots."
+    : "Nommez votre liste, puis choisissez comment ajouter vos mots.";
+
+  function selectExistingList(list: VocabListOption) {
+    setSelectedExisting(list);
+    setListId(list.id);
+    setFamilyId(list.familyId);
+    setListName(list.name);
+    if (list.language) setLanguage(list.language);
+    setSetupError("");
+  }
+
   return (
-    <div>
+    <div className="mx-auto w-full max-w-2xl">
       <button
         type="button"
         onClick={() => router.push(backHref)}
-        className="mb-4 flex items-center gap-1 text-[var(--foreground-muted)] transition hover:opacity-70"
+        className="mb-4 inline-flex min-h-11 items-center gap-1 text-muted transition hover:opacity-70"
         style={{ fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
       >
-        <ArrowRight size={13} stroke="currentColor" className="rotate-180" />
+        <ChevronLeft size={14} strokeWidth={2} aria-hidden />
         Retour
       </button>
 
       {method !== "manual" && (
         <>
-          <h1 className="mb-1" style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}>
-            {addingToExisting ? "Comment veux-tu ajouter tes mots ?" : "Crée ta liste"}
+          <h1
+            className="mb-1 font-medium"
+            style={{ fontSize: 20, color: "var(--foreground)" }}
+          >
+            {pageTitle}
           </h1>
-          <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
-            {addingToExisting
-              ? "Choisis un mode pour compléter ta liste."
-              : "Nomme-la, puis choisis comment ajouter tes mots."}
-          </p>
+          <p className="mb-6 text-[13px] text-muted">{pageSubtitle}</p>
         </>
       )}
 
@@ -613,141 +715,75 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
 
       {method === null && (
         <div className="space-y-5">
-          {catalog.length > 0 && !familyIdProp && !targetListIdFromUrl && (
-            <div
-              className="flex gap-1.5"
-              role="tablist"
-              aria-label="Destination de l'import"
-            >
-              <button
-                type="button"
-                role="tab"
-                aria-selected={destMode === "create"}
-                onClick={() => {
-                  setDestMode("create");
-                  setSetupError("");
-                }}
-                className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5"
-                style={{
-                  background: destMode === "create" ? "var(--ink)" : "var(--background-subtle)",
-                  color: destMode === "create" ? "white" : "var(--foreground-muted)",
-                  minHeight: 44,
-                }}
-              >
-                Nouvelle liste
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={destMode === "existing"}
-                onClick={() => {
-                  setDestMode("existing");
-                  setSetupError("");
-                  if (!selectedExisting && catalog[0]) {
-                    setSelectedExisting(catalog[0]);
-                    setListId(catalog[0].id);
-                    setFamilyId(catalog[0].familyId);
-                    if (catalog[0].language) setLanguage(catalog[0].language);
-                  }
-                }}
-                className="flex-1 rounded-lg px-2.5 py-2 text-[13px] font-medium transition-colors sm:px-3 sm:py-2.5"
-                style={{
-                  background: destMode === "existing" ? "var(--ink)" : "var(--background-subtle)",
-                  color: destMode === "existing" ? "white" : "var(--foreground-muted)",
-                  minHeight: 44,
-                }}
-              >
-                Liste existante
-              </button>
-            </div>
-          )}
+          {showDestToggle ? (
+            <DestModeSwitch
+              mode={destMode}
+              onChange={(mode) => {
+                setDestMode(mode);
+                setSetupError("");
+                if (mode === "existing" && !selectedExisting && catalog[0]) {
+                  selectExistingList(catalog[0]);
+                }
+                if (mode === "create") {
+                  setListId(null);
+                  if (!familyIdProp) setFamilyId(null);
+                }
+              }}
+            />
+          ) : null}
 
-          {destMode === "existing" && catalog.length > 0 ? (
-            <div>
-              <p
-                style={{
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: "var(--foreground-muted)",
-                  marginBottom: 6,
-                }}
+          {onExistingStep ? (
+            catalog.length > 0 ? (
+              <ExistingListPicker
+                catalog={catalog}
+                selectedId={selectedExisting?.id ?? listId}
+                onSelect={selectExistingList}
+              />
+            ) : (
+              <div
+                className="rounded-2xl border-[1.5px] border-line bg-surface px-4 py-8 text-center"
+                style={{ borderRadius: 14 }}
               >
-                Liste de destination
-              </p>
-              <ul
-                className="max-h-[min(28vh,168px)] space-y-1 overflow-y-auto overscroll-contain sm:max-h-[min(40vh,240px)]"
-                aria-label="Listes existantes"
-              >
-                {catalog.map((list) => {
-                  const selected = selectedExisting?.id === list.id;
-                  return (
-                    <li key={list.id}>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setSelectedExisting(list);
-                          setListId(list.id);
-                          setFamilyId(list.familyId);
-                          setListName(list.name);
-                          if (list.language) setLanguage(list.language);
-                          setSetupError("");
-                        }}
-                        className="flex w-full items-center gap-2 rounded-xl border px-3 py-2.5 text-left"
-                        style={{
-                          borderColor: selected ? "var(--ink)" : "var(--border)",
-                          background: selected
-                            ? "color-mix(in srgb, var(--ink) 10%, transparent)"
-                            : "var(--background-card)",
-                          minHeight: 44,
-                          cursor: "pointer",
-                        }}
-                        aria-pressed={selected}
-                      >
-                        {list.language ? <FlagDisplay langCode={list.language} size={16} /> : null}
-                        <span
-                          className="min-w-0 flex-1 text-sm font-medium"
-                          style={{ color: selected ? "var(--ink)" : "var(--foreground)" }}
-                        >
-                          {list.name}
-                        </span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
+                <p className="text-sm text-muted">
+                  Vous n&apos;avez pas encore de liste. Créez-en une pour commencer.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDestMode("create");
+                    setSetupError("");
+                    setListId(null);
+                    if (!familyIdProp) setFamilyId(null);
+                  }}
+                  className="mt-4 inline-flex min-h-11 items-center justify-center px-5 text-sm font-medium text-surface transition hover:brightness-95"
+                  style={{ background: VIOLET, borderRadius: 20 }}
+                >
+                  Créer une nouvelle liste
+                </button>
+              </div>
+            )
           ) : (
             <>
-              {effectiveLanguage ? (
-                <LanguageRecap
-                  code={effectiveLanguage}
-                  onChange={
-                    !addingToExisting
-                      ? (code) => {
-                          setLanguage(code);
-                          setChangingLanguage(true);
-                          void (async () => {
-                            if (!preferredLanguage) {
-                              await savePreferredLanguage(code);
-                            }
-                            setChangingLanguage(false);
-                          })();
-                        }
-                      : undefined
-                  }
-                />
-              ) : null}
+              <LanguageStudyPicker
+                value={language}
+                onChange={(code) => {
+                  setLanguage(code);
+                  setSetupError("");
+                  setChangingLanguage(true);
+                  void (async () => {
+                    if (!preferredLanguage) {
+                      await savePreferredLanguage(code);
+                    }
+                    setChangingLanguage(false);
+                  })();
+                }}
+                disabled={changingLanguage || creatingList}
+              />
 
               <div>
                 <label
                   htmlFor="nl-list-title"
-                  style={{
-                    fontSize: 12,
-                    fontWeight: 500,
-                    color: "var(--foreground-muted)",
-                    marginBottom: 6,
-                    display: "block",
-                  }}
+                  className="mb-1.5 block text-xs font-medium text-muted"
                 >
                   Nom de la liste
                 </label>
@@ -759,95 +795,53 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
                     setSetupError("");
                   }}
                   placeholder="ex. Chapitre 3 — La Révolution"
-                  className="w-full transition-colors"
-                  style={{
-                    fontSize: 13,
-                    padding: "11px 14px",
-                    borderRadius: 10,
-                    border: "1.5px solid var(--input-border)",
-                    background: "var(--input-bg)",
-                    color: "var(--foreground)",
-                    outline: "none",
-                    width: "100%",
-                  }}
-                  onFocus={(e) => {
-                    e.currentTarget.style.borderColor = "var(--ink)";
-                  }}
-                  onBlur={(e) => {
-                    e.currentTarget.style.borderColor = "var(--input-border)";
-                  }}
+                  className="w-full rounded-xl border-[1.5px] border-[var(--input-border)] bg-[var(--input-bg)] px-3.5 py-2.5 text-sm text-[var(--foreground)] outline-none transition-colors focus:border-ink"
                 />
               </div>
             </>
           )}
 
-          {setupError && (
+          {setupError ? (
             <p className="text-sm text-false-text" role="alert">
               {setupError}
             </p>
-          )}
+          ) : null}
 
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <MethodCard
-              bg="var(--background-subtle)"
-              border="var(--line)"
-              hoverBorder="var(--ink)"
-              iconBg="var(--ink)"
-              icon={<Pencil size={22} stroke="var(--surface)" />}
-              decoColor="var(--ink)"
-              title="Manuel"
-              description="Saisis tes mots un par un."
-              btnBg="var(--ink)"
-              btnIcon={<Plus size={11} stroke="var(--surface)" />}
-              btnLabel="Commencer"
-              arrowBg="var(--background-subtle)"
-              arrowColor="var(--ink)"
-              disabled={creatingList || changingLanguage}
-              onClick={() => void startManual()}
-            />
-            <MethodCard
-              bg="var(--background-card)"
-              border="var(--border)"
-              hoverBorder="var(--ink)"
-              iconBg="var(--mark)"
-              icon={<FileText size={22} stroke="var(--ink)" />}
-              decoColor="var(--ink)"
-              title="PDF"
-              description="Importe un document — l'IA extrait les mots automatiquement."
-              btnBg="var(--ink)"
-              btnIcon={<Upload size={11} stroke="var(--surface)" />}
-              btnLabel="Importer"
-              arrowBg="var(--mark)"
-              arrowColor="var(--ink)"
-              disabled={creatingList || extractLoading || changingLanguage}
-              onClick={() => {
-                if (!canStartMethod()) return;
-                document.getElementById("pdf-input-nl")?.click();
-              }}
-            />
-            <MethodCard
-              bg="var(--background-card)"
-              border="var(--border)"
-              hoverBorder="var(--ink)"
-              iconBg="var(--surface)"
-              iconBorder="1.5px solid var(--line)"
-              icon={<ImageIcon size={22} stroke="var(--ink)" />}
-              decoColor="var(--ink)"
-              title="Photo ou image"
-              description="Prends une photo ou importe une image — l'IA lit le texte pour toi."
-              btnBg="var(--ink)"
-              btnIcon={<Camera size={11} stroke="var(--surface)" />}
-              btnLabel="Choisir"
-              arrowBg="var(--surface)"
-              arrowBorder="1.5px solid var(--line)"
-              arrowColor="var(--ink)"
-              disabled={creatingList || extractLoading || changingLanguage}
-              onClick={() => {
-                if (!canStartMethod()) return;
-                document.getElementById("image-input-nl")?.click();
-              }}
-            />
-          </div>
+          {!(onExistingStep && catalog.length === 0) ? (
+            <div className="grid grid-cols-1 gap-3">
+              <MethodCard
+                iconBg={VIOLET}
+                icon={<Pencil size={24} stroke="var(--surface)" strokeWidth={2} />}
+                title="Manuel"
+                description="Saisissez vos mots un par un."
+                disabled={creatingList || changingLanguage}
+                onClick={() => void startManual()}
+              />
+              <MethodCard
+                iconBg="var(--mark)"
+                icon={<FileText size={24} stroke={VIOLET} strokeWidth={2} />}
+                title="PDF"
+                description="Importez un document — l'IA extrait les mots automatiquement."
+                disabled={creatingList || extractLoading || changingLanguage}
+                onClick={() => {
+                  if (!canStartMethod()) return;
+                  document.getElementById("pdf-input-nl")?.click();
+                }}
+              />
+              <MethodCard
+                iconBg="var(--surface)"
+                iconBorder="1.5px solid var(--line)"
+                icon={<ImageIcon size={24} stroke={VIOLET} strokeWidth={2} />}
+                title="Photo ou image"
+                description="Prenez une photo ou importez une image — l'IA lit le texte pour vous."
+                disabled={creatingList || extractLoading || changingLanguage}
+                onClick={() => {
+                  if (!canStartMethod()) return;
+                  document.getElementById("image-input-nl")?.click();
+                }}
+              />
+            </div>
+          ) : null}
         </div>
       )}
 
@@ -861,7 +855,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
         />
       )}
       {extractLoading && (
-        <div className="mt-8 rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] p-6">
+        <div className="mt-8 rounded-2xl border-[1.5px] border-line bg-[var(--background-subtle)] p-6">
           <div className="flex items-start gap-4">
             {method === "image" && imagePreviewUrl && (
               <div className="flex-shrink-0 overflow-hidden rounded-lg border border-[var(--border)]">
@@ -974,7 +968,7 @@ function FormManuel({
       .map((r) => ({ term: r.term.trim(), definition: r.definition.trim() }))
       .filter((w) => w.term.length > 0);
     if (words.length === 0) {
-      setError("Ajoute au moins un mot.");
+      setError("Ajoutez au moins un mot.");
       return;
     }
     setLoading(true);
@@ -1057,22 +1051,21 @@ function FormManuel({
           className="mb-1"
           style={{ fontSize: 20, fontWeight: 500, color: "var(--ink)", lineHeight: 1.3 }}
         >
-          {importToExisting ? "Ajoute tes mots" : "Saisis tes mots"}
+          {importToExisting ? "Ajoutez vos mots" : "Saisissez vos mots"}
         </h1>
         <p className="mb-6" style={{ fontSize: 13, color: "var(--foreground-muted)" }}>
           {importToExisting
-            ? "Complète ta liste avec de nouvelles paires mot / traduction."
-            : "Ajoute chaque mot et sa traduction."}
+            ? "Complétez votre liste avec de nouvelles paires mot / traduction."
+            : "Ajoutez chaque mot et sa traduction."}
         </p>
 
         <div
-          className="mb-6 inline-flex flex-wrap items-center gap-2.5 rounded-xl px-3 py-2.5"
+          className="mb-6 inline-flex flex-wrap items-center gap-2.5 rounded-xl border-[1.5px] border-line px-3 py-2.5"
           style={{
             background: "color-mix(in srgb, var(--ink) 6%, transparent)",
-            border: "1.5px solid color-mix(in srgb, var(--ink) 16%, transparent)",
           }}
         >
-          {listLanguage ? <FlagDisplay langCode={listLanguage} size={22} /> : null}
+          {listLanguage ? <LanguagePill code={isoLangCode(listLanguage)} /> : null}
           <span style={{ fontSize: 14, fontWeight: 500, color: "var(--ink)" }}>
             {listName || defaultListName || "Nouvelle liste"}
           </span>
@@ -1216,7 +1209,7 @@ function FormManuel({
               fontSize: 14,
               fontWeight: 500,
               padding: "12px 18px",
-              borderRadius: 10,
+              borderRadius: 20,
               border: "1.5px solid var(--border)",
               background: "transparent",
               color: "var(--foreground-muted)",
@@ -1234,9 +1227,9 @@ function FormManuel({
               fontSize: 14,
               fontWeight: 500,
               padding: "12px 18px",
-              borderRadius: 10,
+              borderRadius: 20,
               border: "none",
-              background: "var(--ink)",
+              background: VIOLET,
               color: "var(--surface)",
               cursor: "pointer",
               minHeight: 44,
@@ -1255,39 +1248,19 @@ function FormManuel({
 }
 
 function MethodCard({
-  bg,
-  border,
-  hoverBorder,
   iconBg,
   iconBorder,
   icon,
-  decoColor,
   title,
   description,
-  btnBg,
-  btnIcon,
-  btnLabel,
-  arrowBg,
-  arrowBorder,
-  arrowColor,
   onClick,
   disabled = false,
 }: {
-  bg: string;
-  border: string;
-  hoverBorder: string;
   iconBg: string;
   iconBorder?: string;
   icon: React.ReactNode;
-  decoColor: string;
   title: string;
   description: string;
-  btnBg: string;
-  btnIcon: React.ReactNode;
-  btnLabel: string;
-  arrowBg: string;
-  arrowBorder?: string;
-  arrowColor: string;
   onClick: () => void;
   disabled?: boolean;
 }) {
@@ -1296,66 +1269,24 @@ function MethodCard({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="group relative flex flex-col overflow-hidden text-left card-hover disabled:cursor-not-allowed disabled:opacity-60"
-      style={{
-        background: bg,
-        border: `1.5px solid ${border}`,
-        borderRadius: 16,
-        padding: "20px 16px 16px",
-        cursor: "pointer",
-      }}
-      onMouseEnter={(e) => {
-        if (!disabled) e.currentTarget.style.borderColor = hoverBorder;
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = border;
-      }}
+      className="flex min-h-[88px] w-full items-start gap-4 rounded-2xl border-[1.5px] border-line bg-surface p-4 text-left transition-colors hover:border-ink disabled:cursor-not-allowed disabled:opacity-60 sm:min-h-[96px] sm:p-5"
     >
       <div
-        className="flex items-center justify-center"
-        style={{ width: 48, height: 48, borderRadius: "50%", background: iconBg, border: iconBorder, marginBottom: 14 }}
+        className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full"
+        style={{ background: iconBg, border: iconBorder }}
       >
         {icon}
       </div>
-      <p style={{ fontSize: 14, fontWeight: 500, color: "var(--foreground)", marginBottom: 5 }}>
-        {title}
-      </p>
-      <p style={{ fontSize: 12, color: "var(--foreground-muted)", flex: 1, marginBottom: 18 }}>
-        {description}
-      </p>
-      <div className="flex items-center justify-between">
-        <span
-          className="inline-flex items-center gap-[5px]"
-          style={{
-            background: btnBg,
-            color: "var(--surface)",
-            borderRadius: 20,
-            padding: "7px 14px",
-            fontSize: 12,
-            fontWeight: 500,
-          }}
-        >
-          {btnIcon}
-          {btnLabel}
-        </span>
-        <span
-          className="flex items-center justify-center"
-          style={{ width: 28, height: 28, borderRadius: "50%", background: arrowBg, border: arrowBorder }}
-        >
-          <ArrowRight size={12} stroke={arrowColor} />
-        </span>
-      </div>
-      <div
-        className="pointer-events-none absolute"
-        style={{
-          bottom: -20,
-          right: -20,
-          width: 70,
-          height: 70,
-          borderRadius: "50%",
-          background: decoColor,
-          opacity: 0.1,
-        }}
+      <span className="min-w-0 flex-1 pt-0.5">
+        <span className="block text-sm font-medium text-[var(--foreground)]">{title}</span>
+        <span className="mt-1 block text-[13px] leading-snug text-muted">{description}</span>
+      </span>
+      <ArrowRight
+        size={18}
+        stroke={VIOLET}
+        strokeWidth={2}
+        className="mt-3 shrink-0 opacity-70"
+        aria-hidden
       />
     </button>
   );

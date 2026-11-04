@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { Languages, Search, Check } from "lucide-react";
-import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
-import { FlagDisplay } from "@/components/flag-display";
+import { PREFERRED_LANGUAGE_OPTIONS, toIso6391 } from "@/lib/language";
+import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
 
 export function LanguageOnboardingCard({
   saving = false,
@@ -65,7 +65,7 @@ export function LanguageOnboardingCard({
             marginBottom: 8,
           }}
         >
-          Quelle langue veux-tu enrichir en vocabulaire ?
+          Quelle langue souhaitez-vous enrichir en vocabulaire ?
         </h2>
         <p
           id="onboarding-lang-desc"
@@ -77,7 +77,7 @@ export function LanguageOnboardingCard({
             marginBottom: 20,
           }}
         >
-          Choisis une langue dans la liste ci-dessous.
+          Choisissez une langue dans la liste ci-dessous.
         </p>
 
         {error && (
@@ -141,7 +141,7 @@ export function LanguageOnboardingCard({
               className="py-6 text-center"
               style={{ fontSize: 13, color: "var(--foreground-muted)" }}
             >
-              Aucune langue ne correspond à ta recherche.
+              Aucune langue ne correspond à votre recherche.
             </p>
           ) : (
             <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 md:grid-cols-3">
@@ -157,7 +157,7 @@ export function LanguageOnboardingCard({
                     className="relative flex flex-col items-center gap-2 transition-colors"
                     style={{
                       padding: "14px 10px",
-                      borderRadius: 10,
+                      borderRadius: 14,
                       border: isSelected
                         ? "2px solid var(--ink)"
                         : "1.5px solid var(--border)",
@@ -193,7 +193,7 @@ export function LanguageOnboardingCard({
                         <Check size={11} strokeWidth={3} color="var(--surface)" />
                       </span>
                     )}
-                    <FlagDisplay langCode={opt.value} size={28} />
+                    <LanguagePill code={toIso6391(opt.value).toUpperCase()} />
                     <span
                       style={{
                         fontSize: 13,
@@ -223,8 +223,9 @@ export function LanguageOnboardingCard({
           style={{
             background: "var(--ink)",
             color: "var(--surface)",
-            borderRadius: 10,
+            borderRadius: 20,
             padding: "13px 16px",
+            minHeight: 44,
             fontSize: 14,
             fontWeight: 500,
             border: "none",

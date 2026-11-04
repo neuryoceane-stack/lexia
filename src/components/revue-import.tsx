@@ -2,8 +2,8 @@
 
 import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { detectListLanguages, KNOWN_LANGUAGE_CODES } from "@/lib/language";
-import { FlagDisplay } from "@/components/flag-display";
+import { detectListLanguages, KNOWN_LANGUAGE_CODES, toIso6391 } from "@/lib/language";
+import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
 import { SaveWordsToListModal } from "@/components/save-words-to-list-modal";
 import { saveWordsToExistingList } from "@/lib/vocab-list-save";
 
@@ -115,7 +115,7 @@ export function RevueImport({
 
   if (editing) {
     return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
+      <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6">
         <h2 className="mb-4 font-medium text-[var(--foreground)]">
           Modifier le mot
         </h2>
@@ -133,15 +133,15 @@ export function RevueImport({
 
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
-        <p className="text-[var(--foreground-muted)]">
-          Aucun mot à réviser. Tu as tout supprimé.
+      <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6">
+        <p className="text-muted">
+          Aucun mot à conserver. Vous avez tout supprimé.
         </p>
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={onCancel}
-            className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
+            className="inline-flex min-h-11 items-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-[var(--foreground)]"
           >
             Retour
           </button>
@@ -159,12 +159,18 @@ export function RevueImport({
           Trier les mots extraits
         </h2>
         {(displayTermLang || displayDefLang) && (
-          <span className="flex items-center gap-1 text-xl" title="Langues détectées">
-            <FlagDisplay langCode={displayTermLang} size={24} />
-            {displayTermLang && displayDefLang && (
-              <span className="mx-1 text-[var(--foreground-disabled)]" aria-hidden>→</span>
-            )}
-            <FlagDisplay langCode={displayDefLang} size={24} />
+          <span className="flex items-center gap-1.5" title="Langues détectées">
+            {displayTermLang ? (
+              <LanguagePill code={toIso6391(displayTermLang).toUpperCase()} />
+            ) : null}
+            {displayTermLang && displayDefLang ? (
+              <span className="text-xs text-muted" aria-hidden>
+                →
+              </span>
+            ) : null}
+            {displayDefLang ? (
+              <LanguagePill code={toIso6391(displayDefLang).toUpperCase()} />
+            ) : null}
           </span>
         )}
         {index < items.length && restCount > 0 && (
@@ -180,14 +186,14 @@ export function RevueImport({
       </div>
       <p className="text-sm text-[var(--foreground-muted)]">
         {targetListId
-          ? "Garde, modifie ou supprime chaque mot. Puis ajoute-les à ta liste."
-          : "Garde, modifie ou supprime chaque mot. Puis enregistre-les dans une liste existante ou crée-en une nouvelle."}
+          ? "Conservez, modifiez ou supprimez chaque mot, puis ajoutez-les à votre liste."
+          : "Conservez, modifiez ou supprimez chaque mot, puis enregistrez-les dans une liste existante ou créez-en une nouvelle."}
       </p>
 
       {/* Carte type Tinder */}
       {current ? (
         <div className="mx-auto max-w-md">
-          <div className="rounded-2xl border-2 border-[var(--border)] bg-[var(--background-card)] p-6 shadow-lg">
+          <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6 shadow-[var(--shadow-card)]">
             <p className="text-xs text-[var(--foreground-disabled)]">
               Mot {index + 1} / {items.length}
             </p>
@@ -228,12 +234,12 @@ export function RevueImport({
           </div>
         </div>
       ) : (
-        <p className="rounded-xl border border-[var(--border)] bg-[var(--background-subtle)] px-4 py-3 text-sm text-[var(--foreground-muted)]">
-          Toutes les fiches ont été parcourues. Enregistre ta sélection ci-dessous.
+        <p className="rounded-2xl border-[1.5px] border-line bg-[var(--background-subtle)] px-4 py-3 text-sm text-muted">
+          Toutes les fiches ont été parcourues. Enregistrez votre sélection ci-dessous.
         </p>
       )}
 
-      <div className="rounded-xl border border-[var(--border)] bg-[var(--background-card)] p-6">
+      <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6">
         <h3 className="mb-2 font-medium text-[var(--foreground)]">
           {targetListId ? "Ajouter à la liste" : "Enregistrer dans une liste"}
         </h3>
@@ -244,7 +250,7 @@ export function RevueImport({
             ? ` · destination : ${targetListName}`
             : targetListId
               ? "."
-              : ". Choisis une liste existante ou crée-en une nouvelle."}
+              : ". Choisissez une liste existante ou créez-en une nouvelle."}
         </p>
         {directSaveError ? (
           <p className="mb-3 text-sm text-false-text" role="alert">
@@ -255,7 +261,7 @@ export function RevueImport({
           <button
             type="button"
             onClick={onCancel}
-            className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
+            className="inline-flex min-h-11 items-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-[var(--foreground)]"
           >
             Annuler
           </button>
@@ -264,7 +270,7 @@ export function RevueImport({
               type="button"
               onClick={() => void handleDirectSave()}
               disabled={items.length === 0 || directSaving}
-              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex min-h-11 items-center rounded-[20px] px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
               style={{ background: "var(--ink)" }}
             >
               {directSaving ? "Enregistrement…" : "Ajouter à la liste →"}
@@ -274,7 +280,7 @@ export function RevueImport({
               type="button"
               onClick={() => setSaveModalOpen(true)}
               disabled={items.length === 0}
-              className="btn-relief rounded-lg px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex min-h-11 items-center rounded-[20px] px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
               style={{ background: "var(--ink)" }}
             >
               Enregistrer dans une liste →
@@ -326,32 +332,32 @@ function EditForm({
           type="text"
           value={t}
           onChange={(e) => setT(e.target.value)}
-          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
+          className="w-full rounded-xl border-[1.5px] border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm text-[var(--foreground-muted)]">
+        <label className="mb-1 block text-sm text-muted">
           Traduction / définition
         </label>
         <input
           type="text"
           value={d}
           onChange={(e) => setD(e.target.value)}
-          className="w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
+          className="w-full rounded-xl border-[1.5px] border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
         />
       </div>
       <div className="flex gap-2">
         <button
           type="button"
           onClick={onCancel}
-          className="btn-relief rounded-lg border border-[var(--border)] px-4 py-2 text-[var(--foreground)]"
+          className="inline-flex min-h-11 items-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-[var(--foreground)]"
         >
           Annuler
         </button>
         <button
           type="button"
           onClick={() => onSave(t, d)}
-          className="btn-relief rounded-lg bg-primary px-4 py-2 text-surface hover:bg-primary-dark"
+          className="inline-flex min-h-11 items-center rounded-[20px] bg-ink px-4 py-2 text-surface"
         >
           Enregistrer
         </button>
