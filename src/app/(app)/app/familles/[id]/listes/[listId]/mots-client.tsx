@@ -5,31 +5,22 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   Plus,
-  Zap,
   ChevronDown,
   CreditCard,
   Pencil,
   Search,
-  ArrowUpDown,
-  Filter,
+  Check,
+  Circle,
+  Trash2,
 } from "lucide-react";
 import type { ListWordSm2Status } from "@/lib/list-word-sm2";
 import {
   PREFERRED_LANGUAGE_OPTIONS,
   KNOWN_LANGUAGE_CODES,
-  getFlagEmoji,
+  toIso6391,
 } from "@/lib/language";
 import { useLeaveForAbonnement } from "@/components/paywall-gate";
-
-const VIOLET = "var(--ink)";
-const GOLD = "var(--ink)";
-const GREEN = "var(--ink)";
-const BORDER_SECONDARY = "var(--line)";
-const BORDER_TERTIARY = "var(--line)";
-const BANNER_BG = "var(--background-subtle)";
-const RED_BORDER = "var(--false-sign)";
-const RED_TEXT = "var(--false-sign)";
-const DOT_NEW = "var(--background-subtle)";
+import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
 
 export type MotWithSm2 = {
   id: string;
@@ -41,16 +32,58 @@ export type MotWithSm2 = {
 
 type StatusFilter = "all" | ListWordSm2Status;
 
+const headingStyle = {
+  fontFamily: "var(--font-heading)",
+  fontWeight: 700,
+  color: "var(--ink)",
+} as const;
+
 function normalizeListLang(code: string | null): string {
   if (code && KNOWN_LANGUAGE_CODES.has(code)) return code;
   return "fra";
 }
 
-function statusDotColor(s: ListWordSm2Status): string {
-  if (s === "mastered") return GREEN;
-  if (s === "progress") return GOLD;
-  return DOT_NEW;
+function isoCode(code: string): string {
+  return toIso6391(code).toUpperCase();
 }
+
+function languageLabel(code: string): string {
+  return (
+    PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code.toUpperCase()
+  );
+}
+
+function StatusBadge({ status }: { status: ListWordSm2Status }) {
+  if (status === "mastered") {
+    return (
+      <span className="inline-flex min-h-[28px] items-center gap-1 rounded-full bg-just-bg px-2.5 text-xs font-medium text-just-text">
+        <Check size={14} strokeWidth={2.5} className="text-just-sign" aria-hidden />
+        Maîtrisé
+      </span>
+    );
+  }
+  if (status === "progress") {
+    return (
+      <span className="inline-flex min-h-[28px] items-center gap-1 rounded-full border border-line bg-surface px-2.5 text-xs font-medium text-muted">
+        <Circle size={8} fill="currentColor" className="text-ink" aria-hidden />
+        En cours
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex min-h-[28px] items-center gap-1 rounded-full border border-dashed border-line bg-page px-2.5 text-xs font-medium text-muted">
+      <Circle size={8} fill="var(--line)" aria-hidden />
+      Nouveau
+    </span>
+  );
+}
+
+const FILTER_PILLS: { key: StatusFilter; label: string }[] = [
+  { key: "all", label: "Tous" },
+  { key: "mastered", label: "Maîtrisés" },
+  { key: "progress", label: "En cours" },
+  { key: "new", label: "Nouveaux" },
+];
 
 export function MotsClient({
   listId,
@@ -89,17 +122,12 @@ export function MotsClient({
   const [editTerm, setEditTerm] = useState("");
   const [editDef, setEditDef] = useState("");
   const [search, setSearch] = useState("");
-  const [sortAsc, setSortAsc] = useState(true);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
   const [reviseOpen, setReviseOpen] = useState(false);
-  const [filterOpen, setFilterOpen] = useState(false);
 
   const reviseRef = useRef<HTMLDivElement>(null);
-  const filterRef = useRef<HTMLDivElement>(null);
   const langRef = useRef<HTMLDivElement>(null);
   const titleInputRef = useRef<HTMLInputElement>(null);
-
-  const flagEmoji = getFlagEmoji(listLangCode) || "🌐";
 
   useEffect(() => {
     setMots(initialMots);
@@ -122,16 +150,15 @@ export function MotsClient({
   }, [editingTitle]);
 
   useEffect(() => {
-    if (!reviseOpen && !filterOpen && !langOpen) return;
+    if (!reviseOpen && !langOpen) return;
     function onDown(e: MouseEvent) {
       const t = e.target as Node;
       if (reviseRef.current && !reviseRef.current.contains(t)) setReviseOpen(false);
-      if (filterRef.current && !filterRef.current.contains(t)) setFilterOpen(false);
       if (langRef.current && !langRef.current.contains(t)) setLangOpen(false);
     }
     document.addEventListener("mousedown", onDown);
     return () => document.removeEventListener("mousedown", onDown);
-  }, [reviseOpen, filterOpen, langOpen]);
+  }, [reviseOpen, langOpen]);
 
   const filteredMots = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -146,12 +173,10 @@ export function MotsClient({
       arr = arr.filter((m) => m.sm2Status === statusFilter);
     }
     arr = [...arr].sort((a, b) =>
-      sortAsc
-        ? a.term.localeCompare(b.term, "fr", { sensitivity: "base" })
-        : b.term.localeCompare(a.term, "fr", { sensitivity: "base" })
+      a.term.localeCompare(b.term, "fr", { sensitivity: "base" })
     );
     return arr;
-  }, [mots, search, statusFilter, sortAsc]);
+  }, [mots, search, statusFilter]);
 
   const revisionBase = `/app/revision`;
   const flashcardsHref = `${revisionBase}/flashcards?listIds=${encodeURIComponent(listId)}`;
@@ -277,24 +302,59 @@ export function MotsClient({
     setEditDef(m.definition);
   }
 
-  function filterLabel() {
-    switch (statusFilter) {
-      case "mastered":
-        return "Maîtrisés";
-      case "progress":
-        return "En cours";
-      case "new":
-        return "Nouveaux";
-      default:
-        return "Tous";
-    }
-  }
-
   return (
-    <div className="font-sans">
-      {/* Header */}
-      <div className="mb-[14px] flex items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-2" style={{ gap: 8 }}>
+    <div className="flex flex-col gap-5 font-sans">
+      {/* En-tête */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
+          <div ref={langRef} className="relative shrink-0">
+            {canEdit ? (
+              <>
+                <button
+                  type="button"
+                  disabled={langSaving}
+                  onClick={() => setLangOpen((o) => !o)}
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border-[1.5px] border-ink bg-surface px-2 py-1.5 text-sm font-medium text-ink"
+                  aria-expanded={langOpen}
+                  aria-haspopup="listbox"
+                  aria-label={`Langue : ${languageLabel(listLangCode)}`}
+                >
+                  <LanguagePill code={isoCode(listLangCode)} />
+                  <ChevronDown size={14} strokeWidth={2} className="opacity-70" aria-hidden />
+                </button>
+                {langOpen && (
+                  <ul
+                    className="absolute left-0 z-20 mt-1 max-h-64 min-w-[200px] overflow-auto rounded-xl border border-line bg-surface py-1 shadow-[var(--shadow-elevated)]"
+                    role="listbox"
+                  >
+                    {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
+                      <li key={opt.value}>
+                        <button
+                          type="button"
+                          className="flex w-full min-h-11 items-center gap-2 px-3 py-2 text-left text-sm hover:bg-[var(--hover-bg)]"
+                          style={{
+                            fontWeight: listLangCode === opt.value ? 600 : 400,
+                          }}
+                          onClick={() => setListLanguage(opt.value)}
+                        >
+                          <LanguagePill code={isoCode(opt.value)} />
+                          {opt.label}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </>
+            ) : (
+              <span
+                className="inline-flex min-h-11 items-center rounded-lg border-[1.5px] border-ink bg-surface px-2"
+                title="Langue de la liste"
+              >
+                <LanguagePill code={isoCode(listLangCode)} />
+              </span>
+            )}
+          </div>
+
           {editingTitle && canEdit ? (
             <input
               ref={titleInputRef}
@@ -309,8 +369,8 @@ export function MotsClient({
                   setEditingTitle(false);
                 }
               }}
-              className="min-w-0 max-w-full rounded-lg border border-line bg-surface px-2 py-1 outline-none focus:ring-2 focus:ring-ink/20"
-              style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}
+              className="min-w-0 max-w-full flex-1 rounded-xl border border-line bg-surface px-3 py-2 font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              style={{ fontSize: 22, ...headingStyle }}
               aria-label="Nom de la liste"
             />
           ) : (
@@ -318,119 +378,27 @@ export function MotsClient({
               type="button"
               disabled={!canEdit}
               onClick={() => canEdit && setEditingTitle(true)}
-              className="group flex min-w-0 max-w-[min(100%,280px)] cursor-text items-center gap-1.5 rounded-lg border-none bg-transparent text-left transition-colors duration-150 sm:max-w-[min(100%,360px)]"
-              style={{ borderRadius: 8, padding: "3px 6px", gap: 6 }}
-              onMouseEnter={(e) => {
-                if (canEdit) e.currentTarget.style.background = "var(--background-subtle)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.background = "transparent";
-              }}
+              className="group flex min-h-11 min-w-0 max-w-full flex-1 items-center gap-2 rounded-lg border-none bg-transparent text-left"
             >
               <span
                 className="truncate"
-                style={{ fontSize: 20, fontWeight: 500, color: "var(--foreground)" }}
+                style={{ fontSize: 22, lineHeight: 1.15, ...headingStyle }}
               >
                 {displayName}
               </span>
               {canEdit && (
                 <Pencil
-                  size={13}
-                  stroke={VIOLET}
+                  size={16}
                   strokeWidth={2}
-                  className="shrink-0 opacity-[0.35] transition-opacity duration-150 group-hover:opacity-100"
+                  className="shrink-0 text-ink opacity-40 transition-opacity group-hover:opacity-100"
                   aria-hidden
                 />
               )}
             </button>
           )}
-
-          <div ref={langRef} className="relative shrink-0">
-            {canEdit ? (
-              <>
-                <button
-                  type="button"
-                  disabled={langSaving}
-                  onClick={() => setLangOpen((o) => !o)}
-                  className="inline-flex items-center gap-1 border transition-colors"
-                  style={{
-                    background: "var(--background-subtle)",
-                    border: `0.5px solid ${BORDER_TERTIARY}`,
-                    borderRadius: 20,
-                    padding: "3px 8px 3px 5px",
-                    gap: 4,
-                    cursor: "pointer",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "var(--background-subtle)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "var(--background-subtle)";
-                  }}
-                  aria-expanded={langOpen}
-                  aria-haspopup="listbox"
-                >
-                  <span className="leading-none" style={{ fontSize: 16 }}>
-                    {flagEmoji}
-                  </span>
-                  <ChevronDown
-                    size={10}
-                    stroke={VIOLET}
-                    strokeWidth={2}
-                    className="opacity-60"
-                    aria-hidden
-                  />
-                </button>
-                {langOpen && (
-                  <ul
-                    className="absolute left-0 z-20 mt-1 max-h-64 overflow-auto rounded-xl border bg-surface py-1 shadow-md"
-                    style={{
-                      borderColor: BORDER_SECONDARY,
-                      minWidth: 180,
-                    }}
-                    role="listbox"
-                  >
-                    {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
-                      <li key={opt.value}>
-                        <button
-                          type="button"
-                          className="flex w-full items-center gap-2 px-3 py-2 text-left text-xs hover:bg-[var(--background-subtle)]"
-                          style={{
-                            fontWeight: listLangCode === opt.value ? 600 : 400,
-                          }}
-                          onClick={() => setListLanguage(opt.value)}
-                        >
-                          <span className="text-base leading-none">
-                            {getFlagEmoji(opt.value)}
-                          </span>
-                          {opt.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            ) : (
-              <span
-                className="inline-flex items-center gap-1 border"
-                style={{
-                  background: "var(--background-subtle)",
-                  border: `0.5px solid ${BORDER_TERTIARY}`,
-                  borderRadius: 20,
-                  padding: "3px 8px 3px 5px",
-                  gap: 4,
-                }}
-                title="Langue de la liste"
-              >
-                <span className="leading-none" style={{ fontSize: 16 }}>
-                  {flagEmoji}
-                </span>
-              </span>
-            )}
-          </div>
         </div>
 
-        <div ref={reviseRef} className="relative flex shrink-0 items-center gap-2" style={{ gap: 8 }}>
+        <div ref={reviseRef} className="relative flex shrink-0 items-center gap-2">
           {canEdit && (
             <button
               type="button"
@@ -438,17 +406,9 @@ export function MotsClient({
                 if (leaveForAbonnement()) return;
                 setAdding((a) => !a);
               }}
-              className="inline-flex items-center gap-1.5 border-[1.5px] bg-transparent font-medium"
-              style={{
-                borderColor: VIOLET,
-                color: VIOLET,
-                borderRadius: 20,
-                padding: "7px 14px",
-                fontSize: 12,
-                fontWeight: 500,
-              }}
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full border-[1.5px] border-ink bg-surface px-4 text-sm font-medium text-ink"
             >
-              <Plus size={11} stroke={VIOLET} strokeWidth={2.5} aria-hidden />
+              <Plus size={16} strokeWidth={2.25} aria-hidden />
               Ajouter
             </button>
           )}
@@ -459,185 +419,119 @@ export function MotsClient({
               if (leaveForAbonnement()) return;
               setReviseOpen((o) => !o);
             }}
-            className="inline-flex items-center gap-1 border-none font-medium text-surface"
-            style={{
-              background: VIOLET,
-              borderRadius: 20,
-              padding: "7px 14px",
-              fontSize: 12,
-              fontWeight: 500,
-            }}
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-ink px-4 text-sm font-medium text-surface"
           >
-            <Zap size={11} stroke="white" strokeWidth={2.5} fill="none" aria-hidden />
             Réviser
-            <ChevronDown size={10} stroke="white" strokeWidth={2.5} aria-hidden />
+            <ChevronDown size={14} strokeWidth={2.25} aria-hidden />
           </button>
 
           {reviseOpen && (
-            <div
-              className="absolute z-10 overflow-hidden bg-surface"
-              style={{
-                top: "calc(100% + 6px)",
-                right: 0,
-                width: 160,
-                borderRadius: 12,
-                border: `0.5px solid ${BORDER_SECONDARY}`,
-                boxShadow: "0 8px 24px color-mix(in srgb, var(--ink) 12%, transparent)",
-              }}
-            >
+            <div className="absolute right-0 top-[calc(100%+6px)] z-10 w-44 overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow-elevated)]">
               <Link
                 href={flashcardsHref}
-                className="flex cursor-pointer items-center gap-2.5 border-b py-[11px] pr-3 pl-3.5 no-underline transition-colors hover:bg-[var(--background-subtle)]"
-                style={{ borderBottom: `0.5px solid ${BORDER_TERTIARY}` }}
+                className="flex min-h-11 items-center gap-2.5 border-b border-line px-3.5 py-2.5 no-underline transition-colors hover:bg-[var(--hover-bg)]"
                 onClick={() => setReviseOpen(false)}
               >
-                <div
-                  className="flex shrink-0 items-center justify-center"
-                  style={{
-                    width: 28,
-                    height: 28,
-                    background: "var(--background-subtle)",
-                    borderRadius: 7,
-                  }}
-                >
-                  <CreditCard size={14} stroke={VIOLET} strokeWidth={2} />
-                </div>
-                <span
-                  className="font-medium"
-                  style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}
-                >
-                  Flashcards
-                </span>
+                <CreditCard size={16} strokeWidth={2} className="text-ink" aria-hidden />
+                <span className="text-sm font-medium text-ink">Flashcards</span>
               </Link>
               <Link
                 href={dicteeHref}
-                className="flex cursor-pointer items-center gap-2.5 py-[11px] pr-3 pl-3.5 no-underline transition-colors hover:bg-[var(--background-subtle)]"
+                className="flex min-h-11 items-center gap-2.5 px-3.5 py-2.5 no-underline transition-colors hover:bg-[var(--hover-bg)]"
                 onClick={() => setReviseOpen(false)}
               >
-                <div
-                  className="flex shrink-0 items-center justify-center"
-                  style={{
-                    width: 28,
-                    height: 28,
-                    background: "var(--mark)",
-                    borderRadius: 7,
-                  }}
-                >
-                  <Pencil size={14} stroke="var(--ink)" strokeWidth={2} />
-                </div>
-                <span
-                  className="font-medium"
-                  style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}
-                >
-                  Dictée
+                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-mark">
+                  <Pencil size={14} strokeWidth={2} className="text-ink" aria-hidden />
                 </span>
+                <span className="text-sm font-medium text-ink">Dictée</span>
               </Link>
             </div>
           )}
         </div>
       </div>
 
-      {/* Bannière progression */}
-      <div
-        className="mb-[14px]"
-        style={{
-          background: BANNER_BG,
-          border: `0.5px solid ${BORDER_TERTIARY}`,
-          borderRadius: 10,
-          padding: "12px 14px",
-          marginBottom: 14,
-        }}
+      {/* Maîtrise */}
+      <section
+        className="rounded-[20px] border border-line bg-surface p-4"
+        aria-label="Maîtrise de la liste"
       >
-        <div className="mb-1 flex justify-between gap-2">
-          <span style={{ fontSize: 11, fontWeight: 500, color: VIOLET }}>
-            Maîtrise de la liste
-          </span>
-          <span style={{ fontSize: 11, fontWeight: 500, color: VIOLET }}>
-            {masteryPct}%
-          </span>
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <span className="text-sm font-medium text-ink">Maîtrise de la liste</span>
+          <span className="text-sm font-medium text-ink">{masteryPct} %</span>
         </div>
         <div
-          className="overflow-hidden"
-          style={{
-            height: 5,
-            background: BORDER_TERTIARY,
-            borderRadius: 3,
-            marginBottom: 6,
-          }}
+          className="mb-3 h-2 overflow-hidden rounded-full border-[1.5px] border-ink bg-page"
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={masteryPct}
         >
           <div
-            style={{
-              height: "100%",
-              width: `${masteryPct}%`,
-              background: VIOLET,
-              borderRadius: 3,
-              transition: "width 0.35s ease",
-            }}
+            className="h-full rounded-full bg-mark transition-[width] duration-300"
+            style={{ width: `${masteryPct}%` }}
           />
         </div>
-        <div className="flex flex-wrap" style={{ gap: 12 }}>
-          <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-            <span className="inline-block rounded-full" style={{ width: 6, height: 6, background: GREEN }} />
-            {stats.mastered} maîtrisés
+        <div className="flex flex-wrap gap-4 text-sm text-muted">
+          <span>
+            <span className="font-medium text-ink">{stats.mastered}</span> maîtrisés
           </span>
-          <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-            <span className="inline-block rounded-full" style={{ width: 6, height: 6, background: GOLD }} />
-            {stats.progress} en cours
+          <span>
+            <span className="font-medium text-ink">{stats.progress}</span> en cours
           </span>
-          <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-            <span className="inline-block rounded-full" style={{ width: 6, height: 6, background: DOT_NEW }} />
-            {stats.new} nouveaux
+          <span>
+            <span className="font-medium text-ink">{stats.new}</span> nouveaux
           </span>
         </div>
-      </div>
+      </section>
 
       {canEdit && adding && (
-        <div
-          className="mb-[14px] flex flex-wrap items-end gap-2 rounded-[12px] border bg-surface p-3"
-          style={{ borderColor: BORDER_TERTIARY, marginBottom: 14 }}
-        >
-          <input
-            type="text"
-            value={newTerm}
-            onChange={(e) => setNewTerm(e.target.value)}
-            placeholder="Mot"
-            className="min-w-[120px] flex-1 rounded-lg border px-3 py-2 text-sm"
-            style={{ borderColor: BORDER_SECONDARY }}
-          />
-          <input
-            type="text"
-            value={newDef}
-            onChange={(e) => setNewDef(e.target.value)}
-            placeholder="Traduction"
-            className="min-w-[120px] flex-1 rounded-lg border px-3 py-2 text-sm"
-            style={{ borderColor: BORDER_SECONDARY }}
-          />
-          <button
-            type="button"
-            onClick={addWord}
-            disabled={loading || !newTerm.trim()}
-            className="rounded-full px-4 py-2 text-xs font-medium text-surface disabled:opacity-50"
-            style={{ background: VIOLET }}
-          >
-            Enregistrer
-          </button>
-          <button
-            type="button"
-            onClick={() => setAdding(false)}
-            className="rounded-full border px-4 py-2 text-xs"
-            style={{ borderColor: BORDER_SECONDARY, color: "var(--foreground-muted)" }}
-          >
-            Annuler
-          </button>
+        <div className="flex flex-col gap-3 rounded-[20px] border border-line bg-surface p-4 sm:flex-row sm:flex-wrap sm:items-end">
+          <label className="min-w-0 flex-1">
+            <span className="mb-1 block text-xs font-medium text-muted">Mot</span>
+            <input
+              type="text"
+              value={newTerm}
+              onChange={(e) => setNewTerm(e.target.value)}
+              placeholder="Mot"
+              className="min-h-11 w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink"
+            />
+          </label>
+          <label className="min-w-0 flex-1">
+            <span className="mb-1 block text-xs font-medium text-muted">Traduction</span>
+            <input
+              type="text"
+              value={newDef}
+              onChange={(e) => setNewDef(e.target.value)}
+              placeholder="Traduction"
+              className="min-h-11 w-full rounded-xl border border-line bg-surface px-3 text-sm text-ink"
+            />
+          </label>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={addWord}
+              disabled={loading || !newTerm.trim()}
+              className="inline-flex min-h-11 items-center rounded-full bg-ink px-5 text-sm font-medium text-surface disabled:opacity-50"
+            >
+              Enregistrer
+            </button>
+            <button
+              type="button"
+              onClick={() => setAdding(false)}
+              className="inline-flex min-h-11 items-center rounded-full border border-line px-4 text-sm text-muted"
+            >
+              Annuler
+            </button>
+          </div>
         </div>
       )}
 
-      {/* Toolbar */}
-      <div className="mb-[14px] flex flex-wrap gap-2" style={{ marginBottom: 14, gap: 8 }}>
-        <div className="relative min-w-[200px] flex-1">
+      {/* Recherche et filtres */}
+      <div className="flex flex-col gap-3">
+        <div className="relative w-full">
           <Search
-            className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[var(--foreground-muted)]"
-            size={14}
+            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted"
+            size={18}
             strokeWidth={2}
             aria-hidden
           />
@@ -645,189 +539,184 @@ export function MotsClient({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher…"
-            className="w-full rounded-[20px] border bg-surface py-2 pr-3 text-sm outline-none focus:ring-2 focus:ring-ink/25"
-            style={{
-              borderColor: BORDER_SECONDARY,
-              paddingLeft: 28,
-            }}
+            placeholder="Rechercher un mot…"
+            className="min-h-11 w-full rounded-full border border-line bg-surface py-2 pl-10 pr-4 text-sm text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink/25"
           />
         </div>
-        <button
-          type="button"
-          onClick={() => setSortAsc((v) => !v)}
-          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border bg-surface px-3 py-1.5"
-          style={{ borderColor: BORDER_SECONDARY, fontSize: 11 }}
-        >
-          <ArrowUpDown size={11} strokeWidth={2} className="text-[var(--foreground-muted)]" />
-          Trier {sortAsc ? "A→Z" : "Z→A"}
-        </button>
-        <div ref={filterRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setFilterOpen((o) => !o)}
-            className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-2xl border bg-surface px-3 py-1.5"
-            style={{ borderColor: BORDER_SECONDARY, fontSize: 11 }}
-          >
-            <Filter size={11} strokeWidth={2} className="text-[var(--foreground-muted)]" />
-            Filtrer · {filterLabel()}
-          </button>
-          {filterOpen && (
-            <div
-              className="absolute right-0 z-10 mt-1 overflow-hidden rounded-xl border bg-surface py-1 shadow-md"
-              style={{ borderColor: BORDER_SECONDARY, minWidth: 140 }}
-            >
-              {(
-                [
-                  ["all", "Tous"],
-                  ["mastered", "Maîtrisés"],
-                  ["progress", "En cours"],
-                  ["new", "Nouveaux"],
-                ] as const
-              ).map(([key, label]) => (
-                <button
-                  key={key}
-                  type="button"
-                  className="block w-full px-3 py-2 text-left text-xs hover:bg-[var(--background-subtle)]"
-                  style={{
-                    fontWeight: statusFilter === key ? 600 : 400,
-                    color: "var(--foreground)",
-                  }}
-                  onClick={() => {
-                    setStatusFilter(key);
-                    setFilterOpen(false);
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          )}
+        <div className="flex flex-wrap gap-2">
+          {FILTER_PILLS.map(({ key, label }) => {
+            const active = statusFilter === key;
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setStatusFilter(key)}
+                className={`inline-flex min-h-11 items-center rounded-full px-4 text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-ink text-surface"
+                    : "border border-line bg-surface text-muted"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      <p
-        className="mb-2.5 font-medium uppercase tracking-wide"
-        style={{
-          fontSize: 11,
-          fontWeight: 500,
-          letterSpacing: "0.05em",
-          color: "var(--foreground-muted)",
-          marginBottom: 10,
-        }}
-      >
+      <p className="text-sm font-medium text-muted">
         {filteredMots.length} mot{filteredMots.length !== 1 ? "s" : ""}
       </p>
 
-      {/* Liste */}
-      <div
-        className="overflow-hidden bg-surface"
-        style={{
-          borderRadius: 12,
-          border: `0.5px solid ${BORDER_TERTIARY}`,
-        }}
-      >
-        {filteredMots.length === 0 ? (
-          <p className="px-4 py-8 text-center text-sm text-[var(--foreground-muted)]">
-            Aucun mot à afficher.
-          </p>
-        ) : (
-          filteredMots.map((m, i) => (
-            <div
-              key={m.id}
-              className="group flex items-center gap-2.5 px-3.5 py-[11px] transition-colors hover:bg-page max-sm:flex-wrap"
-              style={{
-                gap: 10,
-                padding: "11px 14px",
-                borderBottom:
-                  i < filteredMots.length - 1 ? `0.5px solid ${BORDER_TERTIARY}` : undefined,
-              }}
-            >
-              {editingId === m.id && canEdit ? (
-                <div className="flex w-full flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    type="text"
-                    value={editTerm}
-                    onChange={(e) => setEditTerm(e.target.value)}
-                    className="flex-1 rounded-lg border px-2 py-1.5 text-sm"
-                    style={{ borderColor: BORDER_SECONDARY }}
-                  />
-                  <input
-                    type="text"
-                    value={editDef}
-                    onChange={(e) => setEditDef(e.target.value)}
-                    className="flex-1 rounded-lg border px-2 py-1.5 text-sm"
-                    style={{ borderColor: BORDER_SECONDARY }}
-                  />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => updateWord(m.id, editTerm, editDef)}
-                      disabled={loading}
-                      className="rounded-lg px-3 py-1 text-xs font-medium text-surface disabled:opacity-50"
-                      style={{ background: VIOLET }}
+      {/* Tableau desktop / cartes mobile */}
+      {filteredMots.length === 0 ? (
+        <div className="rounded-[20px] border border-line bg-surface px-4 py-10 text-center text-sm text-muted">
+          Aucun mot à afficher.
+        </div>
+      ) : (
+        <>
+          <div className="hidden overflow-hidden rounded-[20px] border border-line bg-surface md:block">
+            <table className="w-full border-collapse text-left text-sm">
+              <thead>
+                <tr className="border-b border-line bg-page text-xs font-medium uppercase tracking-wide text-muted">
+                  <th className="px-4 py-3 font-medium">Mot</th>
+                  <th className="px-4 py-3 font-medium">Traduction</th>
+                  <th className="px-4 py-3 font-medium">Statut</th>
+                  {canEdit && <th className="px-4 py-3 text-right font-medium">Actions</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMots.map((m) =>
+                  editingId === m.id && canEdit ? (
+                    <tr key={m.id} className="border-b border-line last:border-b-0">
+                      <td colSpan={canEdit ? 4 : 3} className="px-4 py-3">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <input
+                            type="text"
+                            value={editTerm}
+                            onChange={(e) => setEditTerm(e.target.value)}
+                            className="min-h-11 min-w-[120px] flex-1 rounded-lg border border-line px-3"
+                          />
+                          <input
+                            type="text"
+                            value={editDef}
+                            onChange={(e) => setEditDef(e.target.value)}
+                            className="min-h-11 min-w-[120px] flex-1 rounded-lg border border-line px-3"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => updateWord(m.id, editTerm, editDef)}
+                            disabled={loading}
+                            className="min-h-11 rounded-full bg-ink px-4 text-xs font-medium text-surface disabled:opacity-50"
+                          >
+                            Enregistrer
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setEditingId(null)}
+                            className="min-h-11 rounded-full border border-line px-4 text-xs text-muted"
+                          >
+                            Annuler
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    <tr
+                      key={m.id}
+                      className="border-b border-line last:border-b-0 hover:bg-page/80"
                     >
-                      OK
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingId(null)}
-                      className="rounded-lg border px-3 py-1 text-xs"
-                      style={{ borderColor: BORDER_SECONDARY }}
-                    >
-                      Annuler
-                    </button>
+                      <td className="px-4 py-3 font-medium text-ink">{m.term}</td>
+                      <td className="px-4 py-3 text-muted">{m.definition || "—"}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={m.sm2Status} />
+                      </td>
+                      {canEdit && (
+                        <td className="px-4 py-3">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => startEdit(m)}
+                              className="inline-flex min-h-11 items-center rounded-lg border border-line px-3 text-xs font-medium text-muted"
+                            >
+                              Modifier
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => deleteWord(m.id)}
+                              disabled={loading}
+                              className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-false-sign px-3 text-xs font-medium text-false-text disabled:opacity-50"
+                            >
+                              <Trash2 size={14} aria-hidden />
+                              Supprimer
+                            </button>
+                          </div>
+                        </td>
+                      )}
+                    </tr>
+                  )
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          <ul className="flex flex-col gap-3 md:hidden">
+            {filteredMots.map((m) =>
+              editingId === m.id && canEdit ? (
+                <li
+                  key={m.id}
+                  className="rounded-[20px] border border-line bg-surface p-4"
+                >
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      value={editTerm}
+                      onChange={(e) => setEditTerm(e.target.value)}
+                      className="min-h-11 w-full rounded-lg border border-line px-3 text-sm"
+                    />
+                    <input
+                      type="text"
+                      value={editDef}
+                      onChange={(e) => setEditDef(e.target.value)}
+                      className="min-h-11 w-full rounded-lg border border-line px-3 text-sm"
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => updateWord(m.id, editTerm, editDef)}
+                        disabled={loading}
+                        className="min-h-11 flex-1 rounded-full bg-ink text-sm font-medium text-surface disabled:opacity-50"
+                      >
+                        Enregistrer
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditingId(null)}
+                        className="min-h-11 flex-1 rounded-full border border-line text-sm text-muted"
+                      >
+                        Annuler
+                      </button>
+                    </div>
                   </div>
-                </div>
+                </li>
               ) : (
-                <>
-                  <span
-                    className="min-w-[18px] shrink-0 text-center tabular-nums"
-                    style={{ fontSize: 11, color: "var(--foreground-muted)" }}
-                  >
-                    {i + 1}
-                  </span>
-                  <span
-                    className="inline-block shrink-0 rounded-full"
-                    style={{
-                      width: 8,
-                      height: 8,
-                      background: statusDotColor(m.sm2Status),
-                    }}
-                    title={m.sm2Status}
-                  />
-                  <span
-                    className="min-w-0 flex-1 font-medium"
-                    style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}
-                  >
-                    {m.term}
-                  </span>
-                  <span
-                    className="hidden h-4 w-px shrink-0 sm:block"
-                    style={{ background: BORDER_TERTIARY }}
-                    aria-hidden
-                  />
-                  <span
-                    className="min-w-0 flex-1"
-                    style={{ fontSize: 13, color: "var(--foreground-muted)" }}
-                  >
-                    {m.definition || "\u00A0"}
-                  </span>
+                <li
+                  key={m.id}
+                  className="rounded-[20px] border border-line bg-surface p-4"
+                >
+                  <div className="mb-2 flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="font-medium text-ink">{m.term}</p>
+                      <p className="mt-1 text-sm text-muted">{m.definition || "—"}</p>
+                    </div>
+                    <StatusBadge status={m.sm2Status} />
+                  </div>
                   {canEdit && (
-                    <div
-                      className="flex shrink-0 gap-1.5 opacity-0 transition-opacity group-hover:opacity-100 max-sm:w-full max-sm:justify-end max-sm:opacity-100"
-                      style={{ transitionDuration: "120ms" }}
-                    >
+                    <div className="mt-3 flex gap-2">
                       <button
                         type="button"
                         onClick={() => startEdit(m)}
-                        className="rounded-lg border bg-transparent text-[11px]"
-                        style={{
-                          borderColor: BORDER_SECONDARY,
-                          color: "var(--foreground-muted)",
-                          padding: "4px 9px",
-                          borderRadius: 8,
-                        }}
+                        className="inline-flex min-h-11 flex-1 items-center justify-center rounded-full border border-line text-sm font-medium text-muted"
                       >
                         Modifier
                       </button>
@@ -835,40 +724,19 @@ export function MotsClient({
                         type="button"
                         onClick={() => deleteWord(m.id)}
                         disabled={loading}
-                        className="rounded-lg border bg-transparent text-[11px] disabled:opacity-50"
-                        style={{
-                          borderColor: RED_BORDER,
-                          color: RED_TEXT,
-                          padding: "4px 9px",
-                          borderRadius: 8,
-                        }}
+                        className="inline-flex min-h-11 flex-1 items-center justify-center gap-1 rounded-full border border-false-sign text-sm font-medium text-false-text disabled:opacity-50"
                       >
+                        <Trash2 size={14} aria-hidden />
                         Supprimer
                       </button>
                     </div>
                   )}
-                </>
-              )}
-            </div>
-          ))
-        )}
-      </div>
-
-      {/* Légende */}
-      <div className="mt-2.5 flex flex-wrap" style={{ marginTop: 10, gap: 12 }}>
-        <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-          <span className="inline-block rounded-full" style={{ width: 6, height: 6, background: GREEN }} />
-          Maîtrisé
-        </span>
-        <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-          <span className="inline-block rounded-full" style={{ width: 6, height: 6, background: GOLD }} />
-          En cours
-        </span>
-        <span className="inline-flex items-center gap-1.5" style={{ fontSize: 11, color: "var(--foreground-muted)" }}>
-          <span className="inline-block rounded-full" style={{ width: 6, height: 6, background: DOT_NEW }} />
-          Nouveau
-        </span>
-      </div>
+                </li>
+              )
+            )}
+          </ul>
+        </>
+      )}
     </div>
   );
 }
