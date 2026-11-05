@@ -10,9 +10,15 @@ import {
   Pencil,
   Search,
   Check,
+  X,
   Circle,
   Trash2,
 } from "lucide-react";
+import {
+  LIST_NAME_FIELD_PROPS,
+  VOCAB_SEARCH_FIELD_PROPS,
+  VOCAB_WORD_FIELD_PROPS,
+} from "@/components/list-name-input";
 import type { ListWordSm2Status } from "@/lib/list-word-sm2";
 import {
   PREFERRED_LANGUAGE_OPTIONS,
@@ -182,13 +188,18 @@ export function MotsClient({
   const flashcardsHref = `${revisionBase}/flashcards?listIds=${encodeURIComponent(listId)}`;
   const dicteeHref = `${revisionBase}/dictee?listIds=${encodeURIComponent(listId)}`;
 
-  async function commitTitle() {
-    const t = titleInput.trim();
+  function cancelTitleEdit() {
+    setTitleInput(displayName);
     setEditingTitle(false);
+  }
+
+  async function saveTitle() {
+    const t = titleInput.trim();
     if (!t || t === displayName) {
-      setTitleInput(displayName);
+      cancelTitleEdit();
       return;
     }
+    setEditingTitle(false);
     setLoading(true);
     try {
       const res = await fetch(`/api/listes/${listId}`, {
@@ -305,100 +316,123 @@ export function MotsClient({
   return (
     <div className="flex flex-col gap-5 font-sans">
       {/* En-tête */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
-          <div ref={langRef} className="relative shrink-0">
-            {canEdit ? (
-              <>
-                <button
-                  type="button"
-                  disabled={langSaving}
-                  onClick={() => setLangOpen((o) => !o)}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border-[1.5px] border-ink bg-surface px-2 py-1.5 text-sm font-medium text-ink"
-                  aria-expanded={langOpen}
-                  aria-haspopup="listbox"
-                  aria-label={`Langue : ${languageLabel(listLangCode)}`}
-                >
-                  <LanguagePill code={isoCode(listLangCode)} />
-                  <ChevronDown size={14} strokeWidth={2} className="opacity-70" aria-hidden />
-                </button>
-                {langOpen && (
-                  <ul
-                    className="absolute left-0 z-20 mt-1 max-h-64 min-w-[200px] overflow-auto rounded-xl border border-line bg-surface py-1 shadow-[var(--shadow-elevated)]"
-                    role="listbox"
-                  >
-                    {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
-                      <li key={opt.value}>
-                        <button
-                          type="button"
-                          className="flex w-full min-h-11 items-center gap-2 px-3 py-2 text-left text-sm hover:bg-[var(--hover-bg)]"
-                          style={{
-                            fontWeight: listLangCode === opt.value ? 600 : 400,
-                          }}
-                          onClick={() => setListLanguage(opt.value)}
-                        >
-                          <LanguagePill code={isoCode(opt.value)} />
-                          {opt.label}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </>
-            ) : (
-              <span
-                className="inline-flex min-h-11 items-center rounded-lg border-[1.5px] border-ink bg-surface px-2"
-                title="Langue de la liste"
-              >
-                <LanguagePill code={isoCode(listLangCode)} />
-              </span>
-            )}
-          </div>
-
-          {editingTitle && canEdit ? (
+      <div className="flex min-w-0 flex-col gap-3">
+        {editingTitle && canEdit ? (
+          <div className="flex w-full min-w-0 flex-col gap-2">
             <input
               ref={titleInputRef}
-              type="text"
+              {...LIST_NAME_FIELD_PROPS}
               value={titleInput}
               onChange={(e) => setTitleInput(e.target.value)}
-              onBlur={commitTitle}
               onKeyDown={(e) => {
-                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void saveTitle();
+                }
                 if (e.key === "Escape") {
-                  setTitleInput(displayName);
-                  setEditingTitle(false);
+                  e.preventDefault();
+                  cancelTitleEdit();
                 }
               }}
-              className="min-w-0 max-w-full flex-1 rounded-xl border border-line bg-surface px-3 py-2 font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
+              className="min-h-11 w-full min-w-0 rounded-xl border border-line bg-surface px-3 py-2 font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink"
               style={{ fontSize: 22, ...headingStyle }}
               aria-label="Nom de la liste"
             />
-          ) : (
-            <button
-              type="button"
-              disabled={!canEdit}
-              onClick={() => canEdit && setEditingTitle(true)}
-              className="group flex min-h-11 min-w-0 max-w-full flex-1 items-center gap-2 rounded-lg border-none bg-transparent text-left"
-            >
-              <span
-                className="truncate"
-                style={{ fontSize: 22, lineHeight: 1.15, ...headingStyle }}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => void saveTitle()}
+                disabled={loading || !titleInput.trim()}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-ink px-4 text-sm font-medium text-surface disabled:opacity-50"
+                aria-label="Enregistrer"
               >
-                {displayName}
-              </span>
-              {canEdit && (
-                <Pencil
-                  size={16}
-                  strokeWidth={2}
-                  className="shrink-0 text-ink opacity-40 transition-opacity group-hover:opacity-100"
-                  aria-hidden
-                />
+                <Check size={16} strokeWidth={2.5} aria-hidden />
+                Enregistrer
+              </button>
+              <button
+                type="button"
+                onClick={cancelTitleEdit}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-line bg-surface px-4 text-sm font-medium text-muted"
+                aria-label="Annuler"
+              >
+                <X size={16} strokeWidth={2.25} aria-hidden />
+                Annuler
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            type="button"
+            disabled={!canEdit}
+            onClick={() => canEdit && setEditingTitle(true)}
+            className="group flex w-full min-w-0 items-start gap-2 rounded-lg border-none bg-transparent text-left"
+          >
+            <span
+              className="min-w-0 flex-1 break-words"
+              style={{ fontSize: 22, lineHeight: 1.15, ...headingStyle }}
+            >
+              {displayName}
+            </span>
+            {canEdit && (
+              <Pencil
+                size={18}
+                strokeWidth={2}
+                className="mt-0.5 shrink-0 text-ink opacity-50 transition-opacity group-hover:opacity-100"
+                aria-hidden
+              />
+            )}
+          </button>
+        )}
+
+        <div ref={langRef} className="relative w-fit max-w-full">
+          {canEdit ? (
+            <>
+              <button
+                type="button"
+                disabled={langSaving}
+                onClick={() => setLangOpen((o) => !o)}
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border-[1.5px] border-ink bg-surface px-2 py-1.5 text-sm font-medium text-ink"
+                aria-expanded={langOpen}
+                aria-haspopup="listbox"
+                aria-label={`Langue : ${languageLabel(listLangCode)}`}
+              >
+                <LanguagePill code={isoCode(listLangCode)} />
+                <ChevronDown size={14} strokeWidth={2} className="opacity-70" aria-hidden />
+              </button>
+              {langOpen && (
+                <ul
+                  className="absolute left-0 z-20 mt-1 max-h-64 min-w-[200px] overflow-auto rounded-xl border border-line bg-surface py-1 shadow-[var(--shadow-elevated)]"
+                  role="listbox"
+                >
+                  {PREFERRED_LANGUAGE_OPTIONS.map((opt) => (
+                    <li key={opt.value}>
+                      <button
+                        type="button"
+                        className="flex w-full min-h-11 items-center gap-2 px-3 py-2 text-left text-sm hover:bg-[var(--hover-bg)]"
+                        style={{
+                          fontWeight: listLangCode === opt.value ? 600 : 400,
+                        }}
+                        onClick={() => setListLanguage(opt.value)}
+                      >
+                        <LanguagePill code={isoCode(opt.value)} />
+                        {opt.label}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               )}
-            </button>
+            </>
+          ) : (
+            <span
+              className="inline-flex min-h-11 items-center rounded-lg border-[1.5px] border-ink bg-surface px-2"
+              title="Langue de la liste"
+            >
+              <LanguagePill code={isoCode(listLangCode)} />
+            </span>
           )}
         </div>
 
-        <div ref={reviseRef} className="relative flex shrink-0 items-center gap-2">
+        <div ref={reviseRef} className="relative flex flex-wrap items-center gap-2">
           {canEdit && (
             <button
               type="button"
@@ -426,7 +460,7 @@ export function MotsClient({
           </button>
 
           {reviseOpen && (
-            <div className="absolute right-0 top-[calc(100%+6px)] z-10 w-44 overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow-elevated)]">
+            <div className="absolute left-0 top-[calc(100%+6px)] z-10 w-44 overflow-hidden rounded-xl border border-line bg-surface shadow-[var(--shadow-elevated)] sm:left-auto sm:right-0">
               <Link
                 href={flashcardsHref}
                 className="flex min-h-11 items-center gap-2.5 border-b border-line px-3.5 py-2.5 no-underline transition-colors hover:bg-[var(--hover-bg)]"
@@ -489,7 +523,7 @@ export function MotsClient({
           <label className="min-w-0 flex-1">
             <span className="mb-1 block text-xs font-medium text-muted">Mot</span>
             <input
-              type="text"
+              {...VOCAB_WORD_FIELD_PROPS}
               value={newTerm}
               onChange={(e) => setNewTerm(e.target.value)}
               placeholder="Mot"
@@ -499,7 +533,8 @@ export function MotsClient({
           <label className="min-w-0 flex-1">
             <span className="mb-1 block text-xs font-medium text-muted">Traduction</span>
             <input
-              type="text"
+              {...VOCAB_WORD_FIELD_PROPS}
+              name="vocabDefinition"
               value={newDef}
               onChange={(e) => setNewDef(e.target.value)}
               placeholder="Traduction"
@@ -537,6 +572,7 @@ export function MotsClient({
           />
           <input
             type="search"
+            {...VOCAB_SEARCH_FIELD_PROPS}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Rechercher un mot…"
@@ -592,13 +628,14 @@ export function MotsClient({
                       <td colSpan={canEdit ? 4 : 3} className="px-4 py-3">
                         <div className="flex flex-wrap items-center gap-2">
                           <input
-                            type="text"
+                            {...VOCAB_WORD_FIELD_PROPS}
                             value={editTerm}
                             onChange={(e) => setEditTerm(e.target.value)}
                             className="min-h-11 min-w-[120px] flex-1 rounded-lg border border-line px-3"
                           />
                           <input
-                            type="text"
+                            {...VOCAB_WORD_FIELD_PROPS}
+                            name="vocabDefinition"
                             value={editDef}
                             onChange={(e) => setEditDef(e.target.value)}
                             className="min-h-11 min-w-[120px] flex-1 rounded-lg border border-line px-3"
@@ -669,13 +706,14 @@ export function MotsClient({
                 >
                   <div className="flex flex-col gap-2">
                     <input
-                      type="text"
+                      {...VOCAB_WORD_FIELD_PROPS}
                       value={editTerm}
                       onChange={(e) => setEditTerm(e.target.value)}
                       className="min-h-11 w-full rounded-lg border border-line px-3 text-sm"
                     />
                     <input
-                      type="text"
+                      {...VOCAB_WORD_FIELD_PROPS}
+                      name="vocabDefinition"
                       value={editDef}
                       onChange={(e) => setEditDef(e.target.value)}
                       className="min-h-11 w-full rounded-lg border border-line px-3 text-sm"

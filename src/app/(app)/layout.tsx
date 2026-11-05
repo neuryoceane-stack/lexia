@@ -38,7 +38,7 @@ export default async function AppLayout({
       <div className="min-h-screen">
         <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
         {role === "etudiant" ? <AnnouncementBannerSlot userId={user.id} /> : null}
-        <main className="page-fade-in mx-auto max-w-[1200px] px-4 pb-40 pt-8 sm:px-6 md:py-10">{children}</main>
+        <main className="page-fade-in mx-auto min-w-0 max-w-[1200px] overflow-x-clip px-4 pb-40 pt-8 sm:px-6 md:py-10">{children}</main>
         <FeedbackWidget />
         {/* Le tutoriel ouvre la révision : il attend que l'élève ait accès. */}
         {showOnboarding && !paywalled && <OnboardingWrapperLazy role={userRole} />}

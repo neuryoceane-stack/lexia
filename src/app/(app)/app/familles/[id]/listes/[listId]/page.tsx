@@ -152,7 +152,7 @@ export default async function ListeDetailPage({
 
   return (
     <div
-      className="min-h-full w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
+      className="min-h-full max-w-full -mx-4 -my-8 px-4 py-8 sm:-mx-6 sm:-my-10 sm:px-6 sm:py-10"
     >
       <div className="mx-auto max-w-3xl">
         <Link

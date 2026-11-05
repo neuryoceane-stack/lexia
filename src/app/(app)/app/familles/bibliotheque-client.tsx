@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { PREFERRED_LANGUAGE_OPTIONS, toIso6391 } from "@/lib/language";
@@ -116,6 +116,16 @@ export function BibliothequeClient() {
   const [renameModalList, setRenameModalList] = useState<BibliothequeList | null>(null);
   const [renameInput, setRenameInput] = useState("");
   const [renamingListId, setRenamingListId] = useState<string | null>(null);
+  const renameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!renameModalList) return;
+    const id = window.requestAnimationFrame(() => {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    });
+    return () => window.cancelAnimationFrame(id);
+  }, [renameModalList]);
   /** Classes avec listes visibles (élève), pour la section « Mes classes ». */
   const [classesWithLists, setClassesWithLists] = useState<ClassWithLists[]>([]);
   /** Classe dépliée pour afficher ses listes (id ou null). */
@@ -951,9 +961,16 @@ export function BibliothequeClient() {
               Nom de la liste
             </label>
             <ListNameInput
+              ref={renameInputRef}
               id="bib-rename-list-title"
               value={renameInput}
               onChange={(e) => setRenameInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  void handleSubmitRename();
+                }
+              }}
               placeholder="ex. Mots extraits du PDF"
               className="mb-6 w-full rounded-lg border border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-sm text-[var(--foreground)]"
               disabled={!!renamingListId}

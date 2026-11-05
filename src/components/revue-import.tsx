@@ -6,6 +6,7 @@ import { detectListLanguages, KNOWN_LANGUAGE_CODES, toIso6391 } from "@/lib/lang
 import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
 import { SaveWordsToListModal } from "@/components/save-words-to-list-modal";
 import { saveWordsToExistingList } from "@/lib/vocab-list-save";
+import { VOCAB_WORD_FIELD_PROPS } from "@/components/list-name-input";
 
 export type RevueItem = { term: string; definition: string };
 
@@ -116,9 +117,7 @@ export function RevueImport({
   if (editing) {
     return (
       <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6">
-        <h2 className="mb-4 font-medium text-[var(--foreground)]">
-          Modifier le mot
-        </h2>
+        <h2 className="mb-4 font-medium text-ink">Modifier le mot</h2>
         <EditForm
           term={editing.term}
           definition={editing.definition}
@@ -137,15 +136,14 @@ export function RevueImport({
         <p className="text-muted">
           Aucun mot à conserver. Vous avez tout supprimé.
         </p>
-        <div className="mt-4 flex gap-2">
-          <button
-            type="button"
-            onClick={onCancel}
-            className="inline-flex min-h-11 items-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-[var(--foreground)]"
-          >
-            Retour
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={onCancel}
+          className="mt-4 inline-flex min-h-11 items-center gap-1 text-sm font-medium text-muted transition hover:opacity-70"
+          style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}
+        >
+          Retour
+        </button>
       </div>
     );
   }
@@ -153,11 +151,9 @@ export function RevueImport({
   const restCount = items.length - index - 1;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24">
       <div className="mb-2 flex flex-wrap items-center gap-3">
-        <h2 className="text-xl font-semibold text-[var(--foreground)]">
-          Trier les mots extraits
-        </h2>
+        <h2 className="text-xl font-semibold text-ink">Trier les mots extraits</h2>
         {(displayTermLang || displayDefLang) && (
           <span className="flex items-center gap-1.5" title="Langues détectées">
             {displayTermLang ? (
@@ -173,77 +169,72 @@ export function RevueImport({
             ) : null}
           </span>
         )}
-        {index < items.length && restCount > 0 && (
-          <button
-            type="button"
-            onClick={keepAllRest}
-            className="btn-relief ml-auto rounded-lg border border-primary bg-primary/10 px-3 py-1.5 text-sm font-medium text-primary-dark hover:bg-primary/20"
-            aria-label="Garder tout le reste"
-          >
-            Garder tout le reste ({restCount} fiche{restCount > 1 ? "s" : ""})
-          </button>
-        )}
       </div>
-      <p className="text-sm text-[var(--foreground-muted)]">
+      <p className="text-sm text-muted">
         {targetListId
           ? "Conservez, modifiez ou supprimez chaque mot, puis ajoutez-les à votre liste."
           : "Conservez, modifiez ou supprimez chaque mot, puis enregistrez-les dans une liste existante ou créez-en une nouvelle."}
       </p>
 
-      {/* Carte type Tinder */}
       {current ? (
-        <div className="mx-auto max-w-md">
-          <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6 shadow-[var(--shadow-card)]">
-            <p className="text-xs text-[var(--foreground-disabled)]">
+        <div className="mx-auto w-full min-w-0 max-w-md">
+          <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6">
+            <p className="text-xs text-muted">
               Mot {index + 1} / {items.length}
             </p>
-            <p className="mt-2 text-xl font-semibold text-[var(--foreground)]">
-              {current.term}
-            </p>
+            <p className="mt-2 text-xl font-semibold text-ink">{current.term}</p>
             {current.definition && (
-              <p className="mt-1 text-[var(--foreground-muted)]">
-                {current.definition}
-              </p>
+              <p className="mt-1 text-muted">{current.definition}</p>
             )}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-6 flex flex-col gap-2.5">
               <button
                 type="button"
-                onClick={markDiscard}
-                className="btn-relief rounded-full bg-false-bg px-5 py-2.5 text-sm font-medium text-false-text hover:bg-false-bg"
-                aria-label="Supprimer"
+                onClick={markKeep}
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full bg-ink px-5 text-sm font-medium text-surface"
+                aria-label="Garder"
               >
-                Supprimer
+                Garder
               </button>
               <button
                 type="button"
                 onClick={openEdit}
-                className="btn-relief rounded-full bg-mark px-5 py-2.5 text-sm font-medium text-ink hover:bg-mark"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full border-[1.5px] border-ink bg-surface px-5 text-sm font-medium text-ink"
                 aria-label="Modifier"
               >
                 Modifier
               </button>
               <button
                 type="button"
-                onClick={markKeep}
-                className="btn-relief rounded-full bg-primary/20 px-5 py-2.5 text-sm font-medium text-primary-dark hover:bg-primary/30"
-                aria-label="Garder"
+                onClick={markDiscard}
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-full px-5 text-sm font-medium text-false-text"
+                aria-label="Supprimer"
               >
-                Garder
+                Supprimer
               </button>
             </div>
           </div>
+          {index < items.length && restCount > 0 && (
+            <button
+              type="button"
+              onClick={keepAllRest}
+              className="mt-3 inline-flex min-h-11 w-full items-center justify-center rounded-full border-[1.5px] border-ink bg-surface px-4 text-sm font-medium text-ink"
+              aria-label="Garder tout le reste"
+            >
+              Garder tout le reste ({restCount} mot{restCount > 1 ? "s" : ""})
+            </button>
+          )}
         </div>
       ) : (
-        <p className="rounded-2xl border-[1.5px] border-line bg-[var(--background-subtle)] px-4 py-3 text-sm text-muted">
-          Toutes les fiches ont été parcourues. Enregistrez votre sélection ci-dessous.
+        <p className="rounded-2xl border-[1.5px] border-line bg-mark/25 px-4 py-3 text-sm text-ink">
+          Tous les mots ont été parcourus. Enregistrez votre sélection ci-dessous.
         </p>
       )}
 
       <div className="rounded-2xl border-[1.5px] border-line bg-surface p-6">
-        <h3 className="mb-2 font-medium text-[var(--foreground)]">
+        <h3 className="mb-2 font-medium text-ink">
           {targetListId ? "Ajouter à la liste" : "Enregistrer dans une liste"}
         </h3>
-        <p className="mb-4 text-sm text-[var(--foreground-muted)]">
+        <p className="mb-4 text-sm text-muted">
           {items.length} mot{items.length !== 1 ? "s" : ""} conservé
           {items.length !== 1 ? "s" : ""}
           {targetListId && targetListName
@@ -257,11 +248,11 @@ export function RevueImport({
             {directSaveError}
           </p>
         ) : null}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           <button
             type="button"
             onClick={onCancel}
-            className="inline-flex min-h-11 items-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-[var(--foreground)]"
+            className="inline-flex min-h-11 items-center justify-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-ink sm:flex-initial"
           >
             Annuler
           </button>
@@ -270,7 +261,7 @@ export function RevueImport({
               type="button"
               onClick={() => void handleDirectSave()}
               disabled={items.length === 0 || directSaving}
-              className="inline-flex min-h-11 items-center rounded-[20px] px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-[20px] px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
               style={{ background: "var(--ink)" }}
             >
               {directSaving ? "Enregistrement…" : "Ajouter à la liste →"}
@@ -280,7 +271,7 @@ export function RevueImport({
               type="button"
               onClick={() => setSaveModalOpen(true)}
               disabled={items.length === 0}
-              className="inline-flex min-h-11 items-center rounded-[20px] px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-[20px] px-4 py-2 text-sm font-medium text-surface transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto"
               style={{ background: "var(--ink)" }}
             >
               Enregistrer dans une liste →
@@ -325,32 +316,29 @@ function EditForm({
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm text-[var(--foreground-muted)]">
-          Mot / terme
-        </label>
+        <label className="mb-1 block text-sm text-muted">Mot / terme</label>
         <input
-          type="text"
+          {...VOCAB_WORD_FIELD_PROPS}
           value={t}
           onChange={(e) => setT(e.target.value)}
-          className="w-full rounded-xl border-[1.5px] border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
+          className="w-full rounded-xl border-[1.5px] border-line bg-surface px-3 py-2 text-ink"
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm text-muted">
-          Traduction / définition
-        </label>
+        <label className="mb-1 block text-sm text-muted">Traduction / définition</label>
         <input
-          type="text"
+          {...VOCAB_WORD_FIELD_PROPS}
+          name="vocabDefinition"
           value={d}
           onChange={(e) => setD(e.target.value)}
-          className="w-full rounded-xl border-[1.5px] border-[var(--input-border)] bg-[var(--input-bg)] px-3 py-2 text-[var(--foreground)]"
+          className="w-full rounded-xl border-[1.5px] border-line bg-surface px-3 py-2 text-ink"
         />
       </div>
       <div className="flex gap-2">
         <button
           type="button"
           onClick={onCancel}
-          className="inline-flex min-h-11 items-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-[var(--foreground)]"
+          className="inline-flex min-h-11 items-center rounded-[20px] border-[1.5px] border-line px-4 py-2 text-ink"
         >
           Annuler
         </button>
