@@ -2,10 +2,12 @@
 
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { BackLink } from "@/components/back-link";
 import { RevueImport } from "@/components/revue-import";
 import { LanguageOnboardingCard } from "@/components/language-onboarding-card";
-import { ListNameInput } from "@/components/list-name-input";
+import {
+  ListNameInput,
+  VOCAB_WORD_FIELD_PROPS,
+} from "@/components/list-name-input";
 import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
 import {
   PREFERRED_LANGUAGE_OPTIONS,
@@ -91,6 +93,9 @@ function languageLabel(code: string | null | undefined): string | null {
   return PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code;
 }
 
+const PRIMARY_LANGUAGE_OPTIONS = PREFERRED_LANGUAGE_OPTIONS.slice(0, 8);
+const EXTRA_LANGUAGE_OPTIONS = PREFERRED_LANGUAGE_OPTIONS.slice(8);
+
 function LanguageStudyPicker({
   value,
   onChange,
@@ -100,47 +105,68 @@ function LanguageStudyPicker({
   onChange: (code: string) => void;
   disabled?: boolean;
 }) {
-  return (
-    <div className="mb-5">
-      <span
-        className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted"
+  const [showExtra, setShowExtra] = useState(
+    () => EXTRA_LANGUAGE_OPTIONS.some((o) => o.value === value)
+  );
+
+  useEffect(() => {
+    if (EXTRA_LANGUAGE_OPTIONS.some((o) => o.value === value)) {
+      setShowExtra(true);
+    }
+  }, [value]);
+
+  function renderOption(opt: (typeof PREFERRED_LANGUAGE_OPTIONS)[number]) {
+    const selected = value === opt.value;
+    return (
+      <button
+        key={opt.value}
+        type="button"
+        role="option"
+        aria-selected={selected}
+        disabled={disabled}
+        onClick={() => onChange(opt.value)}
+        className="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-xl border-[1.5px] px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
+        style={{
+          borderColor: selected ? VIOLET : "var(--line)",
+          background: selected
+            ? "color-mix(in srgb, var(--ink) 8%, var(--surface))"
+            : "var(--surface)",
+        }}
       >
+        <LanguagePill code={isoLangCode(opt.value)} />
+        <span
+          className="min-w-0 truncate text-sm font-medium"
+          style={{ color: selected ? VIOLET : "var(--foreground)" }}
+        >
+          {opt.label}
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <div className="mb-5 min-w-0 w-full">
+      <span className="mb-2 block text-[11px] font-medium uppercase tracking-wide text-muted">
         Langue étudiée
       </span>
       <div
-        className="flex flex-wrap gap-2"
+        className="grid w-full min-w-0 grid-cols-2 gap-2"
         role="listbox"
         aria-label="Langue étudiée"
       >
-        {PREFERRED_LANGUAGE_OPTIONS.map((opt) => {
-          const selected = value === opt.value;
-          return (
-            <button
-              key={opt.value}
-              type="button"
-              role="option"
-              aria-selected={selected}
-              disabled={disabled}
-              onClick={() => onChange(opt.value)}
-              className="inline-flex min-h-11 max-w-full items-center gap-2 rounded-xl border-[1.5px] px-3 py-2.5 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50"
-              style={{
-                borderColor: selected ? VIOLET : "var(--line)",
-                background: selected
-                  ? "color-mix(in srgb, var(--ink) 8%, var(--surface))"
-                  : "var(--surface)",
-              }}
-            >
-              <LanguagePill code={isoLangCode(opt.value)} />
-              <span
-                className="min-w-0 truncate text-sm font-medium"
-                style={{ color: selected ? VIOLET : "var(--foreground)" }}
-              >
-                {opt.label}
-              </span>
-            </button>
-          );
-        })}
+        {PRIMARY_LANGUAGE_OPTIONS.map(renderOption)}
+        {showExtra ? EXTRA_LANGUAGE_OPTIONS.map(renderOption) : null}
       </div>
+      {!showExtra && EXTRA_LANGUAGE_OPTIONS.length > 0 ? (
+        <button
+          type="button"
+          onClick={() => setShowExtra(true)}
+          disabled={disabled}
+          className="mt-2 border-0 bg-transparent p-0 text-left text-sm font-medium text-ink underline-offset-2 hover:underline disabled:opacity-50"
+        >
+          Autres langues…
+        </button>
+      ) : null}
     </div>
   );
 }
@@ -639,8 +665,16 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
 
   if (extractedItems.length > 0 && familyId && listId) {
     return (
-      <div className="mx-auto w-full max-w-2xl">
-        <BackLink href={backHref} />
+      <div className="mx-auto w-full min-w-0 max-w-2xl">
+        <button
+          type="button"
+          onClick={() => router.push(backHref)}
+          className="mb-4 inline-flex min-h-11 items-center gap-1 text-muted transition hover:opacity-70"
+          style={{ fontSize: 12, background: "none", border: "none", cursor: "pointer" }}
+        >
+          <ChevronLeft size={14} strokeWidth={2} aria-hidden />
+          Retour
+        </button>
         <RevueImport
           familyId={familyId}
           initialItems={extractedItems}
@@ -673,7 +707,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
   }
 
   return (
-    <div className="mx-auto w-full max-w-2xl">
+    <div className="mx-auto w-full min-w-0 max-w-2xl">
       <button
         type="button"
         onClick={() => router.push(backHref)}
@@ -714,7 +748,7 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
       />
 
       {method === null && (
-        <div className="space-y-5">
+        <div className="min-w-0 w-full space-y-5">
           {showDestToggle ? (
             <DestModeSwitch
               mode={destMode}
@@ -855,8 +889,8 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
         />
       )}
       {extractLoading && (
-        <div className="mt-8 rounded-2xl border-[1.5px] border-line bg-[var(--background-subtle)] p-6">
-          <div className="flex items-start gap-4">
+        <div className="mt-8 rounded-2xl border-[1.5px] border-ink bg-surface p-6">
+          <div className="flex min-w-0 items-start gap-4">
             {method === "image" && imagePreviewUrl && (
               <div className="flex-shrink-0 overflow-hidden rounded-lg border border-[var(--border)]">
                 <img
@@ -879,9 +913,14 @@ export function NouvelleListeFlow({ familyId: familyIdProp }: { familyId?: strin
                   : "Extraction en cours…"}
               </p>
               {method === "image" && extractPhase === "ocr" && (
-                <p className="mt-2 text-sm text-[var(--foreground-muted)]">
-                  {ocrProgress || "Reconnaissance du texte dans le navigateur…"}
-                </p>
+                <>
+                  <p className="mt-2 text-sm text-[var(--foreground-muted)]">
+                    {ocrProgress || "Reconnaissance du texte dans le navigateur…"}
+                  </p>
+                  <p className="mt-1 text-sm text-muted">
+                    Cela peut prendre quelques secondes.
+                  </p>
+                </>
               )}
             </div>
           </div>
@@ -1111,7 +1150,7 @@ function FormManuel({
                 className="grid grid-cols-1 items-center gap-2 sm:grid-cols-[1fr_1fr_auto]"
               >
                 <input
-                  type="text"
+                  {...VOCAB_WORD_FIELD_PROPS}
                   value={row.term}
                   onChange={(e) => updateRow(i, "term", e.target.value)}
                   placeholder={termFieldLabel}
@@ -1142,7 +1181,8 @@ function FormManuel({
                   onKeyDown={(e) => handleTermKeyDown(i, e)}
                 />
                 <input
-                  type="text"
+                  {...VOCAB_WORD_FIELD_PROPS}
+                  name="vocabDefinition"
                   value={row.definition}
                   onChange={(e) => updateRow(i, "definition", e.target.value)}
                   placeholder={definitionFieldLabel}
