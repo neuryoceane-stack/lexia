@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { Eye, EyeOff, Euro, Package, Plus, ShoppingBag, Trash2, Upload } from "lucide-react";
 import * as XLSX from "xlsx";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
+import { formatShopPriceCents } from "@/lib/shop-price";
 import {
   ErrorNote,
   KpiCard,
@@ -29,6 +30,8 @@ type ShopPack = {
   isActive: boolean;
   sales: number;
   revenue: number;
+  stripeProductId: string | null;
+  stripePriceId: string | null;
 };
 
 type PackWord = { term: string; definition: string; isExpression?: boolean };
@@ -82,6 +85,8 @@ function parsePacks(data: unknown): ShopPack[] | null {
       isActive,
       sales,
       revenue,
+      stripeProductId: typeof row.stripeProductId === "string" ? row.stripeProductId : null,
+      stripePriceId: typeof row.stripePriceId === "string" ? row.stripePriceId : null,
     });
   }
   return packs;
@@ -343,7 +348,16 @@ export function CreatorShopTab() {
                     {languageLabel(pack.language)}
                   </span>
                   <span>
-                    {frCount(pack.wordCount, "mot", "mots")} · {frCount(pack.expressionCount, "expression", "expressions")} · {formatEuro(pack.price / 100)}
+                    {frCount(pack.wordCount, "mot", "mots")} · {frCount(pack.expressionCount, "expression", "expressions")} · {formatShopPriceCents(pack.price)}
+                  </span>
+                  <span
+                    className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
+                      pack.isActive && pack.stripeProductId && pack.stripePriceId
+                        ? "bg-just-bg text-just-text"
+                        : "bg-page text-muted"
+                    }`}
+                  >
+                    Stripe : {pack.isActive && pack.stripeProductId && pack.stripePriceId ? "synchronisé" : "non synchronisé"}
                   </span>
                 </div>
                 <p className="m-0 mt-2 text-sm font-medium text-ink">

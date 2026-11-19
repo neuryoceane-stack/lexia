@@ -3,6 +3,8 @@ import { db } from "@/lib/db";
 import { shopPacks, userPurchases } from "@/lib/db/schema";
 import { eq, desc, count, sum } from "drizzle-orm";
 import { getUser } from "@/lib/auth";
+import { countShopPackContents } from "@/lib/shop-pack-preview";
+import { syncShopPackToStripe } from "@/lib/shop-stripe-sync";
 
 export async function GET() {
   const user = await getUser();
@@ -45,6 +47,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Champs manquants" }, { status: 400 });
   }
 
+  const { wordCount, expressionCount } = countShopPackContents(wordsJson);
+
   const id = crypto.randomUUID();
   await db.insert(shopPacks).values({
     id,
@@ -55,6 +59,8 @@ export async function POST(req: Request) {
     level: level ?? "",
     price: price ?? 400,
     wordsJson,
+    wordCount: wordCount || 60,
+    expressionCount: expressionCount || 20,
     isActive: false,
   });
 
@@ -69,11 +75,80 @@ export async function PATCH(req: Request) {
   }
 
   const body = await req.json();
-  const { id, ...fields } = body;
+  const { id, ...rawFields } = body;
   if (!id) return NextResponse.json({ error: "id requis" }, { status: 400 });
 
-  await db.update(shopPacks).set(fields).where(eq(shopPacks.id, id));
-  const [pack] = await db.select().from(shopPacks).where(eq(shopPacks.id, id)).limit(1);
+  const [before] = await db.select().from(shopPacks).where(eq(shopPacks.id, id)).limit(1);
+  if (!before) return NextResponse.json({ error: "Pack introuvable" }, { status: 404 });
+
+  const allowedKeys = [
+    "title",
+    "description",
+    "emoji",
+    "language",
+    "level",
+    "price",
+    "isActive",
+    "wordsJson",
+  ] as const;
+  const fields: Record<string, unknown> = {};
+  for (const key of allowedKeys) {
+    if (key in rawFields) fields[key] = rawFields[key];
+  }
+
+  if (typeof fields.wordsJson === "string") {
+    const counts = countShopPackContents(fields.wordsJson);
+    if (counts.wordCount > 0) fields.wordCount = counts.wordCount;
+    if (counts.expressionCount > 0) fields.expressionCount = counts.expressionCount;
+  }
+
+  if (Object.keys(fields).length > 0) {
+    await db.update(shopPacks).set(fields).where(eq(shopPacks.id, id));
+  }
+
+  let [pack] = await db.select().from(shopPacks).where(eq(shopPacks.id, id)).limit(1);
+  if (!pack) return NextResponse.json({ error: "Pack introuvable" }, { status: 404 });
+
+  const becameActive = pack.isActive && !before.isActive;
+  const priceChanged = typeof fields.price === "number" && fields.price !== before.price;
+  const metaChanged =
+    (typeof fields.title === "string" && fields.title !== before.title) ||
+    (typeof fields.description === "string" && fields.description !== before.description);
+  const needsStripeSync =
+    pack.isActive &&
+    (becameActive ||
+      priceChanged ||
+      metaChanged ||
+      !pack.stripeProductId ||
+      !pack.stripePriceId);
+
+  if (needsStripeSync) {
+    try {
+      const synced = await syncShopPackToStripe(pack, before.price);
+      await db
+        .update(shopPacks)
+        .set({
+          stripeProductId: synced.stripeProductId,
+          stripePriceId: synced.stripePriceId,
+        })
+        .where(eq(shopPacks.id, id));
+      [pack] = await db.select().from(shopPacks).where(eq(shopPacks.id, id)).limit(1);
+    } catch (error) {
+      console.error("[creator/shop] Stripe sync", error);
+      const rollback: { isActive?: boolean; price?: number } = {};
+      if (becameActive) rollback.isActive = false;
+      if (priceChanged) rollback.price = before.price;
+      if (Object.keys(rollback).length > 0) {
+        await db.update(shopPacks).set(rollback).where(eq(shopPacks.id, id));
+      }
+      [pack] = await db.select().from(shopPacks).where(eq(shopPacks.id, id)).limit(1);
+      return NextResponse.json(
+        { error: "Synchronisation Stripe impossible. Vérifiez la clé de test et réessayez." },
+        { status: 502 }
+      );
+    }
+  }
+
   return NextResponse.json(pack);
 }
 
