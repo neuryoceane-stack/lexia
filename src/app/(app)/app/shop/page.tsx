@@ -19,21 +19,21 @@ function ShopComingSoon() {
   const ARGUMENTS = [
     "Listes thématiques prêtes à réviser",
     "Pensées pour le collège, le lycée et la prépa",
-    "Ajoutées directement à ta bibliothèque",
+    "Ajoutées directement à votre bibliothèque",
   ];
 
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-2 py-12">
-      <div className="w-full max-w-[460px] rounded-2xl border border-[color-mix(in_srgb,var(--ink)_18%,transparent)] bg-surface px-8 py-11 text-center shadow-[0_8px_40px_color-mix(in_srgb,var(--ink)_10%,transparent)] sm:px-9">
+      <div className="w-full max-w-[460px] rounded-2xl border border-line bg-surface px-8 py-11 text-center sm:px-9">
         <div className="relative mx-auto mb-6 flex w-fit justify-center">
-          <span className="flex h-[76px] w-[76px] items-center justify-center rounded-[20px] bg-surface">
+          <span className="flex h-[76px] w-[76px] items-center justify-center rounded-[20px] border border-line bg-surface">
             <ShoppingBag size={36} className="text-ink" aria-hidden />
           </span>
-          <span className="absolute -right-3.5 -top-2 rounded-xl bg-mark px-2.5 py-1 text-[11px] font-medium text-ink">
-            Bientôt
-          </span>
+          <span className="marker absolute -right-3.5 -top-2 text-[11px] font-medium text-ink">Bientôt</span>
         </div>
-        <p className="text-[22px] font-medium text-ink">Le Lexi Shop arrive bientôt</p>
+        <h1 className="font-heading text-[22px] font-bold text-ink">
+          Le Lexi Shop arrive <span className="marker">bientôt</span>
+        </h1>
         <p className="mt-3 text-[15px] leading-relaxed text-muted">
           Des listes conçues pour réviser vite et bien. La boutique ouvre très prochainement.
         </p>
@@ -47,9 +47,9 @@ function ShopComingSoon() {
         </ul>
         <Link
           href="/app"
-          className="mt-8 flex min-h-[50px] w-full items-center justify-center rounded-full bg-ink text-sm font-medium text-surface no-underline"
+          className="mt-8 flex min-h-11 w-full items-center justify-center rounded-full bg-ink text-sm font-medium text-surface no-underline"
         >
-          Retour à mon tableau de bord
+          Retour à votre tableau de bord
         </Link>
       </div>
     </div>

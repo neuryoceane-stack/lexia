@@ -48,3 +48,21 @@ export function shopPackPreviewVocabulary(wordsJson: string | null | undefined, 
     firstExpression: expressions[0] ?? null,
   };
 }
+
+const PUBLIC_PREVIEW_WORDS = 6;
+const PUBLIC_PREVIEW_EXPRESSIONS = 3;
+
+/** Aperçu API : 6 mots + 3 expressions si non possédée ; contenu complet si possédée. */
+export function shopPackWordsJsonForClient(
+  wordsJson: string | null | undefined,
+  owned: boolean
+): string | null {
+  if (!wordsJson) return null;
+  if (owned) return wordsJson;
+  const all = parseShopPackWords(wordsJson);
+  const preview = [
+    ...all.filter((w) => !w.isExpression).slice(0, PUBLIC_PREVIEW_WORDS),
+    ...all.filter((w) => w.isExpression).slice(0, PUBLIC_PREVIEW_EXPRESSIONS),
+  ];
+  return preview.length > 0 ? JSON.stringify(preview) : null;
+}

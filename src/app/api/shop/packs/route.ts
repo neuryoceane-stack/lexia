@@ -3,9 +3,13 @@ import { db } from "@/lib/db";
 import { lists, shopPacks, userPurchases, wordFamilies } from "@/lib/db/schema";
 import { and, eq } from "drizzle-orm";
 import { getUser } from "@/lib/auth";
-import { countShopPackContents } from "@/lib/shop-pack-preview";
+import { SHOP_ENABLED } from "@/lib/feature-flags";
+import { countShopPackContents, shopPackWordsJsonForClient } from "@/lib/shop-pack-preview";
 
 export async function GET() {
+  if (!SHOP_ENABLED) {
+    return NextResponse.json({ error: "La boutique est désactivée." }, { status: 403 });
+  }
   const user = await getUser();
   if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
@@ -52,7 +56,7 @@ export async function GET() {
       language: pack.language,
       level: pack.level,
       type: pack.type,
-      wordsJson: pack.wordsJson,
+      wordsJson: shopPackWordsJsonForClient(pack.wordsJson, owned),
       wordCount: counts.wordCount || pack.wordCount,
       expressionCount: counts.expressionCount || pack.expressionCount,
       owned,

@@ -1,19 +1,24 @@
 /**
- * Seed local / Turso : packs boutique de test (3–4 listes par langue).
+ * Seed local / Turso : packs boutique de test (3–4 listes par langue), inactifs par défaut.
  *
- * Lancer (depuis la racine du dépôt, .env chargé) :
+ * ATTENTION : le fichier `.env.local` peut pointer vers la base Turso de production.
+ * Vérifiez TURSO_DATABASE_URL avant toute exécution.
+ *
+ * Base locale (fichier) :
  *   node --env-file=.env.local scripts/seed-shop-packs.mjs
- * ou :
- *   TURSO_DATABASE_URL=... TURSO_AUTH_TOKEN=... node scripts/seed-shop-packs.mjs
+ *
+ * Turso (base distante — explicite) :
+ *   node --env-file=.env.local scripts/seed-shop-packs.mjs --allow-remote
  *
  * Supprimer les seeds :
  *   node --env-file=.env.local scripts/seed-shop-packs.mjs --remove
+ *   node --env-file=.env.local scripts/seed-shop-packs.mjs --remove --allow-remote
  *
  * Les ids commencent par « seed-shop- » pour un delete ciblé.
+ * Activez les listes depuis le Creator après insertion (`is_active = 0`).
  */
 
 import { createClient } from "@libsql/client";
-import { randomUUID } from "node:crypto";
 
 const SEED_PREFIX = "seed-shop-";
 const LANGS = ["eng", "deu", "spa", "ita"];
@@ -130,8 +135,19 @@ function shortWords(lang, title) {
   return base;
 }
 
+const tursoUrl = process.env.TURSO_DATABASE_URL?.trim();
+const allowRemote = process.argv.includes("--allow-remote");
+
+if (tursoUrl && !allowRemote) {
+  console.error(
+    "Refus : TURSO_DATABASE_URL est défini (souvent via .env.local, possiblement la base de production).\n" +
+      "Pour une base Turso distante, relancez avec --allow-remote après avoir vérifié l’URL.\n" +
+      "Pour une base locale, retirez TURSO_DATABASE_URL et utilisez DATABASE_URL=file:…"
+  );
+  process.exit(1);
+}
+
 function resolveClient() {
-  const tursoUrl = process.env.TURSO_DATABASE_URL?.trim();
   const tursoToken = process.env.TURSO_AUTH_TOKEN?.trim();
   if (tursoUrl && tursoToken) {
     return createClient({ url: tursoUrl, authToken: tursoToken });
@@ -175,13 +191,13 @@ async function insertSeeds(client) {
           "thematique",
           lang,
           "A2 → B2",
-          1,
+          0,
           JSON.stringify(words),
         ],
       });
     }
   }
-  console.log("Packs seed insérés (préfixe seed-shop-).");
+  console.log("Packs seed insérés (inactifs, préfixe seed-shop-).");
 }
 
 const remove = process.argv.includes("--remove");

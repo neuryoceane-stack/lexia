@@ -135,9 +135,13 @@ export async function PATCH(req: Request) {
       [pack] = await db.select().from(shopPacks).where(eq(shopPacks.id, id)).limit(1);
     } catch (error) {
       console.error("[creator/shop] Stripe sync", error);
-      if (becameActive) {
-        await db.update(shopPacks).set({ isActive: false }).where(eq(shopPacks.id, id));
+      const rollback: { isActive?: boolean; price?: number } = {};
+      if (becameActive) rollback.isActive = false;
+      if (priceChanged) rollback.price = before.price;
+      if (Object.keys(rollback).length > 0) {
+        await db.update(shopPacks).set(rollback).where(eq(shopPacks.id, id));
       }
+      [pack] = await db.select().from(shopPacks).where(eq(shopPacks.id, id)).limit(1);
       return NextResponse.json(
         { error: "Synchronisation Stripe impossible. Vérifiez la clé de test et réessayez." },
         { status: 502 }
