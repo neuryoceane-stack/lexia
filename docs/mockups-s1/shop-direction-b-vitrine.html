@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Direction B — Vitrine de couvertures · Lexi Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --page: #F7F9F6;
+      --surface: #FFFFFF;
+      --ink: #12332B;
+      --muted: #4F615B;
+      --line: #BFCBE3;
+      --mark: #F3E96B;
+      --subtle: color-mix(in srgb, #BFCBE3 38%, #F7F9F6);
+      --font-sans: "DM Sans", system-ui, sans-serif;
+      --font-heading: "Bricolage Grotesque", system-ui, sans-serif;
+      --shadow-card: 0 2px 12px color-mix(in srgb, var(--ink) 8%, transparent);
+      --shadow-lift: 0 12px 40px color-mix(in srgb, var(--ink) 14%, transparent);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--page); color: var(--ink); font-family: var(--font-sans); font-size: 15px; line-height: 1.45; }
+    .mockup-bar {
+      position: sticky; top: 0; z-index: 100;
+      background: var(--ink); color: var(--surface);
+      padding: 10px 16px; font-size: 13px;
+      display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;
+    }
+    .mockup-bar strong { font-family: var(--font-heading); font-weight: 700; }
+    .mockup-bar span { color: color-mix(in srgb, var(--surface) 78%, transparent); }
+    .frames { padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 48px; align-items: center; }
+    .frame-label {
+      width: 100%; max-width: 1100px;
+      font-size: 11px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .shell {
+      background: var(--page);
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    .shell--desktop { width: 100%; max-width: 1100px; }
+    .shell--mobile { width: 390px; max-width: 100%; }
+
+    .page { padding: 28px 32px 40px; }
+    .shell--mobile .page { padding: 16px 16px 100px; }
+
+    .hero {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 28px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+    .shell--mobile .hero { grid-template-columns: 1fr; gap: 16px; }
+
+    .hero-copy h2 {
+      font-family: var(--font-heading);
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    .shell--mobile .hero-copy h2 { font-size: 26px; }
+    .hero-copy .marker-line {
+      display: inline;
+      background: linear-gradient(104deg, transparent 1%, var(--mark) 3%, var(--mark) 94%, transparent 99%);
+      padding: 0 8px;
+      border-radius: 0.25em;
+    }
+    .hero-copy p { color: var(--muted); font-size: 15px; max-width: 42ch; }
+
+    .collection-meter {
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      padding: 18px 20px;
+    }
+    .collection-meter h3 { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; }
+    .collection-meter .big {
+      font-family: var(--font-heading);
+      font-size: 32px;
+      font-weight: 700;
+    }
+    .collection-meter .big em {
+      font-style: normal;
+      font-family: var(--font-sans);
+      font-size: 16px;
+      font-weight: 400;
+      color: var(--muted);
+    }
+    .mini-owned {
+      display: flex;
+      gap: 6px;
+      margin-top: 14px;
+    }
+    .mini-owned span {
+      width: 36px;
+      height: 48px;
+      border-radius: 6px;
+      border: 1.5px solid var(--ink);
+      background: var(--subtle);
+      position: relative;
+    }
+    .mini-owned span::after {
+      content: "";
+      position: absolute;
+      left: 4px;
+      right: 4px;
+      height: 6px;
+      background: var(--mark);
+      top: 10px;
+      transform: rotate(-6deg);
+    }
+    .mini-owned .empty {
+      border-style: dashed;
+      border-color: var(--line);
+      background: transparent;
+    }
+    .mini-owned .empty::after { display: none; }
+
+    .lang-row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 22px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+    .lang-pill {
+      flex-shrink: 0;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-pill code {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 3px 7px;
+      border-radius: 8px;
+      border: 1.5px solid var(--ink);
+    }
+    .lang-pill.is-active { background: var(--ink); color: var(--surface); border-color: var(--ink); }
+    .lang-pill.is-active code {
+      border-color: color-mix(in srgb, var(--surface) 60%, transparent);
+      color: var(--surface);
+    }
+
+    .shelf-label {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+
+    .cover-row {
+      display: flex;
+      gap: 20px;
+      overflow-x: auto;
+      padding-bottom: 12px;
+      scroll-snap-type: x mandatory;
+    }
+    .shell--mobile .cover-row { gap: 14px; }
+
+    .book {
+      flex: 0 0 220px;
+      scroll-snap-align: start;
+      position: relative;
+    }
+    .shell--mobile .book { flex-basis: 168px; }
+
+    .book-cover {
+      aspect-ratio: 3/4.1;
+      border-radius: 16px;
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .book--owned .book-cover { border-color: var(--ink); }
+    .book--focus .book-cover {
+      box-shadow: var(--shadow-lift);
+      outline: 3px solid var(--mark);
+      outline-offset: 3px;
+    }
+
+    .cover-illu {
+      flex: 1;
+      margin: 10px 10px 0;
+      border-radius: 12px;
+      background: var(--subtle);
+      position: relative;
+      overflow: hidden;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  .cover-illu .theme {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+      line-height: 1.05;
+      max-width: 9ch;
+    }
+    .shell--mobile .cover-illu .theme { font-size: 17px; }
+    .cover-illu .band {
+      position: absolute;
+      width: 140%;
+      height: 28%;
+      background: var(--mark);
+      transform: rotate(-12deg);
+      top: 35%;
+      left: -20%;
+    }
+    .card-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      align-self: flex-end;
+    }
+    .card-stack i {
+      font-style: normal;
+      font-size: 9px;
+      font-weight: 500;
+      background: var(--surface);
+      padding: 2px 5px;
+      border-radius: 3px;
+      transform: rotate(2deg);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 12%, transparent);
+    }
+
+    .book-foot {
+      padding: 12px 12px 14px;
+    }
+    .book-foot h4 { font-size: 14px; font-weight: 500; margin-bottom: 4px; }
+    .book-foot .meta { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .book-foot .buy-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .price-tag {
+      font-family: var(--font-heading);
+      font-size: 18px;
+      font-weight: 700;
+    }
+    .btn-pill {
+      min-height: 44px;
+      min-width: 44px;
+      border-radius: 999px;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: 13px;
+      font-weight: 500;
+      padding: 0 16px;
+      background: var(--ink);
+      color: var(--surface);
+    }
+    .btn-pill--ghost {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1.5px solid var(--line);
+    }
+    .owned-ribbon {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--mark);
+    }
+
+    .detail-panel {
+      margin-top: 28px;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 24px;
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+    .shell--mobile .detail-panel { grid-template-columns: 1fr; margin-top: 20px; }
+
+    .detail-cover {
+      background: var(--ink);
+      color: var(--surface);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 320px;
+    }
+    .shell--mobile .detail-cover { min-height: auto; padding: 20px; }
+    .detail-cover h3 {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .detail-cover .level { font-size: 13px; opacity: 0.85; margin-top: 8px; }
+    .detail-cover .stack-preview {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .detail-cover .stack-preview span {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 6px;
+      background: color-mix(in srgb, var(--surface) 15%, transparent);
+      width: fit-content;
+    }
+
+    .detail-main { padding: 24px; }
+    .shell--mobile .detail-main { padding: 18px; }
+    .detail-main h5 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+    .preview-list {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+    .shell--mobile .preview-list { grid-template-columns: 1fr; }
+    .preview-list div {
+      background: var(--page);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .preview-list strong { display: block; font-size: 13px; }
+    .preview-list span { font-size: 12px; color: var(--muted); }
+    .preview-list .blur { filter: blur(4px); user-select: none; }
+
+    .detail-actions {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .detail-actions .amount {
+      font-family: var(--font-heading);
+      font-size: 28px;
+      font-weight: 700;
+    }
+    .detail-actions .note { font-size: 12px; color: var(--muted); }
+
+    .complete-offer {
+      margin-top: 24px;
+      padding: 16px 18px;
+      border-radius: 16px;
+      border: 1.5px solid var(--ink);
+      background: color-mix(in srgb, var(--mark) 22%, var(--surface));
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .complete-offer p { font-size: 14px; max-width: 30ch; }
+    .complete-offer strong { font-weight: 500; }
+
+    .success-toast {
+      max-width: 520px;
+      margin: 0 auto;
+      background: var(--surface);
+      border: 1.5px solid var(--ink);
+      border-radius: 18px;
+      padding: 22px 24px;
+      text-align: left;
+    }
+    .success-toast h3 {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      margin-bottom: 8px;
+    }
+    .success-toast .marker {
+      background: linear-gradient(104deg, transparent 1%, var(--mark) 3%, var(--mark) 94%, transparent 99%);
+      padding: 0 6px;
+    }
+    .success-toast p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    .success-toast .actions { display: flex; flex-direction: column; gap: 10px; }
+    .success-toast .btn-pill { width: 100%; }
+  </style>
+</head>
+<body>
+  <div class="mockup-bar">
+    <strong>Direction B — Vitrine de couvertures</strong>
+    <span>Maquette statique · charte Kim Study · vouvoiement · sans emoji ni drapeau</span>
+  </div>
+
+  <div class="frames">
+    <section>
+      <p class="frame-label">Ordinateur — étagère de couvertures + fiche intégrée</p>
+      <div class="shell shell--desktop">
+        <main class="page">
+          <header class="hero">
+            <div class="hero-copy">
+              <h2>Choisissez une liste,<br /><span class="marker-line">gardez-la pour toujours</span></h2>
+              <p>Chaque couverture est une liste prête à réviser. Votre progression anglaise est indépendante des autres langues.</p>
+            </div>
+            <aside class="collection-meter" aria-label="Progression">
+              <h3>Collection anglaise</h3>
+              <p class="big">2 <em>sur 6 listes</em></p>
+              <div class="mini-owned" aria-hidden="true">
+                <span></span><span></span><span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="empty"></span>
+              </div>
+            </aside>
+          </header>
+
+          <div class="lang-row">
+            <button type="button" class="lang-pill is-active"><code>ENG</code> Anglais</button>
+            <button type="button" class="lang-pill"><code>DEU</code> Allemand</button>
+            <button type="button" class="lang-pill"><code>SPA</code> Espagnol</button>
+          </div>
+
+          <p class="shelf-label">Listes à posséder — anglais</p>
+          <div class="cover-row">
+            <article class="book book--owned">
+              <span class="owned-ribbon">Dans votre bibliothèque</span>
+              <div class="book-cover">
+                <div class="cover-illu">
+                  <div class="band"></div>
+                  <p class="theme">Voyages</p>
+                  <div class="card-stack"><i>Airport</i><i>Boarding</i><i>Connection</i></div>
+                </div>
+                <footer class="book-foot">
+                  <h4>Voyages &amp; transports</h4>
+                  <p class="meta">A2 → B2</p>
+                  <button type="button" class="btn-pill" style="width:100%;">Réviser</button>
+                </footer>
+              </div>
+            </article>
+
+            <article class="book book--focus">
+              <div class="book-cover">
+                <div class="cover-illu" style="background: color-mix(in srgb, var(--line) 20%, var(--page));">
+                  <div class="band"></div>
+                  <p class="theme">Culture</p>
+                  <div class="card-stack"><i>Headline</i><i>Broadcast</i><i>Review</i></div>
+                </div>
+                <footer class="book-foot">
+                  <h4>Culture &amp; médias</h4>
+                  <p class="meta">B1 → B2</p>
+                  <div class="buy-row">
+                    <span class="price-tag">4&nbsp;€</span>
+                    <button type="button" class="btn-pill">Acheter</button>
+                  </div>
+                </footer>
+              </div>
+            </article>
+
+            <article class="book">
+              <div class="book-cover">
+                <div class="cover-illu">
+                  <div class="band"></div>
+                  <p class="theme">Travail</p>
+                  <div class="card-stack"><i>Revenue</i><i>Stakeholder</i></div>
+                </div>
+                <footer class="book-foot">
+                  <h4>Travail &amp; économie</h4>
+                  <p class="meta">B2 → C1</p>
+                  <div class="buy-row">
+                    <span class="price-tag">4&nbsp;€</span>
+                    <button type="button" class="btn-pill">Acheter</button>
+                  </div>
+                </footer>
+              </div>
+            </article>
+
+            <article class="book book--owned">
+              <span class="owned-ribbon">Dans votre bibliothèque</span>
+              <div class="book-cover">
+                <div class="cover-illu">
+                  <div class="band"></div>
+                  <p class="theme">Sciences</p>
+                  <div class="card-stack"><i>Species</i><i>Ecosystem</i></div>
+                </div>
+                <footer class="book-foot">
+                  <h4>Sciences &amp; nature</h4>
+                  <p class="meta">B1 → C1</p>
+                  <button type="button" class="btn-pill" style="width:100%;">Réviser</button>
+                </footer>
+              </div>
+            </article>
+          </div>
+
+          <article class="detail-panel">
+            <div class="detail-cover">
+              <div>
+                <h3>Culture &amp; médias</h3>
+                <p class="level">60 mots · 20 expressions · B1 → B2</p>
+              </div>
+              <div class="stack-preview">
+                <span>Headline</span>
+                <span>Broadcast</span>
+                <span>Breaking news</span>
+              </div>
+            </div>
+            <div class="detail-main">
+              <h5>Aperçu du contenu</h5>
+              <div class="preview-list">
+                <div><strong>Headline</strong><span>Titre de presse</span></div>
+                <div><strong>Broadcast</strong><span>Diffusion</span></div>
+                <div><strong>Review</strong><span>Critique</span></div>
+                <div><strong>Editorial</strong><span>Article de fond</span></div>
+                <div><strong>Footage</strong><span>Séquence filmée</span></div>
+                <div class="blur"><strong>···</strong><span>···</span></div>
+                <div class="blur"><strong>···</strong><span>···</span></div>
+                <div class="blur"><strong>···</strong><span>···</span></div>
+              </div>
+              <section style="margin-bottom:16px;">
+                <h5>Expression</h5>
+                <p style="font-size:14px;"><strong>Breaking news</strong> — <span style="color:var(--muted);">Dernière minute, pour commenter l’actualité.</span></p>
+              </section>
+              <footer class="detail-actions">
+                <p class="amount">4&nbsp;€</p>
+                <p class="note">Paiement sécurisé · ajout permanent à votre bibliothèque</p>
+                <button type="button" class="btn-pill" style="margin-left:auto;min-width:200px;">Acheter cette liste</button>
+              </footer>
+            </div>
+          </article>
+
+          <aside class="complete-offer">
+            <p><strong>Offre collection complète (anglais)</strong><br />Les quatre listes restantes, avec une remise. Aucun mélange entre langues.</p>
+            <button type="button" class="btn-pill">Compléter pour 16&nbsp;€</button>
+          </aside>
+        </main>
+      </div>
+    </section>
+
+    <section>
+      <p class="frame-label">Téléphone — carrousel + fiche compacte</p>
+      <div class="shell shell--mobile">
+        <main class="page">
+          <header class="hero">
+            <div class="hero-copy">
+              <h2>Lexi Shop</h2>
+              <p>Collection anglaise : <strong style="font-weight:500;">2 sur 6</strong> listes possédées.</p>
+            </div>
+          </header>
+
+          <div class="lang-row">
+            <button type="button" class="lang-pill is-active"><code>ENG</code> Anglais</button>
+            <button type="button" class="lang-pill"><code>DEU</code> Allemand</button>
+          </div>
+
+          <div class="cover-row">
+            <article class="book book--owned">
+              <span class="owned-ribbon">Possédée</span>
+              <div class="book-cover">
+                <div class="cover-illu"><div class="band"></div><p class="theme">Voyages</p></div>
+                <footer class="book-foot"><h4>Voyages</h4><button type="button" class="btn-pill" style="width:100%;">Réviser</button></footer>
+              </div>
+            </article>
+            <article class="book book--focus">
+              <div class="book-cover">
+                <div class="cover-illu"><div class="band"></div><p class="theme">Culture</p></div>
+                <footer class="book-foot">
+                  <h4>Culture</h4>
+                  <div class="buy-row"><span class="price-tag">4&nbsp;€</span><button type="button" class="btn-pill">Acheter</button></div>
+                </footer>
+              </div>
+            </article>
+          </div>
+
+          <article class="detail-panel">
+            <div class="detail-main" style="padding-top:20px;">
+              <h5>Aperçu</h5>
+              <div class="preview-list">
+                <div><strong>Headline</strong><span>Titre</span></div>
+                <div><strong>Broadcast</strong><span>Diffusion</span></div>
+                <div class="blur"><strong>···</strong><span>···</span></div>
+              </div>
+              <footer class="detail-actions" style="flex-direction:column;align-items:stretch;">
+                <p class="amount">4&nbsp;€</p>
+                <button type="button" class="btn-pill">Acheter cette liste</button>
+              </footer>
+            </div>
+          </article>
+        </main>
+      </div>
+    </section>
+
+    <section>
+      <p class="frame-label">État après achat</p>
+      <article class="success-toast">
+        <h3><span class="marker">Ajoutée à votre bibliothèque</span></h3>
+        <p>Culture &amp; médias vous attend. Lancez une révision express ou poursuivez votre collection.</p>
+        <div class="actions">
+          <button type="button" class="btn-pill">Réviser cette liste</button>
+          <button type="button" class="btn-pill btn-pill--ghost">Découvrir une autre couverture</button>
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>

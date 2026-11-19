@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Direction A — Album de collection · Lexi Shop</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;1,9..40,400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --page: #F7F9F6;
+      --surface: #FFFFFF;
+      --ink: #12332B;
+      --muted: #4F615B;
+      --line: #BFCBE3;
+      --mark: #F3E96B;
+      --subtle: color-mix(in srgb, #BFCBE3 38%, #F7F9F6);
+      --font-sans: "DM Sans", system-ui, sans-serif;
+      --font-heading: "Bricolage Grotesque", system-ui, sans-serif;
+      --shadow-card: 0 2px 12px color-mix(in srgb, var(--ink) 8%, transparent);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--page);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 15px;
+      line-height: 1.45;
+    }
+    .mockup-bar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: var(--ink);
+      color: var(--surface);
+      padding: 10px 16px;
+      font-size: 13px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 16px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .mockup-bar strong { font-family: var(--font-heading); font-weight: 700; }
+    .mockup-bar span { color: color-mix(in srgb, var(--surface) 78%, transparent); }
+    .frames { padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 48px; align-items: center; }
+    .frame-label {
+      width: 100%;
+      max-width: 1100px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+    .shell {
+      background: var(--page);
+      border: 1.5px solid var(--line);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+    }
+    .shell--desktop { width: 100%; max-width: 1100px; }
+    .shell--mobile { width: 390px; max-width: 100%; }
+
+    .app-header {
+      background: var(--surface);
+      height: 72px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      justify-content: space-between;
+    }
+    .app-header h1 { font-family: var(--font-heading); font-size: 18px; font-weight: 700; }
+    .nav-tab {
+      font-size: 14px;
+      font-weight: 500;
+      padding: 6px 0;
+      border-bottom: 3px solid transparent;
+      color: var(--muted);
+    }
+    .nav-tab.is-active {
+      color: var(--ink);
+      border-bottom-color: var(--mark);
+      background: linear-gradient(104deg, transparent 1%, var(--mark) 3%, var(--mark) 94%, transparent 99%);
+      background-size: 100% 70%;
+      background-repeat: no-repeat;
+      background-position: center bottom;
+    }
+
+    .page { padding: 24px; }
+    .shell--mobile .page { padding: 16px; padding-bottom: 88px; }
+
+    .intro { margin-bottom: 20px; }
+    .intro h2 {
+      font-family: var(--font-heading);
+      font-size: 26px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .shell--mobile .intro h2 { font-size: 22px; }
+    .intro p { color: var(--muted); font-size: 14px; max-width: 52ch; }
+
+    .lang-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 20px;
+    }
+    .lang-pill {
+      flex-shrink: 0;
+      min-height: 44px;
+      padding: 0 16px;
+      border-radius: 999px;
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .lang-pill code {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      padding: 3px 7px;
+      border-radius: 8px;
+      border: 1.5px solid var(--ink);
+    }
+    .lang-pill.is-active {
+      background: var(--ink);
+      color: var(--surface);
+      border-color: var(--ink);
+    }
+    .lang-pill.is-active code {
+      border-color: color-mix(in srgb, var(--surface) 60%, transparent);
+      color: var(--surface);
+    }
+
+    .progress-card {
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 16px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+    }
+    .progress-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .progress-top h3 { font-weight: 500; font-size: 15px; }
+    .progress-count {
+      font-family: var(--font-heading);
+      font-size: 22px;
+      font-weight: 700;
+    }
+    .progress-count small { font-family: var(--font-sans); font-size: 14px; font-weight: 400; color: var(--muted); }
+    .progress-bar {
+      height: 10px;
+      background: var(--subtle);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      width: 33.33%;
+      background: var(--mark);
+      border-radius: 999px;
+    }
+    .progress-hint { font-size: 12px; color: var(--muted); margin-top: 8px; }
+
+    .layout-desktop {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 24px;
+      align-items: start;
+    }
+
+    .album-title {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 12px;
+    }
+
+    .album-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .shell--mobile .album-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+
+    .slot {
+      aspect-ratio: 3/4;
+      border-radius: 14px;
+      position: relative;
+    }
+    .slot--owned {
+      border: 1.5px solid var(--ink);
+      background: var(--surface);
+      box-shadow: var(--shadow-card);
+    }
+    .slot--locked {
+      border: 2px dashed var(--line);
+      background: color-mix(in srgb, var(--line) 12%, var(--page));
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px;
+      text-align: center;
+    }
+    .slot--locked span { font-size: 12px; color: var(--muted); font-weight: 500; }
+    .slot--selected { outline: 3px solid var(--mark); outline-offset: 2px; }
+
+    .cover-art {
+      height: 58%;
+      border-radius: 12px 12px 0 0;
+      margin: 8px 8px 0;
+      background: var(--subtle);
+      position: relative;
+      overflow: hidden;
+    }
+    .cover-art::before {
+      content: "";
+      position: absolute;
+      width: 120%;
+      height: 40%;
+      background: var(--mark);
+      transform: rotate(-8deg);
+      top: 18%;
+      left: -10%;
+      opacity: 0.85;
+    }
+    .cover-words {
+      position: absolute;
+      bottom: 12px;
+      left: 12px;
+      right: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .cover-words em {
+      font-style: normal;
+      font-size: 10px;
+      font-weight: 500;
+      background: var(--surface);
+      padding: 2px 6px;
+      border-radius: 4px;
+      width: fit-content;
+      transform: rotate(-2deg);
+    }
+    .cover-meta { padding: 10px 12px 12px; }
+    .cover-meta h4 { font-size: 13px; font-weight: 500; line-height: 1.25; }
+    .cover-meta .level { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .owned-badge {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: var(--mark);
+      color: var(--ink);
+    }
+
+    .fiche {
+      background: var(--surface);
+      border: 1.5px solid var(--line);
+      border-radius: 18px;
+      overflow: hidden;
+      position: sticky;
+      top: 24px;
+    }
+    .fiche-hero {
+      background: var(--ink);
+      color: var(--surface);
+      padding: 20px;
+    }
+    .fiche-hero h3 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .fiche-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+    .fiche-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--surface) 18%, transparent);
+    }
+    .fiche-body { padding: 18px; }
+    .fiche-body section { margin-bottom: 18px; }
+    .fiche-body h5 {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+    .word-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+    .shell--mobile .word-grid { grid-template-columns: 1fr; }
+    .word-cell {
+      background: var(--page);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .word-cell strong { display: block; font-size: 13px; font-weight: 500; }
+    .word-cell span { font-size: 12px; color: var(--muted); }
+    .word-cell.is-blur { filter: blur(4px); user-select: none; }
+    .expr-row { padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .expr-row strong { font-size: 13px; font-weight: 500; }
+    .expr-row span { display: block; font-size: 12px; color: var(--muted); }
+    .fiche-footer {
+      border-top: 1px solid var(--line);
+      padding-top: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .price-row { display: flex; justify-content: space-between; align-items: baseline; }
+    .price-row .amount { font-family: var(--font-heading); font-size: 24px; font-weight: 700; }
+    .btn-pill {
+      min-height: 44px;
+      border-radius: 999px;
+      border: none;
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      width: 100%;
+      background: var(--ink);
+      color: var(--surface);
+    }
+    .btn-pill--secondary {
+      background: var(--surface);
+      color: var(--ink);
+      border: 1.5px solid var(--line);
+    }
+
+    .offer-strip {
+      margin-top: 20px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 1.5px solid var(--line);
+      background: var(--surface);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+    }
+    .offer-strip p { font-size: 13px; color: var(--muted); max-width: 28ch; }
+    .offer-strip .amount { font-weight: 500; color: var(--ink); }
+
+    .mobile-sheet {
+      margin-top: 20px;
+      background: var(--surface);
+      border-radius: 20px 20px 0 0;
+      border: 1.5px solid var(--line);
+      box-shadow: 0 -8px 32px color-mix(in srgb, var(--ink) 12%, transparent);
+    }
+    .sheet-handle {
+      width: 40px;
+      height: 4px;
+      background: var(--line);
+      border-radius: 999px;
+      margin: 10px auto 0;
+    }
+
+    .success-banner {
+      background: var(--surface);
+      border: 1.5px solid var(--ink);
+      border-radius: 16px;
+      padding: 20px;
+      text-align: center;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+    .success-banner h3 {
+      font-family: var(--font-heading);
+      font-size: 20px;
+      margin-bottom: 8px;
+    }
+    .success-banner .marker {
+      display: inline;
+      background: linear-gradient(104deg, transparent 1%, var(--mark) 3%, var(--mark) 94%, transparent 99%);
+      padding: 0 6px;
+      border-radius: 0.3em;
+    }
+    .success-banner p { color: var(--muted); font-size: 14px; margin-bottom: 16px; }
+    .success-actions { display: flex; flex-direction: column; gap: 10px; }
+  </style>
+</head>
+<body>
+  <div class="mockup-bar">
+    <strong>Direction A — L’album de collection</strong>
+    <span>Maquette statique · charte Kim Study · vouvoiement · sans emoji ni drapeau</span>
+  </div>
+
+  <div class="frames">
+    <section>
+      <p class="frame-label">Ordinateur — collection + fiche latérale</p>
+      <div class="shell shell--desktop">
+        <header class="app-header">
+          <h1>Kim Study</h1>
+          <nav style="display:flex;gap:20px;">
+            <span class="nav-tab">Accueil</span>
+            <span class="nav-tab">Bibliothèque</span>
+            <span class="nav-tab is-active">Lexi Shop</span>
+          </nav>
+        </header>
+        <main class="page">
+          <div class="intro">
+            <h2>Lexi Shop</h2>
+            <p>Constituez votre collection de listes, une langue à la fois. Chaque liste rejoint votre bibliothèque pour la révision.</p>
+          </div>
+
+          <div class="lang-row">
+            <button type="button" class="lang-pill is-active"><code>ENG</code> Anglais</button>
+            <button type="button" class="lang-pill"><code>DEU</code> Allemand</button>
+            <button type="button" class="lang-pill"><code>SPA</code> Espagnol</button>
+            <button type="button" class="lang-pill"><code>ITA</code> Italien</button>
+          </div>
+
+          <article class="progress-card">
+            <div class="progress-top">
+              <h3>Votre album anglais</h3>
+              <p class="progress-count">2 <small>sur 6</small></p>
+            </div>
+            <div class="progress-bar" role="presentation"><div class="progress-fill"></div></div>
+            <p class="progress-hint">Quatre cases encore vides — complétez la série à votre rythme.</p>
+          </article>
+
+          <div class="layout-desktop">
+            <div>
+              <p class="album-title">Cases de collection</p>
+              <div class="album-grid">
+                <article class="slot slot--owned slot--selected">
+                  <span class="owned-badge">Possédée</span>
+                  <div class="cover-art">
+                    <div class="cover-words">
+                      <em>Airport</em>
+                      <em>Boarding</em>
+                      <em>Connection</em>
+                    </div>
+                  </div>
+                  <div class="cover-meta">
+                    <h4>Voyages &amp; transports</h4>
+                    <p class="level">A2 → B2 · 60 mots · 20 expressions</p>
+                  </div>
+                </article>
+                <article class="slot slot--owned">
+                  <span class="owned-badge">Possédée</span>
+                  <div class="cover-art" style="background: color-mix(in srgb, var(--line) 25%, var(--page));">
+                    <div class="cover-words">
+                      <em>Species</em>
+                      <em>Hypothesis</em>
+                    </div>
+                  </div>
+                  <div class="cover-meta">
+                    <h4>Sciences &amp; nature</h4>
+                    <p class="level">B1 → C1</p>
+                  </div>
+                </article>
+                <article class="slot slot--locked">
+                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                  <span>À débloquer</span>
+                  <span style="font-size:11px;">Culture &amp; médias</span>
+                </article>
+                <article class="slot slot--locked"><span>À débloquer</span><span style="font-size:11px;">Travail &amp; économie</span></article>
+                <article class="slot slot--locked"><span>À débloquer</span><span style="font-size:11px;">Santé &amp; corps</span></article>
+                <article class="slot slot--locked"><span>À débloquer</span><span style="font-size:11px;">Ville &amp; société</span></article>
+              </div>
+
+              <aside class="offer-strip">
+                <div>
+                  <p><strong style="color:var(--ink);font-weight:500;">Collection anglaise complète</strong><br />Toutes les listes de cette langue, une remise appliquée.</p>
+                </div>
+                <div style="text-align:right;">
+                  <p class="amount">20&nbsp;€</p>
+                  <p style="font-size:12px;color:var(--muted);">au lieu de 24&nbsp;€</p>
+                  <button type="button" class="btn-pill" style="width:auto;padding:0 20px;margin-top:8px;">Compléter l’album</button>
+                </div>
+              </aside>
+            </div>
+
+            <aside class="fiche" aria-label="Fiche liste">
+              <header class="fiche-hero">
+                <h3>Voyages &amp; transports</h3>
+                <div class="fiche-pills">
+                  <span class="fiche-pill">ENG</span>
+                  <span class="fiche-pill">60 mots</span>
+                  <span class="fiche-pill">20 expressions</span>
+                  <span class="fiche-pill">A2 → B2</span>
+                </div>
+              </header>
+              <div class="fiche-body">
+                <section>
+                  <h5>Aperçu des mots</h5>
+                  <div class="word-grid">
+                    <div class="word-cell"><strong>Airport</strong><span>Aéroport</span></div>
+                    <div class="word-cell"><strong>Boarding</strong><span>Embarquement</span></div>
+                    <div class="word-cell"><strong>Connection</strong><span>Correspondance</span></div>
+                    <div class="word-cell"><strong>Take-off</strong><span>Décollage</span></div>
+                    <div class="word-cell"><strong>Stopover</strong><span>Escale</span></div>
+                    <div class="word-cell"><strong>Luggage</strong><span>Bagage</span></div>
+                    <div class="word-cell is-blur"><strong>···</strong><span>···</span></div>
+                    <div class="word-cell is-blur"><strong>···</strong><span>···</span></div>
+                  </div>
+                </section>
+                <section>
+                  <h5>Expression</h5>
+                  <div class="expr-row">
+                    <strong>On time</strong>
+                    <span>À l’heure — utile en situation de voyage.</span>
+                  </div>
+                </section>
+                <footer class="fiche-footer">
+                  <p style="font-size:13px;color:var(--muted);">Vous possédez déjà cette liste.</p>
+                  <button type="button" class="btn-pill">Réviser cette liste</button>
+                  <button type="button" class="btn-pill btn-pill--secondary">Voir dans la bibliothèque</button>
+                </footer>
+              </div>
+            </aside>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <section>
+      <p class="frame-label">Téléphone — album + fiche en bas de page</p>
+      <div class="shell shell--mobile">
+        <header class="app-header" style="padding:0 16px;height:56px;">
+          <h1 style="font-size:16px;">Lexi Shop</h1>
+        </header>
+        <main class="page">
+          <article class="progress-card">
+            <div class="progress-top">
+              <h3>Album anglais</h3>
+              <p class="progress-count">2<small>/6</small></p>
+            </div>
+            <div class="progress-bar"><div class="progress-fill"></div></div>
+          </article>
+
+          <p class="album-title">Vos cases</p>
+          <div class="album-grid">
+            <article class="slot slot--owned slot--selected">
+              <span class="owned-badge">Possédée</span>
+              <div class="cover-art"><div class="cover-words"><em>Airport</em><em>Boarding</em></div></div>
+              <div class="cover-meta"><h4>Voyages</h4></div>
+            </article>
+            <article class="slot slot--locked"><span>À débloquer</span></article>
+            <article class="slot slot--owned">
+              <span class="owned-badge">Possédée</span>
+              <div class="cover-art"></div>
+              <div class="cover-meta"><h4>Sciences</h4></div>
+            </article>
+            <article class="slot slot--locked"><span>À débloquer</span></article>
+          </div>
+
+          <article class="mobile-sheet">
+            <div class="sheet-handle"></div>
+            <header class="fiche-hero" style="border-radius:0;">
+              <h3 style="font-size:18px;">Culture &amp; médias</h3>
+              <div class="fiche-pills"><span class="fiche-pill">ENG</span><span class="fiche-pill">B1 → B2</span></div>
+            </header>
+            <div class="fiche-body">
+              <section>
+                <h5>Aperçu</h5>
+                <div class="word-grid">
+                  <div class="word-cell"><strong>Headline</strong><span>Titre de presse</span></div>
+                  <div class="word-cell"><strong>Broadcast</strong><span>Diffusion</span></div>
+                  <div class="word-cell"><strong>Review</strong><span>Critique</span></div>
+                </div>
+              </section>
+              <footer class="fiche-footer">
+                <div class="price-row">
+                  <span class="amount">4&nbsp;€</span>
+                  <span style="font-size:12px;color:var(--muted);">Paiement sécurisé</span>
+                </div>
+                <button type="button" class="btn-pill">Acheter cette liste</button>
+              </footer>
+            </div>
+          </article>
+        </main>
+      </div>
+    </section>
+
+    <section>
+      <p class="frame-label">État après achat — plaisir &amp; révision</p>
+      <article class="success-banner">
+        <h3>Liste <span class="marker">ajoutée à votre bibliothèque</span></h3>
+        <p>Culture &amp; médias est prête. Vous pouvez commencer la révision tout de suite.</p>
+        <div class="success-actions">
+          <button type="button" class="btn-pill">Réviser cette liste</button>
+          <button type="button" class="btn-pill btn-pill--secondary">Continuer l’album</button>
+        </div>
+      </article>
+    </section>
+  </div>
+</body>
+</html>
