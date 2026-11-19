@@ -39,13 +39,18 @@ export function shopPackPreviewTerms(wordsJson: string | null | undefined, limit
     .map((w) => w.term);
 }
 
-export function shopPackPreviewVocabulary(wordsJson: string | null | undefined, wordLimit = 6) {
+export function shopPackPreviewVocabulary(
+  wordsJson: string | null | undefined,
+  wordLimit = 6,
+  expressionLimit = 3
+) {
   const words = parseShopPackWords(wordsJson).filter((w) => !w.isExpression);
   const expressions = parseShopPackWords(wordsJson).filter((w) => w.isExpression);
   return {
     words: words.slice(0, wordLimit),
-    wordsBlurred: words.length > wordLimit,
-    firstExpression: expressions[0] ?? null,
+    expressions: expressions.slice(0, expressionLimit),
+    previewWordCount: Math.min(words.length, wordLimit),
+    previewExpressionCount: Math.min(expressions.length, expressionLimit),
   };
 }
 

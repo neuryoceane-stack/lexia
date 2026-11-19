@@ -17,7 +17,7 @@ export function ShopCollectionMeter({ language, ownedCount, totalCount }: Props)
     <section className="rounded-2xl border-[1.5px] border-line bg-surface px-4 py-4 sm:px-5 sm:py-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-muted">Ta collection {label.toLowerCase()}</p>
+          <p className="text-sm font-medium text-muted">Votre collection {label.toLowerCase()}</p>
           <p className="mt-1 font-heading text-[28px] font-bold leading-none text-ink sm:text-[32px]">
             {ownedCount}
             <span className="ml-1 font-sans text-base font-normal text-muted">sur {totalCount}</span>

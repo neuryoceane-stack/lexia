@@ -1,12 +1,18 @@
 "use client";
 
-import { getShopCoverTheme, shopCoverTitleShort } from "@/lib/shop-cover-theme";
+import {
+  getShopCoverTheme,
+  shopCoverTitleShort,
+  type ShopCoverVariantId,
+} from "@/lib/shop-cover-theme";
 import { shopPackPreviewTerms } from "@/lib/shop-pack-preview";
 import { formatShopPriceCents } from "@/lib/shop-price";
+import { ShopCoverArt } from "./shop-cover-art";
 import type { ShopPackClient } from "./shop-types";
 
 type Props = {
   pack: ShopPackClient;
+  coverVariant: ShopCoverVariantId;
   focused: boolean;
   onSelect: () => void;
   onBuy: () => void;
@@ -14,8 +20,16 @@ type Props = {
   buying: boolean;
 };
 
-export function ShopCoverCard({ pack, focused, onSelect, onBuy, onRevise, buying }: Props) {
-  const theme = getShopCoverTheme(pack.id);
+export function ShopCoverCard({
+  pack,
+  coverVariant,
+  focused,
+  onSelect,
+  onBuy,
+  onRevise,
+  buying,
+}: Props) {
+  const theme = getShopCoverTheme(pack.id, coverVariant);
   const terms = shopPackPreviewTerms(pack.wordsJson, 3);
   const shortTitle = shopCoverTitleShort(pack.title);
 
@@ -36,48 +50,19 @@ export function ShopCoverCard({ pack, focused, onSelect, onBuy, onRevise, buying
           className="flex min-h-[168px] flex-1 flex-col text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ink"
         >
           <div
-            className="relative mx-2.5 mt-2.5 flex min-h-[148px] flex-1 flex-col overflow-hidden rounded-xl bg-[color-mix(in_srgb,var(--line)_var(--bg-mix)_var(--page))] p-3.5"
-            style={{ ["--bg-mix" as string]: `${theme.bgLineMixPercent}%` }}
+            className="relative mx-2.5 mt-2.5 flex min-h-[148px] flex-1 flex-col overflow-hidden rounded-xl p-3.5"
+            style={{
+              background: `color-mix(in srgb, var(--line) ${theme.bgLineMixPercent}%, var(--page))`,
+            }}
           >
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-[-25%] h-[28%] w-[140%] bg-mark opacity-90"
-              style={{
-                top: `${theme.bandTopPercent}%`,
-                transform: `rotate(${theme.bandRotateDeg}deg)`,
-              }}
-            />
-            {theme.accentShape === 0 ? (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute right-3 top-3 h-9 w-9 rounded-full border-[1.5px] border-ink opacity-35"
-              />
-            ) : null}
-            {theme.accentShape === 1 ? (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute bottom-10 left-3 h-12 w-[3px] rounded-full bg-ink opacity-20"
-              />
-            ) : null}
-            {theme.accentShape === 2 ? (
-              <span
-                aria-hidden
-                className="pointer-events-none absolute bottom-8 right-4 h-10 w-10 rounded-lg border-[1.5px] border-ink opacity-25"
-                style={{ transform: `rotate(${theme.bandRotateDeg / 3}deg)` }}
-              />
-            ) : null}
-            <span
-              aria-hidden
-              className="pointer-events-none absolute left-[8%] h-[2px] w-[55%] bg-ink opacity-[0.08]"
-              style={{ top: `${theme.subtleLinePercent}%` }}
-            />
+            <ShopCoverArt theme={theme} />
             {pack.owned ? (
               <span className="absolute left-2.5 top-2.5 z-[2] rounded-full bg-mark px-2 py-1 text-[10px] font-medium text-ink">
                 Possédée
               </span>
             ) : null}
-            <p className="relative z-[1] font-heading text-[22px] font-bold leading-[1.05] text-ink">{shortTitle}</p>
-            <div className="relative z-[1] mt-auto flex flex-col items-end gap-1 pt-3">
+            <p className="relative z-[2] font-heading text-[22px] font-bold leading-[1.05] text-ink">{shortTitle}</p>
+            <div className="relative z-[2] mt-auto flex flex-col items-end gap-1 pt-3">
               {terms.map((term) => (
                 <em
                   key={term}

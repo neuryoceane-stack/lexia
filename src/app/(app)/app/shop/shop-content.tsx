@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ShoppingBag, X } from "lucide-react";
 import { LanguagePill, languageShort } from "@/app/(app)/app/revision/revision-ui";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
+import { assignShopCoverVariants } from "@/lib/shop-cover-theme";
 import { ShopCollectionMeter } from "./shop-collection-meter";
 import { ShopCoverCard } from "./shop-cover-card";
 import { ShopDetailPanel } from "./shop-detail-panel";
@@ -101,6 +102,8 @@ export function ShopContent() {
   );
 
   const ownedInLang = useMemo(() => packsInLang.filter((p) => p.owned).length, [packsInLang]);
+
+  const coverVariants = useMemo(() => assignShopCoverVariants(packsInLang), [packsInLang]);
 
   const focusedPack = useMemo(() => {
     const candidate = packsInLang.find((p) => p.id === focusedPackId);
@@ -217,7 +220,7 @@ export function ShopContent() {
         </span>
         <h2 className="mt-4 font-heading text-xl font-bold text-ink">Bientôt de nouvelles listes</h2>
         <p className="mt-2 text-sm text-muted">
-          La boutique se prépare. Reviens un peu plus tard pour découvrir les collections par langue.
+          La boutique se prépare. Revenez un peu plus tard pour découvrir les collections par langue.
         </p>
         <Link
           href="/app"
@@ -236,8 +239,8 @@ export function ShopContent() {
           Lexi Shop
         </h1>
         <p className="mt-2 max-w-2xl text-sm text-muted sm:text-[15px]">
-          Choisis une liste, collectionne-les une langue à la fois. Chaque achat rejoint ta bibliothèque pour
-          toujours.
+          Choisissez une liste et constituez votre collection, une langue à la fois. Chaque achat rejoint votre
+          bibliothèque pour toujours.
         </p>
       </header>
 
@@ -257,11 +260,11 @@ export function ShopContent() {
                   <p className="font-heading text-lg font-bold text-ink">
                     Liste{" "}
                     <span className="marker inline bg-[linear-gradient(104deg,transparent_1%,var(--mark)_3%,var(--mark)_94%,transparent_99%)] px-1.5">
-                      ajoutée à ta bibliothèque
+                      ajoutée à votre bibliothèque
                     </span>
                   </p>
                   {purchaseBanner.pack ? (
-                    <p className="mt-1 text-sm text-muted">{purchaseBanner.pack.title} est prête.</p>
+                    <p className="mt-1 text-sm text-muted">{purchaseBanner.pack.title} est prête pour vous.</p>
                   ) : null}
                 </>
               ) : null}
@@ -269,12 +272,12 @@ export function ShopContent() {
                 <>
                   <p className="font-medium text-ink">Paiement reçu</p>
                   <p className="mt-1 text-sm text-muted">
-                    Ta liste arrive dans quelques secondes. Actualise la page si besoin.
+                    Votre liste arrive dans quelques secondes. Actualisez la page si besoin.
                   </p>
                 </>
               ) : null}
               {purchaseBanner.kind === "canceled" ? (
-                <p className="text-sm">Paiement annulé. Tu peux reprendre quand tu veux.</p>
+                <p className="text-sm">Paiement annulé. Vous pouvez reprendre quand vous le souhaitez.</p>
               ) : null}
             </div>
             <button
@@ -334,6 +337,7 @@ export function ShopContent() {
               <ShopCoverCard
                 key={pack.id}
                 pack={pack}
+                coverVariant={coverVariants.get(pack.id) ?? "diagonal"}
                 focused={focusedPack?.id === pack.id}
                 onSelect={() => setFocusedPackId(pack.id)}
                 onBuy={() => void handleBuy(pack)}

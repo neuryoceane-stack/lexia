@@ -1,11 +1,14 @@
-/** Variante visuelle de couverture dérivée de l’id (sans colonne dédiée). */
+/** Les 5 variantes de couverture (charte uniquement). */
+export type ShopCoverVariantId = "diagonal" | "vertical" | "lowBand" | "rounded" | "stripes";
+
 export type ShopCoverTheme = {
-  bandRotateDeg: number;
-  bandTopPercent: number;
-  subtleLinePercent: number;
-  accentShape: 0 | 1 | 2;
+  variant: ShopCoverVariantId;
+  /** Inclinaison ou décalage dérivé de l’id (stable). */
+  twist: number;
   bgLineMixPercent: number;
 };
+
+const VARIANTS: ShopCoverVariantId[] = ["diagonal", "vertical", "lowBand", "rounded", "stripes"];
 
 function hashString(input: string): number {
   let hash = 0;
@@ -15,14 +18,35 @@ function hashString(input: string): number {
   return hash;
 }
 
-export function getShopCoverTheme(packId: string): ShopCoverTheme {
+function preferredVariantIndex(packId: string): number {
+  return hashString(packId) % VARIANTS.length;
+}
+
+/**
+ * Attribue une variante stable par pack, sans doublon entre voisins dans l’ordre d’affichage.
+ */
+export function assignShopCoverVariants<T extends { id: string }>(packsInDisplayOrder: T[]): Map<string, ShopCoverVariantId> {
+  const assigned = new Map<string, ShopCoverVariantId>();
+  let previous: ShopCoverVariantId | null = null;
+
+  for (const pack of packsInDisplayOrder) {
+    let index = preferredVariantIndex(pack.id);
+    while (previous !== null && VARIANTS[index] === previous) {
+      index = (index + 1) % VARIANTS.length;
+    }
+    const variant = VARIANTS[index]!;
+    assigned.set(pack.id, variant);
+    previous = variant;
+  }
+  return assigned;
+}
+
+export function getShopCoverTheme(packId: string, variant: ShopCoverVariantId): ShopCoverTheme {
   const hash = hashString(packId);
   return {
-    bandRotateDeg: -18 + (hash % 16),
-    bandTopPercent: 28 + (hash % 22),
-    subtleLinePercent: 12 + (hash % 28),
-    accentShape: (hash % 3) as 0 | 1 | 2,
-    bgLineMixPercent: 18 + (hash % 22),
+    variant,
+    twist: -14 + (hash % 28),
+    bgLineMixPercent: 16 + (hash % 26),
   };
 }
 
@@ -31,4 +55,25 @@ export function shopCoverTitleShort(title: string): string {
   const trimmed = title.trim();
   const segment = trimmed.split(/[&·\-–—]/)[0]?.trim();
   return (segment && segment.length > 0 ? segment : trimmed).slice(0, 24);
+}
+
+export function shopPackRemainingHint(
+  owned: boolean,
+  wordCount: number,
+  expressionCount: number,
+  previewWordCount: number,
+  previewExpressionCount: number
+): string | null {
+  if (owned) return null;
+  const extraWords = Math.max(0, wordCount - previewWordCount);
+  const extraExpr = Math.max(0, expressionCount - previewExpressionCount);
+  if (extraWords === 0 && extraExpr === 0) return null;
+  const parts: string[] = [];
+  if (extraWords > 0) {
+    parts.push(`${extraWords} autre${extraWords > 1 ? "s" : ""} mot${extraWords > 1 ? "s" : ""}`);
+  }
+  if (extraExpr > 0) {
+    parts.push(`${extraExpr} autre${extraExpr > 1 ? "s" : ""} expression${extraExpr > 1 ? "s" : ""}`);
+  }
+  return `… et ${parts.join(" et ")}, disponibles après achat`;
 }
