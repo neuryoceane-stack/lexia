@@ -35,6 +35,12 @@ export async function ensureUsersTable(): Promise<void> {
   await addColumnIfMissing("ALTER TABLE users ADD COLUMN created_at INTEGER");
   await addColumnIfMissing("ALTER TABLE users ADD COLUMN referral_code TEXT");
   await addColumnIfMissing("ALTER TABLE users ADD COLUMN referral_count INTEGER DEFAULT 0");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT");
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN stripe_subscription_id TEXT");
+  await addColumnIfMissing(
+    "ALTER TABLE users ADD COLUMN subscription_current_period_end INTEGER"
+  );
+  await addColumnIfMissing("ALTER TABLE users ADD COLUMN stripe_status_synced_at INTEGER");
   await addColumnIfMissing(
     "ALTER TABLE users ADD COLUMN referred_by_user_id TEXT REFERENCES users(id)"
   );
@@ -95,6 +101,7 @@ export async function ensureClassTables() {
       created_at INTEGER NOT NULL
     )
   `);
+  await addColumnIfMissing("ALTER TABLE classes ADD COLUMN school_level TEXT");
   await runRawSql(`
     CREATE TABLE IF NOT EXISTS class_members (
       id TEXT PRIMARY KEY,

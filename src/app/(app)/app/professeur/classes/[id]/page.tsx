@@ -13,7 +13,7 @@ import {
   revisionSessions,
 } from "@/lib/db/schema";
 import { eq, and, inArray, sql, asc } from "drizzle-orm";
-import { getClassDetailAnalytics } from "@/lib/class-detail-analytics";
+import { getClassDetailAnalytics, getClassRosterActivity } from "@/lib/class-detail-analytics";
 import { getFlagEmoji, PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { OngletsClasse, type TabId } from "./onglets-classe";
 import { ClasseHeader } from "./classe-header";
@@ -28,12 +28,6 @@ const TAB_IDS: TabId[] = ["tableau-de-bord", "eleves", "listes"];
 function parseTab(tab: string | null): TabId {
   if (tab && TAB_IDS.includes(tab as TabId)) return tab as TabId;
   return "tableau-de-bord";
-}
-
-function statMasteryColor(pct: number): string {
-  if (pct >= 70) return GREEN;
-  if (pct >= 40) return PRIMARY;
-  return GOLD;
 }
 
 export default async function ClasseDetailPage({
@@ -127,6 +121,15 @@ export default async function ClasseDetailPage({
     acceptedUserIds,
     assignmentInputs
   );
+  const roster = await getClassRosterActivity(
+    members
+      .filter((member) => member.status === "accepted" && member.userId)
+      .map((member) => ({
+        userId: member.userId as string,
+        joinedAt: member.joinedAt,
+      })),
+    assignmentInputs.map((row) => row.listId)
+  );
 
   const listProgressDTO = analytics.listProgress.map((lp) => ({
     ...lp,
@@ -166,6 +169,23 @@ export default async function ClasseDetailPage({
               : zeroProgress;
           })()
         : zeroProgress,
+    activity:
+      m.userId && m.status === "accepted"
+        ? (() => {
+            const activity = roster.byUserId[m.userId];
+            return {
+              wordCount: activity?.wordCount ?? 0,
+              revisionsThisWeek: activity?.revisionsThisWeek ?? 0,
+              lastActivityAt: activity?.lastActivityAt?.toISOString() ?? null,
+              inactiveFor7Days: activity?.inactiveFor7Days ?? false,
+            };
+          })()
+        : {
+            wordCount: 0,
+            revisionsThisWeek: 0,
+            lastActivityAt: null,
+            inactiveFor7Days: false,
+          },
   }));
 
   const listsForTab = classListsData
@@ -184,14 +204,16 @@ export default async function ClasseDetailPage({
     });
 
   const nbEleves = membersWithStats.filter((m) => m.status === "accepted").length;
+  const actifsCetteSemaine = roster.activeThisWeekCount;
+  const partActifs =
+    nbEleves === 0 ? 0 : Math.round((100 * actifsCetteSemaine) / nbEleves);
   const nbListes = classListsData.length;
-  const mc = statMasteryColor(analytics.globalMasteryPct);
 
   const langNorm = cls.language?.trim().toLowerCase() ?? "";
   const languageDisplay =
     langNorm.length > 0
       ? {
-          flag: getFlagEmoji(langNorm) || "🌐",
+          flag: getFlagEmoji(langNorm),
           label:
             PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === langNorm)?.label ??
             langNorm.toUpperCase(),
@@ -224,7 +246,7 @@ export default async function ClasseDetailPage({
           schoolLevel={cls.schoolLevel ?? null}
         />
 
-        <ClassAccessCodeBanner identifier={cls.identifier} />
+        <ClassAccessCodeBanner identifier={cls.identifier} title={cls.title} />
 
         <div
           className="grid grid-cols-1 sm:grid-cols-3"
@@ -333,12 +355,12 @@ export default async function ClasseDetailPage({
               style={{
                 fontSize: 26,
                 fontWeight: 500,
-                color: mc,
+                color: PRIMARY,
                 margin: "0 0 3px",
                 lineHeight: 1.1,
               }}
             >
-              {analytics.globalMasteryPct}%
+              {nbEleves === 0 ? "—" : `${partActifs} %`}
             </p>
             <p
               style={{
@@ -347,7 +369,9 @@ export default async function ClasseDetailPage({
                 margin: 0,
               }}
             >
-              maîtrise moyenne
+              {nbEleves === 0
+                ? "aucun élève pour l'instant"
+                : `${actifsCetteSemaine} actif${actifsCetteSemaine !== 1 ? "s" : ""} cette semaine`}
             </p>
           </div>
         </div>

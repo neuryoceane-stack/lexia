@@ -67,7 +67,7 @@ export function MesClassesView({
 
   function handleCreated() {
     router.refresh();
-    setToast("Classe créée ✓");
+    setToast("Classe créée");
   }
 
   const hasClasses = rows.length > 0;

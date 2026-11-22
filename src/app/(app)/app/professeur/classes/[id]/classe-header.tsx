@@ -168,7 +168,9 @@ export function ClasseHeader({
                     color: "var(--foreground-muted)",
                   }}
                 >
-                  <span aria-hidden>{languageDisplay.flag}</span>{" "}
+                  {languageDisplay.flag ? (
+                    <span aria-hidden>{languageDisplay.flag} </span>
+                  ) : null}
                   {languageDisplay.label}
                 </span>
               )}

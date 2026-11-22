@@ -14,7 +14,8 @@ type LibSqlRawClient = {
 /**
  * POST /api/classes/[id]/lists
  * Ajoute une liste à la classe (professeur).
- * Body: { listId: string, visibleFrom?: number (ms), dueDate?: number (ms) }
+ * Body: { listId: string }
+ * visible_from et due_date ne sont pas lues : elles n'existent pas sur Turso.
  */
 export async function POST(
   request: Request,
@@ -42,11 +43,7 @@ export async function POST(
       return NextResponse.json({ error: "Classe introuvable" }, { status: 404 });
     }
 
-    let body: {
-      listId?: string;
-      visibleFrom?: number | null;
-      dueDate?: number | null;
-    };
+    let body: { listId?: string };
     try {
       body = await request.json();
     } catch {
@@ -59,7 +56,7 @@ export async function POST(
     }
 
     const [existing] = await db
-      .select()
+      .select({ id: classLists.id })
       .from(classLists)
       .where(and(eq(classLists.classId, classId), eq(classLists.listId, listId)))
       .limit(1);
@@ -105,7 +102,8 @@ export async function POST(
      VALUES (?, ?, ?, 0, ?, ?)`;
     const insertArgs = [id, classId, listId, maxOrder + 1, now];
 
-    // SQL brut : évite Drizzle/LibSQL sur colonnes nullable. LibSQL = execute ; local = prepare().run
+    // SQL brut, colonnes réelles uniquement (pas de visible_from ni due_date).
+    // LibSQL = execute ; local = prepare().run
     const client = (db as { $client?: LibSqlRawClient }).$client;
     if (client && typeof client.execute === "function") {
       await client.execute(sqlInsert, insertArgs);

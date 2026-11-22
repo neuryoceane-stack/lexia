@@ -6,6 +6,7 @@ import { EmptySection } from "./empty-section";
 import { FeedbacksSection } from "./feedbacks-section";
 import { FinanceSection } from "./finance-section";
 import { OverviewSection } from "./overview-section";
+import { PilotSection } from "./pilot-section";
 import { PromoSection } from "./promo-section";
 import { StudentsSection } from "./students-section";
 import type { CreatorSectionId, StudentTabId } from "./creator-sections";
@@ -28,6 +29,7 @@ export function CreatorShell({
           {section === "overview" && <OverviewSection />}
           {section === "funnel" && <EmptySection id="funnel" />}
           {section === "students" && <StudentsSection onglet={onglet} />}
+          {section === "pilot" && <PilotSection />}
           {section === "health" && <FeedbacksSection />}
           {section === "finance" && <FinanceSection />}
           {section === "churn" && <ChurnSection />}

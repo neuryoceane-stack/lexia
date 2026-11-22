@@ -8,8 +8,6 @@ import { ensureUserReferralCode } from "@/lib/referral-code.server";
 const STATUS_VALUES = ["etudiant", "salarie", "independant", "en_formation"] as const;
 export type ProfileStatus = (typeof STATUS_VALUES)[number];
 
-const ROLE_VALUES = ["etudiant", "professeur"] as const;
-
 export type UserProfilePayload = {
   firstName?: string | null;
   lastName?: string | null;
@@ -17,6 +15,7 @@ export type UserProfilePayload = {
   city?: string | null;
   phone?: string | null;
   status?: ProfileStatus | null;
+  /** Lecture seule. Ignoré à l'écriture : le rôle ne se change pas depuis le profil. */
   role?: "etudiant" | "professeur" | null;
   institutionName?: string | null;
 };
@@ -126,13 +125,6 @@ export async function PATCH(request: Request) {
         ? body.institutionName.trim().slice(0, 300)
         : undefined;
 
-  const role =
-    body.role !== undefined && body.role !== null
-      ? ROLE_VALUES.includes(body.role)
-        ? body.role
-        : undefined
-      : undefined;
-
   const [existing] = await db
     .select()
     .from(userProfiles)
@@ -147,7 +139,7 @@ export async function PATCH(request: Request) {
     city: city ?? existing?.city ?? null,
     phone: phone ?? existing?.phone ?? null,
     status: status !== undefined ? status : existing?.status ?? null,
-    role: role !== undefined ? role : existing?.role ?? null,
+    role: existing?.role ?? null,
     institutionName: institutionName ?? existing?.institutionName ?? null,
     updatedAt: new Date(),
   };
