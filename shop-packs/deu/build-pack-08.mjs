@@ -42,7 +42,7 @@ const rows = [
   { terme: "fehlen", definition: "être absent", type: "" },
   { terme: "schummeln", definition: "tricher", type: "" },
   { terme: "bestehen", definition: "réussir un examen", type: "" },
-  { terme: "die Kopie", definition: "copie", type: "" },
+  { terme: "die Kopie", definition: "photocopie", type: "" },
   { terme: "der Entwurf", definition: "brouillon", type: "" },
   { terme: "das Zitat", definition: "citation", type: "" },
   { terme: "buchstabieren", definition: "épeler", type: "" },

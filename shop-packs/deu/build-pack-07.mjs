@@ -86,7 +86,7 @@ const rows = [
   { terme: "aufmachen", definition: "ouvrir", type: "" },
   { terme: "anmachen", definition: "allumer la lumière", type: "" },
   { terme: "ausmachen", definition: "éteindre la lumière", type: "" },
-  { terme: "weglegen", definition: "remettre à sa place", type: "" },
+  { terme: "weglegen", definition: "mettre de côté", type: "" },
   { terme: "mitbringen", definition: "apporter avec soi", type: "" },
   { terme: "abtrocknen", definition: "essuyer", type: "" },
   { terme: "einpacken", definition: "emballer", type: "" },

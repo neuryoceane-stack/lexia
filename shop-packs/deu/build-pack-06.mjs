@@ -42,7 +42,7 @@ const rows = [
   { terme: "der Minister", definition: "ministre", type: "" },
   { terme: "die Ungleichheit", definition: "inégalité", type: "" },
   { terme: "die Justiz", definition: "institution judiciaire", type: "" },
-  { terme: "die Gerechtigkeit", definition: "équité", type: "" },
+  { terme: "die Gerechtigkeit", definition: "justice", type: "" },
   { terme: "die Freiheit", definition: "liberté", type: "" },
   { terme: "die Demonstration", definition: "manifestation", type: "" },
   { terme: "die Debatte", definition: "débat", type: "" },

@@ -95,7 +95,7 @@ const rows = [
   { terme: "sich auf den Weg machen", definition: "se mettre en route", type: "expression" },
   { terme: "abseits der ausgetretenen Pfade", definition: "hors des sentiers battus", type: "expression" },
   { terme: "Reisen bildet", definition: "formation de l'esprit par le voyage", type: "expression" },
-  { terme: "den Anschluss verpassen", definition: "rater le coche", type: "expression" },
+  { terme: "den Anschluss verpassen", definition: "se laisser distancer", type: "expression" },
   { terme: "am Scheideweg stehen", definition: "être face à un choix décisif", type: "expression" },
   { terme: "auf Achse sein", definition: "être sans cesse en déplacement", type: "expression" },
   { terme: "die Beine in die Hand nehmen", definition: "se dépêcher", type: "expression" },

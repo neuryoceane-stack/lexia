@@ -16,7 +16,7 @@ const rows = [
   { terme: "das Gehalt", definition: "salaire mensuel", type: "" },
   { terme: "die Neueinstellung", definition: "embauche", type: "" },
   { terme: "die Entlassung", definition: "licenciement", type: "" },
-  { terme: "kündigen", definition: "poser sa démission", type: "" },
+  { terme: "kündigen", definition: "résilier un contrat de travail (démission ou licenciement selon qui agit)", type: "" },
   { terme: "das Büro", definition: "bureau (pièce)", type: "" },
   { terme: "die Schicht", definition: "tranche horaire de travail", type: "" },
   { terme: "das Team", definition: "équipe de travail", type: "" },
