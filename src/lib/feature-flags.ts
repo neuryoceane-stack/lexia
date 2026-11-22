@@ -1,2 +1,2 @@
-/** Lexi Shop : passer à true pour réactiver la boutique (désactivée au lancement). */
+/** Lexi Shop visible pour les élèves. Passer à false pour masquer la boutique. */
 export const SHOP_ENABLED = true;

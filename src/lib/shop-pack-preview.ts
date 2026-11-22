@@ -21,6 +21,43 @@ export function parseShopPackWords(wordsJson: string | null | undefined): ShopPa
   }
 }
 
+/**
+ * Contenu complet d'un pack, tel qu'il est stocké (term, definition, isExpression).
+ * Une forme invalide est une erreur : on n'écrit pas une liste à moitié.
+ */
+export function requireShopPackWords(wordsJson: string | null | undefined): ShopPackWord[] {
+  if (wordsJson == null || wordsJson.trim() === "") return [];
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(wordsJson);
+  } catch {
+    throw new Error("words_json illisible");
+  }
+  if (!Array.isArray(parsed)) {
+    throw new Error("words_json doit être un tableau");
+  }
+  return parsed.map((row, index) => {
+    if (typeof row !== "object" || row === null) {
+      throw new Error(`words_json[${index}] est invalide`);
+    }
+    const record = row as { term?: unknown; definition?: unknown; isExpression?: unknown };
+    if (typeof record.term !== "string" || record.term.trim() === "") {
+      throw new Error(`words_json[${index}] n'a pas de terme`);
+    }
+    if (typeof record.definition !== "string") {
+      throw new Error(`words_json[${index}] n'a pas de définition`);
+    }
+    if (record.isExpression != null && typeof record.isExpression !== "boolean") {
+      throw new Error(`words_json[${index}] a un type d'expression invalide`);
+    }
+    return {
+      term: record.term,
+      definition: record.definition,
+      isExpression: record.isExpression ?? false,
+    };
+  });
+}
+
 export function countShopPackContents(wordsJson: string | null | undefined): {
   wordCount: number;
   expressionCount: number;

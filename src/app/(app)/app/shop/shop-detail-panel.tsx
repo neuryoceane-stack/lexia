@@ -8,12 +8,13 @@ import type { ShopPackClient } from "./shop-types";
 
 type Props = {
   pack: ShopPackClient;
-  buying: boolean;
-  onBuy: () => void;
+  selected: boolean;
+  priceCents: number;
+  onToggle: () => void;
   onRevise: () => void;
 };
 
-export function ShopDetailPanel({ pack, buying, onBuy, onRevise }: Props) {
+export function ShopDetailPanel({ pack, selected, priceCents, onToggle, onRevise }: Props) {
   const preview = shopPackPreviewVocabulary(pack.wordsJson, 6, 3);
   const stackTerms = shopPackPreviewTerms(pack.wordsJson, 3);
   const remainingHint = shopPackRemainingHint(
@@ -97,16 +98,24 @@ export function ShopDetailPanel({ pack, buying, onBuy, onRevise }: Props) {
             ) : (
               <>
                 <div>
-                  <p className="font-heading text-[28px] font-bold text-ink">{formatShopPriceCents(pack.price)}</p>
-                  <p className="text-xs text-muted">Paiement sécurisé · ajout permanent à votre bibliothèque</p>
+                  <p className="font-heading text-[28px] font-bold text-ink">{formatShopPriceCents(priceCents)}</p>
+                  <p className="text-xs text-muted">
+                    {selected
+                      ? "Dans votre sélection · le total est dans la barre de paiement"
+                      : "Paiement sécurisé · ajout permanent à votre bibliothèque"}
+                  </p>
                 </div>
                 <button
                   type="button"
-                  disabled={buying}
-                  onClick={onBuy}
-                  className="min-h-11 w-full rounded-full bg-ink px-5 text-sm font-medium text-surface disabled:opacity-70 sm:min-w-[200px] sm:w-auto"
+                  aria-pressed={selected}
+                  onClick={onToggle}
+                  className={`min-h-11 w-full rounded-full px-5 text-sm font-medium sm:min-w-[220px] sm:w-auto ${
+                    selected
+                      ? "border-[1.5px] border-ink bg-surface text-ink"
+                      : "bg-ink text-surface"
+                  }`}
                 >
-                  {buying ? "Redirection…" : "Acheter cette liste"}
+                  {selected ? "Retirer de la sélection" : "Choisir cette liste"}
                 </button>
               </>
             )}

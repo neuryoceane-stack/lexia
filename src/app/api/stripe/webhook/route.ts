@@ -1,9 +1,5 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
-import { db } from "@/lib/db";
-import { shopPacks, userPurchases, words } from "@/lib/db/schema";
-import { eq, and } from "drizzle-orm";
-import { createUserListPair } from "@/lib/user-list";
 import { getStripe } from "@/lib/stripe";
 import { recordPromoRedemptionFromCheckout } from "@/lib/promo-codes-server";
 import {
@@ -13,6 +9,8 @@ import {
   syncSubscriptionCheckout,
 } from "@/lib/stripe-billing";
 import { logServerError } from "@/lib/server-error-log";
+import { shopCheckoutEventDisposition, type ShopPaymentView } from "@/lib/shop-checkout";
+import { fulfillShopCheckout } from "@/lib/shop-fulfillment";
 
 export async function POST(req: Request) {
   const body = await req.text();
@@ -35,9 +33,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Webhook signature invalid" }, { status: 400 });
   }
 
-  if (event.type === "checkout.session.completed") {
-    const session = event.data.object;
+  const shopEvent = shopCheckoutEventDisposition(event.type);
+  if (shopEvent === "ignore") {
+    return NextResponse.json({ received: true });
+  }
+
+  if (shopEvent === "fulfill") {
+    // shopCheckoutEventDisposition ne renvoie "fulfill" que pour les sessions Checkout.
+    const session = event.data.object as Stripe.Checkout.Session;
     if (isSubscriptionCheckout(session)) {
+      if (event.type !== "checkout.session.completed") {
+        return NextResponse.json({ received: true });
+      }
       try {
         await syncSubscriptionCheckout(session, event.created);
         await recordPromoRedemptionFromCheckout(session.metadata, event.created);
@@ -91,60 +98,36 @@ export async function POST(req: Request) {
   return NextResponse.json({ received: true });
 }
 
+function toShopPaymentView(session: Stripe.Checkout.Session): ShopPaymentView {
+  const paymentIntent = session.payment_intent;
+  return {
+    id: session.id,
+    mode: session.mode ?? null,
+    paymentStatus: session.payment_status ?? null,
+    amountTotal: session.amount_total,
+    paymentIntentId:
+      typeof paymentIntent === "string" ? paymentIntent : paymentIntent?.id ?? null,
+    metadata: session.metadata,
+  };
+}
+
 async function handleShopCheckout(session: Stripe.Checkout.Session) {
-  const userId = session.metadata?.userId;
-  const packId = session.metadata?.packId;
-
-  if (!userId || !packId) {
-    return NextResponse.json({ error: "Missing metadata" }, { status: 400 });
-  }
-
-  const [pack] = await db
-    .select()
-    .from(shopPacks)
-    .where(eq(shopPacks.id, packId))
-    .limit(1);
-
-  if (!pack) return NextResponse.json({ error: "Pack not found" }, { status: 404 });
-
-  const [existingPurchase] = await db
-    .select()
-    .from(userPurchases)
-    .where(and(eq(userPurchases.userId, userId), eq(userPurchases.packId, packId)))
-    .limit(1);
-
-  if (existingPurchase) return NextResponse.json({ received: true });
-
-  await db.insert(userPurchases).values({
-    id: crypto.randomUUID(),
-    userId,
-    packId,
-    stripeSessionId: session.id,
-    stripePaymentId: typeof session.payment_intent === "string" ? session.payment_intent : null,
-    amountPaid: session.amount_total ?? pack.price,
-  });
-
-  const { listId } = await createUserListPair({
-    userId,
-    name: pack.title,
-    source: "shop",
-    language: pack.language,
-  });
-
-  if (pack.wordsJson) {
-    type PackWord = { term: string; definition: string; isExpression?: boolean };
-    const packWords: PackWord[] = JSON.parse(pack.wordsJson);
-    for (let i = 0; i < packWords.length; i++) {
-      await db.insert(words).values({
-        id: crypto.randomUUID(),
-        listId,
-        term: packWords[i].term,
-        definition: packWords[i].definition,
-        rank: i,
-        isExpression: packWords[i].isExpression ?? false,
-      });
+  try {
+    const result = await fulfillShopCheckout(toShopPaymentView(session));
+    if (result.httpStatus === 200) {
+      return NextResponse.json({ received: true });
     }
+    console.error("[stripe webhook] checkout boutique", result.error);
+    return NextResponse.json({ error: result.error }, { status: result.httpStatus });
+  } catch (error) {
+    console.error("[stripe webhook] checkout boutique", error);
+    logServerError({
+      source: "webhook",
+      route: "/api/stripe/webhook",
+      method: "POST",
+      error,
+      statusCode: 500,
+    });
+    return NextResponse.json({ error: "Traitement webhook échoué" }, { status: 500 });
   }
-
-  return NextResponse.json({ received: true });
 }

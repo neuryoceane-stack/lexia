@@ -9,7 +9,8 @@ Interface élève, Creator Dashboard et mode professeur. Le mode professeur couv
 
 ## Offre et abonnement
 - Tarifs (source unique : `src/lib/offer.ts` — ne jamais écrire un prix ou une durée en dur ailleurs) : 5 € par mois sans engagement, ou 45 € par an (3,75 €/mois, message « 3 mois offerts »), essai de 15 jours avec carte bancaire requise tant que le freemium n’est pas actif.
-- **Freemium élève** : `FREEMIUM_ENABLED=true` (exactement `true`) active le plafond de `FREEMIUM_PERSONAL_WORD_LIMIT` mots personnels actifs (hors listes `source=shop`), sans carte. Dès que le freemium est actif, le paywall legacy est ignoré. Freemium off + `PAYWALL_ENABLED=true` : comportement paywall actuel inchangé. Les deux off : accès libre.
+- **Freemium élève** : `FREEMIUM_ENABLED=true` (exactement `true`) active le plafond de `FREEMIUM_PERSONAL_WORD_LIMIT` mots personnels actifs (hors listes `source=shop`), sans carte. Dès que le freemium est actif, le paywall legacy est ignoré. Freemium off + `PAYWALL_ENABLED=true` : comportement paywall actuel inchangé. Les deux off : accès libre. Un achat boutique, unitaire ou en lot, crée des listes `source=shop` : elles ne comptent pas dans ce plafond.
+- **Lexi Shop** : une liste au prix de `shop_packs.price`. Le lot de 4 listes d'une même langue coûte `SHOP_LOT_PRICE_CENTS` (`src/lib/shop-price.ts`, 10 €). Ne pas lire `shop_packs.bundle_price` : la colonne est inutilisée.
 - Paywall legacy : `PAYWALL_ENABLED=true` l’active ; si absent, il est éteint. Un élève sans abonnement actif ni essai (`trialing` ou `active` uniquement — `past_due` est plafonné comme un gratuit en freemium) voit sa bibliothèque mais est redirigé vers `/app/abonnement` pour toute action d’ajout ou de révision. Les rôles `creator` et `professeur` sont exemptés.
 
 ## Design system
