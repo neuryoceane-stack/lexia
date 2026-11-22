@@ -111,7 +111,7 @@ const rows = [
   { terme: "en el quinto pino", definition: "dans un endroit très isolé", type: "expression" },
   { terme: "poner tierra de por medio", definition: "prendre de la distance", type: "expression" },
   { terme: "hacer mutis por el foro", definition: "s'éclipser discrètement", type: "expression" },
-  { terme: "armarse de paciencia", definition: "s'armer de patience", type: "expression" },
+  { terme: "quemar etapas", definition: "brûler les étapes", type: "expression" },
 ];
 
 function validate(data) {
