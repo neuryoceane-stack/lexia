@@ -40,6 +40,8 @@ Créateur → Boutique range les packs par langue. Les cartes « Par langue » i
 
 « Tout sélectionner », « Rendre visible » et « Masquer » ne portent que sur la langue affichée. Le PATCH `/api/creator/shop` est inchangé.
 
+Le toucher sur une carte de pack (en dehors de la case, de l'œil et de la corbeille) ouvre le contenu, que la liste montre toutes les langues ou une seule. Changer de carte « Par langue », ou revenir à toutes les langues, ferme le panneau. Il est plein écran au téléphone et latéral à partir de 768 px. `GET /api/creator/shop` n'envoie pas `words_json`. Le panneau charge `GET /api/creator/shop/[id]`, réservé au rôle `creator`, et affiche les mots à part des expressions (`isExpression`). La recherche porte sur le terme et la définition, sans tenir compte de la casse ni des accents. Le contenu n'est pas modifiable depuis ce panneau.
+
 ## Essai en mode test Stripe
 
 La base pointée par `.env.local` est la production : ne pas y écrire pour un essai local. Stripe : clé `sk_test` uniquement.

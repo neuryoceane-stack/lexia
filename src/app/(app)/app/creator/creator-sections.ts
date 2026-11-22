@@ -10,6 +10,7 @@
  * - health    → feedbacks (GET et PATCH /api/creator/feedbacks)
  * - finance   → finance (GET /api/creator/finance), alertes comprises
  * - shop      → boutique ( /api/creator/shop ). La visibilité en lot rappelle ce PATCH, un pack à la fois.
+ *               Le contenu (words_json) se lit à l'ouverture : GET /api/creator/shop/[id].
  * - students  → liste, usage (lecture seule) et onglet Établissements
  * - pilot → professeurs du pilote (users, classes, revisions, revision_sessions)
  * - churn    → désabonnements (GET /api/creator/churn)

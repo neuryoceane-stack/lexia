@@ -85,6 +85,19 @@ export function toggleCreatorShopLanguage(
   return next;
 }
 
+/**
+ * Changer la langue affichée ferme la consultation, même si le pack reste dans la liste.
+ * Sans changement de filtre, le panneau reste ouvert.
+ */
+export function inspectionIdForLanguageFilter(
+  inspectedId: string | null,
+  previousLanguage: string | null,
+  nextLanguage: string | null,
+): string | null {
+  if (previousLanguage === nextLanguage) return inspectedId;
+  return null;
+}
+
 function finiteCount(value: number): number {
   if (!Number.isFinite(value)) return 0;
   return Math.max(0, Math.trunc(value));

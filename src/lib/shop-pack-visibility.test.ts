@@ -13,6 +13,7 @@ import {
   formatLanguagePackSummary,
   formatPackVisibilitySummary,
   formatShopScopeLabel,
+  inspectionIdForLanguageFilter,
   formatVisibleCount,
   groupPacksByVisibility,
   orderedShopLanguages,
@@ -165,6 +166,14 @@ describe("filtre par carte de langue", () => {
     assert.equal(formatShopScopeLabel("Anglais", 16), "Anglais · 16 packs");
     assert.equal(formatShopScopeLabel(" Allemand ", 1), "Allemand · 1 pack");
     assert.equal(formatShopScopeLabel("Espagnol", 0), "Espagnol · 0 packs");
+  });
+
+  it("ferme la consultation dès que la langue affichée change", () => {
+    assert.equal(inspectionIdForLanguageFilter("pack-eng", null, "eng"), null);
+    assert.equal(inspectionIdForLanguageFilter("pack-eng", "eng", "deu"), null);
+    assert.equal(inspectionIdForLanguageFilter("pack-eng", "eng", null), null);
+    assert.equal(inspectionIdForLanguageFilter("pack-ita", "ita", "ita"), "pack-ita");
+    assert.equal(inspectionIdForLanguageFilter("pack-fra", null, null), "pack-fra");
   });
 });
 
