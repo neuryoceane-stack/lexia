@@ -28,11 +28,11 @@ export type ShopSelectionState = "none" | "partial" | "all";
 const SHOP_LANGUAGE_ORDER = ["fra", "eng", "deu", "spa", "ita"] as const;
 
 /**
- * Onglets de la boutique créateur, dans l'ordre affiché.
+ * Cartes « Par langue », dans l'ordre affiché.
  * Les codes sont ceux de `PREFERRED_LANGUAGE_OPTIONS` (`src/lib/language.ts`).
  * Le libellé et le drapeau ne sont pas recopiés ici.
  */
-export const CREATOR_SHOP_TAB_LANGUAGES = ["eng", "deu", "spa", "ita"] as const;
+export const CREATOR_SHOP_SUMMARY_LANGUAGES = ["eng", "deu", "spa", "ita"] as const;
 
 export type CreatorShopLanguageSummary = {
   language: string;
@@ -50,7 +50,7 @@ const LANGUAGE_RANK = new Map<string, number>(
   SHOP_LANGUAGE_ORDER.map((code, index) => [code, index]),
 );
 
-const TAB_LANGUAGE_SET = new Set<string>(CREATOR_SHOP_TAB_LANGUAGES);
+const SUMMARY_LANGUAGE_SET = new Set<string>(CREATOR_SHOP_SUMMARY_LANGUAGES);
 
 const GENERIC_PATCH_FAILURE = "Le statut du pack n'a pas pu être modifié.";
 
@@ -69,6 +69,20 @@ export function packsInLanguageScope<T extends { language: string }>(
   const code = typeof language === "string" ? normalizeLanguage(language) : "";
   if (!code) return [...packs];
   return packs.filter((pack) => normalizeLanguage(pack.language) === code);
+}
+
+/**
+ * Un second appui sur la langue déjà affichée revient à toutes les langues.
+ * Une langue vide revient aussi à toutes les langues.
+ */
+export function toggleCreatorShopLanguage(
+  current: string | null,
+  language: string,
+): string | null {
+  const next = normalizeLanguage(language);
+  if (!next) return null;
+  if (current && normalizeLanguage(current) === next) return null;
+  return next;
 }
 
 function finiteCount(value: number): number {
@@ -105,7 +119,7 @@ export function summarizeCreatorShopLanguages<T extends { language: string; isAc
   }
 
   const extras = [...counts.keys()]
-    .filter((code) => !TAB_LANGUAGE_SET.has(code))
+    .filter((code) => !SUMMARY_LANGUAGE_SET.has(code))
     .sort((a, b) => {
       const rankA = languageRank(a);
       const rankB = languageRank(b);
@@ -113,7 +127,7 @@ export function summarizeCreatorShopLanguages<T extends { language: string; isAc
       return a.localeCompare(b, "fr");
     });
 
-  return [...CREATOR_SHOP_TAB_LANGUAGES, ...extras].map((language) => {
+  return [...CREATOR_SHOP_SUMMARY_LANGUAGES, ...extras].map((language) => {
     const row = counts.get(language) ?? { total: 0, visible: 0 };
     return {
       language,
@@ -124,7 +138,7 @@ export function summarizeCreatorShopLanguages<T extends { language: string; isAc
   });
 }
 
-/** Sections de l'onglet Toutes : langues qui ont des packs, puis langue absente. */
+/** Sections quand toutes les langues sont affichées : langues qui ont des packs, puis langue absente. */
 export function creatorShopLanguageSections<T extends { language: string; isActive: boolean }>(
   packs: readonly T[],
 ): CreatorShopLanguageSection<T>[] {
@@ -156,9 +170,21 @@ export function groupPacksByVisibility<T extends { isActive: boolean }>(
   return { visible, hidden };
 }
 
-/** Libellé d'onglet, forme fixe : « 12 / 16 visibles ». */
+/** Compte à côté d'une langue : « 12 / 16 visibles ». */
 export function formatVisibleCount(visible: number, total: number): string {
   return `${finiteCount(visible)} / ${finiteCount(total)} visibles`;
+}
+
+/** Au-dessus de la liste : « Toutes les langues · 64 packs » ou « Anglais · 16 packs ». */
+export function formatShopScopeLabel(
+  languageName: string | null | undefined,
+  packCount: number,
+): string {
+  const name =
+    typeof languageName === "string" && languageName.trim()
+      ? languageName.trim()
+      : "Toutes les langues";
+  return `${name} · ${countLabel(packCount, "pack", "packs")}`;
 }
 
 /** « 16 packs · 12 visibles · 4 masqués ». */

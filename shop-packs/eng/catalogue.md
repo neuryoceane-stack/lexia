@@ -21,4 +21,4 @@
 
 ## Visibilité
 
-Ces packs restent invisibles tant qu'ils ne sont pas activés. Dans l'espace créateur, section Boutique, l'onglet Anglais les regroupe et indique combien sont visibles. « Tout sélectionner » ne coche que la langue affichée. « Rendre visible » demande confirmation, puis crée les produits Stripe l'un après l'autre par le PATCH existant. En cas d'échec, les autres continuent : le récapitulatif donne le nom du pack et la raison, et le pack en échec reste inactif.
+Ces packs restent invisibles tant qu'ils ne sont pas activés. Dans l'espace créateur, section Boutique, la carte Anglais les regroupe et indique combien sont visibles. « Tout sélectionner » ne coche que la langue affichée. « Rendre visible » demande confirmation, puis crée les produits Stripe l'un après l'autre par le PATCH existant. En cas d'échec, les autres continuent : le récapitulatif donne le nom du pack et la raison, et le pack en échec reste inactif.
