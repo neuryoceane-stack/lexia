@@ -82,7 +82,7 @@ const rows = [
   { terme: "pareggiare", definition: "faire match nul", type: "" },
   { terme: "segnare", definition: "marquer un but", type: "" },
   { terme: "tifare", definition: "supporter une équipe", type: "" },
-  { terme: "arbitare", definition: "arbitrer", type: "" },
+  { terme: "arbitrare", definition: "arbitrer", type: "" },
   { terme: "infortunarsi", definition: "se blesser en jouant", type: "" },
   { terme: "riscaldarsi", definition: "s'échauffer", type: "" },
   { terme: "rimontare", definition: "revenir au score", type: "" },
