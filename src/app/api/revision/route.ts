@@ -20,6 +20,8 @@ import {
 import { nanoid } from "nanoid";
 import { computeSM2, ensureFiniteSm2ForInsert } from "@/lib/sm2";
 import { logServerError } from "@/lib/server-error-log";
+import { parseRevisionSessionWordLimitQuery } from "@/lib/revision-session-word-limit";
+import { pickRevisionSessionWords } from "@/lib/revision-session-words";
 
 /**
  * GET /api/revision
@@ -27,6 +29,7 @@ import { logServerError } from "@/lib/server-error-log";
  * Query: listId (une liste) ou listIds (plusieurs) ou familyId (toute la famille). Sans param = tous les mots.
  * Filtre par défaut: jamais révisés ou nextReviewAt <= now.
  * Query all=1: retourne tous les mots des listes (pas de filtre par date), pour une session de révision complète.
+ * Avec all=1, query limit=N: sous-ensemble priorisé SM-2 (retards puis nouveaux), sans changer l’algo.
  */
 export async function GET(request: Request) {
   const user = await getUser();
@@ -51,6 +54,9 @@ export async function GET(request: Request) {
     : undefined;
   const familyId = searchParams.get("familyId")?.trim() || undefined;
   const includeAll = searchParams.get("all") === "1";
+  const sessionWordLimit = parseRevisionSessionWordLimitQuery(
+    searchParams.get("limit")
+  );
 
   const now = new Date();
 
@@ -156,14 +162,51 @@ export async function GET(request: Request) {
   }
 
   if (includeAll) {
-    return NextResponse.json({
-      words: userWords.map(({ id, listId, term, definition }) => ({
-        id,
-        listId,
-        term,
-        definition,
-      })),
-    });
+    const allWordsPayload = userWords.map(({ id, listId, term, definition }) => ({
+      id,
+      listId,
+      term,
+      definition,
+    }));
+
+    if (
+      sessionWordLimit != null &&
+      sessionWordLimit < userWords.length
+    ) {
+      const allRevisions = await db
+        .select({
+          wordId: revisions.wordId,
+          nextReviewAt: revisions.nextReviewAt,
+          createdAt: revisions.createdAt,
+        })
+        .from(revisions)
+        .where(eq(revisions.userId, userId))
+        .orderBy(desc(revisions.createdAt));
+
+      const latestNextReviewAt = new Map<string, Date>();
+      for (const r of allRevisions) {
+        if (!latestNextReviewAt.has(r.wordId)) {
+          latestNextReviewAt.set(r.wordId, r.nextReviewAt);
+        }
+      }
+
+      const picked = pickRevisionSessionWords(
+        userWords,
+        latestNextReviewAt,
+        sessionWordLimit,
+        now
+      );
+      return NextResponse.json({
+        words: picked.map(({ id, listId, term, definition }) => ({
+          id,
+          listId,
+          term,
+          definition,
+        })),
+      });
+    }
+
+    return NextResponse.json({ words: allWordsPayload });
   }
 
   const allRevisions = await db

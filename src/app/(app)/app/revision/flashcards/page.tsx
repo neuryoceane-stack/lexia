@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { RevisionClient } from "../revision-client";
 import { RevisionListSelection } from "../revision-list-selection";
+import { parseRevisionSessionWordLimitQuery } from "@/lib/revision-session-word-limit";
 
 const PAGE_BG = "var(--page)";
 
@@ -17,6 +18,7 @@ export default async function FlashcardsPage({
     listIds?: string;
     session?: string;
     direction?: string;
+    wordLimit?: string;
   }>;
 }) {
   const sp = await searchParams;
@@ -27,6 +29,7 @@ export default async function FlashcardsPage({
       .filter(Boolean) ?? [];
   const session = sp?.session === "1";
   const direction = parseDirection(sp?.direction);
+  const wordLimit = parseRevisionSessionWordLimitQuery(sp?.wordLimit);
 
   if (session) {
     if (initialListIds.length === 0) {
@@ -42,6 +45,7 @@ export default async function FlashcardsPage({
             initialMode="flashcard"
             initialListIds={initialListIds}
             initialDirection={direction}
+            initialWordLimit={wordLimit}
             pickerPath="/app/revision/flashcards"
           />
         </div>
