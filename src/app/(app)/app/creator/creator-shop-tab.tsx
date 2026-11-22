@@ -11,12 +11,15 @@ import {
   confirmPackVisibilityMessage,
   creatorShopLanguageSections,
   formatPackVisibilitySummary,
+  formatShopScopeLabel,
+  inspectionIdForLanguageFilter,
   formatVisibleCount,
   groupPacksByVisibility,
   packsInLanguageScope,
   reasonFromShopPatchBody,
   selectionState,
   summarizeCreatorShopLanguages,
+  toggleCreatorShopLanguage,
   toggleScopeSelection,
   type CreatorShopLanguageSummary,
   type ShopPackRef,
@@ -187,17 +190,20 @@ export function CreatorShopTab() {
   useEffect(() => {
     if (!languageFilter || !packs) return;
     const known = new Set(summarizeCreatorShopLanguages(packs).map((row) => row.language));
-    if (!known.has(languageFilter)) setLanguageFilter(null);
+    if (!known.has(languageFilter)) {
+      setLanguageFilter(null);
+      setInspectedId((openId) => inspectionIdForLanguageFilter(openId, languageFilter, null));
+    }
   }, [packs, languageFilter]);
-
-  useEffect(() => {
-    if (selectedListed.length === 0) setPending(null);
-  }, [selectedListed.length]);
 
   useEffect(() => {
     if (!inspectedId || !packs) return;
     if (!packs.some((pack) => pack.id === inspectedId)) setInspectedId(null);
   }, [packs, inspectedId]);
+
+  useEffect(() => {
+    if (selectedListed.length === 0) setPending(null);
+  }, [selectedListed.length]);
 
   useEffect(() => {
     if (!report) return;
@@ -320,12 +326,22 @@ export function CreatorShopTab() {
     setSelectedIds((current) => toggleScopeSelection(listedIds, current));
   }
 
-  function selectLanguage(language: string | null) {
+  function applyLanguageFilter(next: string | null) {
+    setInspectedId((openId) => inspectionIdForLanguageFilter(openId, languageFilter, next));
+    setLanguageFilter(next);
+  }
+
+  function selectLanguage(language: string) {
     if (batchLock.current) return;
-    setLanguageFilter(language);
+    applyLanguageFilter(toggleCreatorShopLanguage(languageFilter, language));
     requestAnimationFrame(() => {
       document.getElementById("creator-shop-panel")?.scrollIntoView({ block: "nearest" });
     });
+  }
+
+  function showAllLanguages() {
+    if (batchLock.current) return;
+    applyLanguageFilter(null);
   }
 
   function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
@@ -405,7 +421,10 @@ export function CreatorShopTab() {
   const importedExpressions = words.filter((word) => word.isExpression).length;
   const canSubmit = !saving && !batching && Boolean(form.title) && Boolean(form.description) && words.length > 0;
   const sections = creatorShopLanguageSections(packs);
-  const panelTabId = shopLanguageTabId(languageFilter);
+  const scopeLabel = formatShopScopeLabel(
+    languageFilter ? languageLabel(languageFilter) : null,
+    listed.length,
+  );
   const inspected = inspectedId ? (packs.find((pack) => pack.id === inspectedId) ?? null) : null;
 
   return (
@@ -539,16 +558,27 @@ export function CreatorShopTab() {
           </div>
         ) : null}
 
-        <ShopLanguageTabs
-          rows={summary}
-          allVisible={activeCount}
-          allTotal={packs.length}
-          value={languageFilter}
-          disabled={batching}
-          onChange={selectLanguage}
-        />
+        <section
+          id="creator-shop-panel"
+          aria-labelledby="creator-shop-scope"
+          className="scroll-mt-36 space-y-3"
+        >
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+            <p id="creator-shop-scope" className="m-0 text-sm text-muted">
+              {scopeLabel}
+            </p>
+            {languageFilter ? (
+              <button
+                type="button"
+                onClick={showAllLanguages}
+                disabled={batching}
+                className="inline-flex min-h-11 shrink-0 items-center rounded-full border-[1.5px] border-ink bg-surface px-4 text-sm font-medium text-ink outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                Toutes les langues
+              </button>
+            ) : null}
+          </div>
 
-        <div role="tabpanel" id="creator-shop-panel" aria-labelledby={panelTabId} className="space-y-3">
           {listed.length === 0 ? (
             <div className={`${cardClass} px-6 py-14 text-center`}>
               <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full border border-line text-ink">
@@ -629,7 +659,7 @@ export function CreatorShopTab() {
               )}
             </>
           )}
-        </div>
+        </section>
       </div>
       {inspected ? <CreatorShopPackPanel pack={inspected} onClose={closeInspect} /> : null}
     </div>
@@ -640,10 +670,9 @@ function shopPackButtonId(id: string): string {
   return `creator-shop-pack-${id}`;
 }
 
-function shopLanguageTabId(language: string | null): string {
-  if (!language) return "creator-shop-tab-all";
-  return `creator-shop-tab-${language.replace(/[^a-z0-9_-]/gi, "")}`;
-}
+/** Violet déjà utilisé pour une carte choisie (révision, nouvelle liste). */
+const ACTIVE_LANGUAGE_BORDER = "#6C3FC8";
+const ACTIVE_LANGUAGE_BG = "color-mix(in srgb, #6C3FC8 12%, white)";
 
 const languagePillClass =
   "inline-flex h-7 items-center rounded-lg border-[1.5px] border-ink bg-surface px-2 text-[11px] font-medium tracking-wide text-ink";
@@ -675,16 +704,19 @@ function ShopLanguageSummary({
                 disabled={disabled}
                 onClick={() => onSelect(row.language)}
                 className={`flex h-full w-full flex-col rounded-[14px] border-[1.5px] bg-surface px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
-                  selected ? "border-ink" : empty ? "border-dashed border-line hover:border-ink" : "border-line hover:border-ink"
+                  selected ? "border-solid" : empty ? "border-dashed border-line" : "border-line"
                 }`}
+                style={
+                  selected
+                    ? { borderColor: ACTIVE_LANGUAGE_BORDER, backgroundColor: ACTIVE_LANGUAGE_BG }
+                    : undefined
+                }
               >
                 <span className="flex items-center gap-2">
                   <FlagDisplay langCode={row.language} size={18} className="h-5 w-5" />
                   <span className={languagePillClass}>{languageCode(row.language)}</span>
                 </span>
-                <span className={`mt-2 text-sm ${selected ? "marker font-medium" : "font-medium text-ink"}`}>
-                  {languageLabel(row.language)}
-                </span>
+                <span className="mt-2 text-sm font-medium text-ink">{languageLabel(row.language)}</span>
                 <span className="mt-3 grid grid-cols-3 gap-1">
                   <ShopSummaryFigure value={row.total} label={row.total === 1 ? "Pack" : "Packs"} />
                   <ShopSummaryFigure value={row.visible} label={row.visible === 1 ? "Visible" : "Visibles"} />
@@ -705,88 +737,6 @@ function ShopSummaryFigure({ value, label }: { value: number; label: string }) {
       <span className="block font-heading text-[22px] leading-none tabular-nums text-ink">{value}</span>
       <span className="mt-1 block text-[11px] leading-tight text-muted">{label}</span>
     </span>
-  );
-}
-
-function ShopLanguageTabs({
-  rows,
-  allVisible,
-  allTotal,
-  value,
-  disabled,
-  onChange,
-}: {
-  rows: readonly CreatorShopLanguageSummary[];
-  allVisible: number;
-  allTotal: number;
-  value: string | null;
-  disabled: boolean;
-  onChange: (language: string | null) => void;
-}) {
-  const tabs: { code: string | null; visible: number; total: number }[] = [
-    { code: null, visible: allVisible, total: allTotal },
-    ...rows.map((row) => ({ code: row.language, visible: row.visible, total: row.total })),
-  ];
-  function moveTab(current: string | null, key: string) {
-    const index = tabs.findIndex((tab) => tab.code === current);
-    if (index < 0 || tabs.length === 0) return;
-    const nextIndex =
-      key === "Home"
-        ? 0
-        : key === "End"
-          ? tabs.length - 1
-          : key === "ArrowRight"
-            ? (index + 1) % tabs.length
-            : (index - 1 + tabs.length) % tabs.length;
-    const next = tabs[nextIndex]?.code ?? null;
-    onChange(next);
-    requestAnimationFrame(() => {
-      document.getElementById(shopLanguageTabId(next))?.focus();
-    });
-  }
-
-  return (
-    <div
-      role="tablist"
-      aria-label="Langues de la boutique"
-      aria-orientation="horizontal"
-      className="flex flex-wrap gap-2"
-      onKeyDown={(event) => {
-        if (disabled) return;
-        if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
-        event.preventDefault();
-        moveTab(value, event.key);
-      }}
-    >
-      {tabs.map((tab) => {
-        const selected = value === tab.code;
-        const ratio = formatVisibleCount(tab.visible, tab.total);
-        const name = tab.code ? languageLabel(tab.code) : "Toutes";
-        return (
-          <button
-            key={tab.code ?? "all"}
-            id={shopLanguageTabId(tab.code)}
-            type="button"
-            role="tab"
-            aria-selected={selected}
-            aria-controls="creator-shop-panel"
-            tabIndex={selected ? 0 : -1}
-            disabled={disabled}
-            onClick={() => onChange(tab.code)}
-            className={`flex min-h-11 shrink-0 flex-col items-start justify-center gap-1 rounded-[14px] border-[1.5px] bg-surface px-3 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
-              selected ? "border-ink" : "border-line hover:border-ink"
-            }`}
-          >
-            <span className="flex items-center gap-2">
-              {tab.code ? <FlagDisplay langCode={tab.code} size={16} className="h-4 w-4" /> : null}
-              {tab.code ? <span className={languagePillClass}>{languageCode(tab.code)}</span> : null}
-              <span className={selected ? "marker text-sm font-medium" : "text-sm font-medium text-ink"}>{name}</span>
-            </span>
-            <span className="text-xs tabular-nums text-muted">{ratio}</span>
-          </button>
-        );
-      })}
-    </div>
   );
 }
 

@@ -36,11 +36,11 @@ Chaque liste du lot est créée avec `source = shop`. Le plafond de 20 mots pers
 
 ## Espace créateur
 
-Créateur → Boutique range les packs par langue. Le résumé indique, pour chaque langue, le nombre de packs, le nombre de visibles et le nombre de masqués. Les onglets sont Toutes, Anglais, Allemand, Espagnol et Italien (drapeau et code depuis `src/lib/language.ts`). Une autre langue déjà en base s'ajoute après. L'onglet d'une langue affiche « 12 / 16 visibles » : visibles, puis packs de cette langue. Les visibles sont listés avant les masqués.
+Créateur → Boutique range les packs par langue. Les cartes « Par langue » indiquent, pour chaque langue, le nombre de packs, le nombre de visibles et le nombre de masqués. Anglais, allemand, espagnol et italien sont toujours là (drapeau et code depuis `src/lib/language.ts`). Une autre langue déjà en base s'ajoute après. Un clic sur une carte filtre la liste. Un second clic sur la carte active, ou le bouton « Toutes les langues », réaffiche tout. Au-dessus de la liste, le libellé dit ce qui est affiché : « Toutes les langues · 64 packs » ou « Anglais · 16 packs ». Dans une langue, les visibles sont listés avant les masqués.
 
-« Tout sélectionner », « Rendre visible » et « Masquer » ne portent que sur l'onglet affiché. Le PATCH `/api/creator/shop` est inchangé.
+« Tout sélectionner », « Rendre visible » et « Masquer » ne portent que sur la langue affichée. Le PATCH `/api/creator/shop` est inchangé.
 
-Le toucher sur une carte (en dehors de la case, de l'œil et de la corbeille) ouvre le contenu du pack. Le panneau est plein écran au téléphone et latéral à partir de 768 px. `GET /api/creator/shop` n'envoie pas `words_json`. Le panneau charge `GET /api/creator/shop/[id]`, réservé au rôle `creator`, et affiche les mots à part des expressions (`isExpression`). La recherche porte sur le terme et la définition, sans tenir compte de la casse ni des accents. Le contenu n'est pas modifiable depuis ce panneau.
+Le toucher sur une carte de pack (en dehors de la case, de l'œil et de la corbeille) ouvre le contenu, que la liste montre toutes les langues ou une seule. Changer de carte « Par langue », ou revenir à toutes les langues, ferme le panneau. Il est plein écran au téléphone et latéral à partir de 768 px. `GET /api/creator/shop` n'envoie pas `words_json`. Le panneau charge `GET /api/creator/shop/[id]`, réservé au rôle `creator`, et affiche les mots à part des expressions (`isExpression`). La recherche porte sur le terme et la définition, sans tenir compte de la casse ni des accents. Le contenu n'est pas modifiable depuis ce panneau.
 
 ## Essai en mode test Stripe
 
