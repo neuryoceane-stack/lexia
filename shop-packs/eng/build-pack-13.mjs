@@ -93,7 +93,7 @@ const rows = [
   { terme: "a penny saved is a penny earned", definition: "l'épargne, c'est du revenu", type: "expression" },
   { terme: "time is money", definition: "le temps, c'est de l'argent", type: "expression" },
   { terme: "money doesn't grow on trees", definition: "l'argent ne pousse pas dans les arbres", type: "expression" },
-  { terme: "cost an arm and a leg", definition: "ça coûte les yeux de la tête", type: "expression" },
+  { terme: "live beyond your means", definition: "vivre au-dessus de tes moyens", type: "expression" },
   { terme: "pay through the nose", definition: "tu paies un prix exorbitant", type: "expression" },
   { terme: "feel the pinch", definition: "tu sens la crise", type: "expression" },
   { terme: "tighten your belt", definition: "tu serres la ceinture", type: "expression" },

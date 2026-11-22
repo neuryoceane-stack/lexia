@@ -96,7 +96,7 @@ const rows = [
   { terme: "word of mouth", definition: "bouche à oreille", type: "expression" },
   { terme: "hot off the press", definition: "tout juste sorti", type: "expression" },
   { terme: "front page", definition: "une (de journal)", type: "expression" },
-  { terme: "stay tuned", definition: "restez à l'écoute", type: "expression" },
+  { terme: "stay tuned", definition: "reste à l'écoute", type: "expression" },
   { terme: "on air", definition: "à l'antenne", type: "expression" },
   { terme: "off the record", definition: "hors micro / sans attribution", type: "expression" },
   { terme: "hit the headlines", definition: "faire la une", type: "expression" },
