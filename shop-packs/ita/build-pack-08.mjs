@@ -41,7 +41,7 @@ const rows = [
   { terme: "il quaderno", definition: "cahier", type: "" },
   { terme: "la matita", definition: "crayon", type: "" },
   { terme: "la lavagna", definition: "tableau de classe", type: "" },
-  { terme: "il gesso", definition: "craie ; un plâtre médical se dit il gesso", type: "" },
+  { terme: "il gesso", definition: "craie, ou plâtre d'une fracture", type: "" },
   { terme: "l'esame (m.)", definition: "examen", type: "" },
   { terme: "il colloquio d'esame", definition: "oral d'un examen", type: "" },
   { terme: "la borsa di studio", definition: "bourse d'études", type: "" },
