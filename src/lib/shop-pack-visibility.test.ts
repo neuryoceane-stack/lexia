@@ -4,15 +4,22 @@
  */
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { PREFERRED_LANGUAGE_OPTIONS } from "./language";
 import {
   applyPackVisibilitySequentially,
   confirmPackVisibilityMessage,
+  CREATOR_SHOP_TAB_LANGUAGES,
+  creatorShopLanguageSections,
+  formatLanguagePackSummary,
   formatPackVisibilitySummary,
+  formatVisibleCount,
+  groupPacksByVisibility,
   orderedShopLanguages,
   packsInLanguageScope,
   reasonFromShopPatchBody,
   reasonFromThrown,
   selectionState,
+  summarizeCreatorShopLanguages,
   toggleScopeSelection,
   type ShopPackRef,
 } from "./shop-pack-visibility";
@@ -48,6 +55,94 @@ describe("packsInLanguageScope", () => {
       packsInLanguageScope(PACKS, " fra ").map((pack) => pack.id),
       ["fra-1"],
     );
+  });
+});
+
+describe("boutique créateur par langue", () => {
+  it("reprend les codes de language.ts, sans en inventer", () => {
+    const known = new Set(PREFERRED_LANGUAGE_OPTIONS.map((option) => option.value));
+    assert.deepEqual([...CREATOR_SHOP_TAB_LANGUAGES], ["eng", "deu", "spa", "ita"]);
+    for (const code of CREATOR_SHOP_TAB_LANGUAGES) {
+      assert.equal(known.has(code), true);
+    }
+  });
+
+  it("affiche les quatre langues même vides, puis les autres qui ont des packs", () => {
+    const rows = summarizeCreatorShopLanguages([
+      { language: "eng", isActive: true },
+      { language: "ENG", isActive: true },
+      { language: "eng", isActive: false },
+      { language: " spa ", isActive: true },
+      { language: "fra", isActive: false },
+      { language: "  ", isActive: true },
+      { language: "ita", isActive: true },
+      { language: "ita", isActive: true },
+      { language: "zzz", isActive: false },
+    ]);
+    assert.deepEqual(
+      rows.map((row) => row.language),
+      ["eng", "deu", "spa", "ita", "fra", "zzz"],
+    );
+    assert.deepEqual(rows[0], { language: "eng", total: 3, visible: 2, hidden: 1 });
+    assert.deepEqual(rows[1], { language: "deu", total: 0, visible: 0, hidden: 0 });
+    assert.deepEqual(rows[2], { language: "spa", total: 1, visible: 1, hidden: 0 });
+    assert.deepEqual(rows[3], { language: "ita", total: 2, visible: 2, hidden: 0 });
+    assert.deepEqual(rows[4], { language: "fra", total: 1, visible: 0, hidden: 1 });
+    assert.equal(formatLanguagePackSummary(16, 12, 4), "16 packs · 12 visibles · 4 masqués");
+    assert.equal(formatLanguagePackSummary(1, 1, 0), "1 pack · 1 visible · 0 masqués");
+    assert.equal(formatLanguagePackSummary(0, 0, 0), "0 packs · 0 visibles · 0 masqués");
+    assert.equal(formatVisibleCount(12, 16), "12 / 16 visibles");
+    assert.equal(formatVisibleCount(0, 0), "0 / 0 visibles");
+    assert.equal(formatVisibleCount(1.8, -3), "1 / 0 visibles");
+  });
+
+  it("groupe l'onglet Toutes par langue et met les visibles devant", () => {
+    const packs = [
+      { id: "h1", language: "eng", isActive: false },
+      { id: "v1", language: "eng", isActive: true },
+      { id: "d1", language: "deu", isActive: true },
+      { id: "blank", language: " ", isActive: false },
+      { id: "v2", language: "eng", isActive: true },
+    ];
+    assert.deepEqual(
+      creatorShopLanguageSections(packs).map((section) => ({
+        language: section.language,
+        ids: section.packs.map((pack) => pack.id),
+      })),
+      [
+        { language: "eng", ids: ["h1", "v1", "v2"] },
+        { language: "deu", ids: ["d1"] },
+        { language: "", ids: ["blank"] },
+      ],
+    );
+    const english = groupPacksByVisibility(packs.filter((pack) => pack.language === "eng"));
+    assert.deepEqual(
+      english.visible.map((pack) => pack.id),
+      ["v1", "v2"],
+    );
+    assert.deepEqual(
+      english.hidden.map((pack) => pack.id),
+      ["h1"],
+    );
+    assert.equal(english.visible.length + english.hidden.length, 3);
+  });
+
+  it("limite Tout sélectionner aux packs de la langue affichée", () => {
+    const packs = [
+      { id: "e1", language: "eng", isActive: true },
+      { id: "e2", language: "eng", isActive: false },
+      { id: "d1", language: "deu", isActive: true },
+      { id: "s1", language: "spa", isActive: false },
+    ];
+    const englishIds = packsInLanguageScope(packs, "eng").map((pack) => pack.id);
+    const selected = toggleScopeSelection(englishIds, new Set(["s1"]));
+    assert.deepEqual([...selected].sort(), ["e1", "e2", "s1"]);
+    assert.equal(selectionState(englishIds, selected), "all");
+    assert.equal(packsInLanguageScope(packs, "deu").some((pack) => selected.has(pack.id)), false);
+
+    const allIds = packsInLanguageScope(packs, null).map((pack) => pack.id);
+    const allSelected = toggleScopeSelection(allIds, new Set());
+    assert.deepEqual([...allSelected].sort(), ["d1", "e1", "e2", "s1"]);
   });
 });
 

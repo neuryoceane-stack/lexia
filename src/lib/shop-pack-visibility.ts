@@ -27,9 +27,30 @@ export type ShopSelectionState = "none" | "partial" | "all";
 
 const SHOP_LANGUAGE_ORDER = ["fra", "eng", "deu", "spa", "ita"] as const;
 
+/**
+ * Onglets de la boutique créateur, dans l'ordre affiché.
+ * Les codes sont ceux de `PREFERRED_LANGUAGE_OPTIONS` (`src/lib/language.ts`).
+ * Le libellé et le drapeau ne sont pas recopiés ici.
+ */
+export const CREATOR_SHOP_TAB_LANGUAGES = ["eng", "deu", "spa", "ita"] as const;
+
+export type CreatorShopLanguageSummary = {
+  language: string;
+  total: number;
+  visible: number;
+  hidden: number;
+};
+
+export type CreatorShopLanguageSection<T> = {
+  language: string;
+  packs: T[];
+};
+
 const LANGUAGE_RANK = new Map<string, number>(
   SHOP_LANGUAGE_ORDER.map((code, index) => [code, index]),
 );
+
+const TAB_LANGUAGE_SET = new Set<string>(CREATOR_SHOP_TAB_LANGUAGES);
 
 const GENERIC_PATCH_FAILURE = "Le statut du pack n'a pas pu être modifié.";
 
@@ -37,13 +58,112 @@ const KNOWN_PATCH_ERRORS: Record<string, string> = {
   Unauthorized: "Accès réservé au créateur.",
 };
 
+function normalizeLanguage(language: string): string {
+  return language.trim().toLowerCase();
+}
+
 export function packsInLanguageScope<T extends { language: string }>(
   packs: readonly T[],
   language: string | null | undefined,
 ): T[] {
-  const code = typeof language === "string" ? language.trim() : "";
+  const code = typeof language === "string" ? normalizeLanguage(language) : "";
   if (!code) return [...packs];
-  return packs.filter((pack) => pack.language === code);
+  return packs.filter((pack) => normalizeLanguage(pack.language) === code);
+}
+
+function finiteCount(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.trunc(value));
+}
+
+function countLabel(count: number, singular: string, plural: string): string {
+  const n = finiteCount(count);
+  return `${n} ${n === 1 ? singular : plural}`;
+}
+
+function languageRank(code: string): number {
+  const rank = LANGUAGE_RANK.get(code);
+  return rank === undefined ? Number.MAX_SAFE_INTEGER : rank;
+}
+
+/**
+ * Résumé par langue. Anglais, allemand, espagnol et italien sont toujours
+ * présents, même à zéro, pour montrer ce qui manque. Les autres langues
+ * qui ont des packs suivent. Une langue vide n'est pas comptée.
+ */
+export function summarizeCreatorShopLanguages<T extends { language: string; isActive: boolean }>(
+  packs: readonly T[],
+): CreatorShopLanguageSummary[] {
+  const counts = new Map<string, { total: number; visible: number }>();
+  for (const pack of packs) {
+    const code = normalizeLanguage(pack.language);
+    if (!code) continue;
+    const row = counts.get(code) ?? { total: 0, visible: 0 };
+    row.total += 1;
+    if (pack.isActive) row.visible += 1;
+    counts.set(code, row);
+  }
+
+  const extras = [...counts.keys()]
+    .filter((code) => !TAB_LANGUAGE_SET.has(code))
+    .sort((a, b) => {
+      const rankA = languageRank(a);
+      const rankB = languageRank(b);
+      if (rankA !== rankB) return rankA - rankB;
+      return a.localeCompare(b, "fr");
+    });
+
+  return [...CREATOR_SHOP_TAB_LANGUAGES, ...extras].map((language) => {
+    const row = counts.get(language) ?? { total: 0, visible: 0 };
+    return {
+      language,
+      total: row.total,
+      visible: row.visible,
+      hidden: row.total - row.visible,
+    };
+  });
+}
+
+/** Sections de l'onglet Toutes : langues qui ont des packs, puis langue absente. */
+export function creatorShopLanguageSections<T extends { language: string; isActive: boolean }>(
+  packs: readonly T[],
+): CreatorShopLanguageSection<T>[] {
+  const order = summarizeCreatorShopLanguages(packs)
+    .filter((row) => row.total > 0)
+    .map((row) => row.language);
+
+  const sections: CreatorShopLanguageSection<T>[] = order.map((language) => ({
+    language,
+    packs: packs.filter((pack) => normalizeLanguage(pack.language) === language),
+  }));
+  const unlabeled = packs.filter((pack) => !normalizeLanguage(pack.language));
+  if (unlabeled.length > 0) {
+    sections.push({ language: "", packs: unlabeled });
+  }
+  return sections;
+}
+
+/** Visibles d'abord, masqués ensuite. L'ordre d'origine est conservé dans chaque groupe. */
+export function groupPacksByVisibility<T extends { isActive: boolean }>(
+  packs: readonly T[],
+): { visible: T[]; hidden: T[] } {
+  const visible: T[] = [];
+  const hidden: T[] = [];
+  for (const pack of packs) {
+    if (pack.isActive) visible.push(pack);
+    else hidden.push(pack);
+  }
+  return { visible, hidden };
+}
+
+/** Libellé d'onglet, forme fixe : « 12 / 16 visibles ». */
+export function formatVisibleCount(visible: number, total: number): string {
+  return `${finiteCount(visible)} / ${finiteCount(total)} visibles`;
+}
+
+/** « 16 packs · 12 visibles · 4 masqués ». */
+export function formatLanguagePackSummary(total: number, visible: number, hidden: number): string {
+  return `${countLabel(total, "pack", "packs")} · ${countLabel(visible, "visible", "visibles")} · ${countLabel(hidden, "masqué", "masqués")}`;
 }
 
 export function orderedShopLanguages(languages: readonly string[]): string[] {

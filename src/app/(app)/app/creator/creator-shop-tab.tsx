@@ -3,17 +3,22 @@
 import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, CircleCheck, Eye, EyeOff, Euro, Package, Plus, ShoppingBag, Trash2, Upload } from "lucide-react";
 import * as XLSX from "xlsx";
+import { FlagDisplay } from "@/components/flag-display";
 import { PREFERRED_LANGUAGE_OPTIONS } from "@/lib/language";
 import { formatShopPriceCents } from "@/lib/shop-price";
 import {
   applyPackVisibilitySequentially,
   confirmPackVisibilityMessage,
+  creatorShopLanguageSections,
   formatPackVisibilitySummary,
-  orderedShopLanguages,
+  formatVisibleCount,
+  groupPacksByVisibility,
   packsInLanguageScope,
   reasonFromShopPatchBody,
   selectionState,
+  summarizeCreatorShopLanguages,
   toggleScopeSelection,
+  type CreatorShopLanguageSummary,
   type ShopPackRef,
   type ShopPackVisibilityReport,
 } from "@/lib/shop-pack-visibility";
@@ -35,6 +40,7 @@ type ShopPack = {
   id: string;
   title: string;
   description: string;
+  emoji: string;
   wordCount: number;
   expressionCount: number;
   price: number;
@@ -60,7 +66,14 @@ type BatchProgress = {
 const SHOP_LANGUAGES = ["fra", "eng", "deu", "spa", "ita"] as const;
 
 function languageLabel(code: string): string {
-  return PREFERRED_LANGUAGE_OPTIONS.find((option) => option.value === code)?.label ?? code.toUpperCase();
+  const normalized = code.trim().toLowerCase();
+  return PREFERRED_LANGUAGE_OPTIONS.find((option) => option.value === normalized)?.label ?? code.trim().toUpperCase();
+}
+
+function languageCode(code: string): string {
+  const normalized = code.trim().toLowerCase();
+  const known = PREFERRED_LANGUAGE_OPTIONS.find((option) => option.value === normalized)?.value ?? normalized;
+  return known ? known.toUpperCase() : "";
 }
 
 function frCount(count: number, singular: string, plural: string): string {
@@ -99,6 +112,7 @@ function parsePacks(data: unknown): ShopPack[] | null {
       id: row.id,
       title: row.title,
       description: typeof row.description === "string" ? row.description : "",
+      emoji: typeof row.emoji === "string" && row.emoji.trim() ? row.emoji : "📦",
       wordCount,
       expressionCount,
       price,
@@ -144,7 +158,7 @@ export function CreatorShopTab() {
   const listedIds = listed.map((pack) => pack.id);
   const listedState = selectionState(listedIds, selectedIds);
   const selectedListed = listed.filter((pack) => selectedIds.has(pack.id));
-  const languages = packs ? orderedShopLanguages(packs.map((pack) => pack.language)) : [];
+  const summary = packs ? summarizeCreatorShopLanguages(packs) : [];
 
   useEffect(() => {
     if (selectAllRef.current) {
@@ -168,7 +182,8 @@ export function CreatorShopTab() {
 
   useEffect(() => {
     if (!languageFilter || !packs) return;
-    if (!packs.some((pack) => pack.language === languageFilter)) setLanguageFilter(null);
+    const known = new Set(summarizeCreatorShopLanguages(packs).map((row) => row.language));
+    if (!known.has(languageFilter)) setLanguageFilter(null);
   }, [packs, languageFilter]);
 
   useEffect(() => {
@@ -281,6 +296,14 @@ export function CreatorShopTab() {
     setSelectedIds((current) => toggleScopeSelection(listedIds, current));
   }
 
+  function selectLanguage(language: string | null) {
+    if (batchLock.current) return;
+    setLanguageFilter(language);
+    requestAnimationFrame(() => {
+      document.getElementById("creator-shop-panel")?.scrollIntoView({ block: "nearest" });
+    });
+  }
+
   function handleFile(event: React.ChangeEvent<HTMLInputElement>) {
     setImportError("");
     const file = event.target.files?.[0];
@@ -357,6 +380,8 @@ export function CreatorShopTab() {
   const importedWords = words.filter((word) => !word.isExpression).length;
   const importedExpressions = words.filter((word) => word.isExpression).length;
   const canSubmit = !saving && !batching && Boolean(form.title) && Boolean(form.description) && words.length > 0;
+  const sections = creatorShopLanguageSections(packs);
+  const panelTabId = shopLanguageTabId(languageFilter);
 
   return (
     <div className="space-y-6">
@@ -366,6 +391,13 @@ export function CreatorShopTab() {
         <h2 className="text-[28px] leading-tight text-ink">Boutique</h2>
         <p className="mt-1 text-sm text-muted">Packs de vocabulaire proposés dans l&apos;application.</p>
       </header>
+
+      <ShopLanguageSummary
+        rows={summary}
+        active={languageFilter}
+        disabled={batching}
+        onSelect={selectLanguage}
+      />
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <KpiCard icon={Package} label="Packs actifs" value={String(activeCount)} />
@@ -475,119 +507,248 @@ export function CreatorShopTab() {
         </form>
       ) : null}
 
-      {packs.length === 0 ? (
-        <div className={`${cardClass} px-6 py-14 text-center`}>
-          <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full border border-line text-ink">
-            <ShoppingBag size={22} strokeWidth={1.75} aria-hidden />
-          </span>
-          <p className="mt-4 text-sm text-muted">Aucun pack pour l&apos;instant.</p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {report ? (
-            <div ref={reportRef} className="scroll-mt-36">
-              <ShopBatchReport report={report} />
-            </div>
-          ) : null}
+      <div className="space-y-3">
+        {report ? (
+          <div ref={reportRef} className="scroll-mt-36">
+            <ShopBatchReport report={report} />
+          </div>
+        ) : null}
 
-          {languages.length > 1 ? (
-            <ShopLanguageFilter
-              languages={languages}
-              value={languageFilter}
-              disabled={batching}
-              onChange={setLanguageFilter}
-            />
-          ) : null}
+        <ShopLanguageTabs
+          rows={summary}
+          allVisible={activeCount}
+          allTotal={packs.length}
+          value={languageFilter}
+          disabled={batching}
+          onChange={selectLanguage}
+        />
 
+        <div role="tabpanel" id="creator-shop-panel" aria-labelledby={panelTabId} className="space-y-3">
           {listed.length === 0 ? (
-            <p className="m-0 text-sm text-muted">Aucun pack pour cette langue.</p>
-          ) : (
-            <label
-              className={`inline-flex min-h-11 items-center gap-3 ${batching ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
-            >
-              <input
-                ref={selectAllRef}
-                type="checkbox"
-                checked={listedState === "all"}
-                disabled={batching}
-                onChange={toggleAll}
-                aria-label={
-                  languageFilter
-                    ? `Tout sélectionner — ${languageLabel(languageFilter)}`
-                    : "Tout sélectionner"
-                }
-                className="h-5 w-5 accent-ink"
-              />
-              <span className="text-sm font-medium text-ink">Tout sélectionner</span>
-              {languageFilter ? <span className="text-sm text-muted">{languageLabel(languageFilter)}</span> : null}
-            </label>
-          )}
-
-          {selectedListed.length > 0 ? (
-            <div className="sticky top-[128px] z-30 bg-page py-1 md:top-[88px]">
-              <ShopBatchBar
-                count={selectedListed.length}
-                pending={pending}
-                progress={progress}
-                busy={batching}
-                onAsk={setPending}
-                onConfirm={() => {
-                  if (pending !== null) void runBatch(pending);
-                }}
-                onCancel={() => setPending(null)}
-              />
+            <div className={`${cardClass} px-6 py-14 text-center`}>
+              <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-full border border-line text-ink">
+                <ShoppingBag size={22} strokeWidth={1.75} aria-hidden />
+              </span>
+              <p className="mt-4 text-sm text-muted">
+                {languageFilter
+                  ? `Aucun pack en ${languageLabel(languageFilter).toLowerCase()}.`
+                  : "Aucun pack pour l'instant."}
+              </p>
             </div>
-          ) : null}
-
-          {listed.length > 0 ? (
-            <ul className="m-0 flex list-none flex-col gap-3 p-0" aria-busy={batching}>
-              {listed.map((pack) => (
-                <ShopPackRow
-                  key={pack.id}
-                  pack={pack}
-                  selected={selectedIds.has(pack.id)}
+          ) : (
+            <>
+              <label
+                className={`inline-flex min-h-11 items-center gap-3 ${batching ? "cursor-not-allowed opacity-40" : "cursor-pointer"}`}
+              >
+                <input
+                  ref={selectAllRef}
+                  type="checkbox"
+                  checked={listedState === "all"}
                   disabled={batching}
-                  onToggleSelected={() => toggleOne(pack.id)}
-                  onToggleActive={() => void toggleActive(pack)}
-                  onDelete={() => void deletePack(pack.id)}
+                  onChange={toggleAll}
+                  aria-label={
+                    languageFilter
+                      ? `Tout sélectionner — ${languageLabel(languageFilter)}`
+                      : "Tout sélectionner"
+                  }
+                  className="h-5 w-5 accent-ink"
                 />
-              ))}
-            </ul>
-          ) : null}
+                <span className="text-sm font-medium text-ink">Tout sélectionner</span>
+                {languageFilter ? <span className="text-sm text-muted">{languageLabel(languageFilter)}</span> : null}
+              </label>
+
+              {selectedListed.length > 0 ? (
+                <div className="sticky top-[128px] z-30 bg-page py-1 md:top-[88px]">
+                  <ShopBatchBar
+                    count={selectedListed.length}
+                    pending={pending}
+                    progress={progress}
+                    busy={batching}
+                    onAsk={setPending}
+                    onConfirm={() => {
+                      if (pending !== null) void runBatch(pending);
+                    }}
+                    onCancel={() => setPending(null)}
+                  />
+                </div>
+              ) : null}
+
+              {languageFilter ? (
+                <ShopPackGroups
+                  packs={listed}
+                  selectedIds={selectedIds}
+                  disabled={batching}
+                  onToggleSelected={toggleOne}
+                  onToggleActive={(pack) => void toggleActive(pack)}
+                  onDelete={(id) => void deletePack(id)}
+                />
+              ) : (
+                <div className="space-y-6">
+                  {sections.map((section) => (
+                    <ShopLanguageSection
+                      key={section.language || "unlabeled"}
+                      language={section.language}
+                      packs={section.packs}
+                      selectedIds={selectedIds}
+                      disabled={batching}
+                      onToggleSelected={toggleOne}
+                      onToggleActive={(pack) => void toggleActive(pack)}
+                      onDelete={(id) => void deletePack(id)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 }
 
-function ShopLanguageFilter({
-  languages,
+function shopLanguageTabId(language: string | null): string {
+  if (!language) return "creator-shop-tab-all";
+  return `creator-shop-tab-${language.replace(/[^a-z0-9_-]/gi, "")}`;
+}
+
+const languagePillClass =
+  "inline-flex h-7 items-center rounded-lg border-[1.5px] border-ink bg-surface px-2 text-[11px] font-medium tracking-wide text-ink";
+
+function ShopLanguageSummary({
+  rows,
+  active,
+  disabled,
+  onSelect,
+}: {
+  rows: readonly CreatorShopLanguageSummary[];
+  active: string | null;
+  disabled: boolean;
+  onSelect: (language: string) => void;
+}) {
+  return (
+    <section aria-label="Résumé par langue">
+      <h3 className="text-lg text-ink">Par langue</h3>
+      <p className="mt-1 text-sm text-muted">Packs en base, visibles dans la boutique, et masqués.</p>
+      <ul className="m-0 mt-3 grid list-none grid-cols-2 gap-3 p-0 xl:grid-cols-4">
+        {rows.map((row) => {
+          const selected = active === row.language;
+          const empty = row.total === 0;
+          return (
+            <li key={row.language} className="min-w-0">
+              <button
+                type="button"
+                aria-pressed={selected}
+                disabled={disabled}
+                onClick={() => onSelect(row.language)}
+                className={`flex h-full w-full flex-col rounded-[14px] border-[1.5px] bg-surface px-3 py-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+                  selected ? "border-ink" : empty ? "border-dashed border-line hover:border-ink" : "border-line hover:border-ink"
+                }`}
+              >
+                <span className="flex items-center gap-2">
+                  <FlagDisplay langCode={row.language} size={18} className="h-5 w-5" />
+                  <span className={languagePillClass}>{languageCode(row.language)}</span>
+                </span>
+                <span className={`mt-2 text-sm ${selected ? "marker font-medium" : "font-medium text-ink"}`}>
+                  {languageLabel(row.language)}
+                </span>
+                <span className="mt-3 grid grid-cols-3 gap-1">
+                  <ShopSummaryFigure value={row.total} label={row.total === 1 ? "Pack" : "Packs"} />
+                  <ShopSummaryFigure value={row.visible} label={row.visible === 1 ? "Visible" : "Visibles"} />
+                  <ShopSummaryFigure value={row.hidden} label={row.hidden === 1 ? "Masqué" : "Masqués"} />
+                </span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </section>
+  );
+}
+
+function ShopSummaryFigure({ value, label }: { value: number; label: string }) {
+  return (
+    <span className="min-w-0">
+      <span className="block font-heading text-[22px] leading-none tabular-nums text-ink">{value}</span>
+      <span className="mt-1 block text-[11px] leading-tight text-muted">{label}</span>
+    </span>
+  );
+}
+
+function ShopLanguageTabs({
+  rows,
+  allVisible,
+  allTotal,
   value,
   disabled,
   onChange,
 }: {
-  languages: readonly string[];
+  rows: readonly CreatorShopLanguageSummary[];
+  allVisible: number;
+  allTotal: number;
   value: string | null;
   disabled: boolean;
   onChange: (language: string | null) => void;
 }) {
-  const options = [null, ...languages];
+  const tabs: { code: string | null; visible: number; total: number }[] = [
+    { code: null, visible: allVisible, total: allTotal },
+    ...rows.map((row) => ({ code: row.language, visible: row.visible, total: row.total })),
+  ];
+  function moveTab(current: string | null, key: string) {
+    const index = tabs.findIndex((tab) => tab.code === current);
+    if (index < 0 || tabs.length === 0) return;
+    const nextIndex =
+      key === "Home"
+        ? 0
+        : key === "End"
+          ? tabs.length - 1
+          : key === "ArrowRight"
+            ? (index + 1) % tabs.length
+            : (index - 1 + tabs.length) % tabs.length;
+    const next = tabs[nextIndex]?.code ?? null;
+    onChange(next);
+    requestAnimationFrame(() => {
+      document.getElementById(shopLanguageTabId(next))?.focus();
+    });
+  }
+
   return (
-    <div role="group" aria-label="Filtrer par langue" className="flex flex-wrap gap-2">
-      {options.map((code) => {
-        const selected = value === code;
+    <div
+      role="tablist"
+      aria-label="Langues de la boutique"
+      aria-orientation="horizontal"
+      className="flex flex-wrap gap-2"
+      onKeyDown={(event) => {
+        if (disabled) return;
+        if (!["ArrowRight", "ArrowLeft", "Home", "End"].includes(event.key)) return;
+        event.preventDefault();
+        moveTab(value, event.key);
+      }}
+    >
+      {tabs.map((tab) => {
+        const selected = value === tab.code;
+        const ratio = formatVisibleCount(tab.visible, tab.total);
+        const name = tab.code ? languageLabel(tab.code) : "Toutes";
         return (
           <button
-            key={code ?? "all"}
+            key={tab.code ?? "all"}
+            id={shopLanguageTabId(tab.code)}
             type="button"
-            aria-pressed={selected}
+            role="tab"
+            aria-selected={selected}
+            aria-controls="creator-shop-panel"
+            tabIndex={selected ? 0 : -1}
             disabled={disabled}
-            onClick={() => onChange(code)}
-            className={`inline-flex min-h-11 items-center rounded-lg border-[1.5px] px-3 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
-              selected ? "border-ink bg-mark text-ink" : "border-line bg-surface text-ink hover:border-ink"
+            onClick={() => onChange(tab.code)}
+            className={`flex min-h-11 shrink-0 flex-col items-start justify-center gap-1 rounded-[14px] border-[1.5px] bg-surface px-3 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 ${
+              selected ? "border-ink" : "border-line hover:border-ink"
             }`}
           >
-            {code ? languageLabel(code) : "Toutes les langues"}
+            <span className="flex items-center gap-2">
+              {tab.code ? <FlagDisplay langCode={tab.code} size={16} className="h-4 w-4" /> : null}
+              {tab.code ? <span className={languagePillClass}>{languageCode(tab.code)}</span> : null}
+              <span className={selected ? "marker text-sm font-medium" : "text-sm font-medium text-ink"}>{name}</span>
+            </span>
+            <span className="text-xs tabular-nums text-muted">{ratio}</span>
           </button>
         );
       })}
@@ -718,6 +879,77 @@ function ShopBatchReport({ report }: { report: BatchReport }) {
   );
 }
 
+type PackListActions = {
+  selectedIds: ReadonlySet<string>;
+  disabled: boolean;
+  onToggleSelected: (id: string) => void;
+  onToggleActive: (pack: ShopPack) => void;
+  onDelete: (id: string) => void;
+};
+
+function ShopLanguageSection({
+  language,
+  packs,
+  ...actions
+}: PackListActions & { language: string; packs: readonly ShopPack[] }) {
+  const name = language ? languageLabel(language) : "Langue non renseignée";
+  const visible = packs.filter((pack) => pack.isActive).length;
+  return (
+    <section className="space-y-3" aria-label={name}>
+      <div className="flex flex-wrap items-center gap-2">
+        {language ? <FlagDisplay langCode={language} size={18} className="h-5 w-5" /> : null}
+        {language ? <span className={languagePillClass}>{languageCode(language)}</span> : null}
+        <h3 className="m-0 text-base text-ink">{name}</h3>
+        <span className="text-sm tabular-nums text-muted">{formatVisibleCount(visible, packs.length)}</span>
+      </div>
+      <ShopPackGroups packs={packs} {...actions} />
+    </section>
+  );
+}
+
+function ShopPackGroups({ packs, ...actions }: PackListActions & { packs: readonly ShopPack[] }) {
+  const groups = groupPacksByVisibility(packs);
+  return (
+    <div className="space-y-4">
+      <ShopPackGroup label="Visibles" packs={groups.visible} {...actions} />
+      <ShopPackGroup label="Masqués" packs={groups.hidden} {...actions} />
+    </div>
+  );
+}
+
+function ShopPackGroup({
+  label,
+  packs,
+  selectedIds,
+  disabled,
+  onToggleSelected,
+  onToggleActive,
+  onDelete,
+}: PackListActions & { label: string; packs: readonly ShopPack[] }) {
+  if (packs.length === 0) return null;
+  return (
+    <section className="space-y-2">
+      <h4 className="m-0 text-[11px] font-medium uppercase tracking-[0.06em] text-muted">
+        {label}
+        <span className="ml-2 tabular-nums">{packs.length}</span>
+      </h4>
+      <ul className="m-0 flex list-none flex-col gap-2 p-0" aria-label={label} aria-busy={disabled}>
+        {packs.map((pack) => (
+          <ShopPackRow
+            key={pack.id}
+            pack={pack}
+            selected={selectedIds.has(pack.id)}
+            disabled={disabled}
+            onToggleSelected={() => onToggleSelected(pack.id)}
+            onToggleActive={() => onToggleActive(pack)}
+            onDelete={() => onDelete(pack.id)}
+          />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
 function ShopPackRow({
   pack,
   selected,
@@ -733,68 +965,64 @@ function ShopPackRow({
   onToggleActive: () => void;
   onDelete: () => void;
 }) {
-  const synced = pack.isActive && pack.stripeProductId && pack.stripePriceId;
+  const synced = pack.isActive && Boolean(pack.stripeProductId) && Boolean(pack.stripePriceId);
   return (
-    <li className={`flex gap-3 rounded-[14px] border bg-surface p-4 ${selected ? "border-ink" : "border-line"}`}>
-      <label
-        className={`inline-flex h-11 w-11 shrink-0 items-center justify-center ${
-          disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
-        }`}
-      >
-        <input
-          type="checkbox"
-          checked={selected}
-          disabled={disabled}
-          onChange={onToggleSelected}
-          aria-label={`Sélectionner ${pack.title}`}
-          className="h-5 w-5 accent-ink"
-        />
-      </label>
-      <div className="flex min-w-0 flex-1 flex-col gap-3 sm:flex-row sm:items-center">
-        <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-line text-ink">
-          <Package size={18} aria-hidden />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="m-0 text-[15px] font-medium text-ink">{pack.title}</p>
-          {pack.description ? <p className="m-0 mt-1 text-sm text-muted">{pack.description}</p> : null}
-          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs text-muted">
-            <span className="inline-flex h-7 items-center rounded-lg border-[1.5px] border-ink bg-surface px-2 text-[11px] font-medium tracking-wide text-ink">
-              {languageLabel(pack.language)}
-            </span>
-            <span>
-              {frCount(pack.wordCount, "mot", "mots")} · {frCount(pack.expressionCount, "expression", "expressions")} ·{" "}
-              {formatShopPriceCents(pack.price)}
-            </span>
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-medium ${
-                synced ? "bg-just-bg text-just-text" : "bg-page text-muted"
-              }`}
-            >
-              Stripe : {synced ? "synchronisé" : "non synchronisé"}
-            </span>
-          </div>
-          <p className="m-0 mt-2 text-sm font-medium text-ink">
-            {frCount(pack.sales, "vente", "ventes")} · {formatEuro(pack.revenue / 100)} générés
-          </p>
-        </div>
-        <div className="flex items-center gap-2 sm:shrink-0">
-          <span
-            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-              pack.isActive ? "bg-just-bg text-just-text" : "bg-page text-muted"
+    <li className={`rounded-[14px] border bg-surface px-2 py-2 sm:px-3 ${selected ? "border-ink" : "border-line"}`}>
+      <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-1">
+          <label
+            className={`inline-flex h-11 w-11 shrink-0 items-center justify-center ${
+              disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
             }`}
           >
-            {pack.isActive ? (
-              <Eye size={12} stroke="var(--just-sign)" aria-hidden />
-            ) : (
-              <EyeOff size={12} aria-hidden />
-            )}
-            {pack.isActive ? "Actif" : "Inactif"}
+            <input
+              type="checkbox"
+              checked={selected}
+              disabled={disabled}
+              onChange={onToggleSelected}
+              aria-label={`Sélectionner ${pack.title}`}
+              className="h-5 w-5 accent-ink"
+            />
+          </label>
+          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center text-[26px] leading-none" aria-hidden>
+            {pack.emoji}
           </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+              <p className="m-0 text-[15px] font-medium text-ink">{pack.title}</p>
+              <span
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                  pack.isActive ? "bg-just-bg text-just-text" : "bg-page text-muted"
+                }`}
+              >
+                {pack.isActive ? (
+                  <Eye size={12} stroke="var(--just-sign)" aria-hidden />
+                ) : (
+                  <EyeOff size={12} aria-hidden />
+                )}
+                {pack.isActive ? "Visible" : "Masqué"}
+              </span>
+            </div>
+            <p className="m-0 mt-0.5 text-sm text-muted">
+              {frCount(pack.wordCount, "mot", "mots")}
+              {" · "}
+              {frCount(pack.expressionCount, "expression", "expressions")}
+              {" · "}
+              {formatShopPriceCents(pack.price)}
+              {pack.sales > 0
+                ? ` · ${frCount(pack.sales, "vente", "ventes")} · ${formatEuro(pack.revenue / 100)}`
+                : ""}
+              {" · Stripe "}
+              {synced ? "synchronisé" : "non synchronisé"}
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center justify-end pl-12 sm:pl-0">
           <button
             type="button"
             onClick={onToggleActive}
             disabled={disabled}
-            aria-label={pack.isActive ? `Désactiver ${pack.title}` : `Activer ${pack.title}`}
+            aria-label={pack.isActive ? `Masquer ${pack.title}` : `Rendre visible ${pack.title}`}
             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-40"
           >
             {pack.isActive ? <EyeOff size={16} aria-hidden /> : <Eye size={16} aria-hidden />}

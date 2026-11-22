@@ -34,6 +34,12 @@ Une liste déjà possédée répond 409 avec `ownedPackIds`. L'interface retire 
 
 Chaque liste du lot est créée avec `source = shop`. Le plafond de 20 mots personnels exclut cette source (`countsTowardFreemiumPersonalWords` et les requêtes qui filtrent `lists.source`). Un lot n'entame pas les mots gratuits.
 
+## Espace créateur
+
+Créateur → Boutique range les packs par langue. Le résumé indique, pour chaque langue, le nombre de packs, le nombre de visibles et le nombre de masqués. Les onglets sont Toutes, Anglais, Allemand, Espagnol et Italien (drapeau et code depuis `src/lib/language.ts`). Une autre langue déjà en base s'ajoute après. L'onglet d'une langue affiche « 12 / 16 visibles » : visibles, puis packs de cette langue. Les visibles sont listés avant les masqués.
+
+« Tout sélectionner », « Rendre visible » et « Masquer » ne portent que sur l'onglet affiché. Le PATCH `/api/creator/shop` est inchangé.
+
 ## Essai en mode test Stripe
 
 La base pointée par `.env.local` est la production : ne pas y écrire pour un essai local. Stripe : clé `sk_test` uniquement.
