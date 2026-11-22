@@ -12,7 +12,7 @@ const rows = [
   // —— 65 mots du thème ——
   { terme: "la planta", definition: "plante", type: "" },
   { terme: "la rata", definition: "rat ; « un rato » veut dire « un moment »", type: "" },
-  { terme: "el ave", definition: "oiseau", type: "" },
+  { terme: "el ave", definition: "oiseau (nom féminin)", type: "" },
   { terme: "el árbol", definition: "arbre", type: "" },
   { terme: "la flor", definition: "fleur", type: "" },
   { terme: "la hoja", definition: "feuille", type: "" },
@@ -56,7 +56,7 @@ const rows = [
   { terme: "la serpiente", definition: "serpent", type: "" },
   { terme: "el lobo", definition: "loup", type: "" },
   { terme: "el oso", definition: "ours", type: "" },
-  { terme: "el águila", definition: "aigle", type: "" },
+  { terme: "el águila", definition: "aigle (nom féminin)", type: "" },
   { terme: "la rana", definition: "grenouille", type: "" },
   { terme: "el zorro", definition: "renard", type: "" },
   { terme: "el nido", definition: "nid", type: "" },
