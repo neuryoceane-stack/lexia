@@ -35,7 +35,7 @@ const rows = [
   { terme: "il controllo passaporti", definition: "contrôle des passeports", type: "" },
   { terme: "l'esenzione dal visto (f.)", definition: "entrée sans visa", type: "" },
   { terme: "l'avviso ai viaggiatori (m.)", definition: "avis déconseillant un déplacement", type: "" },
-  { terme: "il viaggio organizzato", definition: "voyage en circuit", type: "" },
+  { terme: "il viaggio organizzato", definition: "voyage organisé", type: "" },
   { terme: "l'andata e ritorno (f.)", definition: "billet aller-retour", type: "" },
   { terme: "la sola andata", definition: "trajet aller simple", type: "" },
   { terme: "l'ora di punta (f.)", definition: "heures de pointe", type: "" },
