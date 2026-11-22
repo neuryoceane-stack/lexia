@@ -111,7 +111,7 @@ const rows = [
   { terme: "prendersi la parte del leone", definition: "s'attribuer la plus grosse part", type: "expression" },
   { terme: "dare spettacolo", definition: "se donner en spectacle", type: "expression" },
   { terme: "tutto il mondo è paese", definition: "les mêmes comportements se retrouvent partout", type: "expression" },
-  { terme: "in prima fila", definition: "être aux premières loges", type: "expression" },
+  { terme: "dare il la", definition: "donner le ton", type: "expression" },
 ];
 
 function validate(data) {

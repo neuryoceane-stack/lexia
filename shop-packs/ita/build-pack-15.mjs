@@ -100,7 +100,7 @@ const rows = [
   { terme: "cane che abbaia non morde", definition: "qui menace fort agit peu", type: "expression" },
   { terme: "meglio un uovo oggi che una gallina domani", definition: "préférer un gain sûr à une promesse", type: "expression" },
   { terme: "menare il can per l'aia", definition: "tourner autour du pot", type: "expression" },
-  { terme: "essere una volpe", definition: "se montrer rusé", type: "expression" },
+  { terme: "fare la gatta morta", definition: "feindre l'innocence", type: "expression" },
   { terme: "mettere la pulce nell'orecchio", definition: "éveiller un doute", type: "expression" },
   { terme: "fare un freddo cane", definition: "faire un froid très vif", type: "expression" },
   { terme: "nascere con la camicia", definition: "avoir une chance insolente dès le départ", type: "expression" },
@@ -111,7 +111,7 @@ const rows = [
   { terme: "la pecora nera", definition: "personne qui déroge à son groupe", type: "expression" },
   { terme: "a passo di lumaca", definition: "à une lenteur extrême", type: "expression" },
   { terme: "muto come un pesce", definition: "ne rien dire", type: "expression" },
-  { terme: "essere un asino", definition: "être lent à comprendre", type: "expression" },
+  { terme: "una rondine non fa primavera", definition: "un seul signe ne permet pas de conclure", type: "expression" },
 ];
 
 function validate(data) {

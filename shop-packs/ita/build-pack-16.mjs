@@ -111,7 +111,7 @@ const rows = [
   { terme: "fare il giro largo", definition: "éviter un obstacle en faisant un détour", type: "expression" },
   { terme: "essere di passaggio", definition: "ne rester que peu de temps", type: "expression" },
   { terme: "non sapere che pesci prendere", definition: "ne pas savoir par où commencer", type: "expression" },
-  { terme: "aprire le porte", definition: "rendre une possibilité accessible", type: "expression" },
+  { terme: "sfondare una porta aperta", definition: "s'acharner pour un résultat déjà acquis", type: "expression" },
 ];
 
 function validate(data) {

@@ -99,8 +99,8 @@ const rows = [
   { terme: "non è tutt'oro quel che luccica", definition: "une belle apparence peut tromper", type: "expression" },
   { terme: "guadagnarsi il pane", definition: "gagner de quoi vivre", type: "expression" },
   { terme: "fare i conti senza l'oste", definition: "décider sans la personne qui devra accepter", type: "expression" },
-  { terme: "pagare di tasca propria", definition: "payer avec son propre argent", type: "expression" },
-  { terme: "vivere al di sopra dei propri mezzi", definition: "dépenser plus qu'on ne gagne", type: "expression" },
+  { terme: "sbarcare il lunario", definition: "joindre les deux bouts", type: "expression" },
+  { terme: "perdere la camicia", definition: "tout perdre dans une affaire", type: "expression" },
   { terme: "non avere il becco di un quattrino", definition: "ne pas avoir un sou", type: "expression" },
   { terme: "piangere miseria", definition: "se dire sans le sou, parfois sans raison", type: "expression" },
   { terme: "fare cassa", definition: "récupérer de l'argent rapidement", type: "expression" },
@@ -108,9 +108,9 @@ const rows = [
   { terme: "pagare alla romana", definition: "partager l'addition en parts égales", type: "expression" },
   { terme: "campare di rendita", definition: "vivre de revenus sans travailler", type: "expression" },
   { terme: "fare il passo più lungo della gamba", definition: "entreprendre au-dessus de ses moyens", type: "expression" },
-  { terme: "a caro prezzo", definition: "obtenir quelque chose en le payant cher", type: "expression" },
+  { terme: "per quattro soldi", definition: "pour une somme dérisoire", type: "expression" },
   { terme: "il tempo è denaro", definition: "le temps a une valeur qu'on peut compter", type: "expression" },
-  { terme: "quadrare i conti", definition: "faire coïncider dépenses et ressources", type: "expression" },
+  { terme: "avere il braccino corto", definition: "être trop avare pour dépenser", type: "expression" },
   { terme: "i soldi non hanno odore", definition: "accepter l'argent quelle qu'en soit l'origine", type: "expression" },
 ];
 
