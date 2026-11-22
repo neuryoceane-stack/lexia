@@ -9,7 +9,7 @@ Série de 16 packs, mêmes thèmes et même ordre que l'anglais. Ce fichier déc
 | 3 | Travail & carrière | Entretien, bureau, salaire, démission | `pack-03-travail-carriere.xlsx` | espagnol | 80 | 20 | |
 | 4 | Médias & réseaux sociaux | Posts, infos, vidéos, fausses informations | `pack-04-medias-reseaux.xlsx` | espagnol | 80 | 20 | |
 
-Chaque pack : 65 mots du thème, 15 verbes ou locutions verbales, 20 expressions. Les noms portent l'article (`el`, `la`, `los`, `las`) quand le genre se lit ainsi. Les verbes pronominaux portent `se`. Les définitions sont en français de France, à l'infinitif. Un faux ami classique est signalé dans la définition (`et non « … »`). Chaque expression est une locution figurée d'usage courant : le sens donné est le sens réel, pas le mot à mot. L'espagnol est celui d'Espagne, tel qu'il s'enseigne au collège et au lycée.
+Chaque pack : 65 mots du thème, 15 verbes ou locutions verbales, 20 expressions. Les noms portent l'article (`el`, `la`, `los`, `las`) quand le genre se lit ainsi. Les verbes pronominaux portent `se`. Les définitions sont en français de France, à l'infinitif. Un faux ami pour un francophone est signalé dans la définition (`et non « … »`). On ne signale pas un piège qui n'existe qu'en anglais. Chaque expression est une locution figurée d'usage courant : le sens donné est le sens réel, pas le mot à mot. L'espagnol est celui d'Espagne, tel qu'il s'enseigne au collège et au lycée.
 
 Vérification : `node shop-packs/esp/check-duplicates.mjs` (aucun terme ni définition identique entre packs), puis `node shop-packs/esp/build-pack-NN.mjs` (100 lignes, 80 mots, 20 expressions).
 
