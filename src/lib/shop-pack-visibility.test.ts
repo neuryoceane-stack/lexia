@@ -8,10 +8,11 @@ import { PREFERRED_LANGUAGE_OPTIONS } from "./language";
 import {
   applyPackVisibilitySequentially,
   confirmPackVisibilityMessage,
-  CREATOR_SHOP_TAB_LANGUAGES,
+  CREATOR_SHOP_SUMMARY_LANGUAGES,
   creatorShopLanguageSections,
   formatLanguagePackSummary,
   formatPackVisibilitySummary,
+  formatShopScopeLabel,
   formatVisibleCount,
   groupPacksByVisibility,
   orderedShopLanguages,
@@ -20,6 +21,7 @@ import {
   reasonFromThrown,
   selectionState,
   summarizeCreatorShopLanguages,
+  toggleCreatorShopLanguage,
   toggleScopeSelection,
   type ShopPackRef,
 } from "./shop-pack-visibility";
@@ -61,8 +63,8 @@ describe("packsInLanguageScope", () => {
 describe("boutique créateur par langue", () => {
   it("reprend les codes de language.ts, sans en inventer", () => {
     const known = new Set(PREFERRED_LANGUAGE_OPTIONS.map((option) => option.value));
-    assert.deepEqual([...CREATOR_SHOP_TAB_LANGUAGES], ["eng", "deu", "spa", "ita"]);
-    for (const code of CREATOR_SHOP_TAB_LANGUAGES) {
+    assert.deepEqual([...CREATOR_SHOP_SUMMARY_LANGUAGES], ["eng", "deu", "spa", "ita"]);
+    for (const code of CREATOR_SHOP_SUMMARY_LANGUAGES) {
       assert.equal(known.has(code), true);
     }
   });
@@ -96,7 +98,7 @@ describe("boutique créateur par langue", () => {
     assert.equal(formatVisibleCount(1.8, -3), "1 / 0 visibles");
   });
 
-  it("groupe l'onglet Toutes par langue et met les visibles devant", () => {
+  it("regroupe toutes les langues et met les visibles devant", () => {
     const packs = [
       { id: "h1", language: "eng", isActive: false },
       { id: "v1", language: "eng", isActive: true },
@@ -143,6 +145,26 @@ describe("boutique créateur par langue", () => {
     const allIds = packsInLanguageScope(packs, null).map((pack) => pack.id);
     const allSelected = toggleScopeSelection(allIds, new Set());
     assert.deepEqual([...allSelected].sort(), ["d1", "e1", "e2", "s1"]);
+  });
+});
+
+describe("filtre par carte de langue", () => {
+  it("revient à toutes les langues au second appui", () => {
+    assert.equal(toggleCreatorShopLanguage(null, "eng"), "eng");
+    assert.equal(toggleCreatorShopLanguage("eng", "deu"), "deu");
+    assert.equal(toggleCreatorShopLanguage("eng", " ENG "), null);
+    assert.equal(toggleCreatorShopLanguage("eng", "eng"), null);
+    assert.equal(toggleCreatorShopLanguage("deu", "  "), null);
+    assert.equal(toggleCreatorShopLanguage(null, ""), null);
+  });
+
+  it("nomme le périmètre affiché au-dessus de la liste", () => {
+    assert.equal(formatShopScopeLabel(null, 64), "Toutes les langues · 64 packs");
+    assert.equal(formatShopScopeLabel(undefined, 64), "Toutes les langues · 64 packs");
+    assert.equal(formatShopScopeLabel("  ", 64), "Toutes les langues · 64 packs");
+    assert.equal(formatShopScopeLabel("Anglais", 16), "Anglais · 16 packs");
+    assert.equal(formatShopScopeLabel(" Allemand ", 1), "Allemand · 1 pack");
+    assert.equal(formatShopScopeLabel("Espagnol", 0), "Espagnol · 0 packs");
   });
 });
 
