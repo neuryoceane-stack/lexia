@@ -6,6 +6,8 @@ import { FeedbackWidget } from "@/components/feedback-widget";
 import { PaywallBlockedProvider } from "@/components/paywall-gate";
 import { AnnouncementBannerSlot } from "@/components/announcement-banner-slot";
 import { isStudentPaywalled } from "@/lib/paywall";
+import { getClientStudentEntitlement } from "@/lib/student-entitlement";
+import { StudentEntitlementProvider } from "@/components/student-entitlement-context";
 import { getLayoutUserProfile } from "@/lib/user-profile-layout.server";
 import { OnboardingWrapperLazy } from "@/components/onboarding-wrapper-lazy";
 
@@ -26,15 +28,19 @@ export default async function AppLayout({
   const showProfesseurHeader = role === "professeur";
   const isCreator = role === "creator";
 
-  const [profile, paywalled] = await Promise.all([
+  const [profile, paywalled, entitlement] = await Promise.all([
     getLayoutUserProfile(user.id),
     isStudentPaywalled(user),
+    role === "creator" || role === "etudiant"
+      ? getClientStudentEntitlement(user)
+      : Promise.resolve(null),
   ]);
   const showOnboarding = profile ? !profile.onboardingCompleted : false;
   const userRole = role === "professeur" ? "professeur" : "etudiant";
 
   return (
     <PaywallBlockedProvider blocked={paywalled}>
+      <StudentEntitlementProvider entitlement={entitlement}>
       <div className="min-h-screen">
         <AppHeader user={user} isProfesseur={showProfesseurHeader} isCreator={isCreator} />
         {role === "etudiant" ? <AnnouncementBannerSlot userId={user.id} /> : null}
@@ -43,6 +49,7 @@ export default async function AppLayout({
         {/* Le tutoriel ouvre la révision : il attend que l'élève ait accès. */}
         {showOnboarding && !paywalled && <OnboardingWrapperLazy role={userRole} />}
       </div>
+      </StudentEntitlementProvider>
     </PaywallBlockedProvider>
   );
 }

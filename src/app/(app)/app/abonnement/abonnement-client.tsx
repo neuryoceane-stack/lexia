@@ -16,6 +16,7 @@ import {
   OFFER_MONTHLY_EUROS,
   OFFER_MONTHLY_LABEL,
   OFFER_MONTHLY_PERIOD,
+  OFFER_FREEMIUM_ABO_INTRO,
   OFFER_TRIAL_CARD_LABEL,
   OFFER_YEARLY_BADGE,
   OFFER_YEARLY_DETAIL,
@@ -47,10 +48,12 @@ export function AbonnementClient({
   initial,
   checkout,
   confirmationError,
+  freemiumEnabled = false,
 }: {
   initial: SubscriptionView;
   checkout: CheckoutResult;
   confirmationError: string | null;
+  freemiumEnabled?: boolean;
 }) {
   const [view, setView] = useState(initial);
   const [pendingPlan, setPendingPlan] = useState<BillingPlan | null>(null);
@@ -102,10 +105,14 @@ export function AbonnementClient({
     !view.billingConfigured && view.canSubscribe
       ? subscriptionUnavailableCopy()
       : view.canSubscribe
-        ? subscriptionOfferIntro(
-            view.includesTrial,
-            appliedPromo?.benefitType === "extended_trial" ? appliedPromo.label : undefined,
-          )
+        ? freemiumEnabled
+          ? OFFER_FREEMIUM_ABO_INTRO
+          : subscriptionOfferIntro(
+              view.includesTrial,
+              appliedPromo?.benefitType === "extended_trial"
+                ? appliedPromo.label
+                : undefined,
+            )
         : subscribedIntro();
 
   return (
@@ -147,7 +154,7 @@ export function AbonnementClient({
         </Notice>
       ) : null}
 
-      <StatusCard view={view} />
+      <StatusCard view={view} freemiumEnabled={freemiumEnabled} />
 
       {checkoutOpen ? (
         <PromoCodeBox
@@ -170,7 +177,11 @@ export function AbonnementClient({
             amount={formatOfferEuros(OFFER_MONTHLY_EUROS)}
             period={OFFER_MONTHLY_PERIOD}
             detail={OFFER_MONTHLY_DETAIL}
-            cta={view.includesTrial ? "Commencer l'essai" : "S'abonner"}
+            cta={
+              !freemiumEnabled && view.includesTrial
+                ? "Commencer l'essai"
+                : "S'abonner"
+            }
             pending={pendingPlan === "monthly"}
             disabled={pendingPlan !== null}
             onSubscribe={() => void subscribe("monthly")}
@@ -183,7 +194,11 @@ export function AbonnementClient({
             detail={OFFER_YEARLY_DETAIL}
             highlighted
             badge={OFFER_YEARLY_BADGE}
-            cta={view.includesTrial ? "Commencer l'essai" : "S'abonner"}
+            cta={
+              !freemiumEnabled && view.includesTrial
+                ? "Commencer l'essai"
+                : "S'abonner"
+            }
             pending={pendingPlan === "annual"}
             disabled={pendingPlan !== null}
             onSubscribe={() => void subscribe("annual")}
@@ -260,7 +275,12 @@ export function AbonnementClient({
 
       {checkoutOpen ? (
         <ul className="mt-6 grid gap-2" style={{ listStyle: "none", padding: 0, marginBottom: 0 }}>
-          {view.includesTrial ? (
+          {freemiumEnabled ? (
+            <Reassurance>
+              Mots illimités et révision complète. Vos mots verrouillés sont débloqués
+              sans suppression.
+            </Reassurance>
+          ) : view.includesTrial ? (
             <Reassurance>
               {appliedPromo?.benefitType === "extended_trial"
                 ? `${appliedPromo.label}, carte bancaire requise`
@@ -546,10 +566,19 @@ function PortalButton({
   );
 }
 
-function StatusCard({ view }: { view: SubscriptionView }) {
+function StatusCard({
+  view,
+  freemiumEnabled,
+}: {
+  view: SubscriptionView;
+  freemiumEnabled: boolean;
+}) {
   if (view.status === "inactive" && view.canSubscribe && !view.cancelAtPeriodEnd) return null;
 
-  const display = subscriptionDisplay(view);
+  const display =
+    freemiumEnabled && view.status === "inactive"
+      ? { label: "Sans abonnement", detail: OFFER_FREEMIUM_ABO_INTRO }
+      : subscriptionDisplay(view);
 
   return (
     <section

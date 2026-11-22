@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { paywallDenial } from "@/lib/paywall";
+import { assertCanAddPersonalWords } from "@/lib/student-entitlement";
+import { freemiumBulkImportMessage } from "@/lib/student-entitlement.logic";
 import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { nanoid } from "nanoid";
@@ -50,6 +52,12 @@ export async function POST(
   if (!list) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
   }
+  if (list.source === "shop") {
+    return NextResponse.json(
+      { error: "Cette liste ne peut pas recevoir de nouveaux mots ici." },
+      { status: 400 }
+    );
+  }
   let body: { words?: Array<{ term?: string; definition?: string }> };
   try {
     body = await request.json();
@@ -76,12 +84,16 @@ export async function POST(
   );
 
   const seenInBatch = new Set<string>();
-  const toInsert = parsed.filter((w) => {
+  const uniqueParsed = parsed.filter((w) => {
     const key = normalizeTermKey(w.term);
     if (!key || existingTerms.has(key) || seenInBatch.has(key)) return false;
     seenInBatch.add(key);
     return true;
   });
+
+  const quota = await assertCanAddPersonalWords(user, uniqueParsed.length);
+  if (!quota.ok) return quota.response;
+  const toInsert = uniqueParsed.slice(0, quota.allowedCount);
 
   const [maxRow] = await db
     .select({
@@ -105,5 +117,22 @@ export async function POST(
     inserted.push({ id, ...word, rank: nextRank });
     nextRank += 1;
   }
-  return NextResponse.json({ count: inserted.length, words: inserted });
+  const skipped = uniqueParsed.length - inserted.length;
+  const refreshed = await assertCanAddPersonalWords(user, 0);
+  const message =
+    skipped > 0
+      ? freemiumBulkImportMessage(
+          inserted.length,
+          skipped,
+          refreshed.ok ? refreshed.entitlement.remainingSlots : 0
+        )
+      : undefined;
+
+  return NextResponse.json({
+    count: inserted.length,
+    words: inserted,
+    skipped,
+    remainingSlots: refreshed.ok ? refreshed.entitlement.remainingSlots : 0,
+    ...(message ? { message } : {}),
+  });
 }

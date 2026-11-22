@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getUser } from "@/lib/auth";
 import { loadSubscriptionView, confirmCheckoutSessionForUser, billingHttpError } from "@/lib/stripe-billing";
 import { AbonnementClient } from "./abonnement-client";
+import { isFreemiumEnabled } from "@/lib/freemium";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -61,6 +62,7 @@ export default async function AbonnementPage({
         initial={subscription}
         checkout={checkout}
         confirmationError={confirmationError}
+        freemiumEnabled={isFreemiumEnabled()}
       />
     </div>
   );

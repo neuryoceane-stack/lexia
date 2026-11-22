@@ -8,6 +8,6 @@ export async function GET() {
     return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
   }
 
-  const stats = await computeDashboardStats(user.id);
+  const stats = await computeDashboardStats(user);
   return NextResponse.json(stats);
 }

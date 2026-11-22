@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ARemplir } from "@/components/ARemplir";
 import { BRAND_NAME } from "@/lib/brand";
+import { isFreemiumEnabled } from "@/lib/freemium";
+import { FREEMIUM_PERSONAL_WORD_LIMIT, OFFER_TRIAL_DAYS } from "@/lib/offer";
 
 export const metadata: Metadata = {
   title: `Conditions Générales de Vente — ${BRAND_NAME}`,
@@ -9,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default function CgvPage() {
+  const freemiumEnabled = isFreemiumEnabled();
   return (
     <>
       <div className="mb-8 rounded-xl border border-line/40 bg-surface px-5 py-4 text-sm leading-relaxed text-ink">
@@ -47,8 +50,20 @@ export default function CgvPage() {
         <ul>
           <li>
             <strong>Un abonnement</strong> donnant accès aux fonctionnalités premium du
-            service, incluant un essai gratuit d&apos;une durée de quinze (15) jours, sauf
-            mention contraire au moment de la souscription.
+            service
+            {freemiumEnabled ? (
+              <>
+                , complété par une offre gratuite limitée à{" "}
+                {FREEMIUM_PERSONAL_WORD_LIMIT} mots personnellement actifs, sans carte
+                bancaire
+              </>
+            ) : (
+              <>
+                , incluant un essai gratuit d&apos;une durée de quinze ({OFFER_TRIAL_DAYS})
+                jours, sauf mention contraire au moment de la souscription
+              </>
+            )}
+            .
           </li>
           <li>
             <strong>Des packs de listes de vocabulaire</strong> vendus à l&apos;unité via le
@@ -144,12 +159,28 @@ export default function CgvPage() {
           (mensuelle ou annuelle). Sauf résiliation de votre part, il est reconduit
           tacitement pour une durée identique à l&apos;échéance de la période en cours.
         </p>
-        <h3>Essai gratuit</h3>
-        <p>
-          Lorsqu&apos;un essai gratuit de quinze (15) jours est proposé, vous ne serez débité
-          qu&apos;à l&apos;issue de cette période, sauf résiliation préalable. Les conditions
-          précises de l&apos;essai sont rappelées au moment de la souscription.
-        </p>
+        {freemiumEnabled ? (
+          <>
+            <h3>Offre gratuite</h3>
+            <p>
+              L&apos;offre gratuite permet de conserver et consulter l&apos;ensemble de votre
+              vocabulaire personnel. Seuls les {FREEMIUM_PERSONAL_WORD_LIMIT} mots les plus
+              anciens restent actifs pour l&apos;ajout et la révision tant qu&apos;aucun
+              abonnement n&apos;est souscrit. Un abonnement débloque l&apos;ensemble sans
+              supprimer de contenu.
+            </p>
+          </>
+        ) : (
+          <>
+            <h3>Essai gratuit</h3>
+            <p>
+              Lorsqu&apos;un essai gratuit de quinze ({OFFER_TRIAL_DAYS}) jours est proposé,
+              vous ne serez débité qu&apos;à l&apos;issue de cette période, sauf résiliation
+              préalable. Les conditions précises de l&apos;essai sont rappelées au moment de
+              la souscription.
+            </p>
+          </>
+        )}
         <h3>Résiliation</h3>
         <p>
           Vous pouvez résilier votre abonnement à tout moment depuis votre espace personnel

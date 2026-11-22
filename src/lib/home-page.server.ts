@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { User } from "@/lib/auth";
 import { eq } from "drizzle-orm";
 import { db } from "@/lib/db";
 import { userProfiles } from "@/lib/db/schema";
@@ -28,17 +29,18 @@ export type HomeDashboardPayload = {
 };
 
 export async function loadHomeDashboard(
-  userId: string
+  user: Pick<User, "id" | "role">
 ): Promise<HomeDashboardPayload> {
+  const userId = user.id;
   const [streak, stats, profileRow, bibliotheque] = await Promise.all([
     computeUserStreak(userId),
-    computeDashboardStats(userId),
+    computeDashboardStats(user),
     db
       .select({ firstName: userProfiles.firstName })
       .from(userProfiles)
       .where(eq(userProfiles.userId, userId))
       .limit(1),
-    loadBibliothequeForUser(userId, { sort: "created" }),
+    loadBibliothequeForUser(user, { sort: "created" }),
   ]);
 
   const firstName =

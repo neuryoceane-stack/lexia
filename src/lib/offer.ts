@@ -27,8 +27,22 @@ export const OFFER_YEARLY_PER_MONTH_LABEL = "3,75\u00a0€/mois";
 
 export const OFFER_TRIAL_CARD_LABEL = `Essai de ${OFFER_TRIAL_DAYS} jours, carte bancaire requise`;
 
+/** Plafond freemium élève (listes personnelles hors boutique). */
+export const FREEMIUM_PERSONAL_WORD_LIMIT = 20;
+
+export const OFFER_FREEMIUM_SIGNUP_LABEL = `${FREEMIUM_PERSONAL_WORD_LIMIT} mots gratuits, sans carte bancaire`;
+
+export const OFFER_FREEMIUM_ABO_INTRO =
+  "Passe à l'abonnement pour réviser sans limite et débloquer tous tes mots.";
+
 export const OFFER_MINOR_NOTICE =
   "Si tu es mineur, demande à un parent ou à un tuteur de souscrire.";
+
+export function offerSignupFootnote(freemiumEnabled: boolean): string {
+  return freemiumEnabled
+    ? `${OFFER_FREEMIUM_SIGNUP_LABEL} · En 30 secondes`
+    : `${OFFER_TRIAL_CARD_LABEL} · En 30 secondes`;
+}
 
 export function formatOfferEuros(amount: number): string {
   if (!Number.isInteger(amount) || amount < 0) {

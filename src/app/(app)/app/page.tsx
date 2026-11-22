@@ -9,7 +9,7 @@ export default async function AppDashboardPage() {
 
   let initial: HomeDashboardInitial | undefined;
   if (canSeeDashboard && user?.id) {
-    initial = await loadHomeDashboard(user.id);
+    initial = await loadHomeDashboard(user);
   }
 
   return (

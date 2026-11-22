@@ -1,5 +1,6 @@
 import "server-only";
 
+import type { User } from "@/lib/auth";
 import { db } from "@/lib/db";
 import {
   wordFamilies,
@@ -9,6 +10,10 @@ import {
 } from "@/lib/db/schema";
 import { eq, and, desc, sql, or, like, inArray } from "drizzle-orm";
 import { classifyWordSm2Status } from "@/lib/list-word-sm2";
+import {
+  getActivePersonalWordIds,
+  getStudentEntitlement,
+} from "@/lib/student-entitlement";
 
 export type BibliothequeListRow = {
   id: string;
@@ -46,9 +51,10 @@ function languageMatches(
 
 /** Listes personnelles de l'élève avec stats (même logique que GET /api/bibliotheque). */
 export async function loadBibliothequeForUser(
-  userId: string,
+  user: Pick<User, "id" | "role">,
   query: BibliothequeQuery = {}
 ): Promise<{ lists: BibliothequeListRow[]; languages: string[] }> {
+  const userId = user.id;
   const lang = query.lang?.trim() || undefined;
   const search = query.search?.trim() || undefined;
   const sort = query.sort ?? "alpha";
@@ -59,6 +65,7 @@ export async function loadBibliothequeForUser(
       familyId: lists.familyId,
       name: lists.name,
       language: lists.language,
+      source: lists.source,
       createdAt: lists.createdAt,
       familyName: wordFamilies.name,
     })
@@ -189,6 +196,12 @@ export async function loadBibliothequeForUser(
     }
   }
 
+  const entitlement = await getStudentEntitlement(user);
+  const activePersonalIds =
+    entitlement.freemiumActive && !entitlement.unlimited
+      ? new Set(await getActivePersonalWordIds(userId))
+      : null;
+
   const listsWithStats: BibliothequeListRow[] = filtered.map((l) => {
     const total = countByList.get(l.id) ?? 0;
     const success = successByList.get(l.id) ?? 0;
@@ -196,7 +209,15 @@ export async function loadBibliothequeForUser(
     const wids = wordsByListId.get(l.id) ?? [];
     let sm2Mastered = 0;
     let dueToday = 0;
+    const listSource = l.source ?? "manual";
     for (const wid of wids) {
+      if (
+        activePersonalIds &&
+        listSource !== "shop" &&
+        !activePersonalIds.has(wid)
+      ) {
+        continue;
+      }
       const row = latestByWord.get(wid);
       if (classifyWordSm2Status(row) === "mastered") sm2Mastered++;
       if (!row || row.nextReviewAt <= now) dueToday++;

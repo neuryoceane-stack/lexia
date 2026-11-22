@@ -35,10 +35,17 @@ export async function fetchExistingLists(): Promise<VocabListOption[]> {
 }
 
 /** Insère des mots dans une liste existante (doublons ignorés côté serveur). */
+export type SaveWordsToListResult = {
+  count: number;
+  message?: string;
+  skipped?: number;
+  remainingSlots?: number;
+};
+
 export async function saveWordsToExistingList(
   listId: string,
   words: SaveWordItem[]
-): Promise<number> {
+): Promise<SaveWordsToListResult> {
   const normalizedWords = words
     .map((w) => ({
       term: w.term.trim(),
@@ -57,5 +64,13 @@ export async function saveWordsToExistingList(
       typeof data.error === "string" ? data.error : "Erreur lors de l'enregistrement"
     );
   }
-  return typeof data.count === "number" ? data.count : normalizedWords.length;
+  const count =
+    typeof data.count === "number" ? data.count : normalizedWords.length;
+  return {
+    count,
+    message: typeof data.message === "string" ? data.message : undefined,
+    skipped: typeof data.skipped === "number" ? data.skipped : undefined,
+    remainingSlots:
+      typeof data.remainingSlots === "number" ? data.remainingSlots : undefined,
+  };
 }

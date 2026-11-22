@@ -10,6 +10,7 @@ import {
   SUBSCRIPTION_REQUIRED_CODE,
 } from "@/lib/abonnement-path";
 import { hasActiveSubscription } from "@/lib/subscription";
+import { isFreemiumEnabled } from "@/lib/freemium";
 
 export { ABONNEMENT_PATH, SUBSCRIPTION_REQUIRED_CODE };
 
@@ -31,6 +32,7 @@ export function isPaywallExemptRole(role: User["role"]): boolean {
  */
 const readStudentPaywalledByKey = cache(
   async (userId: string, role: User["role"]): Promise<boolean> => {
+    if (isFreemiumEnabled()) return false;
     if (!isPaywallEnabled()) return false;
     if (isPaywallExemptRole(role)) return false;
 
@@ -68,12 +70,14 @@ export function subscriptionRequiredResponse(): NextResponse {
 export async function paywallDenial(
   user: Pick<User, "id" | "role">
 ): Promise<NextResponse | null> {
+  if (isFreemiumEnabled()) return null;
   if (await isStudentPaywalled(user)) return subscriptionRequiredResponse();
   return null;
 }
 
 /** Redirige vers la page d'abonnement. Ne retourne pas lorsque le paywall s'applique. */
 export async function redirectIfStudentPaywalled(): Promise<void> {
+  if (isFreemiumEnabled()) return;
   const user = await getUser();
   if (!user) return;
   if (await isStudentPaywalled(user)) {

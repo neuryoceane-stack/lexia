@@ -8,6 +8,7 @@ import { eq, sql } from "drizzle-orm";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import type { SubscriptionStatus } from "@/lib/subscription";
 import { isPaywallEnabled } from "@/lib/paywall";
+import { isFreemiumEnabled } from "@/lib/freemium";
 import { isTeacherSignupEnabled } from "@/lib/teacher-signup";
 import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
 import { BRAND_NAME } from "@/lib/brand";
@@ -281,7 +282,7 @@ export async function POST(request: Request) {
       firstName,
       lastName,
       role: profileRole,
-      ...(!isProfessor && isPaywallEnabled()
+      ...(!isProfessor && isPaywallEnabled() && !isFreemiumEnabled()
         ? { postSignupPath: ABONNEMENT_PATH }
         : {}),
     });
