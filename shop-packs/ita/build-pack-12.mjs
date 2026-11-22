@@ -55,7 +55,7 @@ const rows = [
   { terme: "il grembiule", definition: "tablier", type: "" },
   { terme: "il tagliere", definition: "planche à découper", type: "" },
   { terme: "il fornello", definition: "brûleur d'une cuisinière", type: "" },
-  { terme: "il burro", definition: "beurre, pas un âne", type: "" },
+  { terme: "il burro", definition: "beurre", type: "" },
   { terme: "il sale", definition: "sel", type: "" },
   { terme: "il pepe", definition: "poivre", type: "" },
   { terme: "lo zucchero", definition: "sucre", type: "" },

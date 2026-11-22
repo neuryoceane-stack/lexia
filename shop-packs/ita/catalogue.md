@@ -21,7 +21,7 @@
 
 Chaque pack : 65 mots du thème, 15 verbes ou locutions verbales, 20 expressions. Les noms portent l'article défini (`il`, `lo`, `la`, `l'`, `i`, `gli`, `le`). Quand l'article est `l'`, le genre est noté `(m.)` ou `(f.)`. Les verbes pronominaux sont à l'infinitif en `-si`. Les définitions sont en français de France, à l'infinitif ; un tutoiement n'apparaît que si la consigne s'adresse à l'élève. Chaque expression est une locution figurée d'usage courant : le sens donné est le sens réel, pas le mot à mot.
 
-Les faux amis fréquents pour un élève francophone sont signalés dans la définition (`la ricetta`, `i parenti`, `volare`, `salire`, `il burro`, `il bar`, `la libreria`, `il voto`, `il palazzo`, `mancare`).
+Les faux amis fréquents pour un élève francophone sont signalés dans la définition (`la ricetta`, `i parenti`, `volare`, `salire`, `il bar`, `la libreria`, `il voto`, `il palazzo`, `mancare`).
 
 Vérification : `node shop-packs/ita/check-duplicates.mjs` (aucun terme ni définition identique entre packs), puis `node shop-packs/ita/build-pack-NN.mjs` (100 lignes, 80 mots, 20 expressions).
 
