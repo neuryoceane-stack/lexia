@@ -76,9 +76,9 @@ const rows = [
   { terme: "el laboratorio de idiomas", definition: "laboratoire de langues", type: "" },
   { terme: "la calculadora", definition: "calculatrice", type: "" },
   // —— 15 verbes et locutions verbales ——
-  { terme: "aprobar", definition: "réussir un examen, et non « approuver »", type: "" },
-  { terme: "suspender", definition: "échouer à un examen, et non « suspendre »", type: "" },
-  { terme: "recordar", definition: "se souvenir, et non « enregistrer »", type: "" },
+  { terme: "aprobar", definition: "réussir un examen (aussi : approuver)", type: "" },
+  { terme: "suspender", definition: "échouer à un examen (aussi : suspendre)", type: "" },
+  { terme: "recordar", definition: "se souvenir", type: "" },
   { terme: "contestar", definition: "répondre, et non « contester »", type: "" },
   { terme: "repasar", definition: "réviser", type: "" },
   { terme: "memorizar", definition: "mémoriser", type: "" },
