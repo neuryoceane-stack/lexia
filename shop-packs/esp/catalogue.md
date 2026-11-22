@@ -1,6 +1,6 @@
 # Catalogue — packs vocabulaire (langue espagnole)
 
-Série de 16 packs, mêmes thèmes et même ordre que l'anglais. Ce fichier décrit le lot 1 (packs 1 à 4). Les lots suivants complètent le tableau après relecture.
+Série de 16 packs, mêmes thèmes et même ordre que l'anglais. Packs 1 à 8 livrés. Les packs 9 à 16 complètent le tableau.
 
 | # | Nom du pack | Contenu | Fichier .xlsx | Langue | Mots | Expressions | Prix |
 |---|-------------|---------|---------------|--------|------|-------------|------|
@@ -8,6 +8,10 @@ Série de 16 packs, mêmes thèmes et même ordre que l'anglais. Ce fichier déc
 | 2 | Voyage & transports | Aéroport, train, réservation, douane | `pack-02-voyage-transports.xlsx` | espagnol | 80 | 20 | |
 | 3 | Travail & carrière | Entretien, bureau, salaire, démission | `pack-03-travail-carriere.xlsx` | espagnol | 80 | 20 | |
 | 4 | Médias & réseaux sociaux | Posts, infos, vidéos, fausses informations | `pack-04-medias-reseaux.xlsx` | espagnol | 80 | 20 | |
+| 5 | Santé & corps | Symptômes, hôpital, pharmacie, forme | `pack-05-sante-corps.xlsx` | espagnol | 80 | 20 | |
+| 6 | Société & débats | Droits, élections, opinions | `pack-06-societe-debats.xlsx` | espagnol | 80 | 20 | |
+| 7 | Vie quotidienne | Maison, repas, courses, routines | `pack-07-vie-quotidienne.xlsx` | espagnol | 80 | 20 | |
+| 8 | Études & école | Cours, examens, notes, révisions | `pack-08-etudes-ecole.xlsx` | espagnol | 80 | 20 | |
 
 Chaque pack : 65 mots du thème, 15 verbes ou locutions verbales, 20 expressions. Les noms portent l'article (`el`, `la`, `los`, `las`) quand le genre se lit ainsi. Les verbes pronominaux portent `se`. Les définitions sont en français de France, à l'infinitif. Un faux ami pour un francophone est signalé dans la définition (`et non « … »`). On ne signale pas un piège qui n'existe qu'en anglais. Chaque expression est une locution figurée d'usage courant : le sens donné est le sens réel, pas le mot à mot. L'espagnol est celui d'Espagne, tel qu'il s'enseigne au collège et au lycée.
 
