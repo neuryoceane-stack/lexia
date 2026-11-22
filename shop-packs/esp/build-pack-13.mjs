@@ -60,7 +60,7 @@ const rows = [
   { terme: "el seguro", definition: "assurance", type: "" },
   { terme: "la prima del seguro", definition: "prime d'assurance", type: "" },
   { terme: "el fraude", definition: "fraude", type: "" },
-  { terme: "la firma", definition: "signature ; pour une société on dit « empresa ». Et non « firme »", type: "" },
+  { terme: "la firma", definition: "signature, ou entreprise", type: "" },
   { terme: "el cajero automático", definition: "guichet automatique", type: "" },
   { terme: "la transferencia", definition: "virement", type: "" },
   { terme: "el descubierto", definition: "découvert bancaire", type: "" },
