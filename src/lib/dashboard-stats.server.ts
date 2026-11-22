@@ -8,6 +8,7 @@ import {
   getActivePersonalWordIds,
   getStudentEntitlement,
 } from "@/lib/student-entitlement";
+import { countsTowardFreemiumPersonalWords } from "@/lib/shop-price";
 
 export type DashboardStatsSnapshot = {
   listsCount: number;
@@ -27,7 +28,7 @@ async function revisableWordIdsForStats(
   const activeIds = new Set(await getActivePersonalWordIds(user.id));
   const allowed = new Set<string>();
   for (const w of userWords) {
-    if (w.source === "shop" || activeIds.has(w.id)) {
+    if (!countsTowardFreemiumPersonalWords(w.source) || activeIds.has(w.id)) {
       allowed.add(w.id);
     }
   }

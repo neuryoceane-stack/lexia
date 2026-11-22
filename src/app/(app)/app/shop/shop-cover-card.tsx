@@ -1,5 +1,6 @@
 "use client";
 
+import { Check } from "lucide-react";
 import {
   getShopCoverTheme,
   shopCoverTitleShort,
@@ -14,20 +15,22 @@ type Props = {
   pack: ShopPackClient;
   coverVariant: ShopCoverVariantId;
   focused: boolean;
+  selected: boolean;
+  priceCents: number;
   onSelect: () => void;
-  onBuy: () => void;
+  onToggle: () => void;
   onRevise: () => void;
-  buying: boolean;
 };
 
 export function ShopCoverCard({
   pack,
   coverVariant,
   focused,
+  selected,
+  priceCents,
   onSelect,
-  onBuy,
+  onToggle,
   onRevise,
-  buying,
 }: Props) {
   const theme = getShopCoverTheme(pack.id, coverVariant);
   const terms = shopPackPreviewTerms(pack.wordsJson, 3);
@@ -41,7 +44,7 @@ export function ShopCoverCard({
     >
       <div
         className={`flex h-full flex-col overflow-hidden rounded-2xl border-[1.5px] bg-surface shadow-[var(--shadow-card)] ${
-          pack.owned ? "border-ink" : "border-line"
+          pack.owned || selected ? "border-ink" : "border-line"
         } ${focused ? "ring-[3px] ring-mark ring-offset-2 ring-offset-page" : ""}`}
       >
         <button
@@ -59,6 +62,11 @@ export function ShopCoverCard({
             {pack.owned ? (
               <span className="absolute left-2.5 top-2.5 z-[2] rounded-full bg-mark px-2 py-1 text-[10px] font-medium text-ink">
                 Possédée
+              </span>
+            ) : selected ? (
+              <span className="absolute left-2.5 top-2.5 z-[2] inline-flex items-center gap-1 rounded-full bg-mark px-2 py-1 text-[10px] font-medium text-ink">
+                <Check size={12} aria-hidden />
+                Choisie
               </span>
             ) : null}
             <p className="relative z-[2] font-heading text-[22px] font-bold leading-[1.05] text-ink">{shortTitle}</p>
@@ -93,14 +101,18 @@ export function ShopCoverCard({
             </button>
           ) : (
             <div className="mt-3 flex items-center justify-between gap-2">
-              <span className="font-heading text-lg font-bold text-ink">{formatShopPriceCents(pack.price)}</span>
+              <span className="font-heading text-lg font-bold text-ink">{formatShopPriceCents(priceCents)}</span>
               <button
                 type="button"
-                disabled={buying}
-                onClick={onBuy}
-                className="min-h-11 rounded-full bg-ink px-4 text-sm font-medium text-surface outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 disabled:opacity-70"
+                aria-pressed={selected}
+                onClick={onToggle}
+                className={`min-h-11 rounded-full px-4 text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ink focus-visible:ring-offset-2 ${
+                  selected
+                    ? "border-[1.5px] border-ink bg-surface text-ink"
+                    : "bg-ink text-surface"
+                }`}
               >
-                {buying ? "…" : "Acheter"}
+                {selected ? "Retirer" : "Choisir"}
               </button>
             </div>
           )}

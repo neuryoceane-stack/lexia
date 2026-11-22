@@ -374,7 +374,16 @@ export const shopPacks = sqliteTable("shop_packs", {
   wordCount: integer("word_count").notNull().default(60),
   expressionCount: integer("expression_count").notNull().default(20),
   price: integer("price").notNull().default(400),
+  /**
+   * Inutilisée par la boutique et par le paiement. Ne pas s'en servir.
+   * Le lot « 4 packs d'une même langue = 10 € » n'est pas une ligne `type = bundle` :
+   * son prix est `SHOP_LOT_PRICE_CENTS` dans `src/lib/shop-price.ts`.
+   * Le défaut 1600 (16 €) ne correspond à aucune offre.
+   * Pour supprimer la colonne : accord d'Océane, puis `npx drizzle-kit push` lancé par elle.
+   * Pas d'ALTER TABLE manuel, et pas de push depuis un agent.
+   */
   bundlePrice: integer("bundle_price").notNull().default(1600),
+  /** `bundle` n'est pas une offre en vente. Les listes actives restent `thematique`. */
   type: text("type", { enum: ["thematique", "bundle"] }).notNull().default("thematique"),
   language: text("language").notNull().default("eng"),
   level: text("level").notNull().default(""),

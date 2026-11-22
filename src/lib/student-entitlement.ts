@@ -7,6 +7,7 @@ import type { User } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { classMembers, lists, users, wordFamilies, words } from "@/lib/db/schema";
 import { FREEMIUM_PERSONAL_WORD_LIMIT } from "@/lib/offer";
+import { SHOP_LIST_SOURCE, countsTowardFreemiumPersonalWords } from "@/lib/shop-price";
 import { isFreemiumEnabled } from "@/lib/freemium";
 import { type SubscriptionStatus } from "@/lib/subscription";
 import { isPaywallExemptRole } from "@/lib/paywall";
@@ -63,7 +64,7 @@ async function loadPersonalWordTotal(userId: string): Promise<number> {
     .innerJoin(lists, eq(words.listId, lists.id))
     .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
     .where(
-      and(eq(wordFamilies.userId, userId), ne(lists.source, "shop"))
+      and(eq(wordFamilies.userId, userId), ne(lists.source, SHOP_LIST_SOURCE))
     );
   return row?.total ?? 0;
 }
@@ -76,7 +77,7 @@ const loadActiveWordIdsByUser = cache(
       .innerJoin(lists, eq(words.listId, lists.id))
       .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
       .where(
-        and(eq(wordFamilies.userId, userId), ne(lists.source, "shop"))
+        and(eq(wordFamilies.userId, userId), ne(lists.source, SHOP_LIST_SOURCE))
       )
       .orderBy(asc(words.createdAt), asc(words.id))
       .limit(FREEMIUM_PERSONAL_WORD_LIMIT);
@@ -233,7 +234,7 @@ export async function filterReadableWordsForFreemiumRevision<
   const activeIds = new Set(await loadActiveWordIdsByUser(user.id));
   return wordRows.filter((w) => {
     if (w.ownerUserId !== user.id) return true;
-    if (w.source === "shop") return true;
+    if (!countsTowardFreemiumPersonalWords(w.source)) return true;
     return activeIds.has(w.id);
   });
 }
@@ -258,6 +259,6 @@ export async function canSubmitRevisionForWord(
     .limit(1);
   if (!row) return false;
   if (row.ownerUserId !== user.id) return true;
-  if (row.source === "shop") return true;
+  if (!countsTowardFreemiumPersonalWords(row.source)) return true;
   return isPersonalWordActive(user.id, wordId);
 }
