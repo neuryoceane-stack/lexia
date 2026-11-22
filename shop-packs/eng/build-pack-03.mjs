@@ -23,7 +23,7 @@ const rows = [
   { terme: "skill", definition: "compétence", type: "" },
   { terme: "career", definition: "carrière", type: "" },
   { terme: "intern", definition: "stagiaire", type: "" },
-  { terme: "trainee", definition: "apprenti", type: "" },
+  { terme: "trainee", definition: "stagiaire en formation", type: "" },
   { terme: "manager", definition: "responsable", type: "" },
   { terme: "staff", definition: "personnel", type: "" },
   { terme: "colleague", definition: "collègue", type: "" },
