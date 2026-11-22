@@ -60,16 +60,22 @@ export function ShopCoverCard({
           >
             <ShopCoverArt theme={theme} />
             {pack.owned ? (
-              <span className="absolute left-2.5 top-2.5 z-[2] rounded-full bg-mark px-2 py-1 text-[10px] font-medium text-ink">
+              <span className="absolute right-2.5 top-2.5 z-[3] max-w-[calc(100%-1.25rem)] truncate rounded-full bg-mark px-2 py-1 text-[10px] font-medium text-ink shadow-[0_0_0_1px_color-mix(in_srgb,var(--ink)_8%,transparent)]">
                 Possédée
               </span>
             ) : selected ? (
-              <span className="absolute left-2.5 top-2.5 z-[2] inline-flex items-center gap-1 rounded-full bg-mark px-2 py-1 text-[10px] font-medium text-ink">
-                <Check size={12} aria-hidden />
+              <span className="absolute right-2.5 top-2.5 z-[3] inline-flex max-w-[calc(100%-1.25rem)] items-center gap-1 truncate rounded-full bg-mark px-2 py-1 text-[10px] font-medium text-ink shadow-[0_0_0_1px_color-mix(in_srgb,var(--ink)_8%,transparent)]">
+                <Check size={12} className="shrink-0" aria-hidden />
                 Choisie
               </span>
             ) : null}
-            <p className="relative z-[2] font-heading text-[22px] font-bold leading-[1.05] text-ink">{shortTitle}</p>
+            <p
+              className={`relative z-[2] max-w-full font-heading text-[22px] font-bold leading-[1.05] text-ink ${
+                pack.owned || selected ? "pr-[4.75rem]" : ""
+              }`}
+            >
+              {shortTitle}
+            </p>
             <div className="relative z-[2] mt-auto flex flex-col items-end gap-1 pt-3">
               {terms.map((term) => (
                 <em
