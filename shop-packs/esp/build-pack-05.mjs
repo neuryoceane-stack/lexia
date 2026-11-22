@@ -73,7 +73,7 @@ const rows = [
   { terme: "la Seguridad Social", definition: "sécurité sociale en Espagne", type: "" },
   { terme: "la higiene", definition: "hygiène", type: "" },
   { terme: "embarazada", definition: "enceinte, et non « embarrassée »", type: "" },
-  { terme: "el pie", definition: "pied, et non « tarte »", type: "" },
+  { terme: "el pie", definition: "pied", type: "" },
   { terme: "la mano", definition: "main (nom féminin)", type: "" },
   // —— 15 verbes et locutions verbales ——
   { terme: "hincharse", definition: "enfler", type: "" },
