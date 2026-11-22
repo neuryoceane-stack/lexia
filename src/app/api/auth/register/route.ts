@@ -8,6 +8,7 @@ import { eq, sql } from "drizzle-orm";
 import { validateEmail, validatePassword } from "@/lib/validation";
 import type { SubscriptionStatus } from "@/lib/subscription";
 import { isPaywallEnabled } from "@/lib/paywall";
+import { isTeacherSignupEnabled } from "@/lib/teacher-signup";
 import { ABONNEMENT_PATH } from "@/lib/abonnement-path";
 import { BRAND_NAME } from "@/lib/brand";
 import {
@@ -45,7 +46,7 @@ function parseWeeklyGoal(value: unknown): number | undefined {
   return undefined;
 }
 
-function registerErrorResponse(error: unknown): NextResponse {
+function registerErrorResponse(error: unknown, vouvoiement: boolean): NextResponse {
   console.error("[POST /api/auth/register]", error);
 
   const message =
@@ -61,8 +62,9 @@ function registerErrorResponse(error: unknown): NextResponse {
 
   return NextResponse.json(
     {
-      error:
-        "Impossible de créer le compte pour le moment. Réessaie dans quelques instants.",
+      error: vouvoiement
+        ? "Impossible de créer le compte pour le moment. Réessayez dans quelques instants."
+        : "Impossible de créer le compte pour le moment. Réessaie dans quelques instants.",
     },
     { status: 500 }
   );
@@ -104,8 +106,15 @@ export async function POST(request: Request) {
     [firstName, lastName].filter(Boolean).join(" ") ||
     body.name?.trim() ||
     null;
-  const isProfessor =
+  const requestedProfessor =
     body.role === "professeur" || body.role === "teacher";
+  if (requestedProfessor && !isTeacherSignupEnabled()) {
+    return NextResponse.json(
+      { error: "L'inscription professeur n'est pas ouverte." },
+      { status: 403 }
+    );
+  }
+  const isProfessor = requestedProfessor;
   const profileRole = isProfessor ? "professeur" : "etudiant";
   const appRole =
     email === "oci@lexiva.app"
@@ -277,6 +286,6 @@ export async function POST(request: Request) {
         : {}),
     });
   } catch (error) {
-    return registerErrorResponse(error);
+    return registerErrorResponse(error, isProfessor);
   }
 }

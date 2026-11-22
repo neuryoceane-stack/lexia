@@ -28,6 +28,7 @@ type Props = {
 export function SalleAttente({ classId, members, className = "" }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
+  const [bulkError, setBulkError] = useState<string | null>(null);
 
   const pending = members.filter((m) => m.status === "pending");
   const accepted = members.filter((m) => m.status === "accepted");
@@ -35,13 +36,49 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
 
   async function handleStatus(userId: string, status: "accepted" | "rejected") {
     setLoading(userId);
+    setBulkError(null);
     try {
       const res = await fetch(`/api/classes/${classId}/members/${userId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
-      if (res.ok) router.refresh();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setBulkError(
+          typeof data.error === "string" ? data.error : "L'action n'a pas abouti."
+        );
+        return;
+      }
+      router.refresh();
+    } finally {
+      setLoading(null);
+    }
+  }
+
+  async function acceptAll() {
+    setLoading("all");
+    setBulkError(null);
+    try {
+      for (const member of pending) {
+        if (!member.userId) continue;
+        const res = await fetch(`/api/classes/${classId}/members/${member.userId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "accepted" }),
+        });
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          setBulkError(
+            typeof data.error === "string"
+              ? data.error
+              : "Certains élèves n'ont pas pu être acceptés."
+          );
+          router.refresh();
+          return;
+        }
+      }
+      router.refresh();
     } finally {
       setLoading(null);
     }
@@ -55,9 +92,24 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
 
       {pending.length > 0 && (
         <div className="mb-6 rounded-xl border border-line bg-surface p-4">
-          <h3 className="mb-3 text-sm font-medium text-ink">
-            Salle d&apos;attente ({pending.length})
-          </h3>
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-ink">
+              Salle d&apos;attente ({pending.length})
+            </h3>
+            <button
+              type="button"
+              onClick={acceptAll}
+              disabled={loading !== null}
+              className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-4 text-sm font-medium text-surface disabled:opacity-50"
+            >
+              {loading === "all" ? "Acceptation…" : "Tout accepter"}
+            </button>
+          </div>
+          {bulkError ? (
+            <p className="mb-3 text-sm text-false-text" role="alert">
+              {bulkError}
+            </p>
+          ) : null}
           <ul className="space-y-2">
             {pending.map((m) => (
               <li
@@ -126,6 +178,32 @@ export function SalleAttente({ classId, members, className = "" }: Props) {
                   className="btn-relief rounded-lg px-2.5 py-1.5 text-xs font-medium text-false-text hover:bg-false-bg disabled:opacity-50"
                 >
                   {loading === m.userId ? "…" : "Supprimer de la classe"}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {rejected.length > 0 && (
+        <div className="mt-6 rounded-xl border border-line bg-surface p-4">
+          <h3 className="mb-3 text-sm font-medium text-muted">
+            Demandes refusées ({rejected.length})
+          </h3>
+          <ul className="space-y-2">
+            {rejected.map((m) => (
+              <li
+                key={m.id}
+                className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-line px-3 py-2"
+              >
+                <span className="font-medium text-ink">{m.name}</span>
+                <button
+                  type="button"
+                  onClick={() => handleStatus(m.userId!, "accepted")}
+                  disabled={loading === m.userId}
+                  className="inline-flex min-h-11 items-center rounded-full border-[1.5px] border-ink bg-surface px-4 text-sm font-medium text-ink disabled:opacity-50"
+                >
+                  {loading === m.userId ? "…" : "Accepter"}
                 </button>
               </li>
             ))}

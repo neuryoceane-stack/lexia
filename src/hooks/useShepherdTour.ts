@@ -163,89 +163,57 @@ function buildTeacherSteps(
 ): StepOptions[] {
   return [
     {
-      id: "welcome",
-      title: "Bienvenue, professeur ✨",
+      id: "classe",
+      title: "Créer votre classe",
       text: `
-        <div class="lx-welcome">
-          <p class="lx-intro">${BRAND_NAME} vous donne une vision complète de la progression de vos élèves.</p>
-          <div class="lx-pills">
-            <span class="lx-pill">🏫 Classes</span>
-            <span class="lx-pill">📋 Listes</span>
-            <span class="lx-pill">📈 Suivi</span>
-          </div>
-        </div>
-      `,
-      buttons: [{ text: "Découvrir →", action: () => tour.next() }],
-    },
-    {
-      id: "classes",
-      title: "🏫 Mes classes",
-      text: `
-        <p>Gérez vos élèves en quelques clics.</p>
-        <ul class="lx-list">
-          <li>🔗 Lien d'invitation par classe</li>
-          <li>👥 Vue de tous vos élèves</li>
-          <li>📋 Assignez des listes en 1 clic</li>
-        </ul>
+        <p>Donnez un nom à votre classe. Le code et le lien d'invitation sont prêts tout de suite.</p>
       `,
       attachTo: {
         element: 'a[href="/app/professeur/classes"]',
         on: "bottom",
       },
-      buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
-      ],
+      beforeShowPromise: () =>
+        navigateAndWait(
+          router,
+          "/app/professeur",
+          'a[href="/app/professeur/classes"]',
+        ),
+      buttons: [{ text: "Suivant", action: () => tour.next() }],
     },
     {
-      id: "bibliotheque",
-      title: "📋 Ma bibliothèque",
+      id: "liste",
+      title: "Ajouter une liste",
       text: `
-        <p>Créez vos propres listes ou importez-les.</p>
-        <ul class="lx-list">
-          <li>📄 Import PDF, photo, texte</li>
-          <li>🗂️ Organisation par listes</li>
-          <li>🔄 Assignation à une ou plusieurs classes</li>
-        </ul>
+        <p>Créez une liste dans votre bibliothèque, assignez-la à la classe, puis rendez-la visible.</p>
       `,
       attachTo: { element: 'a[href="/app/familles"]', on: "bottom" },
+      beforeShowPromise: () =>
+        navigateAndWait(router, "/app/professeur", 'a[href="/app/familles"]'),
       buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
+        { text: "Retour", action: () => tour.back(), secondary: true },
+        { text: "Suivant", action: () => tour.next() },
       ],
     },
     {
-      id: "suivi",
-      title: "📈 Suivi en temps réel",
+      id: "inviter",
+      title: "Inviter vos élèves",
       text: `
-        <p>Visualisez la progression de <strong>chaque élève</strong>.</p>
-        <ul class="lx-list">
-          <li>✅ Mots maîtrisés par élève</li>
-          <li>⚠️ Mots en difficulté</li>
-          <li>📊 Taux de complétion par liste</li>
-        </ul>
+        <p>Sur la page de la classe, copiez le lien ou le message. Vos élèves créent un compte, puis vous les acceptez.</p>
       `,
       attachTo: {
         element: 'a[href="/app/professeur/classes"]',
         on: "bottom",
       },
+      beforeShowPromise: () =>
+        navigateAndWait(
+          router,
+          "/app/professeur",
+          'a[href="/app/professeur/classes"]',
+        ),
       buttons: [
-        { text: "← Retour", action: () => tour.back(), secondary: true },
-        { text: "Suivant →", action: () => tour.next() },
-      ],
-    },
-    {
-      id: "finish",
-      title: "🎉 Vous êtes prêt !",
-      text: `
-        <div class="lx-finish">
-          <p class="lx-intro">Créez votre première classe et invitez vos élèves.</p>
-          <p class="lx-sub">Vos élèves reçoivent un lien — aucune installation requise.</p>
-        </div>
-      `,
-      buttons: [
+        { text: "Retour", action: () => tour.back(), secondary: true },
         {
-          text: "Créer ma première classe 🏫",
+          text: "Créer ma classe",
           action: () => {
             void finishTourAndGo(
               tour,

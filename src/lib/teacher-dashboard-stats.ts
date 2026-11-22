@@ -3,9 +3,11 @@ import {
   classLists,
   classMembers,
   classes,
+  lists,
   revisions,
   users,
   userProfiles,
+  wordFamilies,
 } from "@/lib/db/schema";
 import { and, eq, gte, inArray } from "drizzle-orm";
 
@@ -21,6 +23,13 @@ export type TeacherDashboardStats = {
     masteryPct: number;
     masteryDeltaPct: number;
     hasRevisionData: boolean;
+  };
+  /** Null quand les trois gestes de départ sont faits. */
+  startGuide: null | {
+    hasClass: boolean;
+    hasList: boolean;
+    hasStudent: boolean;
+    classId: string | null;
   };
 };
 
@@ -54,6 +63,14 @@ export async function getTeacherDashboardStats(
     userRow?.name?.trim()?.split(/\s+/)[0] ||
     null;
 
+  const [ownedList] = await db
+    .select({ id: lists.id })
+    .from(lists)
+    .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
+    .where(eq(wordFamilies.userId, teacherId))
+    .limit(1);
+  const hasList = Boolean(ownedList);
+
   if (activeClassesCount === 0) {
     return {
       firstName: displayFirst,
@@ -61,6 +78,12 @@ export async function getTeacherDashboardStats(
       activeStudentsThisWeek: 0,
       assignedListsCount: 0,
       topClassBanner: null,
+      startGuide: {
+        hasClass: false,
+        hasList,
+        hasStudent: false,
+        classId: null,
+      },
     };
   }
 
@@ -181,6 +204,15 @@ export async function getTeacherDashboardStats(
   const prevWeek = masteryInRange(top.id, prevWeekStart, weekStart);
   const masteryDeltaPct = thisWeek.pct - prevWeek.pct;
 
+  const [anyMember] = await db
+    .select({ id: classMembers.id })
+    .from(classMembers)
+    .where(inArray(classMembers.classId, classIds))
+    .limit(1);
+  const hasStudent = Boolean(anyMember);
+  const hasClass = activeClassesCount > 0;
+  const guideDone = hasClass && (hasList || assignedListsCount > 0) && hasStudent;
+
   return {
     firstName: displayFirst,
     activeClassesCount,
@@ -193,5 +225,13 @@ export async function getTeacherDashboardStats(
       masteryDeltaPct,
       hasRevisionData: thisWeek.n > 0,
     },
+    startGuide: guideDone
+      ? null
+      : {
+          hasClass,
+          hasList: hasList || assignedListsCount > 0,
+          hasStudent,
+          classId: teacherClasses[0]?.id ?? null,
+        },
   };
 }

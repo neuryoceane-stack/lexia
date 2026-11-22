@@ -11,6 +11,7 @@
  * - finance   → finance (GET /api/creator/finance), alertes comprises
  * - shop      → boutique déjà en place ( /api/creator/shop )
  * - students  → liste, usage (lecture seule) et onglet Établissements
+ * - pilot → professeurs du pilote (users, classes, revisions, revision_sessions)
  * - churn    → désabonnements (GET /api/creator/churn)
  * - promo → codes promo (GET, POST /api/creator/promo, PATCH /api/creator/promo/[id])
  * - announcements → annonces (GET, POST /api/creator/announcements, PATCH et DELETE /api/creator/announcements/[id])
@@ -21,6 +22,7 @@ export const CREATOR_SECTIONS = [
   { id: "overview", label: "Vue d'ensemble" },
   { id: "funnel", label: "Entonnoir et coûts" },
   { id: "students", label: "Élèves" },
+  { id: "pilot", label: "Pilote professeurs" },
   { id: "health", label: "Retours et santé" },
   { id: "finance", label: "Finance" },
   { id: "churn", label: "Désabonnements" },

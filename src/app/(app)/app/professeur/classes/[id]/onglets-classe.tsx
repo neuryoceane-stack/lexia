@@ -11,8 +11,6 @@ const PRIMARY = "var(--ink)";
 const GREEN = "var(--ink)";
 const GOLD = "var(--ink)";
 const BORDER_TERTIARY = "var(--line)";
-/** Badge « en difficulté » (maîtrise &lt; 30 % avec activité de révision). */
-const DIFFICULTE_RED = "var(--false-sign)";
 
 function masteryTone(pct: number): { color: string; fill: string } {
   if (pct >= 70) return { color: GREEN, fill: GREEN };
@@ -39,15 +37,13 @@ type Member = {
     wordsMastered: number;
     lastActivityAt: string | null;
   };
+  activity: {
+    wordCount: number;
+    revisionsThisWeek: number;
+    lastActivityAt: string | null;
+    inactiveFor7Days: boolean;
+  };
 };
-
-function eleveEnDifficulte(m: Member): boolean {
-  return (
-    m.progress.masteryPct < 30 &&
-    m.progress.lastActivityAt != null &&
-    m.progress.lastActivityAt !== ""
-  );
-}
 
 type ClassList = {
   id: string;
@@ -100,10 +96,10 @@ export function OngletsClasse({
   const baseHref = `/app/professeur/classes/${classId}`;
   const accepted = members.filter((m) => m.status === "accepted");
   const acceptedSorted = [...accepted].sort((a, b) => {
-    const da = eleveEnDifficulte(a);
-    const db = eleveEnDifficulte(b);
-    if (da === db) return 0;
-    return da ? -1 : 1;
+    if (a.activity.inactiveFor7Days !== b.activity.inactiveFor7Days) {
+      return a.activity.inactiveFor7Days ? -1 : 1;
+    }
+    return a.name.localeCompare(b.name, "fr");
   });
 
   return (
@@ -267,12 +263,12 @@ export function OngletsClasse({
               <ul className="m-0 list-none p-0">
                 {acceptedSorted.map((m, idx) => {
                   const last = idx === acceptedSorted.length - 1;
-                  const tone = masteryTone(m.progress.masteryPct);
-                  const enDifficulte = eleveEnDifficulte(m);
+                  const quiet = m.activity.inactiveFor7Days;
+                  const noActivity = m.activity.lastActivityAt == null;
                   return (
                     <li
                       key={m.id}
-                      className="flex items-center gap-2.5"
+                      className="flex items-start gap-2.5"
                       style={{
                         padding: "10px 0",
                         borderBottom: last
@@ -281,78 +277,56 @@ export function OngletsClasse({
                       }}
                     >
                       <div
-                        className="relative shrink-0"
-                        style={{ width: 32, height: 32 }}
+                        className="flex size-8 shrink-0 items-center justify-center rounded-full"
+                        style={{
+                          background: "var(--background-subtle)",
+                          fontSize: 11,
+                          fontWeight: 500,
+                          color: PRIMARY,
+                        }}
                       >
-                        <div
-                          className="flex size-8 items-center justify-center rounded-full"
-                          style={{
-                            background: "var(--background-subtle)",
-                            fontSize: 11,
-                            fontWeight: 500,
-                            color: PRIMARY,
-                          }}
-                        >
-                          {initials(m.name)}
-                        </div>
-                        {enDifficulte ? (
-                          <span
-                            title="En difficulté"
-                            aria-label="En difficulté"
-                            className="absolute"
-                            style={{
-                              bottom: 0,
-                              right: 0,
-                              width: 10,
-                              height: 10,
-                              borderRadius: "50%",
-                              background: DIFFICULTE_RED,
-                            }}
-                          />
-                        ) : null}
+                        {initials(m.name)}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p
-                          style={{
-                            fontSize: 13,
-                            fontWeight: 500,
-                            margin: 0,
-                            color: "var(--foreground)",
-                          }}
-                        >
-                          {m.name}
-                        </p>
-                        <p
-                          style={{
-                            fontSize: 11,
-                            color: "var(--foreground-muted)",
-                            margin: "2px 0 0",
-                          }}
-                        >
-                          {formatActifIlYA(m.progress.lastActivityAt)}
-                        </p>
-                      </div>
-                      <div className="shrink-0 text-right">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 500,
+                              margin: 0,
+                              color: "var(--foreground)",
+                            }}
+                          >
+                            {m.name}
+                          </p>
+                          {quiet ? (
+                            <span className="inline-flex min-h-6 items-center rounded-full border border-ink bg-mark px-2 text-[11px] font-medium text-ink">
+                              Inactif depuis 7 jours
+                            </span>
+                          ) : null}
+                        </div>
                         <p
                           style={{
                             fontSize: 12,
-                            fontWeight: 500,
-                            color: tone.color,
-                            margin: 0,
+                            color: "var(--foreground-muted)",
+                            margin: "4px 0 0",
                           }}
                         >
-                          {m.progress.masteryPct}%
+                          {m.activity.wordCount} mot
+                          {m.activity.wordCount !== 1 ? "s" : ""} ·{" "}
+                          {m.activity.revisionsThisWeek} révision
+                          {m.activity.revisionsThisWeek !== 1 ? "s" : ""} cette semaine
                         </p>
                         <p
                           style={{
-                            fontSize: 10,
+                            fontSize: 11,
                             color: "var(--foreground-muted)",
                             margin: "2px 0 0",
                           }}
                         >
-                          {m.progress.wordsMastered} mot
-                          {m.progress.wordsMastered !== 1 ? "s" : ""} maîtrisé
-                          {m.progress.wordsMastered !== 1 ? "s" : ""}
+                          {noActivity
+                            ? "Pas encore d'activité"
+                            : formatActifIlYA(m.activity.lastActivityAt)}
                         </p>
                       </div>
                     </li>

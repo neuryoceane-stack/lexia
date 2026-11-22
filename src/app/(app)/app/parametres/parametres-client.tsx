@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef, type ReactNode } from "react";
+import Link from "next/link";
 import {
   Minus,
   Plus,
@@ -80,7 +81,11 @@ function snapWeeklyGoal(n: number): number {
 
 const cardClass = "scroll-mt-24 rounded-[20px] border-[1.5px] border-line bg-surface p-5";
 
-export function ParametresClient() {
+export function ParametresClient({
+  role,
+}: {
+  role: "etudiant" | "professeur" | "creator";
+}) {
   const [avatarType, setAvatarType] = useState<AvatarType>("arbre");
   const [saving, setSaving] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -97,6 +102,78 @@ export function ParametresClient() {
   const remindersPersistReady = useRef(false);
   const soundPersistReady = useRef(false);
   const [activeId, setActiveId] = useState<(typeof TOC)[number]["id"]>("avatar");
+  const [classCode, setClassCode] = useState("");
+  const [classJoinBusy, setClassJoinBusy] = useState(false);
+  const [classJoinMessage, setClassJoinMessage] = useState<string | null>(null);
+  const [classJoinError, setClassJoinError] = useState<string | null>(null);
+  const [myClasses, setMyClasses] = useState<
+    { id: string; title: string; status: "pending" | "accepted" }[]
+  >([]);
+
+  useEffect(() => {
+    if (role !== "etudiant") return;
+    let cancelled = false;
+    fetch("/api/eleve/classes-avec-listes")
+      .then(async (res) => {
+        if (!res.ok) throw new Error("classes");
+        return res.json() as Promise<{
+          classes?: { id: string; title: string; status: "pending" | "accepted" }[];
+        }>;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setMyClasses(
+          (data.classes ?? []).map((c) => ({
+            id: c.id,
+            title: c.title,
+            status: c.status,
+          }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setClassJoinError("Tes classes n'ont pas pu être chargées.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [role]);
+
+  async function joinClass() {
+    setClassJoinBusy(true);
+    setClassJoinError(null);
+    setClassJoinMessage(null);
+    try {
+      const res = await fetch("/api/classes/join", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: classCode }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        setClassJoinError(
+          typeof data.error === "string" ? data.error : "Ce code n'a pas pu être utilisé."
+        );
+        return;
+      }
+      setClassJoinMessage(typeof data.message === "string" ? data.message : "Demande envoyée.");
+      setClassCode("");
+      const list = await fetch("/api/eleve/classes-avec-listes");
+      if (list.ok) {
+        const body = (await list.json()) as {
+          classes?: { id: string; title: string; status: "pending" | "accepted" }[];
+        };
+        setMyClasses(
+          (body.classes ?? []).map((c) => ({
+            id: c.id,
+            title: c.title,
+            status: c.status,
+          }))
+        );
+      }
+    } finally {
+      setClassJoinBusy(false);
+    }
+  }
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -672,42 +749,78 @@ export function ParametresClient() {
               )}
             </section>
 
-            <section id="ma-classe" className={cardClass} aria-disabled="true">
-              <div className="mb-4 flex items-start justify-between gap-3">
-                <SectionHeader
-                  icon={GraduationCap}
-                  title="Ma classe"
-                  subtitle="Rejoignez une classe avec le code fourni par votre professeur."
-                  className="mb-0 min-w-0 flex-1"
-                />
-                <span className="inline-flex shrink-0 items-center rounded-full bg-mark px-3 py-1 text-[13px] font-medium text-ink">
-                  À venir
-                </span>
-              </div>
-              <p id="ma-classe-bientot" className="m-0 mb-4 text-sm leading-relaxed text-ink">
-                L&apos;espace professeur n&apos;est pas encore ouvert. Vous pourrez bientôt rejoindre la
-                classe de votre professeur ici.
-              </p>
-              <fieldset disabled className="m-0 min-w-0 border-0 p-0" style={{ opacity: 0.72 }}>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                  <input
-                    type="text"
-                    disabled
-                    readOnly
-                    placeholder="Code de la classe"
-                    aria-label="Code de la classe"
-                    aria-describedby="ma-classe-bientot"
-                    className="min-h-[50px] min-w-0 flex-1 cursor-not-allowed rounded-[14px] border-[1.5px] border-line bg-page px-3.5 text-[15px] text-muted outline-none"
-                  />
-                  <button
-                    type="button"
-                    disabled
-                    className="inline-flex min-h-11 cursor-not-allowed items-center justify-center rounded-full border-[1.5px] border-line bg-page px-5 text-sm font-medium text-muted"
+            <section id="ma-classe" className={cardClass}>
+              <SectionHeader
+                icon={GraduationCap}
+                title="Ma classe"
+                subtitle={
+                  role === "professeur"
+                    ? "Vos classes et les invitations se gèrent dans Mes classes."
+                    : role === "creator"
+                      ? "Cette carte est réservée aux élèves."
+                      : "Rejoins une classe avec le code ou le lien de ton professeur."
+                }
+              />
+              {role === "professeur" ? (
+                <Link
+                  href="/app/professeur/classes"
+                  className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-sm font-medium text-surface no-underline"
+                >
+                  Ouvrir Mes classes
+                </Link>
+              ) : role === "etudiant" ? (
+                <>
+                  {myClasses.length > 0 ? (
+                    <ul className="m-0 mb-4 list-none space-y-2 p-0">
+                      {myClasses.map((c) => (
+                        <li
+                          key={c.id}
+                          className="flex flex-wrap items-center justify-between gap-2 rounded-[14px] border border-line px-3 py-2"
+                        >
+                          <span className="text-sm font-medium text-ink">{c.title}</span>
+                          <span className="text-xs font-medium text-muted">
+                            {c.status === "pending" ? "En attente de validation" : "Accepté"}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <form
+                    className="flex flex-col gap-2 sm:flex-row sm:items-center"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      void joinClass();
+                    }}
                   >
-                    Rejoindre
-                  </button>
-                </div>
-              </fieldset>
+                    <input
+                      type="text"
+                      value={classCode}
+                      onChange={(e) => setClassCode(e.target.value)}
+                      placeholder="LX-XXXXXX"
+                      aria-label="Code de la classe"
+                      autoCapitalize="characters"
+                      className="min-h-[50px] min-w-0 flex-1 rounded-[14px] border-[1.5px] border-line bg-page px-3.5 text-[15px] text-ink outline-none"
+                    />
+                    <button
+                      type="submit"
+                      disabled={classJoinBusy || classCode.trim().length === 0}
+                      className="inline-flex min-h-11 items-center justify-center rounded-full bg-ink px-5 text-sm font-medium text-surface disabled:opacity-50"
+                    >
+                      {classJoinBusy ? "Envoi…" : "Rejoindre"}
+                    </button>
+                  </form>
+                  {classJoinError ? (
+                    <p className="m-0 mt-3 text-sm text-false-text" role="alert">
+                      {classJoinError}
+                    </p>
+                  ) : null}
+                  {classJoinMessage ? (
+                    <p className="m-0 mt-3 text-sm text-ink" role="status">
+                      {classJoinMessage}
+                    </p>
+                  ) : null}
+                </>
+              ) : null}
             </section>
           </div>
         </div>

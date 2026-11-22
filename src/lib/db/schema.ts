@@ -241,8 +241,11 @@ export const classLists = sqliteTable("class_lists", {
   addedAt: integer("added_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
-  visibleFrom: integer("visible_from", { mode: "timestamp" }),
-  dueDate: integer("due_date", { mode: "timestamp" }),
+  /**
+   * visible_from et due_date ne sont pas sur Turso.
+   * Ne pas les déclarer ici : un select() Drizzle les lirait et l'assignation
+   * répondrait 500. Échéance et acceptation automatique : seulement après accord.
+   */
 });
 
 /** Préférences utilisateur (avatar Synthèse, langue enrichie, etc.). */

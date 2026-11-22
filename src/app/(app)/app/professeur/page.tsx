@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   Activity,
   ArrowRight,
+  Check,
   FileText,
   FolderOpen,
   Users,
@@ -41,7 +42,7 @@ export default async function ProfesseurAccueilPage() {
               margin: 0,
             }}
           >
-            Bonjour{prenom ? ` ${prenom}` : ""} 👋
+            Bonjour{prenom ? ` ${prenom}` : ""}
           </h1>
           <p
             style={{
@@ -50,9 +51,45 @@ export default async function ProfesseurAccueilPage() {
               margin: "6px 0 0",
             }}
           >
-            Voici un aperçu de tes classes et de leur activité.
+            Voici l&apos;activité de vos classes.
           </p>
         </header>
+
+        {stats.startGuide ? (
+          <section
+            className="mb-4 rounded-[14px] border border-line bg-surface px-4 py-4"
+            aria-label="Pour commencer"
+          >
+            <p className="m-0 text-sm font-medium text-ink">Pour commencer</p>
+            <ol className="m-0 mt-3 flex list-none flex-col gap-3 p-0">
+              <GuideStep
+                done={stats.startGuide.hasClass}
+                title="Créer votre classe"
+                detail="Un code et un lien d'invitation sont prêts dès la création."
+                href="/app/professeur/classes?creer=1"
+                action="Créer"
+              />
+              <GuideStep
+                done={stats.startGuide.hasList}
+                title="Ajouter une liste"
+                detail="Créez une liste, assignez-la à la classe, puis rendez-la visible."
+                href="/app/familles"
+                action="Bibliothèque"
+              />
+              <GuideStep
+                done={stats.startGuide.hasStudent}
+                title="Inviter vos élèves"
+                detail="Copiez le lien ou le message sur la page de la classe."
+                href={
+                  stats.startGuide.classId
+                    ? `/app/professeur/classes/${stats.startGuide.classId}`
+                    : "/app/professeur/classes"
+                }
+                action="Inviter"
+              />
+            </ol>
+          </section>
+        ) : null}
 
         {/* Stats */}
         <div
@@ -448,5 +485,47 @@ export default async function ProfesseurAccueilPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+function GuideStep({
+  done,
+  title,
+  detail,
+  href,
+  action,
+}: {
+  done: boolean;
+  title: string;
+  detail: string;
+  href: string;
+  action: string;
+}) {
+  return (
+    <li className="flex items-start justify-between gap-3">
+      <div className="flex min-w-0 gap-3">
+        <span
+          className="mt-0.5 inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-ink"
+          style={{ background: done ? "var(--ink)" : "var(--surface)" }}
+          aria-hidden
+        >
+          {done ? <Check size={14} stroke="white" strokeWidth={2.5} /> : null}
+        </span>
+        <div className="min-w-0">
+          <p className="m-0 text-sm font-medium text-ink">{title}</p>
+          <p className="m-0 mt-0.5 text-xs leading-relaxed text-muted">{detail}</p>
+        </div>
+      </div>
+      {done ? (
+        <span className="shrink-0 pt-1 text-xs font-medium text-muted">Fait</span>
+      ) : (
+        <Link
+          href={href}
+          className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-ink px-4 text-sm font-medium text-surface no-underline"
+        >
+          {action}
+        </Link>
+      )}
+    </li>
   );
 }

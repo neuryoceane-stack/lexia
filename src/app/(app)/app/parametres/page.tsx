@@ -1,9 +1,12 @@
+import { getUser } from "@/lib/auth";
 import { ParametresClient } from "./parametres-client";
 
-export default function ParametresPage() {
+export default async function ParametresPage() {
+  const user = await getUser();
+  const role = user?.role ?? "etudiant";
   return (
     <div>
-      <ParametresClient />
+      <ParametresClient role={role} />
     </div>
   );
 }

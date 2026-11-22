@@ -8,7 +8,11 @@ import {
   words,
   revisions,
 } from "@/lib/db/schema";
-import { eq, and, asc, desc, inArray } from "drizzle-orm";
+import { eq, and, asc, desc, inArray, or } from "drizzle-orm";
+import {
+  userCanReviseWord,
+  visibleClassListIdsForStudent,
+} from "@/lib/class-list-access";
 import { nanoid } from "nanoid";
 import { computeSM2, ensureFiniteSm2ForInsert } from "@/lib/sm2";
 import { logServerError } from "@/lib/server-error-log";
@@ -28,6 +32,11 @@ export async function GET(request: Request) {
   const denied = await paywallDenial(user);
   if (denied) return denied;
   const userId = user.id;
+  const classListIds = await visibleClassListIdsForStudent(userId);
+  const readableLists =
+    classListIds.length > 0
+      ? or(eq(wordFamilies.userId, userId), inArray(lists.id, classListIds))
+      : eq(wordFamilies.userId, userId);
 
   const { searchParams } = new URL(request.url);
   const isExpress = searchParams.get("express") === "1";
@@ -52,7 +61,7 @@ export async function GET(request: Request) {
       .from(words)
       .innerJoin(lists, eq(words.listId, lists.id))
       .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
-      .where(eq(wordFamilies.userId, userId));
+      .where(readableLists);
 
     if (allUserWords.length === 0) {
       return NextResponse.json({ words: [], upToDate: true });
@@ -95,7 +104,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ words: dueExpress });
   }
 
-  let baseCondition = eq(wordFamilies.userId, userId);
+  let baseCondition = readableLists;
   if (listIds && listIds.length > 0) {
     baseCondition = and(baseCondition, inArray(lists.id, listIds)) as typeof baseCondition;
   } else if (listId) {
@@ -229,20 +238,8 @@ export async function POST(request: Request) {
     );
   }
 
-  const [row] = await db
-    .select({ wordId: words.id })
-    .from(words)
-    .innerJoin(lists, eq(words.listId, lists.id))
-    .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
-    .where(
-      and(
-        eq(words.id, wordId),
-        eq(wordFamilies.userId, userId)
-      )
-    )
-    .limit(1);
-
-  if (!row) {
+  const allowed = await userCanReviseWord(userId, wordId);
+  if (!allowed) {
     return NextResponse.json(
       { error: "Mot introuvable ou accès refusé" },
       { status: 404 }

@@ -1,6 +1,19 @@
 import { db } from "@/lib/db";
-import { revisions, words } from "@/lib/db/schema";
+import { revisions, revisionSessions, words } from "@/lib/db/schema";
 import { and, inArray } from "drizzle-orm";
+
+const WEEK_MS = 7 * 24 * 60 * 60 * 1000;
+
+export type StudentRosterActivity = {
+  userId: string;
+  /** Mots distincts des listes de la classe, déjà révisés par l'élève. */
+  wordCount: number;
+  /** Révisions de ces mots sur les 7 derniers jours. */
+  revisionsThisWeek: number;
+  lastActivityAt: Date | null;
+  /** Silence d'au moins 7 jours (adhésion comprise s'il n'y a jamais eu d'activité). */
+  inactiveFor7Days: boolean;
+};
 
 export type ListProgressAnalytics = {
   classListId: string;
@@ -160,4 +173,104 @@ export async function getClassDetailAnalytics(
   }
 
   return { globalMasteryPct, listProgress, byUserId };
+}
+
+/**
+ * Suivi de classe : mots des listes assignées, révisions de la semaine,
+ * dernière activité (révision de ces mots ou session), inactifs depuis 7 jours.
+ */
+export async function getClassRosterActivity(
+  accepted: { userId: string; joinedAt: Date | null }[],
+  listIds: string[]
+): Promise<{
+  activeThisWeekCount: number;
+  byUserId: Record<string, StudentRosterActivity>;
+}> {
+  const cutoff = new Date(Date.now() - WEEK_MS);
+  const byUserId: Record<string, StudentRosterActivity> = {};
+  for (const member of accepted) {
+    byUserId[member.userId] = {
+      userId: member.userId,
+      wordCount: 0,
+      revisionsThisWeek: 0,
+      lastActivityAt: null,
+      inactiveFor7Days: false,
+    };
+  }
+  if (accepted.length === 0) {
+    return { activeThisWeekCount: 0, byUserId };
+  }
+
+  const userIds = accepted.map((member) => member.userId);
+  const wordsById = new Set<string>();
+  if (listIds.length > 0) {
+    const wordRows = await db
+      .select({ id: words.id })
+      .from(words)
+      .where(inArray(words.listId, listIds));
+    for (const word of wordRows) wordsById.add(word.id);
+  }
+
+  if (wordsById.size > 0) {
+    const revRows = await db
+      .select({
+        userId: revisions.userId,
+        wordId: revisions.wordId,
+        createdAt: revisions.createdAt,
+      })
+      .from(revisions)
+      .where(
+        and(
+          inArray(revisions.userId, userIds),
+          inArray(revisions.wordId, [...wordsById])
+        )
+      );
+    const seenWords = new Map<string, Set<string>>();
+    for (const row of revRows) {
+      const bucket = byUserId[row.userId];
+      if (!bucket) continue;
+      const seen = seenWords.get(row.userId) ?? new Set<string>();
+      seen.add(row.wordId);
+      seenWords.set(row.userId, seen);
+      if (row.createdAt >= cutoff) bucket.revisionsThisWeek += 1;
+      if (!bucket.lastActivityAt || row.createdAt > bucket.lastActivityAt) {
+        bucket.lastActivityAt = row.createdAt;
+      }
+    }
+    for (const [userId, seen] of seenWords) {
+      const bucket = byUserId[userId];
+      if (bucket) bucket.wordCount = seen.size;
+    }
+  }
+
+  const sessions = await db
+    .select({
+      userId: revisionSessions.userId,
+      endedAt: revisionSessions.endedAt,
+    })
+    .from(revisionSessions)
+    .where(inArray(revisionSessions.userId, userIds));
+  for (const session of sessions) {
+    const bucket = byUserId[session.userId];
+    if (!bucket) continue;
+    if (!bucket.lastActivityAt || session.endedAt > bucket.lastActivityAt) {
+      bucket.lastActivityAt = session.endedAt;
+    }
+  }
+
+  let activeThisWeekCount = 0;
+  const joinedAtByUser = new Map(accepted.map((member) => [member.userId, member.joinedAt]));
+  for (const bucket of Object.values(byUserId)) {
+    const activeThisWeek =
+      bucket.revisionsThisWeek > 0 ||
+      (bucket.lastActivityAt !== null && bucket.lastActivityAt >= cutoff);
+    if (activeThisWeek) activeThisWeekCount += 1;
+    const joinedAt = joinedAtByUser.get(bucket.userId) ?? null;
+    const silentSinceJoin = joinedAt !== null && joinedAt <= cutoff;
+    bucket.inactiveFor7Days = bucket.lastActivityAt
+      ? bucket.lastActivityAt < cutoff
+      : silentSinceJoin;
+  }
+
+  return { activeThisWeekCount, byUserId };
 }
