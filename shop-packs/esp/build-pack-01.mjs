@@ -31,7 +31,7 @@ const rows = [
   { terme: "la capa de ozono", definition: "couche d'ozone", type: "" },
   { terme: "la lluvia ácida", definition: "pluie acide", type: "" },
   { terme: "el vertedero", definition: "décharge", type: "" },
-  { terme: "el mantillo", definition: "paillis", type: "" },
+  { terme: "el mantillo", definition: "terreau, humus", type: "" },
   { terme: "la basura", definition: "ordures ménagères", type: "" },
   { terme: "los residuos abandonados", definition: "détritus laissés à l'abandon", type: "" },
   { terme: "el herbicida", definition: "désherbant", type: "" },
