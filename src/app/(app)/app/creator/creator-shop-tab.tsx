@@ -34,6 +34,7 @@ import {
   outlineButtonClass,
   primaryButtonClass,
 } from "./creator-ui";
+import { CreatorShopPackPanel } from "./creator-shop-pack-panel";
 import { useCreatorResource } from "./use-creator-resource";
 
 type ShopPack = {
@@ -45,6 +46,7 @@ type ShopPack = {
   expressionCount: number;
   price: number;
   language: string;
+  level: string;
   isActive: boolean;
   sales: number;
   revenue: number;
@@ -117,6 +119,7 @@ function parsePacks(data: unknown): ShopPack[] | null {
       expressionCount,
       price,
       language: typeof row.language === "string" ? row.language : "",
+      level: typeof row.level === "string" ? row.level : "",
       isActive,
       sales,
       revenue,
@@ -144,6 +147,7 @@ export function CreatorShopTab() {
   const [words, setWords] = useState<PackWord[]>([]);
   const [importError, setImportError] = useState("");
   const [languageFilter, setLanguageFilter] = useState<string | null>(null);
+  const [inspectedId, setInspectedId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(() => new Set());
   const [pending, setPending] = useState<boolean | null>(null);
   const [batching, setBatching] = useState(false);
@@ -189,6 +193,11 @@ export function CreatorShopTab() {
   useEffect(() => {
     if (selectedListed.length === 0) setPending(null);
   }, [selectedListed.length]);
+
+  useEffect(() => {
+    if (!inspectedId || !packs) return;
+    if (!packs.some((pack) => pack.id === inspectedId)) setInspectedId(null);
+  }, [packs, inspectedId]);
 
   useEffect(() => {
     if (!report) return;
@@ -278,7 +287,22 @@ export function CreatorShopTab() {
       next.delete(id);
       return next;
     });
+    setInspectedId((current) => (current === id ? null : current));
     await reload();
+  }
+
+  function inspectPack(pack: ShopPack) {
+    if (batchLock.current) return;
+    setInspectedId(pack.id);
+  }
+
+  function closeInspect() {
+    const id = inspectedId;
+    setInspectedId(null);
+    if (!id) return;
+    requestAnimationFrame(() => {
+      document.getElementById(shopPackButtonId(id))?.focus();
+    });
   }
 
   function toggleOne(id: string) {
@@ -382,6 +406,7 @@ export function CreatorShopTab() {
   const canSubmit = !saving && !batching && Boolean(form.title) && Boolean(form.description) && words.length > 0;
   const sections = creatorShopLanguageSections(packs);
   const panelTabId = shopLanguageTabId(languageFilter);
+  const inspected = inspectedId ? (packs.find((pack) => pack.id === inspectedId) ?? null) : null;
 
   return (
     <div className="space-y-6">
@@ -577,10 +602,12 @@ export function CreatorShopTab() {
                 <ShopPackGroups
                   packs={listed}
                   selectedIds={selectedIds}
+                  inspectedId={inspectedId}
                   disabled={batching}
                   onToggleSelected={toggleOne}
                   onToggleActive={(pack) => void toggleActive(pack)}
                   onDelete={(id) => void deletePack(id)}
+                  onInspect={inspectPack}
                 />
               ) : (
                 <div className="space-y-6">
@@ -590,10 +617,12 @@ export function CreatorShopTab() {
                       language={section.language}
                       packs={section.packs}
                       selectedIds={selectedIds}
+                      inspectedId={inspectedId}
                       disabled={batching}
                       onToggleSelected={toggleOne}
                       onToggleActive={(pack) => void toggleActive(pack)}
                       onDelete={(id) => void deletePack(id)}
+                      onInspect={inspectPack}
                     />
                   ))}
                 </div>
@@ -602,8 +631,13 @@ export function CreatorShopTab() {
           )}
         </div>
       </div>
+      {inspected ? <CreatorShopPackPanel pack={inspected} onClose={closeInspect} /> : null}
     </div>
   );
+}
+
+function shopPackButtonId(id: string): string {
+  return `creator-shop-pack-${id}`;
 }
 
 function shopLanguageTabId(language: string | null): string {
@@ -881,10 +915,12 @@ function ShopBatchReport({ report }: { report: BatchReport }) {
 
 type PackListActions = {
   selectedIds: ReadonlySet<string>;
+  inspectedId: string | null;
   disabled: boolean;
   onToggleSelected: (id: string) => void;
   onToggleActive: (pack: ShopPack) => void;
   onDelete: (id: string) => void;
+  onInspect: (pack: ShopPack) => void;
 };
 
 function ShopLanguageSection({
@@ -921,10 +957,12 @@ function ShopPackGroup({
   label,
   packs,
   selectedIds,
+  inspectedId,
   disabled,
   onToggleSelected,
   onToggleActive,
   onDelete,
+  onInspect,
 }: PackListActions & { label: string; packs: readonly ShopPack[] }) {
   if (packs.length === 0) return null;
   return (
@@ -939,10 +977,12 @@ function ShopPackGroup({
             key={pack.id}
             pack={pack}
             selected={selectedIds.has(pack.id)}
+            inspected={inspectedId === pack.id}
             disabled={disabled}
             onToggleSelected={() => onToggleSelected(pack.id)}
             onToggleActive={() => onToggleActive(pack)}
             onDelete={() => onDelete(pack.id)}
+            onInspect={() => onInspect(pack)}
           />
         ))}
       </ul>
@@ -953,24 +993,36 @@ function ShopPackGroup({
 function ShopPackRow({
   pack,
   selected,
+  inspected,
   disabled,
   onToggleSelected,
   onToggleActive,
   onDelete,
+  onInspect,
 }: {
   pack: ShopPack;
   selected: boolean;
+  inspected: boolean;
   disabled: boolean;
   onToggleSelected: () => void;
   onToggleActive: () => void;
   onDelete: () => void;
+  onInspect: () => void;
 }) {
   const synced = pack.isActive && Boolean(pack.stripeProductId) && Boolean(pack.stripePriceId);
   return (
-    <li className={`rounded-[14px] border bg-surface px-2 py-2 sm:px-3 ${selected ? "border-ink" : "border-line"}`}>
+    <li
+      onClick={() => {
+        if (!disabled) onInspect();
+      }}
+      className={`rounded-[14px] border bg-surface px-2 py-2 sm:px-3 ${
+        inspected || selected ? "border-ink" : "border-line"
+      } ${disabled ? "" : "cursor-pointer hover:border-ink"}`}
+    >
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2">
         <div className="flex min-w-0 flex-1 items-center gap-1">
           <label
+            onClick={(event) => event.stopPropagation()}
             className={`inline-flex h-11 w-11 shrink-0 items-center justify-center ${
               disabled ? "cursor-not-allowed opacity-40" : "cursor-pointer"
             }`}
@@ -984,43 +1036,61 @@ function ShopPackRow({
               className="h-5 w-5 accent-ink"
             />
           </label>
-          <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center text-[26px] leading-none" aria-hidden>
-            {pack.emoji}
-          </span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-              <p className="m-0 text-[15px] font-medium text-ink">{pack.title}</p>
-              <span
-                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
-                  pack.isActive ? "bg-just-bg text-just-text" : "bg-page text-muted"
-                }`}
-              >
-                {pack.isActive ? (
-                  <Eye size={12} stroke="var(--just-sign)" aria-hidden />
-                ) : (
-                  <EyeOff size={12} aria-hidden />
-                )}
-                {pack.isActive ? "Visible" : "Masqué"}
+          <button
+            type="button"
+            id={shopPackButtonId(pack.id)}
+            disabled={disabled}
+            aria-haspopup="dialog"
+            aria-expanded={inspected}
+            aria-controls="creator-shop-pack-panel"
+            aria-label={`Consulter le contenu de ${pack.title}`}
+            onClick={(event) => {
+              event.stopPropagation();
+              onInspect();
+            }}
+            className="flex min-w-0 flex-1 items-center gap-1 rounded-[12px] py-1 text-left outline-none hover:bg-page focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            <span className="inline-flex h-11 w-11 shrink-0 items-center justify-center text-[26px] leading-none" aria-hidden>
+              {pack.emoji}
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <span className="text-[15px] font-medium text-ink">{pack.title}</span>
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ${
+                    pack.isActive ? "bg-just-bg text-just-text" : "bg-page text-muted"
+                  }`}
+                >
+                  {pack.isActive ? (
+                    <Eye size={12} stroke="var(--just-sign)" aria-hidden />
+                  ) : (
+                    <EyeOff size={12} aria-hidden />
+                  )}
+                  {pack.isActive ? "Visible" : "Masqué"}
+                </span>
               </span>
-            </div>
-            <p className="m-0 mt-0.5 text-sm text-muted">
-              {frCount(pack.wordCount, "mot", "mots")}
-              {" · "}
-              {frCount(pack.expressionCount, "expression", "expressions")}
-              {" · "}
-              {formatShopPriceCents(pack.price)}
-              {pack.sales > 0
-                ? ` · ${frCount(pack.sales, "vente", "ventes")} · ${formatEuro(pack.revenue / 100)}`
-                : ""}
-              {" · Stripe "}
-              {synced ? "synchronisé" : "non synchronisé"}
-            </p>
-          </div>
+              <span className="mt-0.5 block text-sm font-normal text-muted">
+                {frCount(pack.wordCount, "mot", "mots")}
+                {" · "}
+                {frCount(pack.expressionCount, "expression", "expressions")}
+                {" · "}
+                {formatShopPriceCents(pack.price)}
+                {pack.sales > 0
+                  ? ` · ${frCount(pack.sales, "vente", "ventes")} · ${formatEuro(pack.revenue / 100)}`
+                  : ""}
+                {" · Stripe "}
+                {synced ? "synchronisé" : "non synchronisé"}
+              </span>
+            </span>
+          </button>
         </div>
         <div className="flex shrink-0 items-center justify-end pl-12 sm:pl-0">
           <button
             type="button"
-            onClick={onToggleActive}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleActive();
+            }}
             disabled={disabled}
             aria-label={pack.isActive ? `Masquer ${pack.title}` : `Rendre visible ${pack.title}`}
             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-line bg-surface text-ink outline-none hover:border-ink focus-visible:ring-2 focus-visible:ring-ink disabled:cursor-not-allowed disabled:opacity-40"
@@ -1029,7 +1099,10 @@ function ShopPackRow({
           </button>
           <button
             type="button"
-            onClick={onDelete}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete();
+            }}
             disabled={disabled}
             aria-label={`Supprimer ${pack.title}`}
             className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-false-sign bg-false-bg text-false-sign outline-none focus-visible:ring-2 focus-visible:ring-false-sign disabled:cursor-not-allowed disabled:opacity-40"

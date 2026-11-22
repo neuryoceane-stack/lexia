@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { shopPacks, userPurchases } from "@/lib/db/schema";
-import { eq, desc, count, sum } from "drizzle-orm";
+import { eq, desc, count, sum, getTableColumns } from "drizzle-orm";
 import { getUser } from "@/lib/auth";
 import { countShopPackContents } from "@/lib/shop-pack-preview";
 import { syncShopPackToStripe } from "@/lib/shop-stripe-sync";
@@ -12,7 +12,10 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const packs = await db.select().from(shopPacks).orderBy(desc(shopPacks.createdAt));
+  // words_json reste en base : le panneau le charge via GET /api/creator/shop/[id].
+  const { wordsJson: _wordsJson, ...packColumns } = getTableColumns(shopPacks);
+  void _wordsJson;
+  const packs = await db.select(packColumns).from(shopPacks).orderBy(desc(shopPacks.createdAt));
 
   const stats = await db
     .select({
