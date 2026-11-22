@@ -98,7 +98,7 @@ const rows = [
   { terme: "vor Gesundheit strotzen", definition: "respirer la santé", type: "expression" },
   { terme: "den Atem verschlagen", definition: "couper le souffle", type: "expression" },
   { terme: "wie neugeboren sein", definition: "se sentir comme neuf", type: "expression" },
-  { terme: "nicht in Form sein", definition: "manquer de condition physique", type: "expression" },
+  { terme: "auf dem Zahnfleisch gehen", definition: "tenir debout à grand-peine", type: "expression" },
   { terme: "grün und blau geschlagen sein", definition: "être couvert de bleus", type: "expression" },
   { terme: "wieder auf die Beine kommen", definition: "se remettre d'aplomb", type: "expression" },
   { terme: "in guten Händen sein", definition: "être bien pris en charge", type: "expression" },
@@ -109,7 +109,7 @@ const rows = [
   { terme: "mit einem Bein im Grab stehen", definition: "être dans un état critique", type: "expression" },
   { terme: "speiübel sein", definition: "être pris de nausée", type: "expression" },
   { terme: "die Seele baumeln lassen", definition: "se détendre sans rien faire", type: "expression" },
-  { terme: "gute Besserung", definition: "souhait de prompt rétablissement", type: "expression" },
+  { terme: "mit dem Leben davonkommen", definition: "échapper de justesse à un danger", type: "expression" },
   { terme: "über den Berg sein", definition: "avoir passé le plus dur", type: "expression" },
   { terme: "jemanden aufpäppeln", definition: "retaper quelqu'un par les soins et la nourriture", type: "expression" },
 ];

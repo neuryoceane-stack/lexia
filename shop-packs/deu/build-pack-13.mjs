@@ -98,7 +98,7 @@ const rows = [
   { terme: "den Gürtel enger schnallen", definition: "se serrer la ceinture", type: "expression" },
   { terme: "in den roten Zahlen sein", definition: "être en déficit", type: "expression" },
   { terme: "in den schwarzen Zahlen sein", definition: "être bénéficiaire", type: "expression" },
-  { terme: "ein Notgroschen", definition: "pécule mis de côté pour les coups durs", type: "expression" },
+  { terme: "jeden Cent zweimal umdrehen", definition: "peser chaque dépense", type: "expression" },
   { terme: "das Geld liegt nicht auf der Straße", definition: "l'argent ne tombe pas du ciel", type: "expression" },
   { terme: "Zeit ist Geld", definition: "le temps a une valeur d'argent", type: "expression" },
   { terme: "die Katze im Sack kaufen", definition: "acheter sans avoir vu la marchandise", type: "expression" },

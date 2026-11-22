@@ -103,7 +103,7 @@ const rows = [
   { terme: "den Stecker ziehen", definition: "couper net", type: "expression" },
   { terme: "eine Baustelle sein", definition: "être encore inachevé", type: "expression" },
   { terme: "Daten sind das neue Öl", definition: "les données, ressource stratégique du moment", type: "expression" },
-  { terme: "offline sein", definition: "être injoignable", type: "expression" },
+  { terme: "Sand im Getriebe sein", definition: "enrayer le bon fonctionnement", type: "expression" },
   { terme: "in Nullen und Einsen denken", definition: "raisonner de façon purement technique", type: "expression" },
   { terme: "zwei Schritte voraus sein", definition: "avoir une longueur d'avance", type: "expression" },
   { terme: "am Puls der Zeit sein", definition: "être dans l'air du temps", type: "expression" },
