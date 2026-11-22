@@ -79,7 +79,7 @@ const rows = [
   { terme: "aufblühen", definition: "s'épanouir", type: "" },
   { terme: "abfressen", definition: "brouter à ras", type: "" },
   { terme: "ausbrüten", definition: "couver", type: "" },
-  { terme: "anpirschen", definition: "s'approcher sans bruit", type: "" },
+  { terme: "sich anpirschen", definition: "s'approcher sans bruit", type: "" },
   { terme: "davonlaufen", definition: "s'enfuir", type: "" },
   { terme: "umherstreifen", definition: "errer", type: "" },
   { terme: "aufgehen", definition: "germer", type: "" },
@@ -90,7 +90,7 @@ const rows = [
   { terme: "aufscheuchen", definition: "faire s'envoler", type: "" },
   { terme: "auswildern", definition: "relâcher dans la nature", type: "" },
   { terme: "anlocken", definition: "attirer", type: "" },
-  { terme: "fortpflanzen", definition: "se reproduire", type: "" },
+  { terme: "sich fortpflanzen", definition: "se reproduire", type: "" },
   // —— 20 expressions ——
   { terme: "die Katze lässt das Mausen nicht", definition: "retrouver toujours son naturel", type: "expression" },
   { terme: "sich wie ein Fisch auf dem Trockenen fühlen", definition: "être complètement déplacé", type: "expression" },

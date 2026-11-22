@@ -89,7 +89,7 @@ const rows = [
   { terme: "gegenüberliegen", definition: "se trouver en face", type: "" },
   { terme: "hinaufgehen", definition: "monter une rue ou un escalier", type: "" },
   { terme: "hinuntergehen", definition: "descendre une rue ou un escalier", type: "" },
-  { terme: "zurechtfinden", definition: "s'orienter", type: "" },
+  { terme: "sich zurechtfinden", definition: "s'orienter", type: "" },
   { terme: "anfahren", definition: "desservir un arrêt", type: "" },
   // —— 20 expressions ——
   { terme: "die Betonwüste", definition: "désert de béton", type: "expression" },

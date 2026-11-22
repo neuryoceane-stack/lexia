@@ -19,7 +19,7 @@
 | 15 | Nature & animaux | Faune, paysages, plantes | `pack-15-nature-animaux.xlsx` | allemand | 80 | 20 | |
 | 16 | Ville & orientation | Rues, directions, transports, quartiers | `pack-16-ville-orientation.xlsx` | allemand | 80 | 20 | |
 
-Chaque pack : 65 mots du thème, 15 verbes à particule séparable, 20 expressions. Les noms portent l'article (`der`, `die`, `das`). Les définitions sont en français, à l'infinitif. Le sens d'une expression est le sens réel, pas le mot à mot.
+Chaque pack : 65 mots du thème, 15 verbes à particule séparable, 20 expressions. Les noms portent l'article (`der`, `die`, `das`). Les verbes pronominaux portent `sich`. Les définitions sont en français, à l'infinitif. Le sens d'une expression est le sens réel, pas le mot à mot.
 
 Vérification : `node shop-packs/deu/check-duplicates.mjs` (aucun terme ni définition identique entre packs), puis `node shop-packs/deu/build-pack-NN.mjs` (100 lignes, 80 mots, 20 expressions).
 

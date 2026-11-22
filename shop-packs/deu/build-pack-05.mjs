@@ -79,7 +79,7 @@ const rows = [
   { terme: "anschwellen", definition: "enfler", type: "" },
   { terme: "auskurieren", definition: "soigner jusqu'au bout", type: "" },
   { terme: "durchhalten", definition: "tenir bon", type: "" },
-  { terme: "hinlegen", definition: "s'allonger", type: "" },
+  { terme: "sich hinlegen", definition: "s'allonger", type: "" },
   { terme: "aufstehen", definition: "se lever", type: "" },
   { terme: "einnehmen", definition: "avaler un médicament", type: "" },
   { terme: "abklingen", definition: "s'atténuer", type: "" },
@@ -88,7 +88,7 @@ const rows = [
   { terme: "abnehmen", definition: "perdre du poids", type: "" },
   { terme: "aufwachen", definition: "se réveiller", type: "" },
   { terme: "einschlafen", definition: "s'endormir", type: "" },
-  { terme: "ausruhen", definition: "se reposer", type: "" },
+  { terme: "sich ausruhen", definition: "se reposer", type: "" },
   { terme: "zusammenbrechen", definition: "s'effondrer", type: "" },
   { terme: "nachwirken", definition: "continuer d'agir après coup", type: "" },
   // —— 20 expressions ——

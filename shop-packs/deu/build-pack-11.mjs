@@ -76,7 +76,7 @@ const rows = [
   { terme: "die Bestleistung", definition: "record personnel", type: "" },
   { terme: "der Sportverein", definition: "club sportif", type: "" },
   // —— 15 verbes à particule séparable ——
-  { terme: "aufwärmen", definition: "s'échauffer", type: "" },
+  { terme: "sich aufwärmen", definition: "s'échauffer", type: "" },
   { terme: "anpfeifen", definition: "donner le coup d'envoi", type: "" },
   { terme: "abpfeifen", definition: "siffler la fin", type: "" },
   { terme: "einwechseln", definition: "faire entrer un joueur", type: "" },

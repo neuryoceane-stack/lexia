@@ -76,8 +76,8 @@ const rows = [
   { terme: "die Medien", definition: "médias", type: "" },
   { terme: "der Chat", definition: "discussion instantanée en ligne", type: "" },
   // —— 15 verbes à particule séparable ——
-  { terme: "einloggen", definition: "se connecter à un compte", type: "" },
-  { terme: "ausloggen", definition: "se déconnecter", type: "" },
+  { terme: "sich einloggen", definition: "se connecter à un compte", type: "" },
+  { terme: "sich ausloggen", definition: "se déconnecter", type: "" },
   { terme: "hochladen", definition: "mettre en ligne", type: "" },
   { terme: "herunterladen", definition: "télécharger", type: "" },
   { terme: "durchscrollen", definition: "faire défiler un fil", type: "" },
@@ -90,7 +90,7 @@ const rows = [
   { terme: "mitreden", definition: "intervenir dans un échange", type: "" },
   { terme: "herunterspielen", definition: "présenter un fait comme moins grave", type: "" },
   { terme: "aufbauschen", definition: "grossir un événement", type: "" },
-  { terme: "abmelden", definition: "se désinscrire", type: "" },
+  { terme: "sich abmelden", definition: "se désinscrire", type: "" },
   // —— 20 expressions ——
   { terme: "sich wie ein Lauffeuer verbreiten", definition: "se répandre à toute vitesse", type: "expression" },
   { terme: "die Katze aus dem Sack lassen", definition: "dévoiler un secret", type: "expression" },
