@@ -76,7 +76,7 @@ const rows = [
   { terme: "la despedida", definition: "adieu", type: "" },
   { terme: "el reencuentro", definition: "retrouvailles", type: "" },
   // —— 15 verbes et locutions verbales ——
-  { terme: "discutir", definition: "se disputer, et non « discuter »", type: "" },
+  { terme: "discutir", definition: "discuter, ou se disputer", type: "" },
   { terme: "soportar", definition: "endurer, et non « soutenir »", type: "" },
   { terme: "apoyar", definition: "soutenir", type: "" },
   { terme: "querer", definition: "aimer", type: "" },
