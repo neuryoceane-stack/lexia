@@ -9,6 +9,14 @@ import {
   toIso6391,
 } from "@/lib/language";
 import { LanguagePill } from "./revision-ui";
+import { RevisionSessionWordSlider } from "./revision-session-word-slider";
+import {
+  clampRevisionSessionWordLimit,
+  initialRevisionSessionWordLimit,
+  isRevisionSessionAllWords,
+  readRevisionSessionWordLimitFromStorage,
+  writeRevisionSessionWordLimitToStorage,
+} from "@/lib/revision-session-word-limit";
 
 /** Coche de sélection demandée pour cette page (hors charte encre). */
 const SELECT_PURPLE = "#6C3FC8";
@@ -145,11 +153,19 @@ function LaunchSessionButton({
   disabled,
   onClick,
   className = "",
+  sessionWords,
+  totalWords,
 }: {
   disabled: boolean;
   onClick: () => void;
   className?: string;
+  sessionWords: number;
+  totalWords: number;
 }) {
+  const sessionLabel =
+    totalWords > 0 && isRevisionSessionAllWords(sessionWords, totalWords)
+      ? `${totalWords} mot${totalWords !== 1 ? "s" : ""}`
+      : `${sessionWords} mot${sessionWords !== 1 ? "s" : ""}`;
   return (
     <button
       type="button"
@@ -169,7 +185,7 @@ function LaunchSessionButton({
       }}
     >
       <Zap size={13} stroke="white" strokeWidth={2.5} aria-hidden />
-      Lancer la session
+      Lancer la session · {sessionLabel}
     </button>
   );
 }
@@ -190,6 +206,12 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const [revisionDirection, setRevisionDirection] = useState<
     "term_to_def" | "def_to_term"
   >("term_to_def");
+  const [sessionWordLimit, setSessionWordLimit] = useState(() =>
+    initialRevisionSessionWordLimit(
+      readRevisionSessionWordLimitFromStorage(),
+      0
+    )
+  );
 
   useEffect(() => {
     setSelected(new Set(initialListIds));
@@ -247,6 +269,26 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     return lists.filter((l) => normLang(l.language) === langFilter);
   }, [lists, langFilter]);
 
+  const totalSelectedWords = useMemo(() => {
+    let total = 0;
+    for (const list of lists) {
+      if (selected.has(list.id)) total += list.wordCount;
+    }
+    return total;
+  }, [lists, selected]);
+
+  useEffect(() => {
+    setSessionWordLimit((prev) =>
+      clampRevisionSessionWordLimit(prev, totalSelectedWords)
+    );
+  }, [totalSelectedWords]);
+
+  function setSessionWordLimitPersisted(next: number) {
+    const clamped = clampRevisionSessionWordLimit(next, totalSelectedWords);
+    setSessionWordLimit(clamped);
+    writeRevisionSessionWordLimitToStorage(clamped);
+  }
+
   function isLocked(list: RevisionListRow): boolean {
     if (!selectedLang) return false;
     return normLang(list.language) !== selectedLang;
@@ -273,6 +315,12 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
     q.set("listIds", [...selected].join(","));
     q.set("session", "1");
     q.set("direction", revisionDirection);
+    if (
+      totalSelectedWords > 0 &&
+      !isRevisionSessionAllWords(sessionWordLimit, totalSelectedWords)
+    ) {
+      q.set("wordLimit", String(sessionWordLimit));
+    }
     router.push(`${basePath}?${q.toString()}`);
   }
 
@@ -327,12 +375,19 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
   const senseTitle2 = `Français → ${studiedLabel}`;
 
   const showMobileLaunchBar = selected.size > 0;
+  const effectiveSessionWords =
+    totalSelectedWords > 0
+      ? clampRevisionSessionWordLimit(sessionWordLimit, totalSelectedWords)
+      : sessionWordLimit;
+  const showWordLimitHint =
+    totalSelectedWords > 0 &&
+    !isRevisionSessionAllWords(effectiveSessionWords, totalSelectedWords);
 
   return (
     <div
       className={`min-h-full w-full -my-8 py-8 sm:-my-10 sm:py-10 md:pb-10 ${
         showMobileLaunchBar
-          ? "max-md:pb-[calc(76px+9.5rem+env(safe-area-inset-bottom,0px))]"
+          ? "max-md:pb-[calc(76px+15.5rem+env(safe-area-inset-bottom,0px))]"
           : "max-md:pb-[calc(76px+2rem+env(safe-area-inset-bottom,0px))]"
       }`}
       style={{ maxWidth: "100%" }}
@@ -389,6 +444,16 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
           )}
         </div>
 
+        {selected.size > 0 ? (
+          <div className="mb-3 hidden md:block">
+            <RevisionSessionWordSlider
+              totalWords={totalSelectedWords}
+              value={effectiveSessionWords}
+              onChange={setSessionWordLimitPersisted}
+            />
+          </div>
+        ) : null}
+
         <div className="mb-1 flex flex-col gap-3 md:mb-2 md:flex-row md:items-center md:justify-between md:gap-4">
           <div className="min-w-0 flex-1">
             <h1
@@ -411,11 +476,22 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
               />
             </div>
           </div>
-          <LaunchSessionButton
-            disabled={selected.size === 0}
-            onClick={launchSession}
-            className="hidden shrink-0 md:inline-flex"
-          />
+          <div className="hidden shrink-0 flex-col items-end gap-1 md:flex">
+            {showWordLimitHint ? (
+              <p
+                className="m-0 text-xs tabular-nums"
+                style={{ color: "var(--foreground-muted)", fontWeight: 500 }}
+              >
+                {effectiveSessionWords} mots sur {totalSelectedWords}
+              </p>
+            ) : null}
+            <LaunchSessionButton
+              disabled={selected.size === 0}
+              onClick={launchSession}
+              sessionWords={effectiveSessionWords}
+              totalWords={totalSelectedWords}
+            />
+          </div>
         </div>
         <p
           style={{
@@ -713,16 +789,32 @@ export function RevisionListSelection({ mode, initialListIds }: Props) {
             className="pointer-events-auto rounded-[16px] border-[1.5px] border-line bg-surface shadow-sm"
             style={{ padding: "12px 16px" }}
           >
-            <div className="mb-2.5">
+            <RevisionSessionWordSlider
+              totalWords={totalSelectedWords}
+              value={effectiveSessionWords}
+              onChange={setSessionWordLimitPersisted}
+              className="mb-3 border-0 bg-transparent p-0"
+            />
+            <div className="mb-2.5 flex items-start justify-between gap-2">
               <SelectionRecap
                 selectedCount={selected.size}
                 selectedLang={severalLanguages ? null : selectedLang}
                 labelSource={labelSource}
               />
+              {showWordLimitHint ? (
+                <p
+                  className="m-0 shrink-0 text-xs tabular-nums"
+                  style={{ color: "var(--foreground-muted)", fontWeight: 500 }}
+                >
+                  {effectiveSessionWords} / {totalSelectedWords}
+                </p>
+              ) : null}
             </div>
             <LaunchSessionButton
               disabled={selected.size === 0}
               onClick={launchSession}
+              sessionWords={effectiveSessionWords}
+              totalWords={totalSelectedWords}
               className="w-full"
             />
           </div>

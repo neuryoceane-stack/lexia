@@ -74,12 +74,14 @@ export function RevisionClient({
   initialMode,
   initialListIds = [],
   initialDirection = "term_to_def",
+  initialWordLimit,
   /** Page de sélection (sans `?session=1`) pour retour / fin de session */
   pickerPath,
 }: {
   initialMode: Mode;
   initialListIds?: string[];
   initialDirection?: Direction;
+  initialWordLimit?: number;
   pickerPath: string;
 }) {
   const router = useRouter();
@@ -176,6 +178,8 @@ export function RevisionClient({
       ? current.term
       : current.definition
     : "";
+
+  const sessionWordLimitRef = useRef<number | undefined>(initialWordLimit);
 
   const goToPicker = useCallback(
     (preserveListIds = true) => {
@@ -399,8 +403,13 @@ export function RevisionClient({
     setError("");
     try {
       const listIds = Array.from(selectedListIds);
+      const limit = sessionWordLimitRef.current;
+      const limitQs =
+        limit != null && Number.isFinite(limit) && limit > 0
+          ? `&limit=${encodeURIComponent(String(Math.floor(limit)))}`
+          : "";
       const res = await fetch(
-        `/api/revision?listIds=${listIds.map(encodeURIComponent).join(",")}&all=1`
+        `/api/revision?listIds=${listIds.map(encodeURIComponent).join(",")}&all=1${limitQs}`
       );
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
