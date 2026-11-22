@@ -13,6 +13,10 @@ import {
   userCanReviseWord,
   visibleClassListIdsForStudent,
 } from "@/lib/class-list-access";
+import {
+  canSubmitRevisionForWord,
+  filterReadableWordsForFreemiumRevision,
+} from "@/lib/student-entitlement";
 import { nanoid } from "nanoid";
 import { computeSM2, ensureFiniteSm2ForInsert } from "@/lib/sm2";
 import { logServerError } from "@/lib/server-error-log";
@@ -51,17 +55,23 @@ export async function GET(request: Request) {
   const now = new Date();
 
   if (isExpress) {
-    const allUserWords = await db
+    const allUserWordsRaw = await db
       .select({
         id: words.id,
         listId: words.listId,
         term: words.term,
         definition: words.definition,
+        ownerUserId: wordFamilies.userId,
+        source: lists.source,
       })
       .from(words)
       .innerJoin(lists, eq(words.listId, lists.id))
       .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
       .where(readableLists);
+    const allUserWords = await filterReadableWordsForFreemiumRevision(
+      user,
+      allUserWordsRaw
+    );
 
     if (allUserWords.length === 0) {
       return NextResponse.json({ words: [], upToDate: true });
@@ -101,7 +111,14 @@ export async function GET(request: Request) {
       return NextResponse.json({ words: [], upToDate: true });
     }
 
-    return NextResponse.json({ words: dueExpress });
+    return NextResponse.json({
+      words: dueExpress.map(({ id, listId, term, definition }) => ({
+        id,
+        listId,
+        term,
+        definition,
+      })),
+    });
   }
 
   let baseCondition = readableLists;
@@ -114,12 +131,14 @@ export async function GET(request: Request) {
     baseCondition = and(baseCondition, eq(wordFamilies.id, familyId)) as typeof baseCondition;
   }
 
-  const userWords = await db
+  const userWordsRaw = await db
     .select({
       id: words.id,
       listId: words.listId,
       term: words.term,
       definition: words.definition,
+      ownerUserId: wordFamilies.userId,
+      source: lists.source,
     })
     .from(words)
     .innerJoin(lists, eq(words.listId, lists.id))
@@ -127,12 +146,24 @@ export async function GET(request: Request) {
     .where(baseCondition)
     .orderBy(asc(words.rank), asc(words.createdAt));
 
+  const userWords = await filterReadableWordsForFreemiumRevision(
+    user,
+    userWordsRaw
+  );
+
   if (userWords.length === 0) {
     return NextResponse.json({ words: [] });
   }
 
   if (includeAll) {
-    return NextResponse.json({ words: userWords });
+    return NextResponse.json({
+      words: userWords.map(({ id, listId, term, definition }) => ({
+        id,
+        listId,
+        term,
+        definition,
+      })),
+    });
   }
 
   const allRevisions = await db
@@ -158,7 +189,14 @@ export async function GET(request: Request) {
     return latest.nextReviewAt <= now;
   });
 
-  return NextResponse.json({ words: dueWords });
+  return NextResponse.json({
+    words: dueWords.map(({ id, listId, term, definition }) => ({
+      id,
+      listId,
+      term,
+      definition,
+    })),
+  });
 }
 
 /**
@@ -243,6 +281,17 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Mot introuvable ou accès refusé" },
       { status: 404 }
+    );
+  }
+  const canRevise = await canSubmitRevisionForWord(user, wordId);
+  if (!canRevise) {
+    return NextResponse.json(
+      {
+        error:
+          "Ce mot est verrouillé sur l'offre gratuite. Abonne-toi pour le réviser.",
+        code: "freemium_locked",
+      },
+      { status: 403 }
     );
   }
 

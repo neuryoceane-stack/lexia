@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getUser } from "@/lib/auth";
 import { paywallDenial } from "@/lib/paywall";
+import { assertCanAddPersonalWords } from "@/lib/student-entitlement";
 import { db } from "@/lib/db";
 import { wordFamilies, lists, words } from "@/lib/db/schema";
 import { nanoid } from "nanoid";
@@ -58,10 +59,18 @@ export async function POST(
   }
   const denied = await paywallDenial(user);
   if (denied) return denied;
+  const quota = await assertCanAddPersonalWords(user, 1);
+  if (!quota.ok) return quota.response;
   const { listId } = await params;
   const list = await ensureListAccess(listId, user.id);
   if (!list) {
     return NextResponse.json({ error: "Liste introuvable" }, { status: 404 });
+  }
+  if (list.source === "shop") {
+    return NextResponse.json(
+      { error: "Cette liste ne peut pas recevoir de nouveaux mots ici." },
+      { status: 400 }
+    );
   }
   let body: { term?: string; definition?: string; rank?: number };
   try {

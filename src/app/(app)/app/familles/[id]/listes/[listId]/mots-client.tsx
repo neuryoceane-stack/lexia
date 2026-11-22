@@ -13,6 +13,7 @@ import {
   X,
   Circle,
   Trash2,
+  Lock,
 } from "lucide-react";
 import {
   LIST_NAME_FIELD_PROPS,
@@ -26,6 +27,9 @@ import {
   toIso6391,
 } from "@/lib/language";
 import { useLeaveForAbonnement } from "@/components/paywall-gate";
+import { FreemiumLockedNotice } from "@/components/freemium-locked-notice";
+import { FreemiumWordCounter } from "@/components/freemium-word-counter";
+import { useStudentEntitlement } from "@/components/student-entitlement-context";
 import { LanguagePill } from "@/app/(app)/app/revision/revision-ui";
 
 export type MotWithSm2 = {
@@ -34,6 +38,7 @@ export type MotWithSm2 = {
   definition: string;
   rank: number;
   sm2Status: ListWordSm2Status;
+  locked?: boolean;
 };
 
 type StatusFilter = "all" | ListWordSm2Status;
@@ -56,6 +61,15 @@ function isoCode(code: string): string {
 function languageLabel(code: string): string {
   return (
     PREFERRED_LANGUAGE_OPTIONS.find((o) => o.value === code)?.label ?? code.toUpperCase()
+  );
+}
+
+function LockedBadge() {
+  return (
+    <span className="inline-flex min-h-[28px] items-center gap-1 rounded-full border border-line bg-page px-2.5 text-xs font-medium text-muted">
+      <Lock size={13} strokeWidth={2} aria-hidden className="text-ink" />
+      Verrouillé
+    </span>
   );
 }
 
@@ -110,6 +124,8 @@ export function MotsClient({
 }) {
   const router = useRouter();
   const leaveForAbonnement = useLeaveForAbonnement();
+  const entitlement = useStudentEntitlement();
+  const [addError, setAddError] = useState<string | null>(null);
   const [mots, setMots] = useState<MotWithSm2[]>(initialMots);
   const [displayName, setDisplayName] = useState(listName);
   const [editingTitle, setEditingTitle] = useState(false);
@@ -240,6 +256,7 @@ export function MotsClient({
     if (leaveForAbonnement()) return;
     const term = newTerm.trim();
     if (!term) return;
+    setAddError(null);
     setLoading(true);
     try {
       const res = await fetch(`/api/listes/${listId}/mots`, {
@@ -249,6 +266,11 @@ export function MotsClient({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
+        setAddError(
+          typeof data.error === "string"
+            ? data.error
+            : "Impossible d'ajouter ce mot."
+        );
         setLoading(false);
         return;
       }
@@ -315,6 +337,9 @@ export function MotsClient({
 
   return (
     <div className="flex flex-col gap-5 font-sans">
+      {entitlement?.lockedWordCount ? (
+        <FreemiumLockedNotice lockedCount={entitlement.lockedWordCount} />
+      ) : null}
       {/* En-tête */}
       <div className="flex min-w-0 flex-col gap-3">
         {editingTitle && canEdit ? (
@@ -383,6 +408,8 @@ export function MotsClient({
             )}
           </button>
         )}
+
+        {canEdit ? <FreemiumWordCounter className="mt-0.5" /> : null}
 
         <div ref={langRef} className="relative w-fit max-w-full">
           {canEdit ? (
@@ -517,6 +544,12 @@ export function MotsClient({
           </span>
         </div>
       </section>
+
+      {addError ? (
+        <p className="text-sm text-false-text" role="alert">
+          {addError}
+        </p>
+      ) : null}
 
       {canEdit && adding && (
         <div className="flex flex-col gap-3 rounded-[20px] border border-line bg-surface p-4 sm:flex-row sm:flex-wrap sm:items-end">
@@ -666,7 +699,10 @@ export function MotsClient({
                       <td className="px-4 py-3 font-medium text-ink">{m.term}</td>
                       <td className="px-4 py-3 text-muted">{m.definition || "—"}</td>
                       <td className="px-4 py-3">
-                        <StatusBadge status={m.sm2Status} />
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {m.locked ? <LockedBadge /> : null}
+                          <StatusBadge status={m.sm2Status} />
+                        </div>
                       </td>
                       {canEdit && (
                         <td className="px-4 py-3">
@@ -747,7 +783,10 @@ export function MotsClient({
                       <p className="font-medium text-ink">{m.term}</p>
                       <p className="mt-1 text-sm text-muted">{m.definition || "—"}</p>
                     </div>
-                    <StatusBadge status={m.sm2Status} />
+                    <div className="flex shrink-0 flex-col items-end gap-1">
+                      {m.locked ? <LockedBadge /> : null}
+                      <StatusBadge status={m.sm2Status} />
+                    </div>
                   </div>
                   {canEdit && (
                     <div className="mt-3 flex gap-2">

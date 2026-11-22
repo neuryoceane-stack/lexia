@@ -26,6 +26,9 @@ import { ListNameInput } from "@/components/list-name-input";
 import { LanguageOnboardingCard } from "@/components/language-onboarding-card";
 import { nouvelleListePath } from "@/lib/nouvelle-liste-path";
 import { useLeaveForAbonnement } from "@/components/paywall-gate";
+import { FreemiumLockedNotice } from "@/components/freemium-locked-notice";
+import { FreemiumWordCounter } from "@/components/freemium-word-counter";
+import { useStudentEntitlement } from "@/components/student-entitlement-context";
 
 type BibliothequeList = {
   id: string;
@@ -87,6 +90,8 @@ export function BibliothequeClient() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const leaveForAbonnement = useLeaveForAbonnement();
+  const entitlement = useStudentEntitlement();
+  const entitlementLocked = entitlement?.lockedWordCount ?? 0;
   const [lists, setLists] = useState<BibliothequeList[]>([]);
   const [languages, setLanguages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -505,10 +510,16 @@ export function BibliothequeClient() {
         </div>
       )}
       {/* En-tête */}
+      {entitlementLocked > 0 ? (
+        <FreemiumLockedNotice lockedCount={entitlementLocked} />
+      ) : null}
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <h1 className="text-[32px] leading-tight md:text-[38px]" style={headingStyle}>
-          Ma bibliothèque
-        </h1>
+        <div className="min-w-0">
+          <h1 className="text-[32px] leading-tight md:text-[38px]" style={headingStyle}>
+            Ma bibliothèque
+          </h1>
+          <FreemiumWordCounter className="mt-1" />
+        </div>
         <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
           <Link
             href={

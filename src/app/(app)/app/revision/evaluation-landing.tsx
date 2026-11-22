@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { ArrowRight, Mic, Pencil, RectangleHorizontal } from "lucide-react";
+import { FreemiumLockedNotice } from "@/components/freemium-locked-notice";
+import { FreemiumWordCounter } from "@/components/freemium-word-counter";
+import { useStudentEntitlement } from "@/components/student-entitlement-context";
 
 function ModeIcon({ icon: Icon }: { icon: typeof Pencil }) {
   return (
@@ -35,6 +38,7 @@ const cardClass =
   "relative flex h-full flex-col rounded-[20px] border-[1.5px] border-line bg-surface p-6 no-underline lg:p-7";
 
 export function EvaluationLanding() {
+  const entitlement = useStudentEntitlement();
   return (
     <div className="mx-auto w-full max-w-[1100px]">
       <header className="mb-8 lg:mb-10">
@@ -45,7 +49,14 @@ export function EvaluationLanding() {
         <p className="mt-3 text-base text-muted">
           Flashcards pour mémoriser, dictée pour ancrer.
         </p>
+        <FreemiumWordCounter className="mt-2" />
       </header>
+      {entitlement && entitlement.lockedWordCount > 0 ? (
+        <FreemiumLockedNotice
+          lockedCount={entitlement.lockedWordCount}
+          className="mb-6"
+        />
+      ) : null}
 
       <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-3">
         <Link

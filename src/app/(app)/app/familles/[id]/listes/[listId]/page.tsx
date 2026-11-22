@@ -15,6 +15,7 @@ import {
 import { eq, and, asc, desc, inArray } from "drizzle-orm";
 import { classifyWordSm2Status } from "@/lib/list-word-sm2";
 import { MotsClient } from "./mots-client";
+import { getClientStudentEntitlement } from "@/lib/student-entitlement";
 
 export default async function ListeDetailPage({
   params,
@@ -126,6 +127,19 @@ export default async function ListeDetailPage({
     }
   }
 
+  const entitlement =
+    isOwner && list.source !== "shop"
+      ? await getClientStudentEntitlement(user)
+      : null;
+  const lockedIds =
+    entitlement && !entitlement.unlimited
+      ? new Set(
+          motsList
+            .map((m) => m.id)
+            .filter((id) => !entitlement.activeWordIds.includes(id))
+        )
+      : null;
+
   const motsWithSm2 = motsList.map((m) => {
     const row = latestByWord.get(m.id);
     const sm2Status = classifyWordSm2Status(row);
@@ -135,6 +149,7 @@ export default async function ListeDetailPage({
       definition: m.definition,
       rank: m.rank,
       sm2Status,
+      locked: Boolean(lockedIds?.has(m.id)),
     };
   });
 

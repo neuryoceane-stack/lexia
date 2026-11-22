@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Brain, Check, FileText, Heart, LineChart, ListPlus, Loader2, MousePointerClick, Pointer, School, Users, X, type LucideIcon } from "lucide-react";
-import { OFFER_TRIAL_CARD_LABEL } from "@/lib/offer";
+import { offerSignupFootnote } from "@/lib/offer";
 import { BRAND_NAME } from "@/lib/brand";
 import { Logo } from "@/components/logo";
 import { AuthAlert } from "@/components/auth/auth-alert";
@@ -104,7 +104,11 @@ function useInView(threshold = 0.2) {
   return { ref, inView };
 }
 
-export function LandingPage() {
+export function LandingPage({
+  freemiumEnabled = false,
+}: {
+  freemiumEnabled?: boolean;
+}) {
   const statsRef = useInView();
   const step1Ref = useInView();
   const step2Ref = useInView();
@@ -548,7 +552,7 @@ export function LandingPage() {
             Créer mon compte
           </Link>
           <p className="mt-4 text-sm text-muted">
-            {OFFER_TRIAL_CARD_LABEL} · En 30 secondes
+            {offerSignupFootnote(freemiumEnabled)}
           </p>
         </div>
       </section>

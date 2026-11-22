@@ -1,8 +1,13 @@
 import "server-only";
 
+import type { User } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { wordFamilies, lists, words, revisions } from "@/lib/db/schema";
 import { eq, desc } from "drizzle-orm";
+import {
+  getActivePersonalWordIds,
+  getStudentEntitlement,
+} from "@/lib/student-entitlement";
 
 export type DashboardStatsSnapshot = {
   listsCount: number;
@@ -11,9 +16,28 @@ export type DashboardStatsSnapshot = {
   masteredWordsCount: number;
 };
 
+async function revisableWordIdsForStats(
+  user: Pick<User, "id" | "role">,
+  userWords: Array<{ id: string; source: string }>
+): Promise<Set<string>> {
+  const entitlement = await getStudentEntitlement(user);
+  if (!entitlement.freemiumActive || entitlement.unlimited) {
+    return new Set(userWords.map((w) => w.id));
+  }
+  const activeIds = new Set(await getActivePersonalWordIds(user.id));
+  const allowed = new Set<string>();
+  for (const w of userWords) {
+    if (w.source === "shop" || activeIds.has(w.id)) {
+      allowed.add(w.id);
+    }
+  }
+  return allowed;
+}
+
 export async function computeDashboardStats(
-  userId: string
+  user: Pick<User, "id" | "role">
 ): Promise<DashboardStatsSnapshot> {
+  const userId = user.id;
   const now = new Date();
 
   const [userLists, userWords, allRevisions] = await Promise.all([
@@ -23,7 +47,7 @@ export async function computeDashboardStats(
       .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
       .where(eq(wordFamilies.userId, userId)),
     db
-      .select({ id: words.id })
+      .select({ id: words.id, source: lists.source })
       .from(words)
       .innerJoin(lists, eq(words.listId, lists.id))
       .innerJoin(wordFamilies, eq(lists.familyId, wordFamilies.id))
@@ -41,9 +65,10 @@ export async function computeDashboardStats(
   ]);
 
   const listsCount = userLists.length;
-  const wordsCount = userWords.length;
+  const revisableIds = await revisableWordIdsForStats(user, userWords);
+  const wordsCount = revisableIds.size;
 
-  if (wordsCount === 0) {
+  if (userWords.length === 0) {
     return {
       listsCount,
       wordsCount: 0,
@@ -69,6 +94,7 @@ export async function computeDashboardStats(
   let masteredWordsCount = 0;
 
   for (const w of userWords) {
+    if (!revisableIds.has(w.id)) continue;
     const latest = latestByWord.get(w.id);
     if (!latest) {
       dueWordsCount++;

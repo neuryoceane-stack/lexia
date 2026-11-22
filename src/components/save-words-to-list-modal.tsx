@@ -53,6 +53,7 @@ export function SaveWordsToListModal({
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [successCount, setSuccessCount] = useState(0);
+  const [successDetail, setSuccessDetail] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const normalizedWords = useMemo(
@@ -147,11 +148,12 @@ export function SaveWordsToListModal({
 
       if (!listId) return;
 
-      const count = await saveToExistingList(listId);
-      setSuccessCount(count);
+      const result = await saveToExistingList(listId);
+      setSuccessCount(result.count);
+      setSuccessDetail(result.message ?? null);
       setSuccess(true);
       window.setTimeout(() => {
-        onSaved({ count });
+        onSaved({ count: result.count });
         onClose();
       }, 1200);
     } catch (err) {
@@ -220,6 +222,11 @@ export function SaveWordsToListModal({
             {successCount} mot{successCount !== 1 ? "s" : ""} enregistré
             {successCount !== 1 ? "s" : ""} !
           </p>
+          {successDetail ? (
+            <p className="max-w-sm text-sm" style={{ color: "var(--foreground-muted)" }}>
+              {successDetail}
+            </p>
+          ) : null}
         </div>
       ) : loadingCatalog ? (
         <div

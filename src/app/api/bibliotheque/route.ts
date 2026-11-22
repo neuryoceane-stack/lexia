@@ -21,7 +21,7 @@ export async function GET(request: Request) {
   const sort =
     sortParam === "created" || sortParam === "updated" ? sortParam : "alpha";
 
-  const { lists, languages } = await loadBibliothequeForUser(user.id, {
+  const { lists, languages } = await loadBibliothequeForUser(user, {
     lang,
     search,
     sort,
