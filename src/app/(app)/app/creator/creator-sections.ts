@@ -9,7 +9,7 @@
  * - overview  → analytics (GET /api/creator/analytics)
  * - health    → feedbacks (GET et PATCH /api/creator/feedbacks)
  * - finance   → finance (GET /api/creator/finance), alertes comprises
- * - shop      → boutique déjà en place ( /api/creator/shop )
+ * - shop      → boutique ( /api/creator/shop ). La visibilité en lot rappelle ce PATCH, un pack à la fois.
  * - students  → liste, usage (lecture seule) et onglet Établissements
  * - pilot → professeurs du pilote (users, classes, revisions, revision_sessions)
  * - churn    → désabonnements (GET /api/creator/churn)

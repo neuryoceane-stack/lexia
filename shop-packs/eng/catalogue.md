@@ -18,3 +18,7 @@
 | 14 | Relations & émotions | Amitié, amour, famille, sentiments | `pack-14-relations-emotions.xlsx` | anglais | 80 | 20 | |
 | 15 | Nature & animaux | Faune, paysages, plantes | `pack-15-nature-animaux.xlsx` | anglais | 80 | 20 | |
 | 16 | Ville & orientation | Rues, directions, transports, quartiers | `pack-16-ville-orientation.xlsx` | anglais | 80 | 20 | |
+
+## Visibilité
+
+Ces packs restent invisibles tant qu'ils ne sont pas activés. Dans l'espace créateur, section Boutique : cochez les packs (ou « Tout sélectionner »), puis « Rendre visible ». Une confirmation précède la création des produits Stripe. Les packs sont traités l'un après l'autre par le PATCH existant. En cas d'échec, les autres continuent : le récapitulatif donne le nom du pack et la raison, et le pack en échec reste inactif.

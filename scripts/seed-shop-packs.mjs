@@ -15,7 +15,9 @@
  *   node --env-file=.env.local scripts/seed-shop-packs.mjs --remove --allow-remote
  *
  * Les ids commencent par « seed-shop- » pour un delete ciblé.
- * Activez les listes depuis le Creator après insertion (`is_active = 0`).
+ * Activez les listes depuis le Creator après insertion (`is_active = 0`) :
+ * Boutique, cocher les packs, puis « Rendre visible ». Le PATCH existant
+ * est appelé un pack à la fois (synchronisation Stripe, puis rollback si échec).
  */
 
 import { createClient } from "@libsql/client";
